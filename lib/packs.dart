@@ -8,6 +8,7 @@ import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
+import 'library.dart';
 import 'main.dart';
 import 'retro_theme.dart';
 
@@ -26,6 +27,7 @@ class _PacksScreenState extends State<PacksScreen> {
 
   Future<void> _open(String kind, [String? sys]) async {
     if (busy) return;
+    if (kind != 'free' && !await _confirm(kind, sys)) return;
     setState(() => busy = true);
     try {
       final r = await Game.i.openPack(kind, sys);
@@ -42,24 +44,94 @@ class _PacksScreenState extends State<PacksScreen> {
     if (mounted) setState(() => busy = false);
   }
 
+  /// Confirmation d'achat : booster, prix, solde avant/après.
+  Future<bool> _confirm(String kind, String? sys) async {
+    final price = kPackPrice[kind] ?? 0;
+    final coins = Game.i.coins;
+    final color = _kOfferColor[kind] ?? kPanel2;
+    final name = switch (kind) {
+      'console' => '${t('Paquet', 'Pack')} ${Catalog.system(sys ?? '')?.name ?? ''}',
+      'premium' => t('Paquet premium', 'Premium pack'),
+      _ => t('Paquet mixte', 'Mixed pack'),
+    };
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xF20A1033),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: color, width: 2)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(t('Acheter ce paquet ?', 'Buy this pack?'), textAlign: TextAlign.center, style: pixelStyle(size: 11)),
+            const SizedBox(height: 18),
+            _MiniBooster(kind: kind, label: _offerLabel(kind), color: color, width: 96),
+            const SizedBox(height: 16),
+            if (kind == 'console' && sys != null)
+              Padding(padding: const EdgeInsets.only(bottom: 8), child: ConsoleLogo(sys, height: 26)),
+            Text(name, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+            const SizedBox(height: 14),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              CoinChip(coins),
+              const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Icon(Icons.arrow_forward, color: Colors.white54, size: 18)),
+              CoinChip(coins - price),
+            ]),
+            const SizedBox(height: 6),
+            Text('-$price ${t('pièces', 'coins')}', style: const TextStyle(color: Color(0xFFFF8A80), fontWeight: FontWeight.w700)),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel')))),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(t('Acheter', 'Buy'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                ),
+              ),
+            ]),
+          ]),
+        ),
+      ),
+    );
+    return ok == true;
+  }
+
   Future<void> _pickConsole() async {
     final sys = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: kPanel,
-      builder: (ctx) => SafeArea(
-        child: ListView(shrinkWrap: true, children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(t('Paquet console : choisis la série', 'Console pack: choose the set'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-          ),
-          for (final s in Catalog.systems)
-            ListTile(
-              title: Align(alignment: Alignment.centerLeft, child: ConsoleLogo(s.id, height: 26)),
-              subtitle: LinearProgressIndicator(value: Game.i.ownedIn(s.id) / max(1, s.count), color: kGold, backgroundColor: kPanel2),
-              trailing: Text('${Game.i.ownedIn(s.id)}/${s.count}'),
-              onTap: () => Navigator.pop(ctx, s.id),
+      isScrollControlled: true,
+      backgroundColor: const Color(0xF20A1033),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.82,
+        maxChildSize: 0.95,
+        minChildSize: 0.4,
+        builder: (ctx, scroll) => SafeArea(
+          child: CustomScrollView(controller: scroll, slivers: [
+            SliverToBoxAdapter(
+              child: Column(children: [
+                const SizedBox(height: 10),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                  child: Text(t('PAQUET CONSOLE', 'CONSOLE PACK'), style: pixelStyle(size: 13)),
+                ),
+                Text(t('Choisis la série', 'Choose the set'), style: const TextStyle(color: Colors.white60)),
+                const SizedBox(height: 12),
+              ]),
             ),
-        ]),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 1.15),
+                delegate: SliverChildListDelegate([
+                  for (final s in Catalog.systems) _ConsolePick(sys: s, onTap: () => Navigator.pop(ctx, s.id)),
+                ]),
+              ),
+            ),
+          ]),
+        ),
       ),
     );
     if (sys != null) _open('console', sys);
@@ -79,6 +151,8 @@ class _PacksScreenState extends State<PacksScreen> {
           Expanded(
             child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: [
               _PackOffer(
+                kind: 'free',
+                packLabel: t('Du jour', 'Daily'),
                 title: t('Paquet du jour', 'Daily pack'),
                 subtitle: g.free
                     ? t('5 cartes offertes, toutes consoles', '5 free cards, all systems')
@@ -90,6 +164,8 @@ class _PacksScreenState extends State<PacksScreen> {
                 onTap: () => _open('free'),
               ),
               _PackOffer(
+                kind: 'mixte',
+                packLabel: t('Mixte', 'Mixed'),
                 title: t('Paquet mixte', 'Mixed pack'),
                 subtitle: t('5 cartes, toutes consoles', '5 cards, all systems'),
                 price: kPackPrice['mixte']!,
@@ -98,6 +174,8 @@ class _PacksScreenState extends State<PacksScreen> {
                 onTap: () => _open('mixte'),
               ),
               _PackOffer(
+                kind: 'console',
+                packLabel: t('Console', 'Console'),
                 title: t('Paquet console', 'Console pack'),
                 subtitle: t('5 cartes de la console de ton choix', '5 cards from the system of your choice'),
                 price: kPackPrice['console']!,
@@ -106,6 +184,8 @@ class _PacksScreenState extends State<PacksScreen> {
                 onTap: _pickConsole,
               ),
               _PackOffer(
+                kind: 'premium',
+                packLabel: 'Premium',
                 title: t('Paquet premium', 'Premium pack'),
                 subtitle: t('5 cartes dont une rare ou mieux garantie', '5 cards, one rare or better guaranteed'),
                 price: kPackPrice['premium']!,
@@ -143,13 +223,87 @@ class _PacksScreenState extends State<PacksScreen> {
   }
 }
 
+const _kOfferColor = {
+  'free': Color(0xFF1D9E75),
+  'mixte': Color(0xFF534AB7),
+  'console': Color(0xFF185FA5),
+  'premium': Color(0xFF854F0B),
+};
+
+String _offerLabel(String kind) => switch (kind) {
+      'free' => t('Du jour', 'Daily'),
+      'console' => 'Console',
+      'premium' => 'Premium',
+      _ => t('Mixte', 'Mixed'),
+    };
+
+/// Tuile du choix de console : photo, logo, progression.
+class _ConsolePick extends StatelessWidget {
+  final RcSystem sys;
+  final VoidCallback onTap;
+  const _ConsolePick({required this.sys, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final owned = Game.i.ownedIn(sys.id);
+    final total = max(1, sys.count);
+    final brand = owned >= total ? kGold : (kConsoleBrand[sys.id] ?? const Color(0xFF3550B8));
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color.lerp(const Color(0xFF0A1033), brand, 0.3)!, const Color(0xFF0A1033)],
+            ),
+            border: Border.all(color: brand.withOpacity(0.8), width: 1.5),
+            boxShadow: [BoxShadow(color: brand.withOpacity(0.25), blurRadius: 10)],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+            child: Column(children: [
+              SizedBox(height: 24, child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: ConsoleLogo(sys.id, height: 20)))),
+              const SizedBox(height: 4),
+              Expanded(
+                child: Image.asset(
+                  'assets/consoles/${sys.id}.png',
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.medium,
+                  errorBuilder: (_, __, ___) => Icon(Icons.videogame_asset, size: 40, color: Colors.white.withOpacity(0.4)),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(value: owned / total, minHeight: 5, color: brand, backgroundColor: Colors.white12),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text('$owned/${sys.count}', style: const TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w700)),
+              ]),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PackOffer extends StatelessWidget {
   final String title, subtitle;
   final int price;
   final Color color;
   final bool enabled, highlight;
   final VoidCallback onTap;
-  const _PackOffer({required this.title, required this.subtitle, required this.price, required this.color, required this.enabled, required this.onTap, this.highlight = false});
+  final String kind, packLabel;
+  const _PackOffer({required this.kind, required this.packLabel, required this.title, required this.subtitle, required this.price, required this.color, required this.enabled, required this.onTap, this.highlight = false});
 
   @override
   Widget build(BuildContext context) {
@@ -168,12 +322,7 @@ class _PackOffer extends StatelessWidget {
               border: Border.all(color: highlight ? kGold : color.withOpacity(0.6), width: highlight ? 2 : 1),
             ),
             child: Row(children: [
-              Container(
-                width: 46,
-                height: 64,
-                decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.white24, width: 2)),
-                child: const Center(child: Text('RC', style: TextStyle(color: Color(0xFFFAC775), fontWeight: FontWeight.w900))),
-              ),
+              _MiniBooster(kind: kind, label: packLabel, color: color),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1061,7 +1210,8 @@ class _BoosterBody extends StatelessWidget {
   final String? sys;
   final double sheen;
   final Color color;
-  const _BoosterBody({required this.kind, required this.sys, required this.label, required this.sheen, required this.color});
+  final double tint;
+  const _BoosterBody({required this.kind, required this.sys, required this.label, required this.sheen, required this.color, this.tint = 0.18});
 
   @override
   Widget build(BuildContext context) {
@@ -1069,7 +1219,7 @@ class _BoosterBody extends StatelessWidget {
       // illustration du dos des cartes
       Image.asset('assets/card_back.jpg', fit: BoxFit.cover, alignment: const Alignment(0, -0.1)),
       // teinte selon le type de paquet
-      DecoratedBox(decoration: BoxDecoration(color: color.withOpacity(0.18))),
+      DecoratedBox(decoration: BoxDecoration(color: color.withOpacity(tint))),
       // bombé : bords plus sombres, centre plus clair
       const DecoratedBox(
         decoration: BoxDecoration(
@@ -1121,7 +1271,7 @@ class _BoosterBody extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(label.toUpperCase(), textAlign: TextAlign.center, style: pixelStyle(size: 9, color: Colors.white, shadow: false)),
               ),
-            Text('RÉTRO COLLEC', style: pixelStyle(size: 11)),
+            Text('PIXEL TRADE', style: pixelStyle(size: 11)),
             const SizedBox(height: 4),
             Text(t('5 CARTES', '5 CARDS'), style: pixelStyle(size: 7, color: const Color(0xFF8FD3FF), shadow: false)),
           ]),
@@ -1132,5 +1282,54 @@ class _BoosterBody extends StatelessWidget {
       // contour brillant
       DecoratedBox(decoration: BoxDecoration(border: Border.all(color: Colors.white.withOpacity(0.18), width: 1.5))),
     ]);
+  }
+}
+
+/// Mini booster pour la liste des offres : le même sachet que l'ouverture, en réduit.
+class _MiniBooster extends StatelessWidget {
+  final String kind, label;
+  final Color color;
+  final double width;
+  const _MiniBooster({required this.kind, required this.label, required this.color, this.width = 58});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: width * _kPackH / _kPackW,
+      child: Transform.rotate(
+        angle: -0.06,
+        child: Container(
+          decoration: BoxDecoration(boxShadow: [
+            BoxShadow(color: color.withOpacity(0.7), blurRadius: 12, spreadRadius: 0.5),
+            const BoxShadow(color: Colors.black54, blurRadius: 6, offset: Offset(0, 3)),
+          ]),
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: SizedBox(
+              width: _kPackW,
+              height: _kPackH,
+              child: Column(children: [
+                SizedBox(
+                  height: _kCapH,
+                  width: _kPackW,
+                  child: ClipPath(
+                    clipper: const _CrimpClipper(top: true),
+                    child: CustomPaint(painter: _CrimpPainter(sheen: 0.3, top: true), child: const SizedBox.expand()),
+                  ),
+                ),
+                Expanded(
+                  child: ClipPath(
+                    clipper: const _CrimpClipper(top: false),
+                    // teinte plus marquée pour distinguer les paquets en petit
+                    child: _BoosterBody(kind: kind, sys: null, label: label, sheen: 0.3, color: color, tint: 0.45),
+                  ),
+                ),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

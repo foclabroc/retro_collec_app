@@ -13,20 +13,21 @@ import 'packs.dart';
 import 'profile.dart';
 import 'trades.dart';
 import 'retro_theme.dart';
+import 'server.dart';
 import 'update_check.dart';
+import 'welcome.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// RÉTRO COLLEC — collection multijoueur de boîtes de jeux rétro, by foclabroc
+// PIXEL TRADE — collection multijoueur de boîtes de jeux rétro, by foclabroc
 // Langue : français si le téléphone est en français, anglais sinon.
 // ═══════════════════════════════════════════════════════════════════════════
 
 final rcMessenger = GlobalKey<ScaffoldMessengerState>();
-final _updateGateKey = GlobalKey<UpdateGateState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-  rcFrench = WidgetsBinding.instance.platformDispatcher.locale.languageCode.toLowerCase() == 'fr';
+  await loadLang();
   await RcAudio.loadPrefs();
   await Tilt.loadPrefs();
   runApp(const RetroCollecApp());
@@ -37,8 +38,12 @@ class RetroCollecApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: t('Rétro Collec', 'Retro Collec'),
+    // Changement de langue : toute l'appli est reconstruite (retour à l'écran titre)
+    return ValueListenableBuilder<int>(
+      valueListenable: rcLangChanged,
+      builder: (context, v, _) => MaterialApp(
+      key: ValueKey('lang$v'),
+      title: 'Pixel Trade',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: rcMessenger,
       // Fond animé rétro derrière tous les écrans.
@@ -48,7 +53,8 @@ class RetroCollecApp extends StatelessWidget {
         Positioned.fill(child: SafeArea(top: false, left: false, right: false, child: child ?? const SizedBox())),
       ]),
       theme: retroTheme(),
-      home: UpdateGate(key: _updateGateKey, french: rcFrench, child: const StartScreen()),
+      home: UpdateGate(french: rcFrench, child: const StartScreen()),
+      ),
     );
   }
 }
@@ -105,10 +111,35 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
             });
           }
         });
+      } else {
+        // catalogue déjà là : on vérifie s'il a changé (nouvelles cartes, textes, traductions)
+        setState(() => step = t('Recherche de nouvelles cartes…', 'Checking for new cards…'));
+        await Catalog.refreshInBackground(progress: (p, s) {
+          if (mounted) {
+            setState(() {
+              progress = p;
+              if (s.isNotEmpty) step = t('Mise à jour des cartes : $s', 'Updating cards: $s');
+            });
+          }
+        });
       }
     } catch (_) {
       if (mounted) setState(() => error = t('Impossible de télécharger les cartes.\nVérifie ta connexion.', 'Could not download the cards.\nCheck your connection.'));
       return;
+    }
+    // Premier lancement : pseudo + avatar (ou code de sauvegarde) avant de créer le profil
+    if (!await RcServer.hasProfile()) {
+      if (!mounted) return;
+      setState(() => step = '');
+      await Navigator.of(context).push(PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const WelcomePage(),
+        transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
+      ));
+      if (!mounted) return;
+      if (Game.i.ready) {
+        setState(() => ready = true);
+        return;
+      }
     }
     try {
       setState(() => step = t('Connexion au serveur…', 'Connecting…'));
@@ -171,9 +202,9 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
               child: const SizedBox(width: 150, child: CardBack(aura: kGold, glow: 0.7)),
             ),
             const SizedBox(height: 30),
-            Text(t('RÉTRO', 'RETRO'), style: pixelStyle(size: 30)),
+            Text('PIXEL', style: pixelStyle(size: 30)),
             const SizedBox(height: 8),
-            Text('COLLEC', style: pixelStyle(size: 30, color: const Color(0xFF3DD9FF))),
+            Text('TRADE', style: pixelStyle(size: 30, color: const Color(0xFF3DD9FF))),
             const SizedBox(height: 10),
             Text(t('Collection de jeux rétro', 'Retro game collection'), style: const TextStyle(color: Colors.white60, letterSpacing: 1)),
             const Spacer(),
@@ -287,14 +318,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       _onEvent(e);
     }
     RcAudio.musicStart(1);
-    // En arrière-plan : captures d'écran des fiches, puis catalogue à jour
-    Future(() async {
-      await Catalog.updateShots();
-      if (await Catalog.refreshInBackground()) {
-        await Catalog.updateShots();
-        if (mounted) setState(() {});
-      }
-    });
+    // En arrière-plan : captures d'écran des fiches (le catalogue est vérifié à l'écran titre)
+    Future(() => Catalog.updateShots());
   }
 
   @override
@@ -327,7 +352,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     String msg;
     switch (e['type']) {
       case 'welcome':
-        msg = t('Bienvenue dans Rétro Collec ! $coins pièces offertes', 'Welcome to Retro Collec! $coins free coins');
+        msg = t('Bienvenue dans Pixel Trade ! $coins pièces offertes', 'Welcome to Pixel Trade! $coins free coins');
       case 'login':
         final s = (e['streak'] as num? ?? 1).toInt();
         msg = t('Connexion jour $s : +$coins pièces', 'Day $s login: +$coins coins');

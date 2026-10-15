@@ -6,7 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// RÉTRO COLLEC — serveur Supabase (même projet que Rétro Jump, tables rc_*)
+// PIXEL TRADE — serveur Supabase (même projet que Rétro Jump, tables rc_*)
 // Tout est décidé côté serveur (pièces, tirages, collection) : l'appli appelle
 // les fonctions SQL rc_* avec une signature (même sel que le SQL).
 // ═══════════════════════════════════════════════════════════════════════════
@@ -44,6 +44,16 @@ class RcServer {
     return _device = id;
   }
 
+  /// Vrai si ce téléphone a déjà un profil (identifiant créé ou restauré).
+  static Future<bool> hasProfile() async {
+    if (_device != null) return true;
+    final prefs = await SharedPreferences.getInstance();
+    return (prefs.getString(_kDeviceKey) ?? '').length == 32;
+  }
+
+  /// Pseudo disponible ?
+  static Future<bool> nameFree(String name) async => (await _rpc('rc_name_free', {'p_name': name})) == true;
+
   /// Identifiant public correspondant à un identifiant secret.
   static String pidOf(String device) => sha256.convert(utf8.encode(device)).toString().substring(0, 16);
 
@@ -60,10 +70,44 @@ class RcServer {
     if (id.length != 32) throw const RcError('code invalide');
     final p = await profile(pidOf(id));
     if (p == null) throw const RcError('code inconnu');
+    await _adopt(id);
+    return p['name'] as String? ?? '?';
+  }
+
+  /// Connexion pseudo + mot de passe. Renvoie le pseudo du compte.
+  static Future<String> login(String name, String password) async {
+    final r = await _rpc('rc_login', {'p_name': name.trim(), 'p_hash': _passHash(password)});
+    if (r is! String || r.length != 32) throw const RcError('identifiants incorrects');
+    final p = await profile(pidOf(r));
+    await _adopt(r);
+    return p?['name'] as String? ?? name.trim();
+  }
+
+  /// Définit ou change le mot de passe du compte de ce téléphone.
+  static Future<void> setPassword(String password) async {
+    final d = await deviceId();
+    final h = _passHash(password);
+    await _rpc('rc_set_password', {'p_device': d, 'p_hash': h, 'p_sig': _sig('$d|password|$h')});
+  }
+
+  static Future<bool> hasPassword() async {
+    if (!await hasProfile()) return false;
+    return (await _rpc('rc_has_password', {'p_device': await deviceId()})) == true;
+  }
+
+  static String _passHash(String password) => sha256.convert(utf8.encode('pt-pass#41c9|$password')).toString();
+
+  /// Remplace le profil de ce téléphone (le profil vierge éventuel est supprimé).
+  static Future<void> _adopt(String id) async {
+    final old = await hasProfile() ? await deviceId() : id;
+    if (old != id) {
+      try {
+        await _rpc('rc_forget', {'p_device': old, 'p_sig': _sig('$old|forget')});
+      } catch (_) {}
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_kDeviceKey, id);
     _device = id;
-    return p['name'] as String? ?? '?';
   }
 
   static String _sig(String s) => sha256.convert(utf8.encode('$_salt|$s')).toString();

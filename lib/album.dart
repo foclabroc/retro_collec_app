@@ -246,11 +246,11 @@ class _CardDetailPageState extends State<CardDetailPage> {
                 _info(t('Année', 'Year'), '${c.year ?? '?'}'),
                 _info(t('Développeur', 'Developer'), c.dev.isEmpty ? '?' : c.dev),
                 _info(t('Éditeur', 'Publisher'), c.pub.isEmpty ? '?' : c.pub),
-                _info(t('Genre', 'Genre'), c.genre.isEmpty ? '?' : c.genre),
+                _info(t('Genre', 'Genre'), c.genreL.isEmpty ? '?' : c.genreL),
                 _info(t('Rareté', 'Rarity'), rarityName(c.rarity)),
-                if (c.desc.isNotEmpty) ...[
+                if (c.descL.isNotEmpty) ...[
                   const SizedBox(height: 10),
-                  Text(c.desc, style: const TextStyle(color: Colors.white70, height: 1.45)),
+                  Text(c.descL, style: const TextStyle(color: Colors.white70, height: 1.45)),
                 ],
               ] else
                 Padding(

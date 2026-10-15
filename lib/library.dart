@@ -15,7 +15,7 @@ import 'main.dart';
 // Toucher une vitrine ouvre l'album de la console.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const Map<String, Color> _kBrand = {
+const Map<String, Color> kConsoleBrand = {
   'nes': Color(0xFFE60012),
   'snes': Color(0xFF7B68C8),
   'n64': Color(0xFF2CA44A),
@@ -107,7 +107,7 @@ class _ConsoleTileState extends State<_ConsoleTile> {
     final total = max(1, s.count);
     final complete = owned >= total;
     final none = owned == 0;
-    final brand = complete ? kGold : (_kBrand[s.id] ?? const Color(0xFF3550B8));
+    final brand = complete ? kGold : (kConsoleBrand[s.id] ?? const Color(0xFF3550B8));
 
     Widget img = Image.asset(
       'assets/consoles/${s.id}.png',

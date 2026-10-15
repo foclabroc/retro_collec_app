@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'account.dart';
+
 import 'album.dart';
 import 'audio.dart';
 import 'cards.dart';
@@ -25,6 +27,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   List<Map<String, dynamic>>? board;
   (int, int)? rank;
+  bool? hasPass;
 
   @override
   void initState() {
@@ -36,10 +39,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final b = await RcServer.board();
       final r = await RcServer.rank();
+      final hp = await RcServer.hasPassword();
       if (mounted) {
         setState(() {
           board = b;
           rank = r;
+          hasPass = hp;
         });
       }
     } catch (_) {}
@@ -183,6 +188,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const Divider(height: 1, color: Colors.white12),
                     ListTile(
+                      leading: const Icon(Icons.translate),
+                      title: Text(t('Langue', 'Language')),
+                      subtitle: Text(
+                          switch (rcLang) {
+                            'fr' => 'Français',
+                            'en' => 'English',
+                            _ => t('Automatique (langue du téléphone)', 'Automatic (phone language)'),
+                          },
+                          style: const TextStyle(fontSize: 12, color: Colors.white54)),
+                      onTap: _language,
+                    ),
+                    const Divider(height: 1, color: Colors.white12),
+                    ListTile(
+                      leading: Icon(hasPass == true ? Icons.lock : Icons.lock_open, color: hasPass == true ? const Color(0xFF5DCAA5) : const Color(0xFFF09595)),
+                      title: Text(hasPass == true ? t('Changer le mot de passe', 'Change password') : t('Protéger mon compte', 'Protect my account')),
+                      subtitle: Text(
+                          hasPass == true
+                              ? t('Compte protégé : pseudo + mot de passe', 'Account protected: name + password')
+                              : t('Choisis un mot de passe pour retrouver ton compte', 'Choose a password to get your account back'),
+                          style: const TextStyle(fontSize: 12, color: Colors.white54)),
+                      onTap: _password,
+                    ),
+                    const Divider(height: 1, color: Colors.white12),
+                    ListTile(
                       leading: const Icon(Icons.key, color: kGold),
                       title: Text(t('Mon code de sauvegarde', 'My backup code')),
                       subtitle: Text(t('Pour retrouver ton profil sur un autre téléphone', 'To get your profile back on another phone'),
@@ -192,13 +221,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const Divider(height: 1, color: Colors.white12),
                     ListTile(
                       leading: const Icon(Icons.restore),
-                      title: Text(t('Restaurer un profil', 'Restore a profile')),
-                      subtitle: Text(t('Entrer un code de sauvegarde', 'Enter a backup code'), style: const TextStyle(fontSize: 12, color: Colors.white54)),
+                      title: Text(t('Retrouver un compte', 'Get an account back')),
+                      subtitle: Text(t('Pseudo + mot de passe ou code de sauvegarde', 'Name + password or backup code'), style: const TextStyle(fontSize: 12, color: Colors.white54)),
                       onTap: _restore,
                     ),
                   ]),
                 ),
                 const SizedBox(height: 18),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: _updateCards,
+                    icon: const Icon(Icons.sync, size: 16, color: Colors.white38),
+                    label: Text('${t('Cartes', 'Cards')} ${Catalog.version} — ${t('mettre à jour', 'update')}',
+                        style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                  ),
+                ),
                 Center(
                   child: TextButton(
                     onPressed: () async {
@@ -207,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       if (r == 0) toast(t('L\'appli est à jour (v$kRetroCollecVersion)', 'The app is up to date (v$kRetroCollecVersion)'));
                       if (r == 2) toast(t('Vérification impossible (hors ligne)', 'Could not check (offline)'));
                     },
-                    child: Text('Rétro Collec v$kRetroCollecVersion — ${t('vérifier les mises à jour', 'check for updates')}',
+                    child: Text('Pixel Trade v$kRetroCollecVersion — ${t('vérifier les mises à jour', 'check for updates')}',
                         style: const TextStyle(color: Colors.white38, fontSize: 12)),
                   ),
                 ),
@@ -227,8 +264,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (ctx) => AlertDialog(
         title: Text(t('Code de sauvegarde', 'Backup code')),
         content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(t('Note ce code (ou fais une capture d\'écran). Sur un nouveau téléphone : Profil → Restaurer un profil.',
-              'Write this code down (or take a screenshot). On a new phone: Profile → Restore a profile.')),
+          Text(t('Note ce code (ou fais une capture d\'écran). Sur un nouveau téléphone : « J\'ai déjà un compte ».',
+              'Write this code down (or take a screenshot). On a new phone: "I already have an account".')),
           const SizedBox(height: 14),
           Container(
             width: double.infinity,
@@ -255,38 +292,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _restore() async {
-    final ctl = TextEditingController();
-    final code = await showDialog<String>(
+    final name = await showAccountLogin(context, replacing: true);
+    if (name == null) return;
+    _load();
+    toast(t('Profil « $name » restauré !', 'Profile "$name" restored!'));
+  }
+
+  /// Force la vérification du catalogue des cartes (affiche l'erreur s'il y en a une).
+  Future<void> _updateCards() async {
+    final status = ValueNotifier<String>(t('Recherche…', 'Checking…'));
+    showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: Text(t('Restaurer un profil', 'Restore a profile')),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(t('Le profil actuel de ce téléphone sera remplacé. Garde d\'abord son code si tu veux pouvoir y revenir.',
-              'This phone\'s current profile will be replaced. Keep its code first if you want to come back to it.'),
-              style: const TextStyle(fontSize: 13)),
-          const SizedBox(height: 12),
-          TextField(
-            controller: ctl,
-            autofocus: true,
-            textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(hintText: 'XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX'),
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
-          ),
+        content: Row(children: [
+          const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: kGold)),
+          const SizedBox(width: 16),
+          Expanded(child: ValueListenableBuilder<String>(valueListenable: status, builder: (_, v, __) => Text(v))),
         ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Annuler', 'Cancel'))),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, ctl.text), child: Text(t('Restaurer', 'Restore'))),
+      ),
+    );
+    String msg;
+    try {
+      final before = Catalog.version;
+      await Catalog.update(progress: (p, s) => status.value = '${t('Téléchargement', 'Downloading')} ${(p * 100).round()} %${s.isEmpty ? '' : ' — $s'}');
+      msg = before == Catalog.version
+          ? t('Cartes déjà à jour (${Catalog.version})', 'Cards already up to date (${Catalog.version})')
+          : t('Cartes mises à jour (${Catalog.version})', 'Cards updated (${Catalog.version})');
+    } catch (e) {
+      msg = '${t('Échec', 'Failed')} : $e';
+    }
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    setState(() {});
+    toast(msg);
+  }
+
+  Future<void> _language() async {
+    final v = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(t('Langue', 'Language')),
+        children: [
+          for (final (code, label) in [
+            ('auto', t('Automatique (langue du téléphone)', 'Automatic (phone language)')),
+            ('fr', 'Français'),
+            ('en', 'English'),
+          ])
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, code),
+              child: Row(children: [
+                Icon(rcLang == code ? Icons.radio_button_checked : Icons.radio_button_unchecked, color: kGold, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text(label)),
+              ]),
+            ),
         ],
       ),
     );
-    if (code == null || code.trim().isEmpty) return;
-    try {
-      final name = await RcServer.restore(code);
-      await Game.i.refresh();
-      _load();
-      toast(t('Profil « $name » restauré !', 'Profile "$name" restored!'));
-    } catch (e) {
-      toast(errText(e));
+    if (v == null || v == rcLang) return;
+    await setLang(v);
+  }
+
+  Future<void> _password() async {
+    if (await showSetPassword(context, change: hasPass == true)) {
+      setState(() => hasPass = true);
+      toast(t('Mot de passe enregistré', 'Password saved'));
     }
   }
 

@@ -7,6 +7,8 @@ import 'package:archive/archive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'game.dart';
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Catalogue des cartes : catalog.json + images, hébergés sur GitHub Pages
 // (dépôt foclabroc/retro_collec_assets, généré par retro_collec_export.py).
@@ -21,7 +23,7 @@ const kAssetsBase = 'https://foclabroc.github.io/retro_collec_assets/';
 int _int(dynamic v) => (v as num).toInt();
 
 class RcCard {
-  final String id, sys, title, dev, pub, genre, img, desc;
+  final String id, sys, title, dev, pub, genre, img, desc, genreEn, descEn;
   final String? shot;
   final int num, rarity;
   final int? year;
@@ -38,7 +40,13 @@ class RcCard {
     required this.img,
     required this.shot,
     required this.desc,
+    this.genreEn = '',
+    this.descEn = '',
   });
+
+  /// Genre et description dans la langue du téléphone (français par défaut).
+  String get genreL => !rcFrench && genreEn.isNotEmpty ? genreEn : genre;
+  String get descL => !rcFrench && descEn.isNotEmpty ? descEn : desc;
 
   factory RcCard.fromJson(Map<String, dynamic> j) => RcCard(
         id: j['id'] as String,
@@ -53,6 +61,8 @@ class RcCard {
         img: j['img'] as String,
         shot: j['shot'] as String?,
         desc: j['d'] as String? ?? '',
+        genreEn: j['ge'] as String? ?? '',
+        descEn: j['de'] as String? ?? '',
       );
 }
 
@@ -212,13 +222,15 @@ class Catalog {
     }
   }
 
-  /// Vérifie en arrière-plan si le catalogue en ligne a changé ; vrai si une mise à jour a été appliquée.
-  static Future<bool> refreshInBackground() async {
+  /// Vérifie si le catalogue en ligne a changé ; vrai si une mise à jour a été appliquée.
+  /// Hors ligne : ne fait rien (on garde le catalogue local).
+  static Future<bool> refreshInBackground({void Function(double, String)? progress}) async {
     try {
-      final txt = utf8.decode(await _get('${kAssetsBase}catalog.json?t=${DateTime.now().millisecondsSinceEpoch}'));
+      final txt = utf8.decode(await _get('${kAssetsBase}catalog.json?t=${DateTime.now().millisecondsSinceEpoch}')
+          .timeout(const Duration(seconds: 20)));
       final v = (jsonDecode(txt) as Map)['version']?.toString() ?? '';
       if (v == version) return false;
-      await update();
+      await update(progress: progress);
       return true;
     } catch (_) {
       return false;

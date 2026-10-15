@@ -204,8 +204,8 @@ class _UpdateDialogState extends State<_UpdateDialog> {
     if (r.type != ResultType.done) {
       // 1re fois : Android demande d'autoriser « Installer des applis inconnues »
       setState(() => _info = fr
-          ? 'Autorise « Installer des applis inconnues » pour Rétro Collec, puis appuie sur Installer.'
-          : 'Allow "Install unknown apps" for Retro Collec, then tap Install.');
+          ? 'Autorise « Installer des applis inconnues » pour Pixel Trade, puis appuie sur Installer.'
+          : 'Allow "Install unknown apps" for Pixel Trade, then tap Install.');
     } else {
       setState(() => _info = '');
     }

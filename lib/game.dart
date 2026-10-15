@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'audio.dart';
 import 'catalog.dart';
@@ -10,9 +11,37 @@ import 'server.dart';
 // État du joueur (copie locale de ce que renvoie le serveur) + réglages communs
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Langue : français si le téléphone est en français, anglais sinon.
+/// Langue : réglage 'auto' (langue du téléphone), 'fr' ou 'en'.
 bool rcFrench = true;
+String rcLang = 'auto';
 String t(String fr, String en) => rcFrench ? fr : en;
+
+/// Incrémenté à chaque changement de langue : l'appli se reconstruit entièrement.
+final rcLangChanged = ValueNotifier<int>(0);
+
+void _applyLang() {
+  final phoneFr = WidgetsBinding.instance.platformDispatcher.locale.languageCode.toLowerCase() == 'fr';
+  rcFrench = rcLang == 'fr' || (rcLang == 'auto' && phoneFr);
+}
+
+Future<void> loadLang() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString('rc_lang') ?? 'auto';
+    rcLang = const ['auto', 'fr', 'en'].contains(v) ? v : 'auto';
+  } catch (_) {}
+  _applyLang();
+}
+
+Future<void> setLang(String lang) async {
+  rcLang = lang;
+  _applyLang();
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('rc_lang', lang);
+  } catch (_) {}
+  rcLangChanged.value++;
+}
 
 // Raretés : 0 commune … 4 légendaire
 const kRarityColor = [Color(0xFF888780), Color(0xFF639922), Color(0xFF378ADD), Color(0xFF9C8CFF), Color(0xFFEF9F27)];
@@ -258,6 +287,8 @@ String errText(Object e) {
       'tu ne possèdes pas ces cartes' => t('Tu ne possèdes plus ces cartes', 'You no longer own these cards'),
       'code invalide' => t('Code invalide : il faut 32 caractères (0-9, A-F)', 'Invalid code: 32 characters needed (0-9, A-F)'),
       'code inconnu' => t('Aucun profil avec ce code', 'No profile with this code'),
+      'identifiants incorrects' => t('Pseudo ou mot de passe incorrect', 'Wrong name or password'),
+      'trop de tentatives' => t('Trop d\'essais : réessaie dans 15 minutes', 'Too many attempts: try again in 15 minutes'),
       _ => e.message,
     };
   }
