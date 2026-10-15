@@ -1,0 +1,41 @@
+name: retro_collec
+description: Rétro Collec — collection multijoueur de boîtes de jeux rétro (paquets, échanges, marché) by foclabroc
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.2.0
+  path_provider: ^2.1.0
+  crypto: ^3.0.3
+  url_launcher: ^6.2.0
+  open_filex: ^4.3.2
+  archive: ^3.6.1
+  sensors_plus: ^6.1.1
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/music/
+    - assets/logos/
+    - assets/consoles/
+    - assets/tabs/
+    - assets/card_back.jpg
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon.png"
+  adaptive_icon_background: "assets/icon_bg.png"
+  adaptive_icon_foreground: "assets/icon_fg.png"

@@ -1,0 +1,39 @@
+RÉTRO COLLEC — collection multijoueur de boîtes de jeux rétro (by foclabroc)
+==========================================================================
+
+Déjà fait :
+  - Serveur : supabase_retro_collec.sql + catalog.sql passés dans Supabase
+  - Images : dépôt GitHub foclabroc/retro_collec_assets avec GitHub Pages activé
+    (l'appli lit https://foclabroc.github.io/retro_collec_assets/catalog.json)
+
+1. Créer le projet (dans ton dossier GIT) :
+     flutter create retro_collec --org com.foclabroc --platforms android
+2. Copier le contenu de ce zip DANS le dossier retro_collec\ (écraser si demandé) :
+     lib\ , assets\ , pubspec.yaml , android\app\...
+3. Supprimer test\widget_test.dart (il teste l'appli d'exemple « MyApp »)
+   et, s'il existe, le MainActivity créé par flutter create en double
+   (garder android\app\src\main\kotlin\com\foclabroc\retro_collec\MainActivity.kt du zip).
+4. Dans retro_collec\ :
+     flutter pub get
+     dart run flutter_launcher_icons
+     flutter run --release
+     flutter build apk --release
+   APK : build\app\outputs\flutter-apk\app-release.apk
+
+Premier lancement : l'appli télécharge les jaquettes (quelques dizaines de Mo), puis les
+captures d'écran en arrière-plan. Ensuite tout est gardé sur le téléphone.
+
+Langue : français si le téléphone est en français, anglais sinon.
+
+Nouvelles cartes / corrections :
+  python3 /userdata/retro_collec_export.py --rebuild  (sur la Batocera)
+  -> pousser le dossier retro_collec sur GitHub, coller catalog.sql dans Supabase.
+  Les joueurs ne retéléchargent que les consoles modifiées.
+  Ne jamais renuméroter une carte déjà publiée.
+
+Nouvelle version de l'appli :
+  1. lib\update_check.dart : kRetroCollecVersion = '1.0.1' (par ex.)
+  2. pubspec.yaml : version: 1.0.1+2
+  3. flutter build apk --release
+  4. Renommer l'APK en  retro.collec.V1.0.1.apk  et l'AJOUTER à la release
+     du dépôt GitHub foclabroc/retro_collec_app (à créer, avec une release).
