@@ -200,6 +200,19 @@ class RcServer {
     return _map(await _rpc('rc_craft', {'p_device': d, 'p_card': card, 'p_sig': _sig('$d|craft|$card')}));
   }
 
+  // ── Quiz rétro ──────────────────────────────────────────────────────────
+  /// Pièces encore gagnables aujourd'hui (0 à 100).
+  static Future<int> quizStatus() async {
+    final d = await deviceId();
+    return ((await _rpc('rc_quiz_status', {'p_device': d})) as num? ?? 0).toInt();
+  }
+
+  /// Fin de partie : {gain, left, coins}
+  static Future<Map<String, dynamic>> quizClaim(int correct) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_quiz_claim', {'p_device': d, 'p_correct': correct, 'p_sig': _sig('$d|quiz|$correct')}));
+  }
+
   // ── Marché ──────────────────────────────────────────────────────────────
   /// [{id, card, finish, price, seller, seller_pid, created_at}]
   static Future<List<Map<String, dynamic>>> marketList({String? sys, String? card, bool missing = false}) async {

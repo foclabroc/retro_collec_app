@@ -260,6 +260,11 @@ class Game extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setCoins(int c) {
+    coins = c;
+    notifyListeners();
+  }
+
   void playSound(int rarity) {
     RcAudio.sfx(const ['jump', 'coin', 'tier', 'continue', 'powerup'][rarity.clamp(0, 4)]);
   }

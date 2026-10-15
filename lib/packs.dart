@@ -10,6 +10,7 @@ import 'catalog.dart';
 import 'game.dart';
 import 'library.dart';
 import 'main.dart';
+import 'quiz.dart';
 import 'retro_theme.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -200,6 +201,8 @@ class _PacksScreenState extends State<PacksScreen> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Color(0xFFCECBF6), fontSize: 12),
               ),
+              const SizedBox(height: 18),
+              const QuizTile(),
               const SizedBox(height: 18),
               _Missions(g),
               const SizedBox(height: 18),

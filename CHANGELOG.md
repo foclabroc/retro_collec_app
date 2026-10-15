@@ -1,5 +1,9 @@
 # Pixel Trade — Changelog
 
+## v1.0.1
+- Nouveau : **Quiz rétro** (onglet Paquets) — devine le jeu à partir de sa capture d'écran, 10 questions,
+  12 secondes par question, combos. 5 pièces par bonne réponse, jusqu'à 100 pièces par jour.
+
 ## v1.0.0
 - 10 séries de 100 cartes (Master System, NES, Super Nintendo, Nintendo 64, PlayStation,
   Game Boy Advance, Mega Drive, Game Boy Color, Switch, Neo Geo), 5 raretés, finitions brillante et dorée.
