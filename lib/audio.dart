@@ -51,6 +51,20 @@ class RcAudio {
   static bool _musicLoaded = false;
   static int? _track; // musique du jeu actuellement ouvert
 
+  /// Morceau choisi dans les réglages (0 Good Morning, 1 Shop, 2 Mountain)
+  static const kTracks = ['Good Morning', 'Shop', 'Mountain'];
+  static const _kTrackKey = 'rc_track';
+  static int homeTrack = 2;
+
+  static Future<void> setHomeTrack(int i) async {
+    homeTrack = i;
+    if (_music && _enabled) musicStart(i);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_kTrackKey, i);
+    } catch (_) {}
+  }
+
   /// Musique des mini-jeux activée (réglage mémorisé).
   static bool get musicEnabled => _music;
 
@@ -59,6 +73,7 @@ class RcAudio {
     try {
       final prefs = await SharedPreferences.getInstance();
       _music = prefs.getBool(_kMusicKey) ?? true;
+      homeTrack = (prefs.getInt(_kTrackKey) ?? 2).clamp(0, kTracks.length - 1);
       _musicLoaded = true;
     } catch (_) {}
   }

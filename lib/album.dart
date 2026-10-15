@@ -405,34 +405,68 @@ class _CardDetailPageState extends State<CardDetailPage> {
 /// Demande un prix de vente (suggestion : 2 × la valeur de recyclage).
 Future<int?> askPrice(BuildContext context, RcCard c, int finish) async {
   final ctl = TextEditingController(text: '${recycleValue(c.rarity, finish) * 2}');
+  Map<String, dynamic>? info;
+  var loading = true;
   return showDialog<int>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(t('Mettre en vente', 'Put up for sale')),
-      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('${c.title} — ${finishName(finish)}'),
-        const SizedBox(height: 12),
-        TextField(
-          controller: ctl,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          decoration: InputDecoration(labelText: t('Prix (pièces)', 'Price (coins)'), prefixIcon: const Icon(Icons.monetization_on, color: kGold)),
-        ),
-        const SizedBox(height: 8),
-        Text(t('Valeur au recyclage : ${recycleValue(c.rarity, finish)}', 'Recycle value: ${recycleValue(c.rarity, finish)}'),
-            style: const TextStyle(fontSize: 12, color: Colors.white54)),
-      ]),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Annuler', 'Cancel'))),
-        ElevatedButton(
-          onPressed: () {
-            final p = int.tryParse(ctl.text.trim());
-            if (p == null || p < 1 || p > 99999) return;
-            Navigator.pop(ctx, p);
-          },
-          child: Text(t('Vendre', 'Sell')),
-        ),
-      ],
-    ),
+    builder: (ctx) => StatefulBuilder(builder: (ctx, setD) {
+      if (loading && info == null) {
+        marketPriceInfo(c.id, finish).then((m) {
+          info = m;
+          loading = false;
+          ctl.text = '${suggestedPrice(c, finish, m)}';
+          if (ctx.mounted) setD(() {});
+        });
+        info = const {}; // évite de relancer la requête
+      }
+      final rec = recycleValue(c.rarity, finish);
+      final avg = (info?['avg'] as num?)?.toInt();
+      final min = (info?['min'] as num?)?.toInt();
+      Widget chip(String label, int v) => ActionChip(
+            label: Text('$label : $v', style: const TextStyle(fontSize: 12)),
+            avatar: const Icon(Icons.monetization_on, color: kGold, size: 16),
+            onPressed: () => setD(() => ctl.text = '$v'),
+          );
+      return AlertDialog(
+        title: Text(t('Mettre en vente', 'Put up for sale')),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('${c.title} — ${finishName(finish)}'),
+          const SizedBox(height: 12),
+          TextField(
+            controller: ctl,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            decoration: InputDecoration(labelText: t('Prix (pièces)', 'Price (coins)'), prefixIcon: const Icon(Icons.monetization_on, color: kGold)),
+          ),
+          const SizedBox(height: 10),
+          if (loading)
+            const LinearProgressIndicator(minHeight: 2, color: kGold)
+          else
+            Wrap(spacing: 6, runSpacing: 4, children: [
+              if (avg != null) chip(t('Prix moyen', 'Average price'), avg),
+              if (min != null) chip(t('Moins cher en vente', 'Cheapest listed'), min),
+              chip(t('Recyclage', 'Recycle'), rec),
+            ]),
+          const SizedBox(height: 6),
+          Text(
+            avg != null
+                ? t('${info?['sold']} vente(s) ces 30 derniers jours', '${info?['sold']} sale(s) in the last 30 days')
+                : t('Pas encore de vente de cette carte : prix conseillé = 2 × recyclage', 'No sales yet for this card: suggested = 2 × recycle'),
+            style: const TextStyle(fontSize: 11, color: Colors.white54),
+          ),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Annuler', 'Cancel'))),
+          ElevatedButton(
+            onPressed: () {
+              final p = int.tryParse(ctl.text.trim());
+              if (p == null || p < 1 || p > 99999) return;
+              Navigator.pop(ctx, p);
+            },
+            child: Text(t('Vendre', 'Sell')),
+          ),
+        ],
+      );
+    }),
   );
 }

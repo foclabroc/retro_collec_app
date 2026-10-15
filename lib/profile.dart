@@ -11,6 +11,9 @@ import 'game.dart';
 import 'main.dart';
 import 'server.dart';
 import 'trades.dart';
+import 'neighbors.dart';
+import 'notifs.dart';
+import 'stats.dart';
 import 'update_check.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -19,7 +22,8 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final bool embedded; // ouvert depuis le Voisinage (page avec barre de titre)
+  const ProfileScreen({super.key, this.embedded = false});
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -99,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final g = Game.i;
         final total = Catalog.cards.length;
         return Column(children: [
-          TabHeader(t('Profil', 'Profile'), actions: [
+          TabHeader(widget.embedded ? '' : t('Profil', 'Profile'), actions: [
             IconButton(
               tooltip: t('Son', 'Sound'),
               icon: Icon(RcAudio.enabled ? Icons.volume_up : Icons.volume_off),
@@ -110,7 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icon(RcAudio.musicEnabled ? Icons.music_note : Icons.music_off),
               onPressed: () async {
                 await RcAudio.setMusicEnabled(!RcAudio.musicEnabled);
-                if (RcAudio.musicEnabled) RcAudio.musicStart(1);
+                if (RcAudio.musicEnabled) RcAudio.musicStart(RcAudio.homeTrack);
                 setState(() {});
               },
             ),
@@ -163,11 +167,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 8),
                 for (final s in Catalog.systems) _setRow(s.name, g.ownedIn(s.id), s.count),
                 const SizedBox(height: 18),
-                Text(t('Classement', 'Leaderboard'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-                const SizedBox(height: 6),
-                if (board == null) const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator(color: kGold))),
-                if (board != null)
-                  for (var i = 0; i < board!.length; i++) _boardRow(i + 1, board![i]),
+                Text(t('Statistiques', 'Statistics'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                const SizedBox(height: 8),
+                StatsPanel(owned: g.owned, packs: g.packs, onCard: (c) => openCardDetail(context, c)),
                 const SizedBox(height: 18),
                 Text(t('Réglages', 'Settings'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 6),
@@ -184,6 +186,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onChanged: (v) async {
                         await Tilt.setEnabled(v);
                         setState(() {});
+                      },
+                    ),
+                    const Divider(height: 1, color: Colors.white12),
+                    ListTile(
+                      leading: const Icon(Icons.library_music),
+                      title: Text(t('Musique', 'Music')),
+                      subtitle: Text(RcAudio.kTracks[RcAudio.homeTrack], style: const TextStyle(fontSize: 12, color: Colors.white54)),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.white38),
+                      onTap: () async {
+                        final i = await showDialog<int>(
+                          context: context,
+                          builder: (ctx) => SimpleDialog(
+                            title: Text(t('Musique', 'Music')),
+                            children: [
+                              for (var k = 0; k < RcAudio.kTracks.length; k++)
+                                RadioListTile<int>(
+                                  value: k,
+                                  groupValue: RcAudio.homeTrack,
+                                  activeColor: kGold,
+                                  title: Text(RcAudio.kTracks[k]),
+                                  onChanged: (v) => Navigator.pop(ctx, v),
+                                ),
+                            ],
+                          ),
+                        );
+                        if (i != null) {
+                          await RcAudio.setHomeTrack(i);
+                          setState(() {});
+                        }
                       },
                     ),
                     const Divider(height: 1, color: Colors.white12),
@@ -499,18 +530,46 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                     ),
                   ]),
                   const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.swap_horiz),
-                      label: Text(t('Proposer un échange', 'Propose a trade')),
-                      onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => TradeBuilderPage(pid: widget.pid, name: name))),
+                  Row(children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.swap_horiz),
+                        label: Text(t('Échanger', 'Trade')),
+                        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => TradeBuilderPage(pid: widget.pid, name: name))),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ListenableBuilder(
+                        listenable: Notifs.i,
+                        builder: (context, _) => FilledButton.icon(
+                          style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
+                          icon: const Icon(Icons.card_giftcard),
+                          label: Text(t('Offrir un paquet', 'Give a pack')),
+                          onPressed: Notifs.i.canGift ? () => giftPack(context, widget.pid, name) : null,
+                        ),
+                      ),
+                    ),
+                  ]),
+                  if (!Notifs.i.canGift)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(t('Un paquet offert par jour · reviens demain', 'One pack a day · come back tomorrow'),
+                          textAlign: TextAlign.right, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                    ),
                   const SizedBox(height: 18),
                   Text(t('Vitrine', 'Showcase'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                   const SizedBox(height: 8),
                   _Showcase(parseItems(p!['showcase'] as String? ?? ''), owned: owned, ownerName: name),
+                  const SizedBox(height: 18),
+                  Text(t('Statistiques', 'Statistics'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  const SizedBox(height: 8),
+                  StatsPanel(
+                    owned: owned,
+                    packs: (p!['packs'] as num?)?.toInt(),
+                    since: DateTime.tryParse(p!['since']?.toString() ?? ''),
+                    onCard: (c) => openCardDetail(context, c, otherOwned: owned, otherName: name),
+                  ),
                   const SizedBox(height: 18),
                   Text(t('Séries (touche pour voir l\'album)', 'Sets (tap to view the album)'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                   const SizedBox(height: 8),

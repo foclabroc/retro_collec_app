@@ -10,7 +10,7 @@ import 'catalog.dart';
 import 'game.dart';
 import 'library.dart';
 import 'main.dart';
-import 'quiz.dart';
+import 'notifs.dart';
 import 'retro_theme.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -28,7 +28,7 @@ class _PacksScreenState extends State<PacksScreen> {
 
   Future<void> _open(String kind, [String? sys]) async {
     if (busy) return;
-    if (kind != 'free' && !await _confirm(kind, sys)) return;
+    if (kind != 'free' && kind != 'gift' && !await _confirm(kind, sys)) return;
     setState(() => busy = true);
     try {
       final r = await Game.i.openPack(kind, sys);
@@ -53,6 +53,7 @@ class _PacksScreenState extends State<PacksScreen> {
     final name = switch (kind) {
       'console' => '${t('Paquet', 'Pack')} ${Catalog.system(sys ?? '')?.name ?? ''}',
       'premium' => t('Paquet premium', 'Premium pack'),
+      'mystery' => t('Paquet mystère', 'Mystery pack'),
       _ => t('Paquet mixte', 'Mixed pack'),
     };
     final ok = await showDialog<bool>(
@@ -141,7 +142,7 @@ class _PacksScreenState extends State<PacksScreen> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Game.i,
+      listenable: Listenable.merge([Game.i, Notifs.i]),
       builder: (context, _) {
         final g = Game.i;
         final now = DateTime.now();
@@ -151,6 +152,21 @@ class _PacksScreenState extends State<PacksScreen> {
           TabHeader(t('Paquets', 'Packs')),
           Expanded(
             child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: [
+              if (Notifs.i.gifts > 0)
+                _PackOffer(
+                  kind: 'gift',
+                  packLabel: t('Cadeau', 'Gift'),
+                  title: t('Paquet cadeau ×${Notifs.i.gifts}', 'Gift pack ×${Notifs.i.gifts}'),
+                  subtitle: t('Offert par ${Notifs.i.giftFrom} · 5 cartes', 'From ${Notifs.i.giftFrom} · 5 cards'),
+                  price: 0,
+                  color: const Color(0xFFD8453C),
+                  highlight: true,
+                  enabled: !busy,
+                  onTap: () async {
+                    await _open('gift');
+                    Notifs.i.refresh();
+                  },
+                ),
               _PackOffer(
                 kind: 'free',
                 packLabel: t('Du jour', 'Daily'),
@@ -194,6 +210,16 @@ class _PacksScreenState extends State<PacksScreen> {
                 enabled: !busy && g.coins >= kPackPrice['premium']!,
                 onTap: () => _open('premium'),
               ),
+              _PackOffer(
+                kind: 'mystery',
+                packLabel: t('Mystère', 'Mystery'),
+                title: t('Paquet mystère', 'Mystery pack'),
+                subtitle: t('3, 5 ou… 8 cartes ! Surprise à l\'ouverture', '3, 5 or… 8 cards! Surprise inside'),
+                price: kPackPrice['mystery']!,
+                color: const Color(0xFF8E2D8E),
+                enabled: !busy && g.coins >= kPackPrice['mystery']!,
+                onTap: () => _open('mystery'),
+              ),
               const SizedBox(height: 6),
               Text(
                 t('Épique ou mieux garantie dans ${max(1, 30 - g.pity)} paquet(s) au plus',
@@ -201,8 +227,6 @@ class _PacksScreenState extends State<PacksScreen> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Color(0xFFCECBF6), fontSize: 12),
               ),
-              const SizedBox(height: 18),
-              const QuizTile(),
               const SizedBox(height: 18),
               _Missions(g),
               const SizedBox(height: 18),
@@ -231,12 +255,16 @@ const _kOfferColor = {
   'mixte': Color(0xFF534AB7),
   'console': Color(0xFF185FA5),
   'premium': Color(0xFF854F0B),
+  'mystery': Color(0xFF8E2D8E),
+  'gift': Color(0xFFD8453C),
 };
 
 String _offerLabel(String kind) => switch (kind) {
       'free' => t('Du jour', 'Daily'),
       'console' => 'Console',
       'premium' => 'Premium',
+      'mystery' => t('Mystère', 'Mystery'),
+      'gift' => t('Cadeau', 'Gift'),
       _ => t('Mixte', 'Mixed'),
     };
 
@@ -649,6 +677,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                     'free' => t('Paquet du jour', 'Daily pack'),
                     'console' => t('Paquet ${Catalog.system(widget.sys ?? '')?.name ?? ''}', '${Catalog.system(widget.sys ?? '')?.name ?? ''} pack'),
                     'premium' => t('Paquet premium', 'Premium pack'),
+                    'mystery' => t('Paquet mystère', 'Mystery pack'),
+                    'gift' => t('Paquet cadeau', 'Gift pack'),
                     _ => t('Paquet mixte', 'Mixed pack'),
                   },
                   style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
@@ -844,6 +874,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'free' => const Color(0xFF0F6E56),
         'console' => const Color(0xFF185FA5),
         'premium' => const Color(0xFF854F0B),
+        'mystery' => const Color(0xFF8E2D8E),
+        'gift' => const Color(0xFFD8453C),
         _ => const Color(0xFF3C3489),
       };
 
@@ -851,6 +883,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'free' => t('Paquet du jour', 'Daily pack'),
         'console' => Catalog.system(widget.sys ?? '')?.name ?? '',
         'premium' => t('Premium', 'Premium'),
+        'mystery' => t('Mystère', 'Mystery'),
+        'gift' => t('Cadeau', 'Gift'),
         _ => t('Paquet mixte', 'Mixed pack'),
       };
 
@@ -986,7 +1020,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   Widget _summary() {
     final nw = pulled.where((p) => p.isNew).length;
     final dup = pulled.length - nw;
-    final again = widget.kind == 'free' ? 'mixte' : widget.kind;
+    final again = widget.kind == 'free' || widget.kind == 'gift' ? 'mixte' : widget.kind;
     final price = kPackPrice[again]!;
     return Positioned.fill(
       child: SingleChildScrollView(
@@ -1207,6 +1241,14 @@ class _CrimpPainter extends CustomPainter {
   bool shouldRepaint(covariant _CrimpPainter old) => old.sheen != sheen;
 }
 
+/// Saturation +30 % et contraste +12 % pour l'illustration des boosters
+const List<double> _kVivid = [
+  1.385, -0.24, -0.024, 0, -15.4,
+  -0.071, 1.216, -0.024, 0, -15.4,
+  -0.071, -0.24, 1.432, 0, -15.4,
+  0, 0, 0, 1, 0,
+];
+
 /// Corps du booster : illustration, bombé du sachet, reflet, étiquette, soudure du bas.
 class _BoosterBody extends StatelessWidget {
   final String kind, label;
@@ -1220,14 +1262,19 @@ class _BoosterBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(fit: StackFit.expand, children: [
       // illustration du dos des cartes
-      Image.asset('assets/card_back.jpg', fit: BoxFit.cover, alignment: const Alignment(0, -0.1)),
-      // teinte selon le type de paquet
-      DecoratedBox(decoration: BoxDecoration(color: color.withOpacity(tint))),
+      // (couleurs avivées, teinte en « overlay » pour garder le contraste)
+      ColorFiltered(
+        colorFilter: ColorFilter.mode(color.withOpacity((tint * 1.6).clamp(0.0, 0.8)), BlendMode.overlay),
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.matrix(_kVivid),
+          child: Image.asset('assets/card_back.jpg', fit: BoxFit.cover, alignment: const Alignment(0, -0.1)),
+        ),
+      ),
       // bombé : bords plus sombres, centre plus clair
       const DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0x99000000), Color(0x00000000), Color(0x22FFFFFF), Color(0x00000000), Color(0x99000000)],
+            colors: [Color(0x66000000), Color(0x00000000), Color(0x18FFFFFF), Color(0x00000000), Color(0x66000000)],
             stops: [0, 0.14, 0.5, 0.86, 1],
           ),
         ),
@@ -1238,7 +1285,7 @@ class _BoosterBody extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0x88000000), Color(0x00000000), Color(0x00000000), Color(0x88000000)],
+            colors: [Color(0x66000000), Color(0x00000000), Color(0x00000000), Color(0x66000000)],
             stops: [0, 0.07, 0.86, 0.93],
           ),
         ),
@@ -1249,8 +1296,9 @@ class _BoosterBody extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment(-2.6 + sheen * 5, -1),
             end: Alignment(-1.6 + sheen * 5, 1),
-            colors: const [Color(0x00FFFFFF), Color(0x55FFFFFF), Color(0x33B5D4F4), Color(0x33ED93B1), Color(0x00FFFFFF)],
+            colors: const [Color(0x00FFFFFF), Color(0x99FFFFFF), Color(0x66B5D4F4), Color(0x66ED93B1), Color(0x00FFFFFF)],
           ),
+          backgroundBlendMode: BlendMode.overlay,
         ),
       ),
       // étiquette du paquet
@@ -1276,7 +1324,8 @@ class _BoosterBody extends StatelessWidget {
               ),
             Text('PIXEL TRADE', style: pixelStyle(size: 11)),
             const SizedBox(height: 4),
-            Text(t('5 CARTES', '5 CARDS'), style: pixelStyle(size: 7, color: const Color(0xFF8FD3FF), shadow: false)),
+            Text(kind == 'mystery' ? t('? CARTES', '? CARDS') : t('5 CARTES', '5 CARDS'),
+                style: pixelStyle(size: 7, color: const Color(0xFF8FD3FF), shadow: false)),
           ]),
         ),
       ),

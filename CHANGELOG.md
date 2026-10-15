@@ -1,5 +1,21 @@
 # Pixel Trade — Changelog
 
+## v1.0.2
+- Nouvel onglet **Bonus** : roue de la fortune (un tour gratuit par jour : pièces ou carte) et quiz rétro.
+- Nouvel onglet **Voisinage** : tous les joueurs (classement, recherche), leur profil, leurs statistiques et leur album ;
+  **offre un paquet** à un joueur chaque jour. Mon profil et les réglages sont accessibles en haut de l'onglet.
+- **Paquet mystère** (120 pièces) : 3, 5 ou… 8 cartes !
+- **Paquets cadeaux** reçus des autres joueurs, à ouvrir dans l'onglet Paquets.
+- **Cartes animées** : éclat lumineux et étoiles sur les légendaires, les dorées et les épiques brillantes.
+- **Statistiques** de collection : complétion par rareté, brillantes / dorées, valeur, cartes les plus précieuses.
+- Vente facilitée : vendre depuis le Marché, vente groupée des doublons, prix conseillé ; 12 lots en vente.
+- Notifications dans l'appli : pastilles sur les onglets, message quand une carte est vendue ou un paquet offert.
+- **Messages** : chat entre joueurs (120 caractères, 1 message / 10 s), mentions **@pseudo** avec notification,
+  filtre de gros mots, liens et numéros masqués, appui long pour signaler un message.
+- **Menu latéral** à gauche (bouton ☰ ou glisser depuis le bord) : toutes les rubriques avec leurs pastilles, profil en haut.
+- Cartes brillantes et boosters plus éclatants (reflet holo sans voile terne).
+- Choix de la musique dans les réglages (Good Morning, Shop, Mountain) ; gyroscope désactivé par défaut.
+
 ## v1.0.1
 - Nouveau : **Quiz rétro** (onglet Paquets) — devine le jeu à partir de sa capture d'écran, 10 questions,
   12 secondes par question, combos. 5 pièces par bonne réponse, jusqu'à 100 pièces par jour.

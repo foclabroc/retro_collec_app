@@ -24,13 +24,13 @@ class Tilt {
   static Offset? _base; // position « à plat » : celle du téléphone à l'ouverture
 
   /// Gyroscope activé (réglage du profil, mémorisé).
-  static bool enabled = true;
-  static const _kPref = 'rc_gyro';
+  static bool enabled = false;
+  static const _kPref = 'rc_gyro2'; // nouvelle clé : désactivé par défaut pour tous
 
   static Future<void> loadPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      enabled = prefs.getBool(_kPref) ?? true;
+      enabled = prefs.getBool(_kPref) ?? false;
     } catch (_) {}
   }
 
@@ -344,9 +344,108 @@ class CardView extends StatelessWidget {
               child: ClipRRect(borderRadius: BorderRadius.circular(rad), child: HoloSheen(gold: finish == 2, manualTilt: manualTilt)),
             ),
           ),
+        // cartes animées : légendaires, dorées, épiques brillantes
+        if (owned && (r == 4 || finish == 2 || (r == 3 && finish == 1)))
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(rad),
+                child: CardSparkle(
+                  color: finish == 2 ? const Color(0xFFFFE9A0) : (r == 4 ? const Color(0xFFFFD27A) : const Color(0xFFE6DDFF)),
+                  stars: small ? 4 : 9,
+                  seed: card.id.hashCode,
+                ),
+              ),
+            ),
+          ),
       ]),
     );
   }
+}
+
+/// Animation des cartes rares : un éclat lumineux traverse la carte et des
+/// étoiles scintillent.
+class CardSparkle extends StatefulWidget {
+  final Color color;
+  final int stars, seed;
+  const CardSparkle({super.key, required this.color, this.stars = 8, this.seed = 0});
+  @override
+  State<CardSparkle> createState() => _CardSparkleState();
+}
+
+class _CardSparkleState extends State<CardSparkle> with SingleTickerProviderStateMixin {
+  late final AnimationController ctl = AnimationController(vsync: this, duration: const Duration(milliseconds: 3200))..repeat();
+
+  @override
+  void dispose() {
+    ctl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      RepaintBoundary(child: CustomPaint(painter: _SparklePainter(ctl, widget.color, widget.stars, widget.seed), child: const SizedBox.expand()));
+}
+
+class _SparklePainter extends CustomPainter {
+  final Animation<double> anim;
+  final Color color;
+  final int stars, seed;
+  _SparklePainter(this.anim, this.color, this.stars, this.seed) : super(repaint: anim);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final v = anim.value;
+    final w = size.width, h = size.height;
+    // éclat diagonal pendant le premier tiers du cycle
+    if (v < 0.35) {
+      final p = v / 0.35;
+      final x = -w * 0.6 + p * w * 2.2;
+      final band = Path()
+        ..moveTo(x, 0)
+        ..lineTo(x + w * 0.22, 0)
+        ..lineTo(x + w * 0.22 - h * 0.45, h)
+        ..lineTo(x - h * 0.45, h)
+        ..close();
+      final fade = sin(p * pi);
+      canvas.drawPath(
+        band,
+        Paint()
+          ..shader = LinearGradient(colors: [
+            color.withOpacity(0),
+            color.withOpacity(0.38 * fade),
+            Colors.white.withOpacity(0.55 * fade),
+            color.withOpacity(0.38 * fade),
+            color.withOpacity(0),
+          ]).createShader(Rect.fromLTWH(x - h * 0.45, 0, w * 0.22 + h * 0.45, h))
+          ..blendMode = BlendMode.plus,
+      );
+    }
+    // étoiles qui scintillent
+    final rnd = Random(seed);
+    final paint = Paint()..blendMode = BlendMode.plus;
+    for (var i = 0; i < stars; i++) {
+      final px = 0.08 + rnd.nextDouble() * 0.84, py = 0.08 + rnd.nextDouble() * 0.84;
+      final phase = rnd.nextDouble();
+      final a = pow(max(0.0, sin(2 * pi * (v * 2 + phase))), 4).toDouble();
+      if (a < 0.02) continue;
+      final c = Offset(px * w, py * h);
+      final s = w * (0.035 + rnd.nextDouble() * 0.03) * (0.6 + 0.4 * a);
+      paint.color = color.withOpacity(0.9 * a);
+      final star = Path()
+        ..moveTo(c.dx, c.dy - s)
+        ..quadraticBezierTo(c.dx, c.dy, c.dx + s, c.dy)
+        ..quadraticBezierTo(c.dx, c.dy, c.dx, c.dy + s)
+        ..quadraticBezierTo(c.dx, c.dy, c.dx - s, c.dy)
+        ..quadraticBezierTo(c.dx, c.dy, c.dx, c.dy - s)
+        ..close();
+      canvas.drawPath(star, paint);
+      canvas.drawCircle(c, s * 0.18, Paint()..color = Colors.white.withOpacity(0.9 * a));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SparklePainter old) => old.color != color || old.stars != stars || old.seed != seed;
 }
 
 /// Reflet arc-en-ciel (brillante) ou doré, qui glisse selon l'inclinaison.
@@ -362,28 +461,21 @@ class HoloSheen extends StatelessWidget {
       builder: (_, tl, __) {
         final o = manualTilt ?? tl;
         final shift = (o.dx + o.dy) * 0.9;
+        // bande de reflet étroite, mélangée en « overlay » : elle avive la
+        // jaquette au lieu de poser un voile laiteux sur toute la carte
+        final c = 0.5 + shift * 0.7;
+        final stops = [for (final d in const [-0.32, -0.16, 0.0, 0.16, 0.32]) (c + d).clamp(0.0, 1.0)];
         final colors = gold
-            ? [
-                Colors.transparent,
-                const Color(0x55FFE082),
-                const Color(0x99FFF8E1),
-                const Color(0x55FFB300),
-                Colors.transparent,
-              ]
-            : [
-                Colors.transparent,
-                const Color(0x55FFFFFF),
-                const Color(0x5585B7EB),
-                const Color(0x55ED93B1),
-                const Color(0x45FAC775),
-                Colors.transparent,
-              ];
+            ? const [Color(0x00FFE082), Color(0x88FFE082), Color(0xBBFFF8E1), Color(0x88FFB300), Color(0x00FFB300)]
+            : const [Color(0x0085B7EB), Color(0x8885B7EB), Color(0xAAFFFFFF), Color(0x88ED93B1), Color(0x00FAC775)];
         return DecoratedBox(
           decoration: BoxDecoration(
+            backgroundBlendMode: BlendMode.overlay,
             gradient: LinearGradient(
-              begin: Alignment(-1.6 + shift, -1),
-              end: Alignment(0.6 + shift, 1),
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
               colors: colors,
+              stops: stops,
             ),
           ),
           child: const SizedBox.expand(),

@@ -61,7 +61,7 @@ String finishName(int f) => [t('Normale', 'Normal'), t('Brillante', 'Holo'), t('
 // Mêmes valeurs que le SQL (rc__recycle_value, rc__craft_cost, rc__pack_price)
 int recycleValue(int r, int f) => const [5, 15, 50, 150, 500][r] * const [1, 3, 10][f];
 int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
-const kPackPrice = {'free': 0, 'mixte': 100, 'console': 150, 'premium': 400};
+const kPackPrice = {'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0};
 
 const kGold = Color(0xFFEF9F27);
 const kBg = Color(0xFF0A1033); // bleu nuit (thème rétro)
@@ -286,12 +286,21 @@ String errText(Object e) {
       'pas assez de pièces' => t('Pas assez de pièces', 'Not enough coins'),
       'déjà ouvert aujourd\'hui' => t('Paquet gratuit déjà ouvert aujourd\'hui', 'Free pack already opened today'),
       'dernier exemplaire' => t('Tu dois garder au moins un exemplaire', 'You must keep at least one copy'),
-      'trop de lots' => t('8 lots maximum en vente', '8 listings maximum'),
+      'trop de lots' => t('12 lots maximum en vente', '12 listings maximum'),
       'carte non possédée' => t('Carte non possédée', 'Card not owned'),
       'trop d\'échanges en attente' => t('Trop d\'échanges en attente', 'Too many pending trades'),
       'tu ne possèdes pas ces cartes' => t('Tu ne possèdes plus ces cartes', 'You no longer own these cards'),
       'code invalide' => t('Code invalide : il faut 32 caractères (0-9, A-F)', 'Invalid code: 32 characters needed (0-9, A-F)'),
       'code inconnu' => t('Aucun profil avec ce code', 'No profile with this code'),
+      'déjà tourné aujourd\'hui' => t('Roue déjà tournée aujourd\'hui', 'Wheel already spun today'),
+      'cadeau déjà offert' => t('Tu as déjà offert un paquet aujourd\'hui', 'You already gave a pack today'),
+      'pas à toi-même' => t('Tu ne peux pas t\'offrir un paquet', 'You can\'t give yourself a pack'),
+      'trop de cadeaux' => t('Ce joueur a déjà 5 paquets cadeaux à ouvrir', 'This player already has 5 gift packs to open'),
+      'aucun cadeau' => t('Aucun paquet cadeau', 'No gift pack'),
+      'attends un peu' => t('Attends quelques secondes avant d\'écrire à nouveau', 'Wait a few seconds before writing again'),
+      'chat interdit' => t('Tu ne peux plus écrire dans les messages', 'You can no longer write messages'),
+      'message trop long' => t('Message trop long (120 caractères max)', 'Message too long (120 characters max)'),
+      'message vide' => t('Message vide', 'Empty message'),
       'identifiants incorrects' => t('Pseudo ou mot de passe incorrect', 'Wrong name or password'),
       'trop de tentatives' => t('Trop d\'essais : réessaie dans 15 minutes', 'Too many attempts: try again in 15 minutes'),
       _ => e.message,

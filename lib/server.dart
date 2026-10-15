@@ -200,6 +200,19 @@ class RcServer {
     return _map(await _rpc('rc_craft', {'p_device': d, 'p_card': card, 'p_sig': _sig('$d|craft|$card')}));
   }
 
+  // ── Bonus ───────────────────────────────────────────────────────────────
+  /// Roue de la fortune : {seg, gain, card:{c,f,r,n}|null, coins, events}
+  static Future<Map<String, dynamic>> wheel() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_wheel', {'p_device': d, 'p_sig': _sig('$d|wheel')}));
+  }
+
+  /// Offre un paquet à un joueur (un par jour)
+  static Future<void> gift(String toPid) async {
+    final d = await deviceId();
+    await _rpc('rc_gift', {'p_device': d, 'p_to_pid': toPid, 'p_sig': _sig('$d|gift|$toPid')});
+  }
+
   // ── Quiz rétro ──────────────────────────────────────────────────────────
   /// Pièces encore gagnables aujourd'hui (0 à 100).
   static Future<int> quizStatus() async {
@@ -250,6 +263,22 @@ class RcServer {
     return r == null ? null : _map(r);
   }
 
+  /// Prix de référence : {avg, sold, min, open} (null si aucune donnée)
+  static Future<Map<String, dynamic>> marketPrice(String card, int finish) async =>
+      _map(await _rpc('rc_market_price', {'p_card': card, 'p_finish': finish}));
+
+  /// Notifications : {trades: nb d'échanges reçus en attente, sales: [{id, card, f, price, buyer}]}
+  static Future<Map<String, dynamic>> notifs() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_notifs', {'p_device': d}));
+  }
+
+  /// « Mes ventes » consulté
+  static Future<void> marketSeen() async {
+    final d = await deviceId();
+    await _rpc('rc_market_seen', {'p_device': d, 'p_sig': _sig('$d|seen')});
+  }
+
   // ── Échanges ────────────────────────────────────────────────────────────
   /// give / want : 'carte:finition,…'
   static Future<int> tradeOffer(String toPid, String give, String want) async {
@@ -284,6 +313,23 @@ class RcServer {
   static Future<bool> tradeCancel(int id) async {
     final d = await deviceId();
     return (await _rpc('rc_trade_cancel', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|tcancel|$id')})) == true;
+  }
+
+  // ── Messages ────────────────────────────────────────────────────────────
+  /// [{id, pid, name, avatar, msg, at, me}] après [after] (80 derniers max)
+  static Future<List<Map<String, dynamic>>> chatList(int after) async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_chat_list', {'p_device': d, 'p_after': after}));
+  }
+
+  static Future<void> chatSend(String msg) async {
+    final d = await deviceId();
+    await _rpc('rc_chat_send', {'p_device': d, 'p_msg': msg, 'p_sig': _sig('$d|chat|$msg')});
+  }
+
+  static Future<void> chatReport(int id) async {
+    final d = await deviceId();
+    await _rpc('rc_chat_report', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|report|$id')});
   }
 
   // ── Joueurs ─────────────────────────────────────────────────────────────

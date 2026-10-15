@@ -5,6 +5,7 @@ import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
 import 'main.dart';
+import 'notifs.dart';
 import 'profile.dart';
 import 'server.dart';
 
@@ -16,10 +17,11 @@ import 'server.dart';
 class TradesScreen extends StatefulWidget {
   const TradesScreen({super.key});
   @override
-  State<TradesScreen> createState() => _TradesScreenState();
+  State<TradesScreen> createState() => TradesScreenState();
 }
 
-class _TradesScreenState extends State<TradesScreen> {
+class TradesScreenState extends State<TradesScreen> {
+  static TradesScreenState? current;
   List<Map<String, dynamic>>? rows;
   String? error;
   final busy = <int>{};
@@ -27,11 +29,19 @@ class _TradesScreenState extends State<TradesScreen> {
   @override
   void initState() {
     super.initState();
+    current = this;
     load();
+  }
+
+  @override
+  void dispose() {
+    if (current == this) current = null;
+    super.dispose();
   }
 
   Future<void> load() async {
     if (error != null) setState(() => error = null);
+    Notifs.i.refresh();
     try {
       final r = await RcServer.trades();
       if (mounted) setState(() => rows = r);

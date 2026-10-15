@@ -8,9 +8,12 @@ import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
+import 'bonus.dart';
+import 'chat.dart';
 import 'market.dart';
+import 'neighbors.dart';
+import 'notifs.dart';
 import 'packs.dart';
-import 'profile.dart';
 import 'trades.dart';
 import 'retro_theme.dart';
 import 'server.dart';
@@ -291,7 +294,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
   }
 }
 
-// ─── Écran principal : 5 onglets ───────────────────────────────────────────
+// ─── Écran principal : 7 rubriques dans un panneau latéral gauche ───────────────────────────────────────────
 class HomeShell extends StatefulWidget {
   final VoidCallback? onBackToTitle; // retour Android depuis l'onglet Collection
   const HomeShell({super.key, this.onBackToTitle});
@@ -306,7 +309,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   final _queue = <Map<String, dynamic>>[];
   bool _showing = false;
 
-  void goTo(int i) => setState(() => tab = i);
+  void goTo(int i) => _select(i);
 
   @override
   void initState() {
@@ -317,7 +320,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     for (final e in Game.i.drainPending()) {
       _onEvent(e);
     }
-    RcAudio.musicStart(1);
+    RcAudio.musicStart(RcAudio.homeTrack);
+    Notifs.i.start();
     // En arrière-plan : captures d'écran des fiches (le catalogue est vérifié à l'écran titre)
     Future(() => Catalog.updateShots());
   }
@@ -326,6 +330,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _evSub?.cancel();
+    Notifs.i.stop();
     if (current == this) current = null;
     super.dispose();
   }
@@ -333,7 +338,10 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Retour dans l'appli : nouveau jour → bonus et paquet gratuit
-    if (state == AppLifecycleState.resumed) Game.i.sync();
+    if (state == AppLifecycleState.resumed) {
+      Game.i.sync();
+      Notifs.i.refresh();
+    }
   }
 
   void _onEvent(Map<String, dynamic> e) {
@@ -377,50 +385,159 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     _next();
   }
 
+  final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void openMenu() => scaffoldKey.currentState?.openDrawer();
+
+  void _select(int i) {
+    final was = tab;
+    setState(() => tab = i);
+    if (was == 5 && i != 5) MessagesScreenState.current?.active(false);
+    if (i == 3) TradesScreenState.current?.load();
+    if (i == 4) MarketScreenState.current?.opened();
+    if (i == 5) MessagesScreenState.current?.active(true);
+    if (i == 6) NeighborsScreenState.current?.load();
+    if (i == 2 || i == 6) Notifs.i.refresh();
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    // Bouton retour Android : autre onglet → Collection ; Collection → écran titre (l'appli ne se ferme pas)
+    // Bouton retour Android : menu ouvert → fermé ; autre onglet → Collection ; Collection → écran titre
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        if (tab != 0) {
-          setState(() => tab = 0);
+        if (scaffoldKey.currentState?.isDrawerOpen == true) {
+          scaffoldKey.currentState?.closeDrawer();
+        } else if (tab != 0) {
+          _select(0);
         } else {
           widget.onBackToTitle?.call();
         }
       },
-      child: ListenableBuilder(
-      listenable: Game.i,
-      builder: (context, _) => Scaffold(
+      child: Scaffold(
+        key: scaffoldKey,
+        drawerEdgeDragWidth: 28,
+        drawer: _menu(),
+        onDrawerChanged: (open) {
+          if (open) Notifs.i.refresh();
+        },
         body: SafeArea(
           child: IndexedStack(index: tab, children: const [
             LibraryScreen(),
             PacksScreen(),
+            BonusScreen(),
             TradesScreen(),
             MarketScreen(),
-            ProfileScreen(),
+            MessagesScreen(),
+            NeighborsScreen(),
           ]),
         ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: tab,
-          height: 64,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          onDestinationSelected: (i) => setState(() => tab = i),
-          destinations: [
-            NavigationDestination(icon: const TabIcon('collection'), selectedIcon: const TabIcon('collection', selected: true), label: t('Collection', 'Collection')),
-            NavigationDestination(
-              icon: Badge(isLabelVisible: Game.i.free, child: const TabIcon('packs')),
-              selectedIcon: Badge(isLabelVisible: Game.i.free, child: const TabIcon('packs', selected: true)),
-              label: t('Paquets', 'Packs'),
-            ),
-            NavigationDestination(icon: const TabIcon('trades'), selectedIcon: const TabIcon('trades', selected: true), label: t('Échanges', 'Trades')),
-            NavigationDestination(icon: const TabIcon('market'), selectedIcon: const TabIcon('market', selected: true), label: t('Marché', 'Market')),
-            NavigationDestination(icon: const TabIcon('profile'), selectedIcon: const TabIcon('profile', selected: true), label: t('Profil', 'Profile')),
-          ],
+      ),
+    );
+  }
+
+  /// Panneau latéral gauche : profil en haut, puis tous les onglets avec leurs pastilles
+  Widget _menu() {
+    return Drawer(
+      backgroundColor: const Color(0xF20A1033),
+      width: 270,
+      child: SafeArea(
+        child: ListenableBuilder(
+          listenable: Listenable.merge([Game.i, Notifs.i]),
+          builder: (context, _) {
+            final g = Game.i, n = Notifs.i;
+            Widget item(int i, String icon, String label, {int count = 0, bool dot = false, String? hint}) {
+              final sel = tab == i;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                child: Material(
+                  color: sel ? kGold.withOpacity(0.16) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _select(i);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: sel ? kGold.withOpacity(0.7) : Colors.transparent),
+                      ),
+                      child: Row(children: [
+                        TabIcon(icon, selected: sel),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                            Text(label, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: sel ? kGold : Colors.white)),
+                            if (hint != null) Text(hint, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                          ]),
+                        ),
+                        if (count > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(color: const Color(0xFFE24B4A), borderRadius: BorderRadius.circular(10)),
+                            child: Text(count > 99 ? '99+' : '$count', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
+                          )
+                        else if (dot)
+                          Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFE24B4A), shape: BoxShape.circle)),
+                      ]),
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              // en-tête : mon profil
+              InkWell(
+                onTap: () {
+                  final nav = Navigator.of(context);
+                  nav.pop();
+                  nav.push(MaterialPageRoute(builder: (_) => const MyProfilePage()));
+                },
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 18, 12, 14),
+                  child: Row(children: [
+                    avatarWidget(g.avatar, size: 48),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(g.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                        const SizedBox(height: 4),
+                        CoinChip(g.coins),
+                      ]),
+                    ),
+                    const Icon(Icons.settings, color: Colors.white54, size: 20),
+                  ]),
+                ),
+              ),
+              const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Divider(color: Colors.white12, height: 1)),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView(padding: EdgeInsets.zero, children: [
+                  item(0, 'collection', t('Collection', 'Collection')),
+                  item(1, 'packs', t('Paquets', 'Packs'),
+                      dot: g.free, count: n.gifts, hint: g.free ? t('Paquet gratuit dispo !', 'Free pack ready!') : null),
+                  item(2, 'bonus', t('Bonus', 'Bonus'), dot: n.wheel, hint: t('Roue et quiz', 'Wheel and quiz')),
+                  item(3, 'trades', t('Échanges', 'Trades'), count: n.trades),
+                  item(4, 'market', t('Marché', 'Market'), count: n.sales.length),
+                  item(5, 'messages', t('Messages', 'Messages'),
+                      count: n.chat, dot: n.mention, hint: n.mention ? t('On t\'a mentionné', 'You were mentioned') : null),
+                  item(6, 'neighbors', t('Voisinage', 'Neighbors'), hint: n.canGift ? t('Cadeau du jour à offrir', 'Daily gift to give') : null),
+                ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Text('Pixel Trade v$kRetroCollecVersion', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30, fontSize: 11)),
+              ),
+            ]);
+          },
         ),
       ),
-    ),
     );
   }
 }
@@ -432,8 +549,22 @@ class TabHeader extends StatelessWidget {
   const TabHeader(this.title, {super.key, this.actions = const []});
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+        padding: EdgeInsets.fromLTRB(HomeShellState.current != null && Scaffold.maybeOf(context)?.hasDrawer == true ? 4 : 16, 12, 8, 8),
         child: Row(children: [
+          if (Scaffold.maybeOf(context)?.hasDrawer == true)
+            ListenableBuilder(
+              listenable: Listenable.merge([Game.i, Notifs.i]),
+              builder: (_, __) => IconButton(
+                tooltip: t('Menu', 'Menu'),
+                onPressed: () => HomeShellState.current?.openMenu(),
+                icon: Badge(
+                  isLabelVisible: Notifs.i.total > 0 || Game.i.free,
+                  backgroundColor: const Color(0xFFE24B4A),
+                  smallSize: 9,
+                  child: const Icon(Icons.menu, size: 28),
+                ),
+              ),
+            ),
           Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: pixelStyle(size: 15))),
           ...actions,
           const SizedBox(width: 6),
