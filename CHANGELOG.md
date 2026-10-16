@@ -13,7 +13,8 @@
 - Correctif : les cases « CARTE » et « RARE » de la roue renvoyaient une erreur.
 - **Mode tablette** (et PC en version web) : menu toujours visible à gauche, tableau de bord sur une ligne,
   plus de colonnes, fiche de la carte et offres de la Bourse affichées à côté de la liste.
-  Sur téléphone, rien ne change (toujours en portrait).
+  Sur téléphone, rien ne change (toujours en portrait). Réglages › **Affichage** pour forcer un mode
+  (le mode tablette s'essaie aussi sur téléphone, en paysage).
 - **Version web** : https://foclabroc.github.io/retro_collec_app/ (musique en mp3 sur iPhone / Safari).
 - APK compilé par GitHub Actions (onglet Actions › APK Android), signé avec la même clé.
 

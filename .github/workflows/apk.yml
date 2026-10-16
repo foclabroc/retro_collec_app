@@ -73,5 +73,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           V=${{ steps.v.outputs.version }}
-          gh release view "v$V" >/dev/null 2>&1 || gh release create "v$V" --title "Pixel Trade v$V" --notes "Voir CHANGELOG.md"
+          # notes de version = la section « ## vX.Y.Z » du CHANGELOG
+          awk -v v="## v$V" 'index($0, v) == 1 {on=1; next} on && /^## v/ {exit} on {print}' CHANGELOG.md > notes.md
+          { echo; echo "---"; echo "📲 **Installation** : télécharge \`retro.collec.V$V.apk\` ci-dessous et ouvre-le sur ton téléphone Android."; \
+            echo "🌐 **Version web** : https://foclabroc.github.io/retro_collec_app/"; } >> notes.md
+          if gh release view "v$V" >/dev/null 2>&1; then
+            gh release edit "v$V" --notes-file notes.md
+          else
+            gh release create "v$V" --title "Pixel Trade v$V" --notes-file notes.md --latest
+          fi
           gh release upload "v$V" "retro.collec.V$V.apk" --clobber
