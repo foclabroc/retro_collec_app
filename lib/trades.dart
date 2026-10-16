@@ -10,7 +10,7 @@ import 'profile.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Échanges entre joueurs : jusqu'à 5 cartes contre 5. Rien n'est bloqué avant
+// Échanges entre joueurs (rubrique Bourse) : jusqu'à 5 cartes contre 5. Rien n'est bloqué avant
 // l'acceptation ; le serveur vérifie que chacun possède encore ses cartes.
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -85,9 +85,8 @@ class TradesScreenState extends State<TradesScreen> {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      TabHeader(t('Échanges', 'Trades'), actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: load)]),
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
         child: SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -111,7 +110,6 @@ class TradesScreenState extends State<TradesScreen> {
     if (rows == null) return const Center(child: CircularProgressIndicator(color: kGold));
     final incoming = rows!.where((r) => r['status'] == 'pending' && r['incoming'] == true).toList();
     final outgoing = rows!.where((r) => r['status'] == 'pending' && r['incoming'] != true).toList();
-    final done = rows!.where((r) => r['status'] != 'pending').toList();
     return RefreshIndicator(
       onRefresh: load,
       child: ListView(padding: const EdgeInsets.all(12), children: [
@@ -121,8 +119,11 @@ class TradesScreenState extends State<TradesScreen> {
         _section(t('Envoyés', 'Sent'), outgoing.length),
         if (outgoing.isEmpty) _empty(t('Aucune proposition en attente', 'No pending offers')),
         for (final r in outgoing) _tradeTile(r, incoming: false),
-        if (done.isNotEmpty) _section(t('Historique', 'History'), done.length),
-        for (final r in done) _tradeTile(r, incoming: r['incoming'] == true, finished: true),
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Text(t('Les échanges terminés sont dans l\'onglet Historique', 'Finished trades are in the History tab'),
+              textAlign: TextAlign.center, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+        ),
       ]),
     );
   }

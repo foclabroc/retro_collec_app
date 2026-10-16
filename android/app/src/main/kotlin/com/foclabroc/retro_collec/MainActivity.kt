@@ -124,6 +124,11 @@ class MainActivity : FlutterActivity() {
         "assets/music/collec_music_1.ogg", // 0 : Good Morning
         "assets/music/collec_music_2.ogg", // 1 : Shop
         "assets/music/collec_music_3.ogg", // 2 : Mountain
+        "assets/music/collec_music_4.ogg", // 3 : Pixel Town
+        "assets/music/collec_music_5.ogg", // 4 : Night Arcade
+        "assets/music/collec_music_6.ogg", // 5 : Treasure Hunt
+        "assets/music/collec_music_7.ogg", // 6 : Chill Cartridge
+        "assets/music/collec_music_8.ogg", // 7 : Boss Rush
     )
 
     /** Lance le morceau [index] en boucle (reprend s'il est déjà chargé). */

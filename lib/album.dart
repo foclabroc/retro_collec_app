@@ -6,7 +6,10 @@ import 'catalog.dart';
 import 'game.dart';
 import 'main.dart';
 import 'retro_theme.dart';
+import 'filters.dart';
 import 'market.dart';
+import 'bourse.dart';
+import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Album : une série de 100 cartes par console, fiche détaillée d'une carte
@@ -24,7 +27,7 @@ class SystemAlbumPage extends StatefulWidget {
 }
 
 class _SystemAlbumPageState extends State<SystemAlbumPage> {
-  int filter = 0; // 0 toutes, 1 possédées, 2 manquantes
+  final f = CardFilter.album; // filtres et tri (gardés d'un album à l'autre)
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +37,8 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
       builder: (context, _) {
         final g = Game.i;
         final all = Catalog.bySys[sys] ?? const <RcCard>[];
-        final list = switch (filter) {
-          1 => all.where((c) => g.has(c.id)).toList(),
-          2 => all.where((c) => !g.has(c.id)).toList(),
-          _ => all,
-        };
+        final list = f.apply(all);
+        final summary = filterSummary(f);
         final mine = g.ownedIn(sys);
         final total = all.length;
         final next = kMilestoneSteps.firstWhere((s) => !g.milestones.contains('$sys:$s'), orElse: () => 0);
@@ -47,6 +47,7 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
             toolbarHeight: 64,
             title: ConsoleLogo(sys, height: 40),
             actions: [
+              FilterButton(filter: f, source: all, onChanged: () => setState(() {})),
               IconButton(
                 tooltip: t('Recycler les doublons', 'Recycle duplicates'),
                 icon: Badge(isLabelVisible: g.dupes > 0, label: Text('${g.dupes}'), child: const Icon(Icons.recycling)),
@@ -78,49 +79,26 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
                       style: const TextStyle(fontSize: 11, color: Colors.white54),
                     ),
                   ),
-                  DropdownButton<int>(
-                    value: filter,
-                    isDense: true,
-                    underline: const SizedBox(),
-                    style: const TextStyle(fontSize: 12, color: Colors.white70),
-                    items: [
-                      DropdownMenuItem(value: 0, child: Text(t('Toutes', 'All'))),
-                      DropdownMenuItem(value: 1, child: Text(t('Possédées', 'Owned'))),
-                      DropdownMenuItem(value: 2, child: Text(t('Manquantes', 'Missing'))),
-                    ],
-                    onChanged: (v) => setState(() => filter = v ?? 0),
-                  ),
                 ]),
+                if (summary.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(children: [
+                      const Icon(Icons.tune, size: 14, color: kGold),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text('$summary · ${list.length}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kGold, fontSize: 11)),
+                      ),
+                      GestureDetector(
+                        onTap: () => setState(() => f.reset()),
+                        child: Text(t('Effacer', 'Clear'), style: const TextStyle(color: Color(0xFF8FD3FF), fontSize: 11, fontWeight: FontWeight.w700)),
+                      ),
+                    ]),
+                  ),
               ]),
             ),
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 5 / 7.4, crossAxisSpacing: 8, mainAxisSpacing: 8),
-                itemCount: list.length,
-                itemBuilder: (_, i) {
-                  final c = list[i];
-                  final q = g.owned[c.id];
-                  final best = q == null ? 0 : (q[2] > 0 ? 2 : q[1] > 0 ? 1 : 0);
-                  final n = g.qty(c.id);
-                  return GestureDetector(
-                    onTap: () => openCardDetail(context, c),
-                    child: Stack(clipBehavior: Clip.none, children: [
-                      Positioned.fill(child: Align(alignment: Alignment.topCenter, child: CardView(card: c, finish: best, owned: n > 0))),
-                      if (n > 1)
-                        Positioned(
-                          right: 2,
-                          bottom: 0,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(color: kGold, borderRadius: BorderRadius.circular(8)),
-                            child: Text('×$n', style: const TextStyle(color: Color(0xFF412402), fontSize: 11, fontWeight: FontWeight.w800)),
-                          ),
-                        ),
-                    ]),
-                  );
-                },
-              ),
+              child: CardGrid(list),
             ),
           ]),
         );
@@ -283,48 +261,80 @@ class _CardDetailPageState extends State<CardDetailPage> {
     final cost = craftCost(c.rarity);
     final inShowcase = g.showcaseItems.any((e) => e.$1 == c.id);
     return [
+      // Bourse : acheter / vendre / demander en échange, directement depuis la carte
+      _BoursePanel(
+        key: ValueKey('bourse${c.id}$total'),
+        card: c,
+        onSell: total > 0 && x[finish] > 0 && !busy ? () => _sell(context, c) : null,
+        sellLabel: total > 0 ? t('Vendre (${finishName(finish).toLowerCase()})', 'Sell (${finishName(finish).toLowerCase()})') : null,
+      ),
+      const SizedBox(height: 14),
       if (total > 0) ...[
         Row(children: [
           Expanded(
             child: OutlinedButton.icon(
-              icon: const Icon(Icons.sell_outlined),
-              label: Text(t('Vendre', 'Sell')),
-              onPressed: busy ? null : () => _sell(context, c),
+              icon: const Icon(Icons.recycling),
+              label: Text(t('Recycler +${recycleValue(c.rarity, finish)}', 'Recycle +${recycleValue(c.rarity, finish)}')),
+              onPressed: busy || total <= 1 || x[finish] == 0 ? null : () => _recycle(c),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: OutlinedButton.icon(
-              icon: const Icon(Icons.recycling),
-              label: Text('+${recycleValue(c.rarity, finish)}'),
-              onPressed: busy || total <= 1 || x[finish] == 0 ? null : () => _recycle(c),
+              icon: Icon(inShowcase ? Icons.star : Icons.star_border, color: kGold),
+              label: Text(inShowcase ? t('Hors vitrine', 'Unshowcase') : t('Vitrine', 'Showcase')),
+              onPressed: busy ? null : () => _toggleShowcase(c, inShowcase),
             ),
           ),
         ]),
         const SizedBox(height: 8),
-        OutlinedButton.icon(
-          icon: Icon(inShowcase ? Icons.star : Icons.star_border, color: kGold),
-          label: Text(inShowcase ? t('Retirer de la vitrine', 'Remove from showcase') : t('Mettre en vitrine', 'Add to showcase')),
-          onPressed: busy ? null : () => _toggleShowcase(c, inShowcase),
-        ),
-        const SizedBox(height: 8),
       ],
+      // fusion : 5 normales → brillante, 3 brillantes → dorée
+      if (x[0] >= 5 || x[1] >= 3) ...[
+        for (final f in [0, 1])
+          if (x[f] >= (f == 0 ? 5 : 3))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: f == 0 ? const Color(0xFF3C3489) : const Color(0xFF7A5A0E),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(46),
+                  side: BorderSide(color: f == 0 ? const Color(0xFFB4A9FF) : kGold, width: 1.5),
+                ),
+                icon: Text(f == 0 ? '✦' : '★', style: const TextStyle(fontSize: 18)),
+                label: Text(
+                  f == 0
+                      ? t('Fusionner 5 normales → 1 brillante', 'Fuse 5 normal → 1 holo')
+                      : t('Fusionner 3 brillantes → 1 dorée', 'Fuse 3 holo → 1 gold'),
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                onPressed: busy ? null : () => _fuse(c, f),
+              ),
+            ),
+      ] else if (total > 1)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            t('Fusion : 5 normales → 1 brillante · 3 brillantes → 1 dorée (tu as ${x[0]} normale(s), ${x[1]} brillante(s))',
+                'Fusion: 5 normal → 1 holo · 3 holo → 1 gold (you have ${x[0]} normal, ${x[1]} holo)'),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11, color: Colors.white38),
+          ),
+        ),
       ElevatedButton.icon(
         icon: const Icon(Icons.auto_fix_high),
         label: Text(t('Fabriquer (${fmt(cost)} pièces)', 'Craft (${fmt(cost)} coins)')),
         onPressed: busy || g.coins < cost ? null : () => _craft(c, cost),
       ),
-      const SizedBox(height: 8),
-      TextButton.icon(
-        icon: const Icon(Icons.storefront),
-        label: Text(t('Chercher au marché', 'Find on the market')),
-        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MarketSearchPage(cardId: c.id))),
-      ),
       if (total > 1)
-        Text(
-          t('Recycler rapporte des pièces (on garde toujours un exemplaire).', 'Recycling gives coins (you always keep one copy).'),
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 11, color: Colors.white38),
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            t('Recycler rapporte des pièces (on garde toujours un exemplaire).', 'Recycling gives coins (you always keep one copy).'),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11, color: Colors.white38),
+          ),
         ),
     ];
   }
@@ -345,6 +355,63 @@ class _CardDetailPageState extends State<CardDetailPage> {
         toast(t('+$gain pièces', '+$gain coins'));
         final x = q;
         if (x[finish] == 0) setState(() => finish = x[2] > 0 ? 2 : x[1] > 0 ? 1 : 0);
+      });
+
+  void _fuse(RcCard c, int from) => _run(() async {
+        final need = from == 0 ? 5 : 3;
+        final to = from + 1;
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(t('Fusionner ?', 'Fuse?')),
+            content: Column(mainAxisSize: MainAxisSize.min, children: [
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                SizedBox(width: 70, child: CardView(card: c, finish: from)),
+                Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text('×$need', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18))),
+                const Icon(Icons.arrow_forward, color: Colors.white54),
+                const SizedBox(width: 8),
+                SizedBox(width: 70, child: CardView(card: c, finish: to)),
+              ]),
+              const SizedBox(height: 12),
+              Text(
+                t('$need exemplaires ${finishName(from).toLowerCase()}s deviennent 1 exemplaire ${finishName(to).toLowerCase()}.',
+                    '$need ${finishName(from).toLowerCase()} copies become 1 ${finishName(to).toLowerCase()} copy.'),
+                textAlign: TextAlign.center,
+              ),
+            ]),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(t('Fusionner', 'Fuse'), style: const TextStyle(fontWeight: FontWeight.w800)),
+              ),
+            ],
+          ),
+        );
+        if (ok != true) return;
+        final f = await Game.i.fuse(c.id, from);
+        RcAudio.sfx('powerup');
+        Game.i.playSound(c.rarity >= 3 ? c.rarity : 3);
+        if (!mounted) return;
+        setState(() => finish = f);
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => Dialog(
+            backgroundColor: kBg.withOpacity(0.95),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: f == 2 ? kGold : const Color(0xFFB4A9FF), width: 2)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text(f == 2 ? t('Carte dorée !', 'Gold card!') : t('Carte brillante !', 'Holo card!'), style: pixelStyle(size: 12)),
+                const SizedBox(height: 16),
+                TiltScope(child: SizedBox(width: 200, child: CardView(card: c, finish: f, tilt3d: true))),
+                const SizedBox(height: 16),
+                FilledButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Super !', 'Great!'))),
+              ]),
+            ),
+          ),
+        );
       });
 
   void _craft(RcCard c, int cost) => _run(() async {
@@ -469,4 +536,115 @@ Future<int?> askPrice(BuildContext context, RcCard c, int finish) async {
       );
     }),
   );
+}
+
+/// Encadré « Bourse » de la fiche d'une carte : offres au marché (prix le plus
+/// bas), vendre la mienne, la demander en échange à un joueur qui l'a en double.
+class _BoursePanel extends StatefulWidget {
+  final RcCard card;
+  final VoidCallback? onSell;
+  final String? sellLabel;
+  const _BoursePanel({super.key, required this.card, this.onSell, this.sellLabel});
+  @override
+  State<_BoursePanel> createState() => _BoursePanelState();
+}
+
+class _BoursePanelState extends State<_BoursePanel> {
+  int? lots, min;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final r = await RcServer.marketList(card: widget.card.id);
+      var m = 0;
+      for (final x in r) {
+        final p = (x['price'] as num).toInt();
+        if (m == 0 || p < m) m = p;
+      }
+      if (mounted) {
+        setState(() {
+          lots = r.length;
+          min = m;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => lots = -1);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.card;
+    final n = lots;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        color: kPanel,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: kGold.withOpacity(0.45)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          const Icon(Icons.storefront, color: kGold, size: 18),
+          const SizedBox(width: 6),
+          Text(t('Bourse', 'Exchange'), style: const TextStyle(fontWeight: FontWeight.w800)),
+          const Spacer(),
+          if (n == null)
+            const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: kGold))
+          else if (n < 0)
+            Text(t('hors ligne', 'offline'), style: const TextStyle(color: Colors.white38, fontSize: 12))
+          else if (n == 0)
+            Text(t('aucune en vente', 'none for sale'), style: const TextStyle(color: Colors.white54, fontSize: 12))
+          else
+            Text(t('$n en vente · dès $min', '$n for sale · from $min'), style: const TextStyle(color: kGold, fontSize: 12, fontWeight: FontWeight.w700)),
+        ]),
+        const SizedBox(height: 10),
+        Row(children: [
+          Expanded(
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: kGold,
+                foregroundColor: const Color(0xFF2A1800),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+              ),
+              onPressed: (n ?? 0) > 0
+                  ? () async {
+                      await showCardOffers(context, c.id);
+                      _load();
+                    }
+                  : null,
+              icon: const Icon(Icons.shopping_cart, size: 18),
+              label: Text(t('Acheter', 'Buy'), style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6)),
+              onPressed: () => askTradeFor(context, c),
+              icon: const Icon(Icons.swap_horiz, size: 18),
+              label: Text(t('Échanger', 'Trade')),
+            ),
+          ),
+        ]),
+        if (widget.sellLabel != null) ...[
+          const SizedBox(height: 6),
+          OutlinedButton.icon(
+            onPressed: widget.onSell == null
+                ? null
+                : () {
+                    widget.onSell!();
+                  },
+            icon: const Icon(Icons.sell_outlined, size: 18),
+            label: Text(widget.sellLabel!),
+          ),
+        ],
+      ]),
+    );
+  }
 }

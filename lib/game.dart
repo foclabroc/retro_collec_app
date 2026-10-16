@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'audio.dart';
 import 'catalog.dart';
+import 'retro_theme.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -61,32 +62,42 @@ String finishName(int f) => [t('Normale', 'Normal'), t('Brillante', 'Holo'), t('
 // Mêmes valeurs que le SQL (rc__recycle_value, rc__craft_cost, rc__pack_price)
 int recycleValue(int r, int f) => const [5, 15, 50, 150, 500][r] * const [1, 3, 10][f];
 int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
-const kPackPrice = {'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0};
+const kPackPrice = {'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0, 'lot': 0};
+const kLotPrice = 500; // lot de 5 paquets mixtes (gratuit le samedi)
 
 const kGold = Color(0xFFEF9F27);
-const kBg = Color(0xFF0A1033); // bleu nuit (thème rétro)
-const kPanel = Color(0xD9141B45); // panneaux semi-transparents sur le fond animé
-const kPanel2 = Color(0xFF26306B);
+// Couleurs de fond selon le thème d'interface choisi (retro_theme.dart)
+Color get kBg => rcTheme.bg; // fond des feuilles et dialogues
+Color get kPanel => rcTheme.panel; // panneaux semi-transparents sur le fond animé
+Color get kPanel2 => rcTheme.panel2;
 
-/// Avatars (icône + couleur)
-const kAvatars = <(IconData, Color)>[
-  (Icons.sports_esports, Color(0xFFEF9F27)),
-  (Icons.videogame_asset, Color(0xFF378ADD)),
-  (Icons.rocket_launch, Color(0xFFD85A30)),
-  (Icons.pets, Color(0xFF639922)),
-  (Icons.bolt, Color(0xFFFAC775)),
-  (Icons.castle, Color(0xFF9C8CFF)),
-  (Icons.catching_pokemon, Color(0xFFE24B4A)),
-  (Icons.star, Color(0xFF1D9E75)),
+/// Avatars : 18 personnages pixel art (assets/avatars/avatar_NN.webp).
+/// La couleur sert de liseré autour de l'avatar.
+const kAvatars = <Color>[
+  Color(0xFF378ADD), Color(0xFF639922), Color(0xFF3E6FC2), Color(0xFF5A6378), Color(0xFFED93B1), Color(0xFFD9483B),
+  Color(0xFF2E2E38), Color(0xFF8A8F9C), Color(0xFFB0B4BE), Color(0xFFE8863A), Color(0xFF4E9A4A), Color(0xFF6E9A2E),
+  Color(0xFF3BA7E8), Color(0xFF4F6B4A), Color(0xFF7B55C7), Color(0xFF9C5FD0), Color(0xFFC8735A), Color(0xFF8A5A3B),
 ];
 
 Widget avatarWidget(int a, {double size = 40}) {
-  final (icon, color) = kAvatars[a % kAvatars.length];
+  final i = a.abs() % kAvatars.length;
+  final color = kAvatars[i];
   return Container(
     width: size,
     height: size,
-    decoration: BoxDecoration(color: color.withOpacity(0.18), shape: BoxShape.circle, border: Border.all(color: color, width: 2)),
-    child: Icon(icon, color: color, size: size * 0.55),
+    decoration: BoxDecoration(
+      color: const Color(0xFF14204F),
+      shape: BoxShape.circle,
+      border: Border.all(color: color, width: size >= 40 ? 2 : 1.5),
+    ),
+    child: ClipOval(
+      child: Image.asset(
+        'assets/avatars/avatar_${i.toString().padLeft(2, '0')}.webp',
+        fit: BoxFit.cover,
+        filterQuality: FilterQuality.none, // pixel art net
+        errorBuilder: (_, __, ___) => Icon(Icons.person, color: color, size: size * 0.55),
+      ),
+    ),
   );
 }
 
@@ -115,6 +126,7 @@ class Game extends ChangeNotifier {
 
   bool ready = false;
   String pid = '', name = '', showcase = '';
+  String house = ''; // maison du Voisinage (chargée avec le Voisinage)
   int avatar = 0, coins = 0, score = 0, cards = 0, packs = 0, pity = 0, streak = 0;
   bool free = false;
   Map<String, dynamic> missions = {};
@@ -142,6 +154,37 @@ class Game extends ChangeNotifier {
       }
     }
     return n;
+  }
+
+  /// Cartes dont on peut fusionner des exemplaires (5 normales ou 3 brillantes)
+  int get fusable => owned.values.where((q) => q[0] >= 5 || q[1] >= 3).length;
+
+  /// Exemplaires brillants et dorés
+  int get holoCount => owned.values.fold(0, (a, q) => a + q[1]);
+  int get goldCount => owned.values.fold(0, (a, q) => a + q[2]);
+
+  // ── Dernières cartes obtenues (mémorisées sur le téléphone) ──
+  final recent = <(String, int)>[];
+  bool _recentLoaded = false;
+
+  Future<void> loadRecent() async {
+    if (_recentLoaded) return;
+    _recentLoaded = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      for (final x in prefs.getStringList('rc_recent') ?? const <String>[]) {
+        final p = x.split(':');
+        if (p.length == 2) recent.add((p[0], int.tryParse(p[1]) ?? 0));
+      }
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  void addRecent(String card, int f) {
+    recent.removeWhere((e) => e.$1 == card && e.$2 == f);
+    recent.insert(0, (card, f));
+    if (recent.length > 12) recent.removeRange(12, recent.length);
+    SharedPreferences.getInstance().then((p) => p.setStringList('rc_recent', [for (final (c, f) in recent) '$c:$f'])).catchError((_) => true);
   }
 
   int get dupesValue {
@@ -226,6 +269,12 @@ class Game extends ChangeNotifier {
       final q = owned[c['c'] as String] ??= [0, 0, 0];
       q[(c['f'] as num).toInt()]++;
     }
+    // les meilleures cartes du paquet en tête des « dernières cartes »
+    final got = [for (final c in (r['cards'] as List? ?? const [])) (c['c'] as String, (c['f'] as num).toInt(), (c['r'] as num? ?? 0).toInt())]
+      ..sort((a, b) => (a.$3 * 3 + a.$2).compareTo(b.$3 * 3 + b.$2));
+    for (final (c, f, _) in got) {
+      addRecent(c, f);
+    }
     notifyListeners();
     return r;
   }
@@ -244,8 +293,28 @@ class Game extends ChangeNotifier {
     return ((r['count'] as num? ?? 0).toInt(), (r['gain'] as num? ?? 0).toInt());
   }
 
+  /// Verse les cadeaux uniques du serveur (sans erreur si hors ligne ou patch SQL absent)
+  Future<void> claimRewards() async {
+    try {
+      final r = await RcServer.claim();
+      if (r['coins'] != null) coins = (r['coins'] as num).toInt();
+      notifyListeners();
+      emit(r['events']);
+    } catch (_) {}
+  }
+
+  /// Fusion d'exemplaires en une finition supérieure ; renvoie la nouvelle finition
+  Future<int> fuse(String card, int finish) async {
+    final r = await RcServer.fuse(card, finish);
+    addRecent(card, finish + 1);
+    await sync();
+    emit(r['events']);
+    return (r['f'] as num? ?? finish + 1).toInt();
+  }
+
   Future<void> craft(String card) async {
     final r = await RcServer.craft(card);
+    addRecent(card, 0);
     await sync();
     emit(r['events']);
   }
@@ -284,6 +353,8 @@ String errText(Object e) {
     if (e.offline) return t('Pas de connexion au serveur', 'No connection to the server');
     return switch (e.message) {
       'pas assez de pièces' => t('Pas assez de pièces', 'Not enough coins'),
+      'pas assez d\'exemplaires' => t('Pas assez d\'exemplaires pour fusionner', 'Not enough copies to fuse'),
+      'fusion impossible' => t('Fusion impossible', 'Cannot fuse'),
       'déjà ouvert aujourd\'hui' => t('Paquet gratuit déjà ouvert aujourd\'hui', 'Free pack already opened today'),
       'dernier exemplaire' => t('Tu dois garder au moins un exemplaire', 'You must keep at least one copy'),
       'trop de lots' => t('12 lots maximum en vente', '12 listings maximum'),
@@ -293,14 +364,18 @@ String errText(Object e) {
       'code invalide' => t('Code invalide : il faut 32 caractères (0-9, A-F)', 'Invalid code: 32 characters needed (0-9, A-F)'),
       'code inconnu' => t('Aucun profil avec ce code', 'No profile with this code'),
       'déjà tourné aujourd\'hui' => t('Roue déjà tournée aujourd\'hui', 'Wheel already spun today'),
-      'cadeau déjà offert' => t('Tu as déjà offert un paquet aujourd\'hui', 'You already gave a pack today'),
+      'cadeau déjà offert' => t('Tu as déjà offert tes 3 paquets aujourd\'hui', 'You already gave your 3 packs today'),
+      'déjà offert à ce joueur' => t('Tu as déjà offert un paquet à ce joueur aujourd\'hui', 'You already gave this player a pack today'),
+      'aucun paquet du lot' => t('Plus de paquet dans ton lot', 'No pack left in your bundle'),
       'pas à toi-même' => t('Tu ne peux pas t\'offrir un paquet', 'You can\'t give yourself a pack'),
-      'trop de cadeaux' => t('Ce joueur a déjà 5 paquets cadeaux à ouvrir', 'This player already has 5 gift packs to open'),
+      'trop de cadeaux' => t('Ce joueur a déjà 10 paquets cadeaux à ouvrir', 'This player already has 10 gift packs to open'),
       'aucun cadeau' => t('Aucun paquet cadeau', 'No gift pack'),
       'attends un peu' => t('Attends quelques secondes avant d\'écrire à nouveau', 'Wait a few seconds before writing again'),
       'chat interdit' => t('Tu ne peux plus écrire dans les messages', 'You can no longer write messages'),
       'message trop long' => t('Message trop long (120 caractères max)', 'Message too long (120 characters max)'),
       'message vide' => t('Message vide', 'Empty message'),
+      'style verrouillé' => t('Cette maison n\'est pas encore débloquée', 'This house is not unlocked yet'),
+      'maison invalide' => t('Maison invalide', 'Invalid house'),
       'identifiants incorrects' => t('Pseudo ou mot de passe incorrect', 'Wrong name or password'),
       'trop de tentatives' => t('Trop d\'essais : réessaie dans 15 minutes', 'Too many attempts: try again in 15 minutes'),
       _ => e.message,

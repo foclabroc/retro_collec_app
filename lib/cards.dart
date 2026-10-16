@@ -368,7 +368,8 @@ class CardView extends StatelessWidget {
 class CardSparkle extends StatefulWidget {
   final Color color;
   final int stars, seed;
-  const CardSparkle({super.key, required this.color, this.stars = 8, this.seed = 0});
+  final bool sweep; // éclat diagonal (faux sur une forme non rectangulaire)
+  const CardSparkle({super.key, required this.color, this.stars = 8, this.seed = 0, this.sweep = true});
   @override
   State<CardSparkle> createState() => _CardSparkleState();
 }
@@ -384,21 +385,22 @@ class _CardSparkleState extends State<CardSparkle> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) =>
-      RepaintBoundary(child: CustomPaint(painter: _SparklePainter(ctl, widget.color, widget.stars, widget.seed), child: const SizedBox.expand()));
+      RepaintBoundary(child: CustomPaint(painter: _SparklePainter(ctl, widget.color, widget.stars, widget.seed, widget.sweep), child: const SizedBox.expand()));
 }
 
 class _SparklePainter extends CustomPainter {
   final Animation<double> anim;
   final Color color;
   final int stars, seed;
-  _SparklePainter(this.anim, this.color, this.stars, this.seed) : super(repaint: anim);
+  final bool sweep;
+  _SparklePainter(this.anim, this.color, this.stars, this.seed, this.sweep) : super(repaint: anim);
 
   @override
   void paint(Canvas canvas, Size size) {
     final v = anim.value;
     final w = size.width, h = size.height;
     // éclat diagonal pendant le premier tiers du cycle
-    if (v < 0.35) {
+    if (sweep && v < 0.35) {
       final p = v / 0.35;
       final x = -w * 0.6 + p * w * 2.2;
       final band = Path()
@@ -572,7 +574,7 @@ class MiniCards extends StatelessWidget {
 
 /// Logo officiel d'une console (assets/logos/<id>.png) sur un panneau clair ou sombre
 /// selon les couleurs du logo. Si le logo manque : le nom de la console.
-const _kDarkBoardLogos = {'n64', 'neogeo', 'nes', 'psx', 'gba'};
+const _kDarkBoardLogos = {'n64', 'neogeo', 'nes', 'psx', 'gba', 'gamecube', 'ps2'};
 
 class ConsoleLogo extends StatelessWidget {
   final String sys;

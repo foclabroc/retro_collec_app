@@ -1,5 +1,36 @@
 # Pixel Trade — Changelog
 
+## v1.0.3
+- 🎁 **Cadeau : 800 pièces offertes** à tous les joueurs (une seule fois, au premier lancement de la v1.0.3).
+- Écran **Nouveautés** au lancement, avec « Ne plus afficher ».
+- **4 nouvelles consoles** : PSP, Game Gear, GameCube et PS2 (50 cartes).
+- Nouvelle rubrique **Bourse** (remplace Marché et Échanges) : Acheter · Vendre · Échanges · Historique.
+  - Marché **groupé par carte** : prix le plus bas et nombre de lots, offres triées du moins cher au plus cher ;
+    tri récents / moins chers / plus rares.
+  - **Historique** : ventes, achats et échanges terminés, avec le bilan des pièces.
+- Encadré **Bourse sur chaque carte** : « 3 en vente dès 40 → Acheter », Vendre, et **Échanger** (liste des joueurs
+  qui l'ont en double, échange pré-rempli en une touche).
+- **Voisinage** en parcelles : une **maison par joueur**, **12 maisons** à choisir (chalet, cottage, gîte d'hiver,
+  ryokan, villa, dôme, manoir, château…), certaines débloquées par la collection (100 à 700 cartes).
+- **Paquets cadeaux** : jusqu'à **3 paquets à offrir par jour** (un par joueur). En haut de l'onglet Paquets,
+  « Cadeaux reçus » ouvre la **liste des donateurs** (pseudo, date) avec un bouton Ouvrir pour chaque paquet.
+- **Lot de 5 paquets mixtes** (500 pièces) : **gratuit chaque samedi** ; les paquets du lot s'ouvrent un par un.
+- **Fusion** : 5 exemplaires normaux d'une carte → 1 brillante, 3 brillantes → 1 dorée (depuis la fiche de la carte).
+- **Notifications Android**, même appli fermée (environ toutes les 15 min) : paquet cadeau reçu, carte vendue,
+  proposition d'échange, mention dans les messages, paquet gratuit du jour, lot gratuit du samedi.
+  Désactivables dans les réglages.
+- **Ma collection** repensée : tableau de bord (progression, raretés, raccourcis, dernières cartes) et consoles
+  en **posters rétro**.
+- **Filtres et tri** dans les albums (bouton ⚙) : possédées, manquantes, doublons, brillantes, dorées, rareté, genre ;
+  tri par numéro, rareté, année, nom ou exemplaires. **Recherche** dans toutes ses cartes (🔍 dans Collection).
+- **Thèmes d'interface** (réglages) : Rétro bleu, Game Boy, Néon, Coucher de soleil, Arcade noir.
+- Menu latéral accessible depuis n'importe quel écran (glisser depuis le bord gauche).
+- **Nouveaux boosters « Booster Retrogaming »** (recto et verso) : à l'ouverture, fais tourner le paquet avec ton doigt
+  comme une carte, puis glisse le long du pointillé en haut pour le déchirer.
+- **18 nouveaux avatars** en pixel art (chevalier, mage, ninja, robot, viking…).
+- **5 nouvelles musiques** chiptune : Pixel Town, Night Arcade, Treasure Hunt, Chill Cartridge, Boss Rush.
+- Correctif : retour arrière pendant l'achat d'un paquet → le paquet n'est plus perdu (résumé des cartes).
+
 ## v1.0.2
 - Nouvel onglet **Bonus** : roue de la fortune (un tour gratuit par jour : pièces ou carte) et quiz rétro.
 - Nouvel onglet **Voisinage** : tous les joueurs (classement, recherche), leur profil, leurs statistiques et leur album ;

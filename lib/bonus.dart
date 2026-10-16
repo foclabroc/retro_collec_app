@@ -133,7 +133,7 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
     await showDialog<void>(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xF20A1033),
+        backgroundColor: kBg.withOpacity(0.95),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: kGold, width: 2)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
@@ -208,7 +208,7 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
                           height: size * 0.24,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color(0xFF0A1033),
+                            color: kBg,
                             border: Border.all(color: kGold, width: 4),
                             boxShadow: [BoxShadow(color: kGold.withOpacity(can ? 0.6 : 0.1), blurRadius: 14)],
                           ),

@@ -200,6 +200,18 @@ class RcServer {
     return _map(await _rpc('rc_craft', {'p_device': d, 'p_card': card, 'p_sig': _sig('$d|craft|$card')}));
   }
 
+  /// Fusion : 5 normales → 1 brillante (finish 0), 3 brillantes → 1 dorée (finish 1)
+  static Future<Map<String, dynamic>> fuse(String card, int finish) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_fuse', {'p_device': d, 'p_card': card, 'p_finish': finish, 'p_sig': _sig('$d|fuse|$card|$finish')}));
+  }
+
+  /// Cadeaux uniques pas encore reçus (ex. 800 pièces de la v1.0.3) : {events, coins}
+  static Future<Map<String, dynamic>> claim() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_claim', {'p_device': d, 'p_sig': _sig('$d|claim')}));
+  }
+
   // ── Bonus ───────────────────────────────────────────────────────────────
   /// Roue de la fortune : {seg, gain, card:{c,f,r,n}|null, coins, events}
   static Future<Map<String, dynamic>> wheel() async {
@@ -207,7 +219,19 @@ class RcServer {
     return _map(await _rpc('rc_wheel', {'p_device': d, 'p_sig': _sig('$d|wheel')}));
   }
 
-  /// Offre un paquet à un joueur (un par jour)
+  /// Lot de 5 paquets mixtes (500 pièces, gratuit le samedi) : {free, lots, coins}
+  static Future<Map<String, dynamic>> buyLot() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_buy_lot', {'p_device': d, 'p_sig': _sig('$d|lot')}));
+  }
+
+  /// Cadeaux reçus pas encore ouverts : [{id, name, pid, avatar, at}]
+  static Future<List<Map<String, dynamic>>> giftsList() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_gifts_list', {'p_device': d}));
+  }
+
+  /// Offre un paquet à un joueur (3 par jour, un par joueur)
   static Future<void> gift(String toPid) async {
     final d = await deviceId();
     await _rpc('rc_gift', {'p_device': d, 'p_to_pid': toPid, 'p_sig': _sig('$d|gift|$toPid')});
@@ -261,6 +285,24 @@ class RcServer {
     final d = await deviceId();
     final r = await _rpc('rc_market_buy', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|buy|$id')});
     return r == null ? null : _map(r);
+  }
+
+  /// Marché groupé : [{card, finish, lots, min_price, last_at}]
+  static Future<List<Map<String, dynamic>>> marketGroups({String? sys, bool missing = false}) async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_market_groups', {'p_device': d, 'p_sys': sys, 'p_missing': missing}));
+  }
+
+  /// Joueurs qui ont cette carte en double : [{pid, name, avatar, qty}]
+  static Future<List<Map<String, dynamic>>> cardOwners(String card) async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_card_owners', {'p_device': d, 'p_card': card}));
+  }
+
+  /// Historique : [{kind: sold|bought|trade_in|trade_out, card, finish, price, other_name, other_pid, give, want, status, at}]
+  static Future<List<Map<String, dynamic>>> history() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_history', {'p_device': d}));
   }
 
   /// Prix de référence : {avg, sold, min, open} (null si aucune donnée)
@@ -330,6 +372,12 @@ class RcServer {
   static Future<void> chatReport(int id) async {
     final d = await deviceId();
     await _rpc('rc_chat_report', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|report|$id')});
+  }
+
+  /// Maison du Voisinage : 'style.murs.toit.déco'
+  static Future<void> setHouse(String house) async {
+    final d = await deviceId();
+    await _rpc('rc_set_house', {'p_device': d, 'p_house': house, 'p_sig': _sig('$d|house|$house')});
   }
 
   // ── Joueurs ─────────────────────────────────────────────────────────────

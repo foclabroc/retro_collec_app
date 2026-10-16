@@ -32,8 +32,9 @@ Nouvelles cartes / corrections :
   Ne jamais renuméroter une carte déjà publiée.
 
 Nouvelle version de l'appli :
-  1. lib\update_check.dart : kRetroCollecVersion = '1.0.1' (par ex.)
-  2. pubspec.yaml : version: 1.0.1+2
-  3. flutter build apk --release
-  4. Renommer l'APK en  retro.collec.V1.0.1.apk  et l'AJOUTER à la release
+  1. lib\update_check.dart : kRetroCollecVersion = '1.0.3' (par ex.)
+  2. pubspec.yaml : version: 1.0.3+4
+  3. lib\whats_new.dart : mettre à jour la liste _kNews (écran Nouveautés)
+  3b. flutter build apk --release
+  4. Renommer l'APK en  retro.collec.V1.0.3.apk  et l'AJOUTER à la release
      du dépôt GitHub foclabroc/retro_collec_app (à créer, avec une release).

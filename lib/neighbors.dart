@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
 
 import 'audio.dart';
-import 'cards.dart';
-import 'catalog.dart';
 import 'game.dart';
+import 'house.dart';
 import 'main.dart';
 import 'notifs.dart';
 import 'profile.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Voisinage : les autres joueurs (classement, recherche), leur profil et leur
-// album, et un paquet à offrir chaque jour. Mon profil et les réglages sont
-// accessibles en haut.
+// Voisinage : un quartier de parcelles avec la maison (personnalisable) de
+// chaque joueur, classées par score. Toucher une maison : profil et album du
+// joueur ; 🎁 : offrir le paquet du jour. Ma parcelle et mes réglages en haut.
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Offre le paquet du jour à un joueur (avec confirmation). Vrai si offert.
 Future<bool> giftPack(BuildContext context, String pid, String name) async {
   if (!Notifs.i.canGift) {
-    toast(t('Tu as déjà offert un paquet aujourd\'hui, reviens demain !', 'You already gave a pack today, come back tomorrow!'));
+    toast(t('Tu as déjà offert tes 3 paquets aujourd\'hui, reviens demain !', 'You already gave your 3 packs today, come back tomorrow!'));
     return false;
   }
   final ok = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
       title: Text(t('Offrir un paquet ?', 'Give a pack?')),
-      content: Text(t('$name recevra un paquet de 5 cartes à ouvrir. C\'est gratuit pour toi, mais tu ne peux offrir qu\'un paquet par jour.',
-          '$name will receive a 5-card pack to open. It\'s free for you, but you can only give one pack a day.')),
+      content: Text(t('$name recevra un paquet de 5 cartes à ouvrir. C\'est gratuit pour toi : 3 paquets par jour, un par joueur (il t\'en reste ${Notifs.i.giftsLeft}).',
+          '$name will receive a 5-card pack to open. It\'s free for you: 3 packs a day, one per player (${Notifs.i.giftsLeft} left).')),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
         FilledButton.icon(
@@ -77,10 +76,23 @@ class NeighborsScreenState extends State<NeighborsScreen> {
     super.dispose();
   }
 
+  bool _houseLoaded = false;
+
   Future<void> load() async {
     try {
       final q = query.trim();
       final r = q.isEmpty ? await RcServer.board() : await RcServer.find(q);
+      if (!_houseLoaded) {
+        _houseLoaded = true;
+        final me = r.where((p) => p['pid'] == Game.i.pid).firstOrNull;
+        if (me != null) {
+          Game.i.house = me['house'] as String? ?? '';
+        } else {
+          RcServer.profile(Game.i.pid).then((p) {
+            if (p != null && mounted) setState(() => Game.i.house = p['house'] as String? ?? '');
+          }).catchError((_) {});
+        }
+      }
       if (mounted) {
         setState(() {
           rows = r;
@@ -92,6 +104,13 @@ class NeighborsScreenState extends State<NeighborsScreen> {
     }
   }
 
+  Future<void> _editHouse() async {
+    final ok = await Navigator.of(context).push<bool>(MaterialPageRoute(
+      builder: (_) => HouseEditorPage(initial: HouseSpec.parse(Game.i.house, seed: Game.i.pid)),
+    ));
+    if (ok == true) load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -100,33 +119,55 @@ class NeighborsScreenState extends State<NeighborsScreen> {
         final g = Game.i;
         return Column(children: [
           TabHeader(t('Voisinage', 'Neighbors')),
-          // ma carte de joueur → mon profil et réglages
+          // ma parcelle
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Material(
-              color: kPanel,
-              borderRadius: BorderRadius.circular(14),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyProfilePage())),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: kGold.withOpacity(0.6))),
-                  child: Row(children: [
-                    avatarWidget(g.avatar, size: 46),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(g.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-                        Text(t('${g.cards} / ${Catalog.cards.length} cartes · score ${g.score}', '${g.cards} / ${Catalog.cards.length} cards · score ${g.score}'),
-                            style: const TextStyle(color: kGold, fontSize: 12)),
-                      ]),
-                    ),
-                    Text(t('Mon profil', 'My profile'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
-                    const Icon(Icons.chevron_right, color: Colors.white54),
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(16), border: Border.all(color: kGold.withOpacity(0.6))),
+              child: Row(children: [
+                GestureDetector(
+                  onTap: _editHouse,
+                  child: SizedBox(width: 104, height: 96, child: HouseView(HouseSpec.parse(g.house, seed: g.pid), highlight: true)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      avatarWidget(g.avatar, size: 26),
+                      const SizedBox(width: 6),
+                      Expanded(child: Text(g.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
+                    ]),
+                    const SizedBox(height: 2),
+                    Text(t('${g.cards} cartes · score ${g.score}', '${g.cards} cards · score ${g.score}'), style: const TextStyle(color: kGold, fontSize: 12)),
+                    const SizedBox(height: 6),
+                    Row(children: [
+                      Expanded(
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: kGold,
+                            foregroundColor: const Color(0xFF2A1800),
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          onPressed: _editHouse,
+                          icon: const Icon(Icons.format_paint, size: 16),
+                          label: Text(t('Ma maison', 'My house'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6), visualDensity: VisualDensity.compact),
+                          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyProfilePage())),
+                          icon: const Icon(Icons.person, size: 16),
+                          label: Text(t('Profil', 'Profile'), style: const TextStyle(fontSize: 12)),
+                        ),
+                      ),
+                    ]),
                   ]),
                 ),
-              ),
+              ]),
             ),
           ),
           // cadeau du jour
@@ -138,19 +179,20 @@ class NeighborsScreenState extends State<NeighborsScreen> {
               Expanded(
                 child: Text(
                   Notifs.i.canGift
-                      ? t('Tu peux offrir un paquet aujourd\'hui : touche 🎁 à côté d\'un joueur', 'You can give a pack today: tap 🎁 next to a player')
-                      : t('Paquet du jour offert · reviens demain', 'Today\'s pack given · come back tomorrow'),
+                      ? t('Encore ${Notifs.i.giftsLeft} paquet(s) à offrir aujourd\'hui : touche 🎁 sur une maison',
+                          '${Notifs.i.giftsLeft} pack(s) left to give today: tap 🎁 on a house')
+                      : t('3 paquets offerts aujourd\'hui · reviens demain', '3 packs given today · come back tomorrow'),
                   style: TextStyle(color: Notifs.i.canGift ? kGold : Colors.white38, fontSize: 12),
                 ),
               ),
             ]),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
             child: TextField(
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
-                hintText: t('Chercher un joueur', 'Search a player'),
+                hintText: t('Chercher un voisin', 'Search a neighbor'),
                 isDense: true,
                 filled: true,
                 fillColor: const Color(0x33000000),
@@ -162,64 +204,92 @@ class NeighborsScreenState extends State<NeighborsScreen> {
               },
             ),
           ),
-          Expanded(child: _list()),
+          Expanded(child: _grid()),
         ]);
       },
     );
   }
 
-  Widget _list() {
+  Widget _grid() {
     if (error != null) {
       return Center(child: TextButton(onPressed: load, child: Text('$error\n${t('Réessayer', 'Retry')}', textAlign: TextAlign.center)));
     }
     if (rows == null) return const Center(child: CircularProgressIndicator(color: kGold));
-    if (rows!.isEmpty) return Center(child: Text(t('Aucun joueur', 'No players'), style: const TextStyle(color: Colors.white38)));
+    if (rows!.isEmpty) return Center(child: Text(t('Aucun voisin', 'No neighbors'), style: const TextStyle(color: Colors.white38)));
+    final ranked = query.trim().isEmpty;
     return RefreshIndicator(
       onRefresh: load,
-      child: ListView.builder(
+      child: GridView.builder(
         padding: const EdgeInsets.fromLTRB(12, 6, 12, 16),
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 200, childAspectRatio: 0.82, crossAxisSpacing: 10, mainAxisSpacing: 10),
         itemCount: rows!.length,
-        itemBuilder: (_, i) {
-          final p = rows![i];
-          final me = p['pid'] == Game.i.pid;
-          final pid = p['pid'] as String;
-          final name = p['name'] as String? ?? '?';
-          final rank = i + 1;
-          final medal = query.trim().isEmpty && rank <= 3 ? const ['🥇', '🥈', '🥉'][rank - 1] : null;
-          return Container(
-            margin: const EdgeInsets.only(bottom: 6),
-            decoration: BoxDecoration(
-              color: me ? const Color(0x33EF9F27) : kPanel,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-              leading: Row(mainAxisSize: MainAxisSize.min, children: [
-                SizedBox(
-                  width: 28,
-                  child: Text(medal ?? (query.trim().isEmpty ? '$rank' : ''), textAlign: TextAlign.center,
-                      style: const TextStyle(color: kGold, fontWeight: FontWeight.w800)),
-                ),
-                const SizedBox(width: 6),
-                avatarWidget((p['avatar'] as num? ?? 0).toInt()),
-              ]),
-              title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: Text(t('${p['cards']} cartes · score ${p['score']}', '${p['cards']} cards · score ${p['score']}'),
-                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
-              trailing: me
-                  ? Text(t('Moi', 'Me'), style: const TextStyle(color: kGold, fontWeight: FontWeight.w800))
-                  : IconButton(
-                      tooltip: t('Offrir un paquet', 'Give a pack'),
-                      icon: Opacity(opacity: Notifs.i.canGift ? 1 : 0.3, child: const Text('🎁', style: TextStyle(fontSize: 22))),
-                      onPressed: () => giftPack(context, pid, name),
-                    ),
-              onTap: me
-                  ? () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyProfilePage()))
-                  : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: pid))),
-            ),
-          );
-        },
+        itemBuilder: (_, i) => _plot(rows![i], ranked ? i + 1 : null),
       ),
+    );
+  }
+
+  Widget _plot(Map<String, dynamic> p, int? rank) {
+    final pid = p['pid'] as String;
+    final me = pid == Game.i.pid;
+    final name = p['name'] as String? ?? '?';
+    final spec = HouseSpec.parse(me ? Game.i.house : p['house'] as String?, seed: pid);
+    return GestureDetector(
+      onTap: me
+          ? () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyProfilePage()))
+          : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: pid))),
+      child: Column(children: [
+        Expanded(
+          child: Stack(children: [
+            Positioned.fill(child: HouseView(spec, highlight: me)),
+            // rang
+            if (rank != null)
+              Positioned(
+                left: 6,
+                top: 6,
+                child: rank <= 3
+                    ? Text(const ['🥇', '🥈', '🥉'][rank - 1], style: const TextStyle(fontSize: 20))
+                    : Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(color: kBg.withOpacity(0.67), borderRadius: BorderRadius.circular(8)),
+                        child: Text('#$rank', style: const TextStyle(color: kGold, fontSize: 11, fontWeight: FontWeight.w800)),
+                      ),
+              ),
+            // offrir un paquet
+            if (!me)
+              Positioned(
+                right: 2,
+                top: 2,
+                child: IconButton(
+                  tooltip: t('Offrir un paquet', 'Give a pack'),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => giftPack(context, pid, name),
+                  icon: Opacity(opacity: Notifs.i.canGift ? 1 : 0.35, child: const Text('🎁', style: TextStyle(fontSize: 20))),
+                ),
+              ),
+          ]),
+        ),
+        // panneau en bois avec le pseudo
+        Container(
+          margin: const EdgeInsets.only(top: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: me ? const Color(0xFF5A3A08) : const Color(0xFF5C3D24),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: me ? kGold : const Color(0xFF2E1D10), width: 1.5),
+          ),
+          child: Row(children: [
+            avatarWidget((p['avatar'] as num? ?? 0).toInt(), size: 22),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(me ? t('$name (moi)', '$name (me)') : name,
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
+                Text(t('${p['cards']} cartes', '${p['cards']} cards'), style: const TextStyle(color: Color(0xFFF3D9A4), fontSize: 10.5)),
+              ]),
+            ),
+          ]),
+        ),
+      ]),
     );
   }
 }

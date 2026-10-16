@@ -6,6 +6,7 @@ import 'audio.dart';
 import 'catalog.dart';
 import 'game.dart';
 import 'main.dart';
+import 'push.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -20,7 +21,10 @@ class Notifs extends ChangeNotifier {
 
   int trades = 0; // propositions reçues en attente
   bool wheel = false; // tour de roue disponible
-  bool canGift = false; // cadeau du jour pas encore offert
+  bool canGift = false; // il reste des cadeaux à offrir aujourd'hui
+  int giftsLeft = 0; // cadeaux encore à offrir aujourd'hui (3 par jour)
+  int lots = 0; // paquets du lot encore à ouvrir
+  bool lotFree = false; // samedi : lot de 5 paquets gratuit
   int gifts = 0; // paquets cadeaux reçus à ouvrir
   String giftFrom = '';
   int chat = 0; // messages non lus
@@ -84,10 +88,14 @@ class Notifs extends ChangeNotifier {
       giftFrom = r['gift_from'] as String? ?? '';
       wheel = r['wheel'] == true;
       canGift = r['can_gift'] == true;
+      giftsLeft = (r['gifts_left'] as num? ?? (canGift ? 1 : 0)).toInt().clamp(0, 3);
+      lots = (r['lots'] as num? ?? 0).toInt();
+      lotFree = r['lot_free'] == true;
       _lastTrades = t0;
       trades = t0;
       sales = s;
       notifyListeners();
+      PushWatch.seen(r); // pas de notification Android pour ce qui vient d'être vu
     } catch (_) {
       // hors ligne : on réessaiera
     }

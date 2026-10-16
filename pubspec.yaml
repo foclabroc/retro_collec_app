@@ -1,7 +1,7 @@
 name: retro_collec
 description: Pixel Trade — collection multijoueur de boîtes de jeux rétro (paquets, échanges, marché) by foclabroc
 publish_to: 'none'
-version: 1.0.2+3
+version: 1.0.3+4
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -17,6 +17,8 @@ dependencies:
   archive: ^3.6.1
   sensors_plus: ^6.1.1
   google_fonts: ^6.2.1
+  workmanager: ^0.10.10
+  flutter_local_notifications: ^20.1.0
 
 dev_dependencies:
   flutter_test:
@@ -31,7 +33,11 @@ flutter:
     - assets/logos/
     - assets/consoles/
     - assets/tabs/
+    - assets/houses/
+    - assets/avatars/
     - assets/card_back.jpg
+    - assets/booster_front.webp
+    - assets/booster_back.webp
 
 flutter_launcher_icons:
   android: true

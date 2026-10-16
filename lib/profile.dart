@@ -8,11 +8,14 @@ import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
+import 'house.dart';
 import 'main.dart';
 import 'server.dart';
 import 'trades.dart';
 import 'neighbors.dart';
 import 'notifs.dart';
+import 'push.dart';
+import 'retro_theme.dart';
 import 'stats.dart';
 import 'update_check.dart';
 
@@ -81,9 +84,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(t('Ton avatar', 'Your avatar')),
-        content: Wrap(spacing: 12, runSpacing: 12, children: [
-          for (var i = 0; i < kAvatars.length; i++) GestureDetector(onTap: () => Navigator.pop(ctx, i), child: avatarWidget(i, size: 54)),
-        ]),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Wrap(spacing: 10, runSpacing: 10, alignment: WrapAlignment.center, children: [
+              for (var i = 0; i < kAvatars.length; i++)
+                GestureDetector(
+                  onTap: () => Navigator.pop(ctx, i),
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Game.i.avatar == i ? kGold : Colors.transparent, width: 2.5),
+                    ),
+                    child: avatarWidget(i, size: 58),
+                  ),
+                ),
+            ]),
+          ),
+        ),
       ),
     );
     if (a == null) return;
@@ -186,6 +205,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onChanged: (v) async {
                         await Tilt.setEnabled(v);
                         setState(() {});
+                      },
+                    ),
+                    const Divider(height: 1, color: Colors.white12),
+                    FutureBuilder<bool>(
+                      future: PushWatch.enabled(),
+                      builder: (context, snap) => SwitchListTile(
+                        secondary: const Icon(Icons.notifications_active),
+                        title: Text(t('Notifications', 'Notifications')),
+                        subtitle: Text(t('Cadeaux, ventes, échanges, paquet gratuit… même appli fermée', 'Gifts, sales, trades, free pack… even when the app is closed'),
+                            style: const TextStyle(fontSize: 12, color: Colors.white54)),
+                        value: snap.data ?? true,
+                        activeColor: kGold,
+                        onChanged: (v) async {
+                          await PushWatch.setEnabled(v);
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                    const Divider(height: 1, color: Colors.white12),
+                    ListTile(
+                      leading: const Icon(Icons.palette),
+                      title: Text(t('Thème', 'Theme')),
+                      subtitle: Text(rcTheme.name, style: const TextStyle(fontSize: 12, color: Colors.white54)),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.white38),
+                      onTap: () async {
+                        final i = await showDialog<int>(
+                          context: context,
+                          builder: (ctx) => SimpleDialog(
+                            title: Text(t('Thème de l\'interface', 'Interface theme')),
+                            children: [
+                              for (var k = 0; k < kThemes.length; k++)
+                                SimpleDialogOption(
+                                  onPressed: () => Navigator.pop(ctx, k),
+                                  child: Row(children: [
+                                    Container(
+                                      width: 54,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: kThemes[k].bgGrad),
+                                        border: Border.all(color: rcThemeIndex.value == k ? kGold : kThemes[k].line, width: rcThemeIndex.value == k ? 2.5 : 1.5),
+                                      ),
+                                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                        for (final c in kThemes[k].pixels.take(3))
+                                          Container(width: 6, height: 6, margin: const EdgeInsets.all(2), color: c),
+                                      ]),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Text(kThemes[k].name,
+                                          style: TextStyle(fontWeight: FontWeight.w700, color: rcThemeIndex.value == k ? kGold : Colors.white)),
+                                    ),
+                                    if (rcThemeIndex.value == k) const Icon(Icons.check, color: kGold),
+                                  ]),
+                                ),
+                            ],
+                          ),
+                        );
+                        if (i != null) {
+                          await setTheme(i);
+                          setState(() {});
+                        }
                       },
                     ),
                     const Divider(height: 1, color: Colors.white12),
@@ -301,7 +382,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: const Color(0xFF0A1033), borderRadius: BorderRadius.circular(8), border: Border.all(color: kGold)),
+            decoration: BoxDecoration(color: kBg, borderRadius: BorderRadius.circular(8), border: Border.all(color: kGold)),
             child: SelectableText(code, textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'monospace', fontSize: 15, letterSpacing: 1.2, color: kGold, height: 1.5)),
           ),
           const SizedBox(height: 12),
@@ -518,6 +599,11 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
           : p == null
               ? const Center(child: CircularProgressIndicator(color: kGold))
               : ListView(padding: const EdgeInsets.all(16), children: [
+                  // sa maison
+                  Center(
+                    child: SizedBox(width: 220, height: 190, child: HouseView(HouseSpec.parse(p!['house'] as String?, seed: widget.pid))),
+                  ),
+                  const SizedBox(height: 12),
                   Row(children: [
                     avatarWidget((p!['avatar'] as num? ?? 0).toInt(), size: 60),
                     const SizedBox(width: 14),
@@ -551,12 +637,18 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                       ),
                     ),
                   ]),
-                  if (!Notifs.i.canGift)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(t('Un paquet offert par jour · reviens demain', 'One pack a day · come back tomorrow'),
-                          textAlign: TextAlign.right, style: const TextStyle(color: Colors.white38, fontSize: 11)),
-                    ),
+                  ListenableBuilder(
+                    listenable: Notifs.i,
+                    builder: (_, __) => Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                        Notifs.i.canGift
+                            ? t('Encore ${Notifs.i.giftsLeft} paquet(s) à offrir aujourd\'hui', '${Notifs.i.giftsLeft} pack(s) left to give today')
+                            : t('3 paquets offerts aujourd\'hui · reviens demain', '3 packs given today · come back tomorrow'),
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                  ),
+                  ),
                   const SizedBox(height: 18),
                   Text(t('Vitrine', 'Showcase'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                   const SizedBox(height: 8),

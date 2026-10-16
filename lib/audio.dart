@@ -51,8 +51,8 @@ class RcAudio {
   static bool _musicLoaded = false;
   static int? _track; // musique du jeu actuellement ouvert
 
-  /// Morceau choisi dans les réglages (0 Good Morning, 1 Shop, 2 Mountain)
-  static const kTracks = ['Good Morning', 'Shop', 'Mountain'];
+  /// Morceau choisi dans les réglages (index dans kTracks, même ordre que MainActivity.kt)
+  static const kTracks = ['Good Morning', 'Shop', 'Mountain', 'Pixel Town', 'Night Arcade', 'Treasure Hunt', 'Chill Cartridge', 'Boss Rush'];
   static const _kTrackKey = 'rc_track';
   static int homeTrack = 2;
 

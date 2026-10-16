@@ -10,15 +10,16 @@ import 'catalog.dart';
 import 'game.dart';
 import 'bonus.dart';
 import 'chat.dart';
-import 'market.dart';
+import 'bourse.dart';
 import 'neighbors.dart';
 import 'notifs.dart';
+import 'push.dart';
 import 'packs.dart';
-import 'trades.dart';
 import 'retro_theme.dart';
 import 'server.dart';
 import 'update_check.dart';
 import 'welcome.dart';
+import 'whats_new.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PIXEL TRADE — collection multijoueur de boîtes de jeux rétro, by foclabroc
@@ -26,6 +27,10 @@ import 'welcome.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 final rcMessenger = GlobalKey<ScaffoldMessengerState>();
+final rcNav = GlobalKey<NavigatorState>();
+
+/// Vrai pendant l'ouverture d'un paquet : le glissé du bord ne doit pas la fermer
+int rcEdgeMenuBlocked = 0; // nombre d'écrans d'ouverture de paquet affichés
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,7 +38,19 @@ void main() async {
   await loadLang();
   await RcAudio.loadPrefs();
   await Tilt.loadPrefs();
+  await loadTheme();
+  rcThemeIndex.addListener(_rebuildAll);
   runApp(const RetroCollecApp());
+}
+
+/// Thème d'interface changé : tous les écrans sont redessinés (sans revenir à l'écran titre)
+void _rebuildAll() {
+  void visit(Element e) {
+    e.markNeedsBuild();
+    e.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
 }
 
 class RetroCollecApp extends StatelessWidget {
@@ -49,17 +66,56 @@ class RetroCollecApp extends StatelessWidget {
       title: 'Pixel Trade',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: rcMessenger,
+      navigatorKey: rcNav,
       // Fond animé rétro derrière tous les écrans.
       // Android 15 (bord à bord) : rien ne passe sous la barre des boutons Android.
       builder: (context, child) => Stack(children: [
         const Positioned.fill(child: RetroBackground()),
         Positioned.fill(child: SafeArea(top: false, left: false, right: false, child: child ?? const SizedBox())),
+        // bord gauche : glisser vers la droite ouvre le menu, depuis n'importe quel écran
+        const Positioned(left: 0, top: 0, bottom: 0, width: 22, child: _EdgeMenuSwipe()),
       ]),
       theme: retroTheme(),
       home: UpdateGate(french: rcFrench, child: const StartScreen()),
       ),
     );
   }
+}
+
+/// Bande invisible sur le bord gauche : un glissé vers la droite referme les écrans
+/// ouverts par-dessus (album, fiche, profil…) et ouvre le menu latéral.
+class _EdgeMenuSwipe extends StatefulWidget {
+  const _EdgeMenuSwipe();
+  @override
+  State<_EdgeMenuSwipe> createState() => _EdgeMenuSwipeState();
+}
+
+class _EdgeMenuSwipeState extends State<_EdgeMenuSwipe> {
+  double dx = 0;
+  bool done = false;
+
+  void _open() {
+    final shell = HomeShellState.current;
+    if (shell == null || rcEdgeMenuBlocked > 0) return; // écran titre, bienvenue, ouverture de paquet : pas de menu
+    rcNav.currentState?.popUntil((r) => r.isFirst);
+    WidgetsBinding.instance.addPostFrameCallback((_) => HomeShellState.current?.openMenu());
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onHorizontalDragStart: (_) {
+          dx = 0;
+          done = false;
+        },
+        onHorizontalDragUpdate: (d) {
+          dx += d.delta.dx;
+          if (!done && dx > 36) {
+            done = true;
+            _open();
+          }
+        },
+      );
 }
 
 void toast(String msg, {Color? color}) {
@@ -223,7 +279,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
                 width: 240,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(value: progress > 0 && progress < 1 ? progress : null, minHeight: 6, color: kGold, backgroundColor: const Color(0xFF26306B)),
+                  child: LinearProgressIndicator(value: progress > 0 && progress < 1 ? progress : null, minHeight: 6, color: kGold, backgroundColor: kPanel2),
                 ),
               ),
               const SizedBox(height: 12),
@@ -261,7 +317,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
                   const SizedBox(height: 6),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(value: total == 0 ? 0 : g.cards / total, minHeight: 7, color: kGold, backgroundColor: const Color(0xFF26306B)),
+                    child: LinearProgressIndicator(value: total == 0 ? 0 : g.cards / total, minHeight: 7, color: kGold, backgroundColor: kPanel2),
                   ),
                   if (g.free) ...[
                     const SizedBox(height: 10),
@@ -294,7 +350,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
   }
 }
 
-// ─── Écran principal : 7 rubriques dans un panneau latéral gauche ───────────────────────────────────────────
+// ─── Écran principal : 6 rubriques dans un panneau latéral gauche ───────────────────────────────────────────
 class HomeShell extends StatefulWidget {
   final VoidCallback? onBackToTitle; // retour Android depuis l'onglet Collection
   const HomeShell({super.key, this.onBackToTitle});
@@ -322,8 +378,15 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     }
     RcAudio.musicStart(RcAudio.homeTrack);
     Notifs.i.start();
+    PushWatch.start(); // notifications Android, même appli fermée
     // En arrière-plan : captures d'écran des fiches (le catalogue est vérifié à l'écran titre)
     Future(() => Catalog.updateShots());
+    // Nouveautés de la version (jusqu'à « Ne plus afficher ») puis cadeaux uniques du serveur
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (mounted) await maybeShowWhatsNew(context);
+      await Game.i.claimRewards();
+    });
   }
 
   @override
@@ -371,6 +434,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           _ => t('faire un échange ou un achat', 'make a trade or a purchase'),
         };
         msg = t('Mission accomplie ($m) : +$coins pièces', 'Mission complete ($m): +$coins coins');
+      case 'reward':
+        msg = t('🎁 Cadeau : +$coins pièces offertes !', '🎁 Gift: +$coins free coins!');
       case 'milestone':
         final sys = Catalog.system(e['sys'] as String? ?? '')?.name ?? e['sys'];
         msg = t('Série $sys à ${e['step']} % : +$coins pièces !', '$sys set at ${e['step']}%: +$coins coins!');
@@ -387,17 +452,19 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  void openMenu() => scaffoldKey.currentState?.openDrawer();
+  void openMenu() {
+    final st = scaffoldKey.currentState;
+    if (st != null && !st.isDrawerOpen) st.openDrawer();
+  }
 
   void _select(int i) {
     final was = tab;
     setState(() => tab = i);
-    if (was == 5 && i != 5) MessagesScreenState.current?.active(false);
-    if (i == 3) TradesScreenState.current?.load();
-    if (i == 4) MarketScreenState.current?.opened();
-    if (i == 5) MessagesScreenState.current?.active(true);
-    if (i == 6) NeighborsScreenState.current?.load();
-    if (i == 2 || i == 6) Notifs.i.refresh();
+    if (was == 4 && i != 4) MessagesScreenState.current?.active(false);
+    if (i == 3) BourseScreenState.current?.opened();
+    if (i == 4) MessagesScreenState.current?.active(true);
+    if (i == 5) NeighborsScreenState.current?.load();
+    if (i == 2 || i == 5) Notifs.i.refresh();
   }
 
 
@@ -428,8 +495,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             LibraryScreen(),
             PacksScreen(),
             BonusScreen(),
-            TradesScreen(),
-            MarketScreen(),
+            BourseScreen(),
             MessagesScreen(),
             NeighborsScreen(),
           ]),
@@ -441,7 +507,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   /// Panneau latéral gauche : profil en haut, puis tous les onglets avec leurs pastilles
   Widget _menu() {
     return Drawer(
-      backgroundColor: const Color(0xF20A1033),
+      backgroundColor: kBg.withOpacity(0.95),
       width: 270,
       child: SafeArea(
         child: ListenableBuilder(
@@ -521,13 +587,18 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 child: ListView(padding: EdgeInsets.zero, children: [
                   item(0, 'collection', t('Collection', 'Collection')),
                   item(1, 'packs', t('Paquets', 'Packs'),
-                      dot: g.free, count: n.gifts, hint: g.free ? t('Paquet gratuit dispo !', 'Free pack ready!') : null),
+                      dot: g.free || n.lotFree, count: n.gifts + n.lots,
+                      hint: n.lotFree
+                          ? t('Lot de 5 paquets gratuit !', 'Free 5-pack bundle!')
+                          : g.free
+                              ? t('Paquet gratuit dispo !', 'Free pack ready!')
+                              : null),
                   item(2, 'bonus', t('Bonus', 'Bonus'), dot: n.wheel, hint: t('Roue et quiz', 'Wheel and quiz')),
-                  item(3, 'trades', t('Échanges', 'Trades'), count: n.trades),
-                  item(4, 'market', t('Marché', 'Market'), count: n.sales.length),
-                  item(5, 'messages', t('Messages', 'Messages'),
+                  item(3, 'market', t('Bourse', 'Exchange'),
+                      count: n.trades + n.sales.length, hint: t('Acheter, vendre, échanger', 'Buy, sell, trade')),
+                  item(4, 'messages', t('Messages', 'Messages'),
                       count: n.chat, dot: n.mention, hint: n.mention ? t('On t\'a mentionné', 'You were mentioned') : null),
-                  item(6, 'neighbors', t('Voisinage', 'Neighbors'), hint: n.canGift ? t('Cadeau du jour à offrir', 'Daily gift to give') : null),
+                  item(5, 'neighbors', t('Voisinage', 'Neighbors'), hint: n.canGift ? t('${n.giftsLeft} cadeau(x) à offrir', '${n.giftsLeft} gift(s) to give') : null),
                 ]),
               ),
               Padding(

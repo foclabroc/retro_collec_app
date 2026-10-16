@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'album.dart';
 import 'audio.dart';
+import 'bourse.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
@@ -10,8 +11,8 @@ import 'notifs.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Marché : acheter les cartes des autres joueurs, vendre les siennes
-// (le vendeur est payé immédiatement, 12 lots maximum par joueur)
+// Marché (rubrique Bourse) : acheter les cartes des autres joueurs, vendre les
+// siennes (le vendeur est payé immédiatement, 12 lots maximum par joueur)
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Mise en vente d'une carte (appelée depuis la fiche de la carte).
@@ -21,84 +22,195 @@ Future<void> sellCard(String card, int finish, int price, {bool quiet = false}) 
   await Game.i.sync();
   RcAudio.sfx('coin');
   toast(t('Carte mise en vente pour $price pièces', 'Card listed for $price coins'));
-  MarketScreenState.current?.reload();
+  BourseScreenState.current?.reload();
 }
 
 const kMaxListings = 12;
 
-class MarketScreen extends StatefulWidget {
-  const MarketScreen({super.key});
-  @override
-  State<MarketScreen> createState() => MarketScreenState();
+/// Achète un lot (avec confirmation). Vrai si acheté.
+Future<bool> buyLot(BuildContext context, Map<String, dynamic> row) async {
+  final c = Catalog.cards[row['card']];
+  if (c == null) return false;
+  final f = (row['finish'] as num).toInt();
+  final price = (row['price'] as num).toInt();
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(t('Acheter cette carte ?', 'Buy this card?')),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        SizedBox(width: 140, child: CardView(card: c, finish: f)),
+        const SizedBox(height: 12),
+        Text('${finishName(f)} — ${row['seller']}'),
+        const SizedBox(height: 6),
+        CoinChip(price),
+        if (Game.i.has(c.id)) ...[
+          const SizedBox(height: 8),
+          Text(t('Tu possèdes déjà cette carte', 'You already own this card'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        ],
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
+        ElevatedButton(onPressed: Game.i.coins >= price ? () => Navigator.pop(ctx, true) : null, child: Text(t('Acheter', 'Buy'))),
+      ],
+    ),
+  );
+  if (ok != true) return false;
+  var bought = false;
+  try {
+    final r = await RcServer.marketBuy((row['id'] as num).toInt());
+    if (r == null) {
+      toast(t('Trop tard : la carte vient d\'être vendue', 'Too late: the card was just sold'));
+    } else {
+      bought = true;
+      Game.i.addRecent(c.id, f);
+      Game.i.emit(r['events']);
+      Game.i.playSound(c.rarity);
+      toast(r['n'] == true ? t('Nouvelle carte : ${c.title} !', 'New card: ${c.title}!') : t('Carte achetée', 'Card bought'));
+    }
+    await Game.i.sync();
+  } catch (e) {
+    toast(errText(e));
+  }
+  BourseScreenState.current?.reload();
+  return bought;
 }
 
-class MarketScreenState extends State<MarketScreen> with SingleTickerProviderStateMixin {
-  static MarketScreenState? current;
-  late final TabController tabs = TabController(length: 2, vsync: this);
-  final _buyKey = GlobalKey<_MarketListState>();
-  final _mineKey = GlobalKey<_MyListingsState>();
+/// Les offres d'une carte, de la moins chère à la plus chère (feuille du bas).
+/// [finish] : seulement cette finition (null = toutes).
+Future<void> showCardOffers(BuildContext context, String cardId, {int? finish}) {
+  return showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: kBg,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(18))),
+    builder: (_) => DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.6,
+      maxChildSize: 0.92,
+      builder: (ctx, scroll) => _CardOffers(cardId: cardId, finish: finish, scroll: scroll),
+    ),
+  );
+}
+
+class _CardOffers extends StatefulWidget {
+  final String cardId;
+  final int? finish;
+  final ScrollController scroll;
+  const _CardOffers({required this.cardId, required this.finish, required this.scroll});
+  @override
+  State<_CardOffers> createState() => _CardOffersState();
+}
+
+class _CardOffersState extends State<_CardOffers> {
+  List<Map<String, dynamic>>? rows;
+  String? error;
 
   @override
   void initState() {
     super.initState();
-    current = this;
+    load();
   }
 
-  @override
-  void dispose() {
-    if (current == this) current = null;
-    tabs.dispose();
-    super.dispose();
-  }
-
-  void reload() {
-    _buyKey.currentState?.load();
-    _mineKey.currentState?.load();
-  }
-
-  /// Onglet Marché ouvert : s'il y a eu des ventes, on montre « Mes ventes »
-  void opened() {
-    if (Notifs.i.sales.isNotEmpty) tabs.animateTo(1);
-    Notifs.i.salesSeen();
-    reload();
+  Future<void> load() async {
+    try {
+      final r = await RcServer.marketList(card: widget.cardId);
+      r.removeWhere((x) => widget.finish != null && (x['finish'] as num).toInt() != widget.finish);
+      r.sort((a, b) => (a['price'] as num).compareTo(b['price'] as num));
+      if (mounted) setState(() => rows = r);
+    } catch (e) {
+      if (mounted) setState(() => error = errText(e));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      TabHeader(t('Marché', 'Market'), actions: [
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          onPressed: reload,
+    final c = Catalog.cards[widget.cardId];
+    if (c == null) return const SizedBox();
+    final known = Game.i.has(c.id);
+    return ListView(controller: widget.scroll, padding: const EdgeInsets.fromLTRB(16, 10, 16, 24), children: [
+      Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
+      const SizedBox(height: 12),
+      Row(children: [
+        SizedBox(width: 70, child: CardView(card: c, finish: widget.finish ?? 0, owned: known)),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(known ? c.title : '#${c.num.toString().padLeft(3, '0')}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            const SizedBox(height: 2),
+            Text('${Catalog.system(c.sys)?.name ?? c.sys} · ${rarityName(c.rarity)}', style: TextStyle(color: kRarityLight[c.rarity], fontSize: 12)),
+            const SizedBox(height: 2),
+            Text(
+              known ? t('Tu en as ${Game.i.qty(c.id)}', 'You have ${Game.i.qty(c.id)}') : t('Il te manque cette carte', 'You don\'t have this card'),
+              style: TextStyle(color: known ? Colors.white54 : const Color(0xFF5DCAA5), fontSize: 12),
+            ),
+          ]),
         ),
       ]),
-      TabBar(controller: tabs, indicatorColor: kGold, labelColor: kGold, tabs: [
-        Tab(text: t('Acheter', 'Buy')),
-        Tab(text: t('Mes ventes', 'My sales')),
-      ]),
-      Expanded(
-        child: TabBarView(controller: tabs, children: [
-          MarketList(key: _buyKey),
-          MyListings(key: _mineKey),
-        ]),
-      ),
+      const SizedBox(height: 14),
+      Text(t('Offres (moins chères d\'abord)', 'Offers (cheapest first)'), style: const TextStyle(fontWeight: FontWeight.w800)),
+      const SizedBox(height: 8),
+      if (error != null)
+        _Retry(error!, load)
+      else if (rows == null)
+        const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(color: kGold)))
+      else if (rows!.isEmpty)
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(t('Plus aucune offre pour cette carte', 'No more offers for this card'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54)),
+        )
+      else
+        for (var i = 0; i < rows!.length; i++)
+          Container(
+            margin: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
+            decoration: BoxDecoration(
+              color: kPanel,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: i == 0 ? kGold.withOpacity(0.7) : Colors.transparent),
+            ),
+            child: Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('${rows![i]['seller']}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                  Text(
+                    finishName((rows![i]['finish'] as num).toInt()) + (i == 0 ? t(' · le moins cher', ' · cheapest') : ''),
+                    style: TextStyle(color: i == 0 ? kGold : Colors.white54, fontSize: 12),
+                  ),
+                ]),
+              ),
+              CoinChip((rows![i]['price'] as num).toInt()),
+              const SizedBox(width: 6),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800), visualDensity: VisualDensity.compact),
+                onPressed: () async {
+                  if (await buyLot(context, rows![i])) {
+                    if (context.mounted) Navigator.of(context).pop();
+                  } else {
+                    load();
+                  }
+                },
+                child: Text(t('Acheter', 'Buy')),
+              ),
+            ]),
+          ),
     ]);
   }
 }
 
-/// Liste des lots en vente (filtrable).
-class MarketList extends StatefulWidget {
-  final String? cardId; // recherche d'une carte précise
-  const MarketList({super.key, this.cardId});
+/// Marché groupé : une ligne par carte (et finition) avec le prix le plus bas
+/// et le nombre de lots. Toucher une ligne ouvre les offres triées par prix.
+class MarketGroups extends StatefulWidget {
+  const MarketGroups({super.key});
   @override
-  State<MarketList> createState() => _MarketListState();
+  State<MarketGroups> createState() => MarketGroupsState();
 }
 
-class _MarketListState extends State<MarketList> {
+class MarketGroupsState extends State<MarketGroups> {
   List<Map<String, dynamic>>? rows;
   String? error;
   String sys = '';
   bool missing = false;
+  int sort = 0; // 0 récents, 1 moins chers, 2 plus rares
 
   @override
   void initState() {
@@ -109,89 +221,61 @@ class _MarketListState extends State<MarketList> {
   Future<void> load() async {
     if (error != null) setState(() => error = null);
     try {
-      final r = await RcServer.marketList(sys: sys.isEmpty ? null : sys, card: widget.cardId, missing: missing);
+      final r = await RcServer.marketGroups(sys: sys.isEmpty ? null : sys, missing: missing);
       if (mounted) setState(() => rows = r);
     } catch (e) {
       if (mounted) setState(() => error = errText(e));
     }
   }
 
-  Future<void> _buy(Map<String, dynamic> row) async {
-    final c = Catalog.cards[row['card']];
-    if (c == null) return;
-    final f = (row['finish'] as num).toInt();
-    final price = (row['price'] as num).toInt();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t('Acheter cette carte ?', 'Buy this card?')),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          SizedBox(width: 140, child: CardView(card: c, finish: f)),
-          const SizedBox(height: 12),
-          Text('${finishName(f)} — ${row['seller']}'),
-          const SizedBox(height: 6),
-          CoinChip(price),
-          if (Game.i.has(c.id)) ...[
-            const SizedBox(height: 8),
-            Text(t('Tu possèdes déjà cette carte', 'You already own this card'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
-          ],
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
-          ElevatedButton(onPressed: Game.i.coins >= price ? () => Navigator.pop(ctx, true) : null, child: Text(t('Acheter', 'Buy'))),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    try {
-      final r = await RcServer.marketBuy((row['id'] as num).toInt());
-      if (r == null) {
-        toast(t('Trop tard : la carte vient d\'être vendue', 'Too late: the card was just sold'));
-      } else {
-        Game.i.emit(r['events']);
-        Game.i.playSound(c.rarity);
-        toast(r['n'] == true ? t('Nouvelle carte : ${c.title} !', 'New card: ${c.title}!') : t('Carte achetée', 'Card bought'));
-      }
-      await Game.i.sync();
-    } catch (e) {
-      toast(errText(e));
-    }
-    load();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      if (widget.cardId == null)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-          child: Row(children: [
-            Expanded(
-              child: DropdownButton<String>(
-                value: sys,
-                isExpanded: true,
-                underline: const SizedBox(),
-                items: [
-                  DropdownMenuItem(value: '', child: Text(t('Toutes les consoles', 'All systems'))),
-                  for (final s in Catalog.systems) DropdownMenuItem(value: s.id, child: Text(s.name)),
-                ],
-                onChanged: (v) {
-                  setState(() => sys = v ?? '');
-                  load();
-                },
-              ),
-            ),
-            FilterChip(
-              label: Text(t('Mes manquantes', 'Missing only')),
-              selected: missing,
-              selectedColor: const Color(0xFF412402),
-              onSelected: (v) {
-                setState(() => missing = v);
+      Padding(
+        padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+        child: Row(children: [
+          Expanded(
+            child: DropdownButton<String>(
+              value: sys,
+              isExpanded: true,
+              underline: const SizedBox(),
+              items: [
+                DropdownMenuItem(value: '', child: Text(t('Toutes les consoles', 'All systems'))),
+                for (final s in Catalog.systems) DropdownMenuItem(value: s.id, child: Text(s.name)),
+              ],
+              onChanged: (v) {
+                setState(() => sys = v ?? '');
                 load();
               },
             ),
-          ]),
-        ),
+          ),
+          FilterChip(
+            label: Text(t('Mes manquantes', 'Missing only')),
+            selected: missing,
+            selectedColor: const Color(0xFF412402),
+            onSelected: (v) {
+              setState(() => missing = v);
+              load();
+            },
+          ),
+        ]),
+      ),
+      SizedBox(
+        height: 40,
+        child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12), children: [
+          for (final (i, label) in [(0, t('Récents', 'Recent')), (1, t('Moins chers', 'Cheapest')), (2, t('Plus rares', 'Rarest'))])
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ChoiceChip(
+                label: Text(label, style: const TextStyle(fontSize: 12)),
+                selected: sort == i,
+                visualDensity: VisualDensity.compact,
+                selectedColor: kPanel2,
+                onSelected: (_) => setState(() => sort = i),
+              ),
+            ),
+        ]),
+      ),
       Expanded(child: _body()),
     ]);
   }
@@ -200,6 +284,13 @@ class _MarketListState extends State<MarketList> {
     if (error != null) return _Retry(error!, load);
     if (rows == null) return const Center(child: CircularProgressIndicator(color: kGold));
     final list = rows!.where((r) => Catalog.cards.containsKey(r['card'])).toList();
+    if (sort == 1) list.sort((a, b) => (a['min_price'] as num).compareTo(b['min_price'] as num));
+    if (sort == 2) {
+      list.sort((a, b) {
+        final ra = Catalog.cards[a['card']]!.rarity, rb = Catalog.cards[b['card']]!.rarity;
+        return ra != rb ? rb.compareTo(ra) : (b['finish'] as num).compareTo(a['finish'] as num);
+      });
+    }
     if (list.isEmpty) {
       return Center(
         child: Padding(
@@ -211,39 +302,50 @@ class _MarketListState extends State<MarketList> {
     return RefreshIndicator(
       onRefresh: load,
       child: ListView.separated(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
         itemCount: list.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        separatorBuilder: (_, __) => const SizedBox(height: 6),
         itemBuilder: (_, i) {
           final r = list[i];
           final c = Catalog.cards[r['card']]!;
           final f = (r['finish'] as num).toInt();
-          final price = (r['price'] as num).toInt();
-          final mine = Game.i.has(c.id);
+          final lots = (r['lots'] as num).toInt();
+          final known = Game.i.has(c.id);
           return Material(
             color: kPanel,
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: () => _buy(r),
+              onTap: () async {
+                await showCardOffers(context, c.id, finish: f);
+                load();
+              },
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Row(children: [
-                  SizedBox(width: 62, child: CardView(card: c, finish: f)),
+                  SizedBox(width: 54, child: CardView(card: c, finish: f)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(c.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 2),
-                      Text('${Catalog.system(c.sys)?.name ?? c.sys} · ${rarityName(c.rarity)}${f > 0 ? ' · ${finishName(f)}' : ''}',
-                          style: TextStyle(color: kRarityLight[c.rarity], fontSize: 12)),
+                      Text('${Catalog.system(c.sys)?.short ?? c.sys} · ${rarityName(c.rarity)}${f > 0 ? ' · ${finishName(f)}' : ''}',
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: kRarityLight[c.rarity], fontSize: 12)),
                       const SizedBox(height: 2),
-                      Text('${t('Vendeur', 'Seller')} : ${r['seller']}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                      if (!mine)
-                        Text(t('Il te manque cette carte', 'You don\'t have this card'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 11)),
+                      Row(children: [
+                        Text(t('$lots en vente', '$lots for sale'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                        if (!known) ...[
+                          const SizedBox(width: 8),
+                          Text(t('· manquante', '· missing'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 12, fontWeight: FontWeight.w700)),
+                        ],
+                      ]),
                     ]),
                   ),
-                  CoinChip(price),
+                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text(t('dès', 'from'), style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                    CoinChip((r['min_price'] as num).toInt()),
+                  ]),
+                  const Icon(Icons.chevron_right, color: Colors.white38),
                 ]),
               ),
             ),
@@ -258,10 +360,10 @@ class _MarketListState extends State<MarketList> {
 class MyListings extends StatefulWidget {
   const MyListings({super.key});
   @override
-  State<MyListings> createState() => _MyListingsState();
+  State<MyListings> createState() => MyListingsState();
 }
 
-class _MyListingsState extends State<MyListings> {
+class MyListingsState extends State<MyListings> {
   List<Map<String, dynamic>>? rows;
   String? error;
 
@@ -287,7 +389,7 @@ class _MyListingsState extends State<MyListings> {
     );
     if (changed == true) {
       load();
-      MarketScreenState.current?._buyKey.currentState?.load();
+      BourseScreenState.current?.reload();
     }
   }
 
@@ -375,23 +477,6 @@ class _MyListingsState extends State<MyListings> {
             ),
           ),
       ]),
-    );
-  }
-}
-
-/// Recherche d'une carte précise au marché (depuis sa fiche).
-class MarketSearchPage extends StatelessWidget {
-  final String cardId;
-  const MarketSearchPage({super.key, required this.cardId});
-  @override
-  Widget build(BuildContext context) {
-    final c = Catalog.cards[cardId];
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(c != null && Game.i.has(c.id) ? c.title : t('Carte #${c?.num ?? ''}', 'Card #${c?.num ?? ''}')),
-        actions: [Padding(padding: const EdgeInsets.only(right: 12), child: Center(child: ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins))))],
-      ),
-      body: MarketList(cardId: cardId),
     );
   }
 }

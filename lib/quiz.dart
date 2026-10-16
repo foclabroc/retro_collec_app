@@ -107,7 +107,7 @@ class _QuizTileState extends State<QuizTile> {
               width: 58,
               height: 58,
               decoration: BoxDecoration(
-                color: const Color(0xFF0A1033),
+                color: kBg,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: color, width: 2),
                 boxShadow: [BoxShadow(color: color.withOpacity(0.5), blurRadius: 12)],
@@ -314,7 +314,7 @@ class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
                 top: 8,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(color: const Color(0xCC0A1033), borderRadius: BorderRadius.circular(6)),
+                  decoration: BoxDecoration(color: kBg.withOpacity(0.8), borderRadius: BorderRadius.circular(6)),
                   child: FittedBox(child: ConsoleLogo(q.answer.sys, height: 16)),
                 ),
               ),

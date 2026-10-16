@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'album.dart';
 import 'cards.dart';
 import 'catalog.dart';
+import 'filters.dart';
 import 'game.dart';
 import 'main.dart';
 
@@ -28,8 +29,26 @@ const Map<String, Color> kConsoleBrand = {
   'switch': Color(0xFFE60012),
 };
 
-class LibraryScreen extends StatelessWidget {
+class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
+  @override
+  State<LibraryScreen> createState() => _LibraryScreenState();
+}
+
+class _LibraryScreenState extends State<LibraryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Game.i.loadRecent();
+  }
+
+  void _openCards({int show = 1, int sort = 0}) {
+    CardFilter.all
+      ..reset(defShow: show)
+      ..sort = sort
+      ..query = '';
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AllCardsPage()));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,48 +60,183 @@ class LibraryScreen extends StatelessWidget {
         return Column(children: [
           TabHeader(t('Ma collection', 'My collection'), actions: [
             IconButton(
-              tooltip: t('Recycler les doublons', 'Recycle duplicates'),
-              icon: Badge(isLabelVisible: g.dupes > 0, label: Text('${g.dupes}'), child: const Icon(Icons.recycling)),
-              onPressed: () => recycleAllDupes(context),
+              tooltip: t('Toutes mes cartes : recherche, filtres, tri', 'All my cards: search, filters, sort'),
+              icon: const Icon(Icons.search),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AllCardsPage())),
             ),
           ]),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-            child: Row(children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: Catalog.cards.isEmpty ? 0 : g.cards / Catalog.cards.length,
-                    minHeight: 6,
-                    color: kGold,
-                    backgroundColor: const Color(0xFF26306B),
-                  ),
+          Expanded(
+            child: CustomScrollView(slivers: [
+              SliverToBoxAdapter(child: _dashboard(g)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
+                  child: Text(t('Mes consoles', 'My systems'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
                 ),
               ),
-              const SizedBox(width: 10),
-              Text('${g.cards} / ${Catalog.cards.length}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-            ]),
-          ),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.fromLTRB(12, 2, 12, 16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.82,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.68,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  delegate: SliverChildBuilderDelegate((_, i) => _ConsoleTile(sys: systems[i]), childCount: systems.length),
+                ),
               ),
-              itemCount: systems.length,
-              itemBuilder: (_, i) => _ConsoleTile(sys: systems[i]),
-            ),
+            ]),
           ),
         ]);
       },
     );
   }
+
+  // ── Tableau de bord : progression, raretés, raccourcis, dernières cartes ──
+  Widget _dashboard(Game g) {
+    final total = Catalog.cards.length;
+    final pct = total == 0 ? 0.0 : g.cards / total;
+    final totalByR = List<int>.filled(5, 0), ownByR = List<int>.filled(5, 0);
+    for (final c in Catalog.cards.values) {
+      totalByR[c.rarity]++;
+      if (g.has(c.id)) ownByR[c.rarity]++;
+    }
+    final recent = [for (final (id, f) in g.recent) if (Catalog.cards[id] != null) (Catalog.cards[id]!, f)];
+
+    Widget action(String icon, String value, String label, Color color, VoidCallback? onTap) => Expanded(
+          child: Material(
+            color: Colors.black.withOpacity(0.18),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                child: Column(children: [
+                  Text(icon, style: const TextStyle(fontSize: 16)),
+                  const SizedBox(height: 2),
+                  FittedBox(child: Text(value, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: color))),
+                  Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10.5, color: Colors.white60)),
+                ]),
+              ),
+            ),
+          ),
+        );
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: kPanel,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: kGold.withOpacity(0.45)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          // anneau de progression
+          SizedBox(
+            width: 92,
+            height: 92,
+            child: Stack(alignment: Alignment.center, children: [
+              SizedBox.expand(
+                child: CircularProgressIndicator(value: pct, strokeWidth: 8, color: kGold, backgroundColor: Colors.white12, strokeCap: StrokeCap.round),
+              ),
+              Column(mainAxisSize: MainAxisSize.min, children: [
+                Text('${(pct * 100).floor()} %', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 19, color: kGold)),
+                Text('${g.cards}/$total', style: const TextStyle(fontSize: 10.5, color: Colors.white60)),
+              ]),
+            ]),
+          ),
+          const SizedBox(width: 14),
+          // cartes par rareté
+          Expanded(
+            child: Column(children: [
+              for (var r = 4; r >= 0; r--)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(children: [
+                    SizedBox(
+                      width: 74,
+                      child: Text(rarityName(r), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: kRarityLight[r], fontSize: 11, fontWeight: FontWeight.w700)),
+                    ),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: LinearProgressIndicator(
+                          value: totalByR[r] == 0 ? 0 : ownByR[r] / totalByR[r],
+                          minHeight: 6,
+                          color: kRarityColor[r],
+                          backgroundColor: Colors.white10,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 52,
+                      child: Text('${ownByR[r]}/${totalByR[r]}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 10.5, color: Colors.white70)),
+                    ),
+                  ]),
+                ),
+            ]),
+          ),
+        ]),
+        const SizedBox(height: 12),
+        // raccourcis
+        Row(children: [
+          action('♻', '${g.dupes}', t('doublons', 'duplicates'), Colors.white, g.dupes > 0 ? () => recycleAllDupes(context) : null),
+          const SizedBox(width: 6),
+          action('⚡', '${g.fusable}', t('fusions', 'fusions'), g.fusable > 0 ? kGold : Colors.white54, () => _openCards(show: 3, sort: 5)),
+          const SizedBox(width: 6),
+          action('✦', '${g.holoCount}', t('brillantes', 'holo'), const Color(0xFFB4A9FF), () => _openCards(show: 4, sort: 1)),
+          const SizedBox(width: 6),
+          action('★', '${g.goldCount}', t('dorées', 'gold'), const Color(0xFFFFD54F), () => _openCards(show: 5, sort: 1)),
+        ]),
+        if (recent.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Row(children: [
+            Text(t('Dernières cartes', 'Latest cards'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+            const Spacer(),
+            GestureDetector(
+              onTap: () => _openCards(),
+              child: Text(t('Tout voir', 'See all'), style: const TextStyle(color: Color(0xFF8FD3FF), fontSize: 12, fontWeight: FontWeight.w700)),
+            ),
+          ]),
+          const SizedBox(height: 6),
+          SizedBox(
+            height: 86,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: recent.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 6),
+              itemBuilder: (_, i) {
+                final (c, f) = recent[i];
+                return GestureDetector(
+                  onTap: () => openCardDetail(context, c),
+                  child: SizedBox(width: 60, child: CardView(card: c, finish: f, owned: g.has(c.id))),
+                );
+              },
+            ),
+          ),
+        ],
+      ]),
+    );
+  }
 }
 
+/// Année de sortie et couleur d'accent de chaque console (posters)
+const Map<String, int> kConsoleYear = {
+  'nes': 1985, 'snes': 1990, 'n64': 1996, 'psx': 1994, 'gba': 2001,
+  'gbc': 1998, 'megadrive': 1988, 'mastersystem': 1986, 'neogeo': 1990, 'switch': 2017,
+};
+const Map<String, Color> kConsoleAccent = {
+  'nes': Color(0xFFFFD23B), 'snes': Color(0xFFFF5D8F), 'n64': Color(0xFFFFD23B), 'psx': Color(0xFF3DD9FF), 'gba': Color(0xFFFFD23B),
+  'gbc': Color(0xFFFFD23B), 'megadrive': Color(0xFFFFD23B), 'mastersystem': Color(0xFF3DD9FF), 'neogeo': Color(0xFFE60012), 'switch': Color(0xFF3DD9FF),
+};
+
+const _kPaper = Color(0xFFF3E6C8); // papier d'affiche
+const _kInk = Color(0xFF2A1B0E); // encre foncée
+
+/// Console en « poster rétro » : rayons, trame de points, année, bandeau promo
 class _ConsoleTile extends StatefulWidget {
   final RcSystem sys;
   const _ConsoleTile({required this.sys});
@@ -94,10 +248,10 @@ class _ConsoleTileState extends State<_ConsoleTile> {
   bool pressed = false;
 
   static const _grey = ColorFilter.matrix(<double>[
-    0.25, 0.55, 0.12, 0, 0, //
-    0.25, 0.55, 0.12, 0, 0, //
-    0.25, 0.55, 0.12, 0, 0, //
-    0, 0, 0, 0.7, 0,
+    0.25, 0.55, 0.12, 0, -10, //
+    0.25, 0.55, 0.12, 0, -10, //
+    0.25, 0.55, 0.12, 0, -10, //
+    0, 0, 0, 1, 0,
   ]);
 
   @override
@@ -107,107 +261,169 @@ class _ConsoleTileState extends State<_ConsoleTile> {
     final total = max(1, s.count);
     final complete = owned >= total;
     final none = owned == 0;
-    final brand = complete ? kGold : (kConsoleBrand[s.id] ?? const Color(0xFF3550B8));
+    final brand = kConsoleBrand[s.id] ?? const Color(0xFF3550B8);
+    final accent = kConsoleAccent[s.id] ?? kGold;
+    final pct = (owned * 100 / total).floor();
 
-    Widget img = Image.asset(
-      'assets/consoles/${s.id}.png',
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.medium,
-      errorBuilder: (_, __, ___) => Icon(Icons.videogame_asset, size: 56, color: Colors.white.withOpacity(0.4)),
+    Widget poster = Container(
+      decoration: BoxDecoration(
+        color: _kPaper,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: _kPaper, width: 3),
+        boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 12, offset: Offset(0, 6))],
+      ),
+      child: Container(
+        decoration: BoxDecoration(border: Border.all(color: _kInk, width: 2), borderRadius: BorderRadius.circular(3)),
+        clipBehavior: Clip.antiAlias,
+        child: Column(children: [
+          // en-tête : année + logo
+          Container(
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            decoration: const BoxDecoration(color: _kPaper, border: Border(bottom: BorderSide(color: _kInk, width: 3))),
+            child: Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(color: accent, border: Border.all(color: _kInk, width: 2)),
+                child: Text('${kConsoleYear[s.id] ?? ''}', style: const TextStyle(color: _kInk, fontWeight: FontWeight.w900, fontSize: 10.5, fontFamily: 'monospace')),
+              ),
+              const SizedBox(width: 4),
+              Expanded(child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: ConsoleLogo(s.id, height: 18)))),
+            ]),
+          ),
+          // affiche : rayons + trame + console + bandeau
+          Expanded(
+            child: Stack(fit: StackFit.expand, children: [
+              CustomPaint(painter: _RaysPainter(brand)),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 6, 8, 30),
+                  child: Image.asset(
+                    'assets/consoles/${s.id}.png',
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (_, __, ___) => Icon(Icons.videogame_asset, size: 56, color: Colors.white.withOpacity(0.6)),
+                  ),
+                ),
+              ),
+              // bandeau promo penché
+              Positioned(
+                left: -8,
+                right: -8,
+                bottom: 6,
+                child: Transform.rotate(
+                  angle: -0.05,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: none ? const Color(0xFF3A2A1E) : accent,
+                      border: const Border.symmetric(horizontal: BorderSide(color: _kInk, width: 2)),
+                    ),
+                    child: Text(
+                      complete
+                          ? t('★ SÉRIE COMPLÈTE ★', '★ SET COMPLETE ★')
+                          : none
+                              ? t('À DÉCOUVRIR', 'TO DISCOVER')
+                              : t('$owned / ${s.count} JEUX', '$owned / ${s.count} GAMES'),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: none ? Colors.white54 : _kInk,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 10.5,
+                        letterSpacing: 1,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // tampon « 100% »
+              if (complete)
+                Positioned(
+                  right: 6,
+                  top: 8,
+                  child: Transform.rotate(
+                    angle: 0.25,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black38,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: kGold, width: 2.5),
+                      ),
+                      child: const Text('100%', style: TextStyle(color: kGold, fontWeight: FontWeight.w900, fontSize: 12, fontFamily: 'monospace')),
+                    ),
+                  ),
+                ),
+            ]),
+          ),
+          // pied : barre de progression
+          Container(
+            padding: const EdgeInsets.fromLTRB(7, 5, 7, 5),
+            decoration: const BoxDecoration(color: _kPaper, border: Border(top: BorderSide(color: _kInk, width: 3))),
+            child: Row(children: [
+              Expanded(
+                child: Container(
+                  height: 8,
+                  decoration: BoxDecoration(color: _kInk.withOpacity(0.2), border: Border.all(color: _kInk, width: 1.5)),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: (owned / total).clamp(0.0, 1.0),
+                    child: Container(color: complete ? kGold : brand),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text('$pct%', style: const TextStyle(color: _kInk, fontWeight: FontWeight.w900, fontSize: 12, fontFamily: 'monospace')),
+            ]),
+          ),
+        ]),
+      ),
     );
-    if (none) img = ColorFiltered(colorFilter: _grey, child: img);
+    if (none) poster = ColorFiltered(colorFilter: _grey, child: poster);
 
     return GestureDetector(
       onTapDown: (_) => setState(() => pressed = true),
       onTapCancel: () => setState(() => pressed = false),
       onTapUp: (_) => setState(() => pressed = false),
       onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SystemAlbumPage(sys: s.id))),
-      child: AnimatedScale(
-        scale: pressed ? 0.96 : 1,
-        duration: const Duration(milliseconds: 110),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color.lerp(const Color(0xFF0A1033), brand, none ? 0.12 : 0.32)!,
-                const Color(0xEE0A1033),
-              ],
-            ),
-            border: Border.all(color: brand.withOpacity(none ? 0.35 : 0.85), width: 2),
-            boxShadow: [
-              if (!none) BoxShadow(color: brand.withOpacity(complete ? 0.6 : 0.35), blurRadius: complete ? 18 : 12),
-              const BoxShadow(color: Colors.black45, blurRadius: 8, offset: Offset(0, 4)),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: Stack(children: [
-              // spot lumineux derrière la console
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: const Alignment(0, -0.05),
-                      radius: 0.75,
-                      colors: [brand.withOpacity(none ? 0.10 : 0.35), brand.withOpacity(0)],
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                child: Column(children: [
-                  // logo
-                  SizedBox(
-                    height: 30,
-                    child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: ConsoleLogo(s.id, height: 22))),
-                  ),
-                  // console sur son socle
-                  Expanded(
-                    child: Stack(alignment: Alignment.bottomCenter, children: [
-                      // socle lumineux
-                      Positioned(
-                        bottom: 2,
-                        left: 14,
-                        right: 14,
-                        height: 14,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.all(Radius.elliptical(100, 14)),
-                            gradient: RadialGradient(colors: [brand.withOpacity(none ? 0.18 : 0.55), brand.withOpacity(0)]),
-                          ),
-                        ),
-                      ),
-                      Padding(padding: const EdgeInsets.fromLTRB(4, 6, 4, 8), child: Center(child: img)),
-                    ]),
-                  ),
-                  // progression
-                  Row(children: [
-                    if (complete) const Padding(padding: EdgeInsets.only(right: 4), child: Icon(Icons.emoji_events, color: kGold, size: 14)),
-                    Text('$owned / ${s.count}',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: complete ? kGold : Colors.white)),
-                    const Spacer(),
-                    Text('${(owned * 100 / total).floor()} %', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.6))),
-                  ]),
-                  const SizedBox(height: 5),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(3),
-                    child: LinearProgressIndicator(
-                      value: owned / total,
-                      minHeight: 5,
-                      color: complete ? kGold : Color.lerp(brand, Colors.white, 0.25),
-                      backgroundColor: const Color(0x66000000),
-                    ),
-                  ),
-                ]),
-              ),
-            ]),
-          ),
-        ),
-      ),
+      child: AnimatedScale(scale: pressed ? 0.96 : 1, duration: const Duration(milliseconds: 110), child: poster),
     );
   }
+}
+
+/// Rayons de soleil façon publicité rétro + trame de points d'imprimerie
+class _RaysPainter extends CustomPainter {
+  final Color color;
+  _RaysPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final dark = Color.lerp(color, Colors.black, 0.3)!;
+    canvas.drawRect(Offset.zero & size, Paint()..color = dark);
+    final c = Offset(size.width / 2, size.height * 0.55);
+    final r = size.longestSide * 1.2;
+    const n = 22; // rayons
+    final p = Paint()..color = color;
+    for (var i = 0; i < n; i++) {
+      final a0 = i * 2 * pi / n, a1 = a0 + pi / n;
+      final path = Path()
+        ..moveTo(c.dx, c.dy)
+        ..lineTo(c.dx + r * cos(a0), c.dy + r * sin(a0))
+        ..lineTo(c.dx + r * cos(a1), c.dy + r * sin(a1))
+        ..close();
+      canvas.drawPath(path, p);
+    }
+    // trame de points
+    final dot = Paint()..color = const Color(0x26000000);
+    for (double y = 2; y < size.height; y += 6) {
+      for (double x = (y ~/ 6).isEven ? 2 : 5; x < size.width; x += 6) {
+        canvas.drawCircle(Offset(x, y), 1.1, dot);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RaysPainter old) => old.color != color;
 }

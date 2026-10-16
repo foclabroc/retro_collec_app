@@ -29,12 +29,12 @@
 
 ## 🎮 Le jeu
 
-**1000 cartes** de jaquettes de jeux, réparties en **10 séries de 100** :
+**1350 cartes** de jaquettes de jeux, réparties en **14 séries** (100 cartes, 50 pour la PS2) :
 
 | Sega | Nintendo | Autres |
 |---|---|---|
-| Master System | NES · Super Nintendo · Nintendo 64 | PlayStation |
-| Mega Drive | Game Boy Color · Game Boy Advance · Switch | Neo Geo |
+| Master System | NES · Super Nintendo · Nintendo 64 · GameCube | PlayStation · PS2 · PSP |
+| Mega Drive · Game Gear | Game Boy Color · Game Boy Advance · Switch | Neo Geo |
 
 Chaque carte a une **rareté** (commune, peu commune, rare, épique, légendaire) et une **finition** (normale, brillante, dorée). Sa fiche donne la capture d'écran, l'année, le développeur, l'éditeur, le genre et la description du jeu.
 
@@ -44,8 +44,12 @@ Chaque carte a une **rareté** (commune, peu commune, rare, épique, légendaire
 - ✨ **Ouverture animée** : on déchire le paquet du doigt, suspense selon la rareté, effets spéciaux pour les épiques et légendaires, reflet holographique au gyroscope.
 - 📚 **Collection** : un album par console, avec la progression et des récompenses à 25, 50, 75 et 100 %.
 - ♻️ **Recyclage et fabrication** : les doublons rapportent des pièces, qui servent à fabriquer la carte qui te manque.
-- 🛒 **Marché** : mets tes cartes en vente ou achète celles des autres joueurs.
-- 🔄 **Échanges** : propose jusqu'à 5 cartes contre 5 à n'importe quel joueur.
+- 📈 **Bourse** : marché groupé par carte (acheter, vendre), échanges jusqu'à 5 cartes contre 5, historique.
+- ⚗️ **Fusion** : 5 normales → 1 brillante, 3 brillantes → 1 dorée.
+- 🏠 **Voisinage** : une maison par joueur (12 au choix), profils, paquets à offrir (3 par jour).
+- 💬 **Messages** entre joueurs, mentions @pseudo.
+- 🔔 **Notifications Android** : cadeau reçu, carte vendue, échange proposé, paquet gratuit…
+- 🎨 **Thèmes**, avatars pixel art, musiques chiptune, filtres et tri des albums.
 - 🏆 **Profils publics** : vitrine de tes plus belles cartes, collection visible, classement.
 - 📅 **Missions du jour** et bonus de connexion.
 - 🔐 **Compte** : pseudo + mot de passe ou code de sauvegarde pour retrouver ton profil sur un autre téléphone.
@@ -88,7 +92,10 @@ Appli Flutter (ce dépôt)  ◄────────────────�
 | `cards.dart` | Rendu des cartes, gyroscope, dos de carte |
 | `library.dart`, `album.dart` | Collection par console, album, fiche d'une carte |
 | `packs.dart` | Boutique, confirmation d'achat, ouverture des boosters |
-| `market.dart`, `trades.dart`, `profile.dart` | Marché, échanges, profils et réglages |
+| `bourse.dart`, `market.dart`, `trades.dart` | Bourse : marché, ventes, échanges, historique |
+| `neighbors.dart`, `house.dart`, `profile.dart` | Voisinage, maisons, profils et réglages |
+| `chat.dart`, `notifs.dart`, `push.dart` | Messages, pastilles, notifications Android |
+| `filters.dart`, `retro_theme.dart`, `whats_new.dart` | Filtres et tri, thèmes, écran Nouveautés |
 | `update_check.dart` | Vérification et installation des mises à jour |
 
 ## 🧑‍💻 Compiler

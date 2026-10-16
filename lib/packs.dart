@@ -12,10 +12,24 @@ import 'library.dart';
 import 'main.dart';
 import 'notifs.dart';
 import 'retro_theme.dart';
+import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Boutique de paquets + ouverture animée (déchirer, révéler, effets par rareté)
 // ═══════════════════════════════════════════════════════════════════════════
+
+/// Ouvre un paquet (serveur + animation). [sys] : console, ou numéro du cadeau.
+Future<void> openPackFlow(BuildContext context, String kind, [String? sys]) async {
+  final r = await Game.i.openPack(kind, sys);
+  if (!context.mounted) return;
+  await Navigator.of(context).push(PageRouteBuilder(
+    opaque: true,
+    pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: kind, sys: kind == 'console' ? sys : null),
+    transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
+  ));
+  Game.i.sync();
+  Notifs.i.refresh();
+}
 
 class PacksScreen extends StatefulWidget {
   const PacksScreen({super.key});
@@ -28,17 +42,10 @@ class _PacksScreenState extends State<PacksScreen> {
 
   Future<void> _open(String kind, [String? sys]) async {
     if (busy) return;
-    if (kind != 'free' && kind != 'gift' && !await _confirm(kind, sys)) return;
+    if (kind != 'free' && kind != 'gift' && kind != 'lot' && !await _confirm(kind, sys)) return;
     setState(() => busy = true);
     try {
-      final r = await Game.i.openPack(kind, sys);
-      if (!mounted) return;
-      await Navigator.of(context).push(PageRouteBuilder(
-        opaque: true,
-        pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: kind, sys: sys),
-        transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
-      ));
-      Game.i.sync();
+      await openPackFlow(context, kind, sys);
     } catch (e) {
       toast(errText(e));
     }
@@ -59,7 +66,7 @@ class _PacksScreenState extends State<PacksScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xF20A1033),
+        backgroundColor: kBg.withOpacity(0.95),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: color, width: 2)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
@@ -98,11 +105,74 @@ class _PacksScreenState extends State<PacksScreen> {
     return ok == true;
   }
 
+  /// Lot de 5 paquets mixtes : confirmation, achat, puis ouverture du 1er paquet
+  Future<void> _buyLot() async {
+    if (busy) return;
+    final free = Notifs.i.lotFree;
+    final coins = Game.i.coins;
+    const color = Color(0xFF534AB7);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: kBg.withOpacity(0.95),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: color, width: 2)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(free ? t('Lot gratuit du samedi !', 'Free Saturday bundle!') : t('Acheter ce lot ?', 'Buy this bundle?'),
+                textAlign: TextAlign.center, style: pixelStyle(size: 11)),
+            const SizedBox(height: 18),
+            const _LotArt(width: 120),
+            const SizedBox(height: 14),
+            Text(t('Lot de 5 paquets mixtes', 'Bundle of 5 mixed packs'), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+            Text(t('25 cartes, toutes consoles', '25 cards, all systems'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
+            const SizedBox(height: 14),
+            if (free)
+              Text(t('GRATUIT aujourd\'hui', 'FREE today'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w900, fontSize: 16))
+            else ...[
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                CoinChip(coins),
+                const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Icon(Icons.arrow_forward, color: Colors.white54, size: 18)),
+                CoinChip(coins - kLotPrice),
+              ]),
+              const SizedBox(height: 6),
+              Text('-$kLotPrice ${t('pièces', 'coins')}', style: const TextStyle(color: Color(0xFFFF8A80), fontWeight: FontWeight.w700)),
+            ],
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel')))),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(free ? t('Récupérer', 'Claim') : t('Acheter', 'Buy'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                ),
+              ),
+            ]),
+          ]),
+        ),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => busy = true);
+    try {
+      await RcServer.buyLot();
+      RcAudio.sfx('powerup');
+      await Game.i.sync();
+      await Notifs.i.refresh();
+      if (mounted) await openPackFlow(context, 'lot');
+    } catch (e) {
+      toast(errText(e));
+    }
+    if (mounted) setState(() => busy = false);
+  }
+
   Future<void> _pickConsole() async {
     final sys = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xF20A1033),
+      backgroundColor: kBg.withOpacity(0.95),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => DraggableScrollableSheet(
         expand: false,
@@ -156,16 +226,28 @@ class _PacksScreenState extends State<PacksScreen> {
                 _PackOffer(
                   kind: 'gift',
                   packLabel: t('Cadeau', 'Gift'),
-                  title: t('Paquet cadeau ×${Notifs.i.gifts}', 'Gift pack ×${Notifs.i.gifts}'),
-                  subtitle: t('Offert par ${Notifs.i.giftFrom} · 5 cartes', 'From ${Notifs.i.giftFrom} · 5 cards'),
+                  title: t('Cadeaux reçus ×${Notifs.i.gifts}', 'Gifts received ×${Notifs.i.gifts}'),
+                  subtitle: Notifs.i.gifts == 1
+                      ? t('Offert par ${Notifs.i.giftFrom} · touche pour voir', 'From ${Notifs.i.giftFrom} · tap to see')
+                      : t('De ${Notifs.i.giftFrom} et d\'autres · touche pour voir la liste', 'From ${Notifs.i.giftFrom} and others · tap to see the list'),
                   price: 0,
                   color: const Color(0xFFD8453C),
                   highlight: true,
                   enabled: !busy,
-                  onTap: () async {
-                    await _open('gift');
-                    Notifs.i.refresh();
-                  },
+                  trailing: const Icon(Icons.chevron_right, color: Colors.white70),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GiftsPage())),
+                ),
+              if (Notifs.i.lots > 0)
+                _PackOffer(
+                  kind: 'lot',
+                  packLabel: t('Lot', 'Bundle'),
+                  title: t('Paquets du lot ×${Notifs.i.lots}', 'Bundle packs ×${Notifs.i.lots}'),
+                  subtitle: t('Déjà payés : ouvre-les quand tu veux', 'Already paid: open them whenever you like'),
+                  price: 0,
+                  color: const Color(0xFF534AB7),
+                  highlight: true,
+                  enabled: !busy,
+                  onTap: () => _open('lot'),
                 ),
               _PackOffer(
                 kind: 'free',
@@ -189,6 +271,20 @@ class _PacksScreenState extends State<PacksScreen> {
                 color: const Color(0xFF534AB7),
                 enabled: !busy && g.coins >= kPackPrice['mixte']!,
                 onTap: () => _open('mixte'),
+              ),
+              _PackOffer(
+                kind: 'mixte',
+                packLabel: t('Lot', 'Bundle'),
+                art: const _LotArt(),
+                title: t('Lot de 5 paquets mixtes', '5 mixed packs bundle'),
+                subtitle: Notifs.i.lotFree
+                    ? t('🎉 GRATUIT aujourd\'hui (samedi) ! 25 cartes', '🎉 FREE today (Saturday)! 25 cards')
+                    : t('25 cartes · gratuit chaque samedi', '25 cards · free every Saturday'),
+                price: Notifs.i.lotFree ? 0 : kLotPrice,
+                color: const Color(0xFF534AB7),
+                highlight: Notifs.i.lotFree,
+                enabled: !busy && (Notifs.i.lotFree || g.coins >= kLotPrice),
+                onTap: _buyLot,
               ),
               _PackOffer(
                 kind: 'console',
@@ -257,6 +353,7 @@ const _kOfferColor = {
   'premium': Color(0xFF854F0B),
   'mystery': Color(0xFF8E2D8E),
   'gift': Color(0xFFD8453C),
+  'lot': Color(0xFF534AB7),
 };
 
 String _offerLabel(String kind) => switch (kind) {
@@ -265,6 +362,7 @@ String _offerLabel(String kind) => switch (kind) {
       'premium' => 'Premium',
       'mystery' => t('Mystère', 'Mystery'),
       'gift' => t('Cadeau', 'Gift'),
+      'lot' => t('Lot', 'Bundle'),
       _ => t('Mixte', 'Mixed'),
     };
 
@@ -290,7 +388,7 @@ class _ConsolePick extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color.lerp(const Color(0xFF0A1033), brand, 0.3)!, const Color(0xFF0A1033)],
+              colors: [Color.lerp(kBg, brand, 0.3)!, kBg],
             ),
             border: Border.all(color: brand.withOpacity(0.8), width: 1.5),
             boxShadow: [BoxShadow(color: brand.withOpacity(0.25), blurRadius: 10)],
@@ -334,7 +432,8 @@ class _PackOffer extends StatelessWidget {
   final bool enabled, highlight;
   final VoidCallback onTap;
   final String kind, packLabel;
-  const _PackOffer({required this.kind, required this.packLabel, required this.title, required this.subtitle, required this.price, required this.color, required this.enabled, required this.onTap, this.highlight = false});
+  final Widget? art, trailing;
+  const _PackOffer({required this.kind, required this.packLabel, required this.title, required this.subtitle, required this.price, required this.color, required this.enabled, required this.onTap, this.highlight = false, this.art, this.trailing});
 
   @override
   Widget build(BuildContext context) {
@@ -353,7 +452,7 @@ class _PackOffer extends StatelessWidget {
               border: Border.all(color: highlight ? kGold : color.withOpacity(0.6), width: highlight ? 2 : 1),
             ),
             child: Row(children: [
-              _MiniBooster(kind: kind, label: packLabel, color: color),
+              art ?? _MiniBooster(kind: kind, label: packLabel, color: color),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -366,6 +465,7 @@ class _PackOffer extends StatelessWidget {
                 opacity: enabled ? 1 : 0.4,
                 child: price == 0 ? Text(t('GRATUIT', 'FREE'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w900)) : CoinChip(price),
               ),
+              if (trailing != null) trailing!,
             ]),
           ),
         ),
@@ -456,6 +556,19 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   late final AnimationController tearCtl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
   late final AnimationController sheenCtl = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat();
   late final AnimationController wiggleCtl = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+  // rotation du paquet avec le doigt (avant / arrière), comme une carte
+  double rotY = 0, rotX = 0, _fromY = 0, _toY = 0, _fromX = 0;
+  double pw = _kPackW, ph = _kPackH; // taille du paquet à l'écran
+  double get pcap => ph * _kCapFrac;
+  bool _tearing = false, _keepX = true;
+  late final AnimationController spinCtl = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))
+    ..addListener(() {
+      final v = Curves.easeOutCubic.transform(spinCtl.value);
+      setState(() {
+        rotY = _fromY + (_toY - _fromY) * v;
+        rotX = _keepX ? _fromX : _fromX * (1 - v);
+      });
+    });
 
   // révélation
   int idx = 0;
@@ -483,6 +596,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   @override
   void initState() {
     super.initState();
+    rcEdgeMenuBlocked++;
     final list = <_Pulled>[];
     for (final c in (widget.result['cards'] as List? ?? const [])) {
       final card = Catalog.cards[c['c'] as String];
@@ -498,8 +612,9 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
 
   @override
   void dispose() {
+    rcEdgeMenuBlocked--;
     _ticker.dispose();
-    for (final c in [tearCtl, sheenCtl, wiggleCtl, dealCtl, flipCtl, liftCtl, shakeCtl, auraCtl, outCtl, raysCtl, flashCtl]) {
+    for (final c in [tearCtl, sheenCtl, wiggleCtl, spinCtl, dealCtl, flipCtl, liftCtl, shakeCtl, auraCtl, outCtl, raysCtl, flashCtl]) {
       c.dispose();
     }
     super.dispose();
@@ -529,7 +644,49 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
 
   Offset get _center => Offset(stage.width / 2, stage.height / 2);
 
-  // ── Phase 1 : déchirer ────────────────────────────────────────────────
+  // ── Phase 1 : tourner le paquet, puis le déchirer ─────────────────────
+  void _panStart(DragStartDetails d) {
+    if (torn) return;
+    spinCtl.stop();
+    _tearing = d.localPosition.dy < ph * 0.22;
+    if (_tearing) {
+      _spinTo((rotY / (2 * pi)).roundToDouble() * 2 * pi, keepX: false); // remis de face pour déchirer
+      _dragStart(d);
+    }
+  }
+
+  void _panUpdate(DragUpdateDetails d) {
+    if (torn) return;
+    if (_tearing) {
+      _dragUpdate(d);
+    } else {
+      setState(() {
+        rotY -= d.delta.dx * 0.013;
+        rotX = (rotX - d.delta.dy * 0.009).clamp(-0.7, 0.7);
+      });
+    }
+  }
+
+  void _panEnd(DragEndDetails d) {
+    if (torn) return;
+    if (_tearing) {
+      _dragEnd(d);
+    } else {
+      // continue sur sa lancée puis s'arrête
+      final v = -d.velocity.pixelsPerSecond.dx;
+      spinCtl.duration = Duration(milliseconds: (300 + v.abs() * 0.5).clamp(300, 1400).round());
+      _spinTo(rotY + v * 0.0022, keepX: true);
+    }
+  }
+
+  void _spinTo(double y, {required bool keepX}) {
+    _fromY = rotY;
+    _fromX = rotX;
+    _toY = y;
+    _keepX = keepX;
+    spinCtl.forward(from: 0);
+  }
+
   void _dragStart(DragStartDetails d) {
     if (torn) return;
     dragStart = d.localPosition.dx;
@@ -537,7 +694,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
 
   void _dragUpdate(DragUpdateDetails d) {
     if (torn || dragStart == null) return;
-    final p = ((d.localPosition.dx - dragStart!) / 170).clamp(0.0, 1.0);
+    final p = ((d.localPosition.dx - dragStart!) / (pw * 0.7)).clamp(0.0, 1.0);
     setState(() => tear = p);
     final tick = (p * 10).floor();
     if (tick > _lastTick) {
@@ -546,7 +703,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     }
     if (rnd.nextBool()) {
       final c = _center;
-      _burst(Offset(c.dx - _kPackW / 2 + _kPackW * p, c.dy - _kPackH / 2 + _kCapH), 2, const [Color(0xFFFAC775), Colors.white], 1.5, gravity: 0.15);
+      _burst(Offset(c.dx - pw / 2 + pw * p, c.dy - ph / 2 + pcap), 2, const [Color(0xFFFAC775), Colors.white], 1.5, gravity: 0.15);
     }
     if (p >= 0.95) _tear();
   }
@@ -562,7 +719,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   Future<void> _tear() async {
     torn = true;
     final c = _center;
-    _burst(Offset(c.dx, c.dy - _kPackH / 2 + _kCapH / 2), 45, const [Color(0xFFFAC775), Colors.white, Color(0xFFAFA9EC)], 4, gravity: 0.18);
+    _burst(Offset(c.dx, c.dy - ph / 2 + pcap / 2), 45, const [Color(0xFFFAC775), Colors.white, Color(0xFFAFA9EC)], 4, gravity: 0.18);
     flashCtl.forward(from: 0.6);
     RcAudio.sfx('break');
     HapticFeedback.mediumImpact();
@@ -661,16 +818,43 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     busy = false;
   }
 
+  /// Retour / croix avant la fin : les cartes sont déjà dans la collection,
+  /// on saute directement au récapitulatif pour les montrer.
+  void _skipToSummary() {
+    if (phase == _Phase.summary) {
+      Navigator.pop(context);
+      return;
+    }
+    for (final c in [tearCtl, wiggleCtl, spinCtl, dealCtl, flipCtl, liftCtl, outCtl]) {
+      c.stop();
+    }
+    particles.clear();
+    setState(() {
+      torn = true;
+      dim = 0;
+      rays = 0;
+      banner = false;
+      tagOn = false;
+      phase = _Phase.summary;
+    });
+    RcAudio.sfx('tier');
+  }
+
   // ── Construction ──────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return TiltScope(
+    return PopScope(
+      canPop: phase == _Phase.summary,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _skipToSummary();
+      },
+      child: TiltScope(
       child: Scaffold(
         backgroundColor: const Color(0xB3060A1E), // fond animé assombri pendant l'ouverture
         body: SafeArea(
           child: Column(children: [
             Row(children: [
-              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+              IconButton(icon: const Icon(Icons.close), onPressed: _skipToSummary),
               Expanded(
                 child: Text(
                   switch (widget.kind) {
@@ -679,6 +863,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                     'premium' => t('Paquet premium', 'Premium pack'),
                     'mystery' => t('Paquet mystère', 'Mystery pack'),
                     'gift' => t('Paquet cadeau', 'Gift pack'),
+                    'lot' => t('Paquet du lot', 'Bundle pack'),
                     _ => t('Paquet mixte', 'Mixed pack'),
                   },
                   style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
@@ -759,13 +944,15 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
           ]),
         ),
       ),
+    ),
     );
   }
 
   String _hint() {
     switch (phase) {
       case _Phase.pack:
-        return t('Glisse ton doigt le long du pointillé pour déchirer le paquet', 'Swipe along the dotted line to tear the pack open');
+        return t('Fais tourner le paquet avec ton doigt · glisse le long du pointillé en haut pour l\'ouvrir',
+            'Spin the pack with your finger · swipe along the dotted line at the top to open it');
       case _Phase.reveal:
         if (pulled.isEmpty) return '';
         if (flipped) return t('Bouge le doigt sur la carte pour la faire briller · touche ou glisse à droite pour continuer', 'Move your finger over the card to make it shine · tap or swipe right to continue');
@@ -776,97 +963,200 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   }
 
   Widget _packStage() {
-    const w = _kPackW, h = _kPackH, capH = _kCapH;
+    return LayoutBuilder(builder: (context, box) {
+      // le plus grand possible : 82 % de la largeur, sans dépasser la hauteur (étiquette comprise)
+      pw = min(box.maxWidth * 0.82, (box.maxHeight - 90) * _kPackW / _kPackH).clamp(160.0, 420.0);
+      ph = pw * _kPackH / _kPackW;
+      return _packStageSized(pw, ph, pcap);
+    });
+  }
+
+  Widget _packStageSized(double w, double h, double capH) {
     return Center(
-      child: GestureDetector(
-        onHorizontalDragStart: _dragStart,
-        onHorizontalDragUpdate: _dragUpdate,
-        onHorizontalDragEnd: _dragEnd,
-        onTap: () => wiggleCtl.forward(from: 0),
-        child: AnimatedBuilder(
-          animation: Listenable.merge([tearCtl, sheenCtl, wiggleCtl]),
-          builder: (_, __) {
-            final tt = Curves.easeOut.transform(tearCtl.value);
-            final wig = sin(wiggleCtl.value * pi * 4) * 0.08 * (1 - wiggleCtl.value);
-            final sheen = sheenCtl.value;
-            final glow = _packColor();
-            return Transform.rotate(
-              angle: wig + tear * 0.04,
-              child: SizedBox(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        GestureDetector(
+          onPanStart: _panStart,
+          onPanUpdate: _panUpdate,
+          onPanEnd: _panEnd,
+          onTap: () => wiggleCtl.forward(from: 0),
+          onDoubleTap: torn ? null : () => _spinTo((rotY / (2 * pi)).roundToDouble() * 2 * pi, keepX: false),
+          child: AnimatedBuilder(
+            animation: Listenable.merge([tearCtl, sheenCtl, wiggleCtl]),
+            builder: (_, __) {
+              final tt = Curves.easeOut.transform(tearCtl.value);
+              final wig = sin(wiggleCtl.value * pi * 4) * 0.08 * (1 - wiggleCtl.value);
+              final glow = _packColor();
+              // brillance : éclat qui ne touche que le paquet (pas son contour), suit la rotation
+              // et balaie le paquet toutes les 3 s
+              final tc = sheenCtl.value;
+              final sweep = tc < 0.4 ? -0.9 + tc / 0.4 * 1.8 : 9.0;
+              final turn = sin(rotY) * 0.9 + rotX * 0.5;
+              Widget img(String a) => ColorFiltered(
+                    colorFilter: _kVivid,
+                    child: Image.asset(a, width: w, height: h, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
+                  );
+              Widget shiny(String a) => ShaderMask(
+                    blendMode: BlendMode.srcATop,
+                    shaderCallback: (r) {
+                      // deux éclats : celui de la rotation (fixe) et celui qui balaie
+                      final c1 = 0.5 + turn * 0.5, c2 = 0.5 + sweep * 0.5;
+                      final a1 = (0.45 * min(1.0, sin(rotY).abs() * 2 + rotX.abs() * 1.5)).toDouble(); // seulement quand on le penche
+                      final pts = <(double, double)>[(c1, a1), (c2, 0.55)]..sort((x, y) => x.$1.compareTo(y.$1));
+                      final cols = <Color>[], stops = <double>[];
+                      for (final (c, al) in pts) {
+                        for (final (d, k) in const [(-0.16, 0.0), (-0.05, 0.4), (0.0, 1.0), (0.05, 0.4), (0.16, 0.0)]) {
+                          cols.add(Colors.white.withOpacity(al * k));
+                          stops.add((c + d).clamp(0.0, 1.0));
+                        }
+                      }
+                      // stops croissants obligatoires
+                      for (var i = 1; i < stops.length; i++) {
+                        if (stops[i] < stops[i - 1]) stops[i] = stops[i - 1];
+                      }
+                      return LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: cols, stops: stops).createShader(r);
+                    },
+                    child: img(a),
+                  );
+              // étoiles qui scintillent sur le paquet
+              final twinkle = IgnorePointer(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(w * 0.08, h * 0.1, w * 0.08, h * 0.12),
+                  child: const CardSparkle(color: Color(0xFFFFF3C4), stars: 7, seed: 7, sweep: false),
+                ),
+              );
+              final Widget backFace = SizedBox(
                 width: w,
                 height: h,
-                child: Stack(clipBehavior: Clip.none, children: [
-                  // corps du booster (tombe après la déchirure)
-                  Positioned(
-                    top: capH,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Transform.translate(
-                      offset: Offset(0, 420 * Curves.easeIn.transform((tearCtl.value - 0.25).clamp(0, 1) / 0.75)),
-                      child: Opacity(
-                        opacity: (1 - ((tearCtl.value - 0.45).clamp(0, 1) / 0.55)).toDouble(),
-                        child: Container(
-                          decoration: BoxDecoration(boxShadow: [
-                            BoxShadow(color: glow.withOpacity(0.55), blurRadius: 26, spreadRadius: 1),
-                            const BoxShadow(color: Colors.black54, blurRadius: 12, offset: Offset(0, 8)),
-                          ]),
-                          child: ClipPath(
-                            clipper: const _CrimpClipper(top: false),
-                            child: _BoosterBody(kind: widget.kind, sys: widget.sys, label: _packLabel(), sheen: sheen, color: glow),
+                child: Stack(children: [shiny('assets/booster_back.webp'), Positioned.fill(child: twinkle)]),
+              );
+              final Widget frontFace = SizedBox(
+                      width: w,
+                      height: h,
+                      child: Stack(clipBehavior: Clip.none, children: [
+                        // corps du paquet (tombe après la déchirure)
+                        Positioned(
+                          top: capH,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: Transform.translate(
+                            offset: Offset(0, 420 * Curves.easeIn.transform((tearCtl.value - 0.25).clamp(0, 1) / 0.75)),
+                            child: Opacity(
+                              opacity: (1 - ((tearCtl.value - 0.45).clamp(0, 1) / 0.55)).toDouble(),
+                              child: ClipRect(
+                                child: OverflowBox(
+                                  alignment: Alignment.bottomCenter,
+                                  minWidth: w,
+                                  maxWidth: w,
+                                  minHeight: h,
+                                  maxHeight: h,
+                                  child: Stack(children: [shiny('assets/booster_front.webp'), Positioned.fill(child: twinkle)]),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  // ligne de déchirure (pointillés + progression)
-                  if (!torn)
-                    Positioned(
-                      top: capH - 2,
-                      left: 6,
-                      right: 6,
-                      height: 4,
-                      child: Stack(children: [
-                        Positioned.fill(child: CustomPaint(painter: _DashPainter())),
-                        FractionallySizedBox(
-                          widthFactor: tear,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: kGold,
-                              borderRadius: BorderRadius.circular(2),
-                              boxShadow: const [BoxShadow(color: Color(0xAAFFD166), blurRadius: 6)],
+                        // ligne de déchirure (pointillés + progression)
+                        if (!torn)
+                          Positioned(
+                            top: capH - 2,
+                            left: 10,
+                            right: 10,
+                            height: 4,
+                            child: Stack(children: [
+                              Positioned.fill(child: CustomPaint(painter: _DashPainter())),
+                              FractionallySizedBox(
+                                widthFactor: tear,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: kGold,
+                                    borderRadius: BorderRadius.circular(2),
+                                    boxShadow: const [BoxShadow(color: Color(0xAAFFD166), blurRadius: 6)],
+                                  ),
+                                ),
+                              ),
+                            ]),
+                          ),
+                        // haut du paquet (s'arrache et s'envole)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: capH + 1,
+                          child: Transform.translate(
+                            offset: Offset(160 * tt + tear * 6, -320 * tt),
+                            child: Transform.rotate(
+                              angle: 0.9 * tt + tear * 0.05,
+                              alignment: Alignment.centerLeft,
+                              child: Opacity(
+                                opacity: 1 - tt,
+                                child: ClipRect(
+                                  child: OverflowBox(
+                                    alignment: Alignment.topCenter,
+                                    minWidth: w,
+                                    maxWidth: w,
+                                    minHeight: h,
+                                    maxHeight: h,
+                                    child: img('assets/booster_front.webp'),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ]),
-                    ),
-                  // soudure du haut (s'arrache et s'envole)
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: capH + 1,
-                    child: Transform.translate(
-                      offset: Offset(160 * tt + tear * 6, -320 * tt),
-                      child: Transform.rotate(
-                        angle: 0.9 * tt + tear * 0.05,
-                        alignment: Alignment.centerLeft,
-                        child: Opacity(
-                          opacity: 1 - tt,
-                          child: ClipPath(
-                            clipper: const _CrimpClipper(top: true),
-                            child: CustomPaint(painter: _CrimpPainter(sheen: sheen, top: true), child: const SizedBox.expand()),
-                          ),
-                        ),
-                      ),
+                    );
+              // ── Paquet : recto ou verso selon la rotation (sans épaisseur) ──
+              final base = Matrix4.identity()
+                ..setEntry(3, 2, 0.0012)
+                ..rotateX(rotX)
+                ..rotateY(rotY);
+              Widget faceAt(Matrix4 local, Widget child) =>
+                  Transform(alignment: Alignment.center, transform: base.clone()..multiply(local), child: child);
+              final showBack = !torn && cos(rotY) < 0;
+              final faces = <Widget>[
+                if (showBack)
+                  faceAt(Matrix4.rotationY(pi), backFace)
+                else
+                  faceAt(
+                    Matrix4.identity(),
+                    Container(
+                      decoration: BoxDecoration(boxShadow: [
+                        if (!torn) BoxShadow(color: glow.withOpacity(0.55), blurRadius: 30, spreadRadius: -4),
+                      ]),
+                      child: frontFace,
                     ),
                   ),
-                ]),
-              ),
-            );
-          },
+              ];
+              return Transform.rotate(
+                angle: wig + tear * 0.04,
+                child: SizedBox(
+                  width: w,
+                  height: h,
+                  child: Stack(alignment: Alignment.center, clipBehavior: Clip.none, children: faces),
+                ),
+              );
+            },
+          ),
         ),
-      ),
+        const SizedBox(height: 14),
+        // type de paquet
+        AnimatedOpacity(
+          opacity: torn ? 0 : 1,
+          duration: const Duration(milliseconds: 250),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: _packColor().withOpacity(0.9),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: kGold, width: 1.5),
+            ),
+            child: widget.kind == 'console' && widget.sys != null
+                ? ConsoleLogo(widget.sys!, height: 18)
+                : Text(_packLabel().toUpperCase(), style: pixelStyle(size: 9, color: Colors.white, shadow: false)),
+          ),
+        ),
+      ]),
     );
   }
 
@@ -885,6 +1175,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'premium' => t('Premium', 'Premium'),
         'mystery' => t('Mystère', 'Mystery'),
         'gift' => t('Cadeau', 'Gift'),
+        'lot' => t('Lot', 'Bundle'),
         _ => t('Paquet mixte', 'Mixed pack'),
       };
 
@@ -1020,8 +1311,19 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   Widget _summary() {
     final nw = pulled.where((p) => p.isNew).length;
     final dup = pulled.length - nw;
-    final again = widget.kind == 'free' || widget.kind == 'gift' ? 'mixte' : widget.kind;
+    final lotsLeft = (widget.result['lots'] as num? ?? 0).toInt();
+    final giftsLeft = (widget.result['gifts'] as num? ?? 0).toInt();
+    final again = widget.kind == 'lot' && lotsLeft > 0
+        ? 'lot'
+        : widget.kind == 'gift' && giftsLeft > 0
+            ? 'gift'
+            : (widget.kind == 'free' || widget.kind == 'gift' || widget.kind == 'lot' ? 'mixte' : widget.kind);
     final price = kPackPrice[again]!;
+    final againLabel = switch (again) {
+      'lot' => t('Paquet suivant du lot ($lotsLeft)', 'Next bundle pack ($lotsLeft)'),
+      'gift' => t('Cadeau suivant ($giftsLeft)', 'Next gift ($giftsLeft)'),
+      _ => t('Ouvrir un autre ($price)', 'Open another ($price)'),
+    };
     return Positioned.fill(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -1062,7 +1364,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
               if (again != 'console' || widget.sys != null)
                 ElevatedButton(
                   onPressed: Game.i.coins >= price ? () => _again(again) : null,
-                  child: Text(t('Ouvrir un autre ($price)', 'Open another ($price)')),
+                  child: Text(againLabel),
                 ),
             ]),
           ),
@@ -1073,10 +1375,12 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
 
   Future<void> _again(String kind) async {
     try {
-      final r = await Game.i.openPack(kind, widget.sys);
+      final sys = kind == 'console' ? widget.sys : null; // cadeau suivant : le plus ancien
+      final r = await Game.i.openPack(kind, sys);
+      Notifs.i.refresh();
       if (!mounted) return;
       Navigator.of(context).pushReplacement(PageRouteBuilder(
-        pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: kind, sys: widget.sys),
+        pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: kind, sys: sys),
         transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
       ));
     } catch (e) {
@@ -1162,226 +1466,207 @@ class _DashPainter extends CustomPainter {
 // crantées en haut et en bas, reflet qui glisse, étiquette du paquet.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const double _kPackW = 214, _kPackH = 330, _kCapH = 36, _kCrimp = 30;
+// Taille du paquet (images assets/booster_front.webp et booster_back.webp, 440 × 856)
+const double _kPackW = 200, _kPackH = 389, _kCapFrac = 0.075;
 
-/// Découpe crantée (dents de scie) du bord haut (soudure du haut) ou bas (corps).
-class _CrimpClipper extends CustomClipper<Path> {
-  final bool top;
-  const _CrimpClipper({required this.top});
-
-  @override
-  Path getClip(Size size) {
-    const tooth = 7.0, depth = 5.0;
-    final p = Path();
-    if (top) {
-      p.moveTo(0, depth);
-      for (double x = 0; x < size.width; x += tooth) {
-        p.lineTo(x + tooth / 2, 0);
-        p.lineTo(min(x + tooth, size.width), depth);
-      }
-      p
-        ..lineTo(size.width, size.height)
-        ..lineTo(0, size.height)
-        ..close();
-    } else {
-      p
-        ..moveTo(0, 0)
-        ..lineTo(size.width, 0)
-        ..lineTo(size.width, size.height - depth);
-      for (double x = size.width; x > 0; x -= tooth) {
-        p.lineTo(x - tooth / 2, size.height);
-        p.lineTo(max(x - tooth, 0), size.height - depth);
-      }
-      p.close();
-    }
-    return p;
-  }
-
-  @override
-  bool shouldReclip(covariant _CrimpClipper old) => old.top != top;
-}
-
-/// Soudure métallisée : bande argentée striée verticalement.
-class _CrimpPainter extends CustomPainter {
-  final double sheen;
-  final bool top;
-  _CrimpPainter({required this.sheen, required this.top});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final r = Offset.zero & size;
-    final p = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Color(0xFFE8ECF5), Color(0xFF9AA4BE), Color(0xFFD5DBEA), Color(0xFF7D88A6)],
-      ).createShader(r);
-    canvas.drawRect(r, p);
-    p.shader = null;
-    // stries de la soudure
-    for (double x = 1; x < size.width; x += 3) {
-      p.color = (x ~/ 3).isEven ? const Color(0x33000000) : const Color(0x55FFFFFF);
-      canvas.drawRect(Rect.fromLTWH(x, 0, 1, size.height), p);
-    }
-    // reflet qui glisse
-    final sx = -0.5 + sheen * 2;
-    p.shader = LinearGradient(
-      begin: Alignment(-1 + sx * 2, 0),
-      end: Alignment(-0.6 + sx * 2, 0),
-      colors: const [Color(0x00FFFFFF), Color(0xAAFFFFFF), Color(0x00FFFFFF)],
-    ).createShader(r);
-    canvas.drawRect(r, p);
-    p.shader = null;
-    // liseré côté sachet
-    p.color = const Color(0x66000000);
-    canvas.drawRect(Rect.fromLTWH(0, top ? size.height - 2 : 0, size.width, 2), p);
-  }
-
-  @override
-  bool shouldRepaint(covariant _CrimpPainter old) => old.sheen != sheen;
-}
-
-/// Saturation +30 % et contraste +12 % pour l'illustration des boosters
-const List<double> _kVivid = [
-  1.385, -0.24, -0.024, 0, -15.4,
-  -0.071, 1.216, -0.024, 0, -15.4,
-  -0.071, -0.24, 1.432, 0, -15.4,
+/// Couleurs avivées pour les images du paquet (saturation +35 %, contraste +15 %)
+const _kVivid = ColorFilter.matrix([
+  1.467, -0.288, -0.029, 0, -11.2,
+  -0.086, 1.265, -0.029, 0, -11.2,
+  -0.086, -0.288, 1.523, 0, -11.2,
   0, 0, 0, 1, 0,
-];
+]);
 
-/// Corps du booster : illustration, bombé du sachet, reflet, étiquette, soudure du bas.
-class _BoosterBody extends StatelessWidget {
-  final String kind, label;
-  final String? sys;
-  final double sheen;
-  final Color color;
-  final double tint;
-  const _BoosterBody({required this.kind, required this.sys, required this.label, required this.sheen, required this.color, this.tint = 0.18});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(fit: StackFit.expand, children: [
-      // illustration du dos des cartes
-      // (couleurs avivées, teinte en « overlay » pour garder le contraste)
-      ColorFiltered(
-        colorFilter: ColorFilter.mode(color.withOpacity((tint * 1.6).clamp(0.0, 0.8)), BlendMode.overlay),
-        child: ColorFiltered(
-          colorFilter: const ColorFilter.matrix(_kVivid),
-          child: Image.asset('assets/card_back.jpg', fit: BoxFit.cover, alignment: const Alignment(0, -0.1)),
-        ),
-      ),
-      // bombé : bords plus sombres, centre plus clair
-      const DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0x66000000), Color(0x00000000), Color(0x18FFFFFF), Color(0x00000000), Color(0x66000000)],
-            stops: [0, 0.14, 0.5, 0.86, 1],
-          ),
-        ),
-      ),
-      // plis du sachet près des soudures
-      const DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0x66000000), Color(0x00000000), Color(0x00000000), Color(0x66000000)],
-            stops: [0, 0.07, 0.86, 0.93],
-          ),
-        ),
-      ),
-      // reflet métallisé qui glisse
-      DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment(-2.6 + sheen * 5, -1),
-            end: Alignment(-1.6 + sheen * 5, 1),
-            colors: const [Color(0x00FFFFFF), Color(0x99FFFFFF), Color(0x66B5D4F4), Color(0x66ED93B1), Color(0x00FFFFFF)],
-          ),
-          backgroundBlendMode: BlendMode.overlay,
-        ),
-      ),
-      // étiquette du paquet
-      Positioned(
-        left: 18,
-        right: 18,
-        bottom: _kCrimp + 16,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xE60A1033),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: kGold, width: 2),
-            boxShadow: [BoxShadow(color: color.withOpacity(0.6), blurRadius: 10)],
-          ),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            if (kind == 'console' && sys != null)
-              Padding(padding: const EdgeInsets.only(bottom: 6), child: ConsoleLogo(sys!, height: 20))
-            else
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(label.toUpperCase(), textAlign: TextAlign.center, style: pixelStyle(size: 9, color: Colors.white, shadow: false)),
-              ),
-            Text('PIXEL TRADE', style: pixelStyle(size: 11)),
-            const SizedBox(height: 4),
-            Text(kind == 'mystery' ? t('? CARTES', '? CARDS') : t('5 CARTES', '5 CARDS'),
-                style: pixelStyle(size: 7, color: const Color(0xFF8FD3FF), shadow: false)),
-          ]),
-        ),
-      ),
-      // soudure du bas
-      Positioned(left: 0, right: 0, bottom: 0, height: _kCrimp, child: CustomPaint(painter: _CrimpPainter(sheen: sheen, top: false))),
-      // contour brillant
-      DecoratedBox(decoration: BoxDecoration(border: Border.all(color: Colors.white.withOpacity(0.18), width: 1.5))),
-    ]);
-  }
-}
-
-/// Mini booster pour la liste des offres : le même sachet que l'ouverture, en réduit.
+/// Mini booster pour la liste des offres : le même paquet qu'à l'ouverture, en réduit,
+/// avec un bandeau de la couleur du type de paquet.
 class _MiniBooster extends StatelessWidget {
   final String kind, label;
   final Color color;
   final double width;
-  const _MiniBooster({required this.kind, required this.label, required this.color, this.width = 58});
+  const _MiniBooster({required this.kind, required this.label, required this.color, this.width = 50});
 
   @override
   Widget build(BuildContext context) {
+    final h = width * _kPackH / _kPackW;
     return SizedBox(
       width: width,
-      height: width * _kPackH / _kPackW,
+      height: h,
       child: Transform.rotate(
         angle: -0.06,
         child: Container(
           decoration: BoxDecoration(boxShadow: [
-            BoxShadow(color: color.withOpacity(0.7), blurRadius: 12, spreadRadius: 0.5),
+            BoxShadow(color: color.withOpacity(0.7), blurRadius: 12, spreadRadius: -2),
             const BoxShadow(color: Colors.black54, blurRadius: 6, offset: Offset(0, 3)),
           ]),
-          child: FittedBox(
-            fit: BoxFit.contain,
-            child: SizedBox(
-              width: _kPackW,
-              height: _kPackH,
-              child: Column(children: [
-                SizedBox(
-                  height: _kCapH,
-                  width: _kPackW,
-                  child: ClipPath(
-                    clipper: const _CrimpClipper(top: true),
-                    child: CustomPaint(painter: _CrimpPainter(sheen: 0.3, top: true), child: const SizedBox.expand()),
-                  ),
-                ),
-                Expanded(
-                  child: ClipPath(
-                    clipper: const _CrimpClipper(top: false),
-                    // teinte plus marquée pour distinguer les paquets en petit
-                    child: _BoosterBody(kind: kind, sys: null, label: label, sheen: 0.3, color: color, tint: 0.45),
-                  ),
-                ),
-              ]),
+          child: Stack(clipBehavior: Clip.none, children: [
+            Positioned.fill(
+              child: ColorFiltered(
+                colorFilter: _kVivid,
+                child: Image.asset(
+                'assets/booster_front.webp',
+                fit: BoxFit.fill,
+                filterQuality: FilterQuality.medium,
+                cacheWidth: (width * MediaQuery.of(context).devicePixelRatio).round().clamp(48, 440),
+              ),
+              ),
             ),
-          ),
+            // bandeau du type de paquet
+            Positioned(
+              left: -width * 0.04,
+              right: -width * 0.04,
+              bottom: h * 0.2,
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: width * 0.025),
+                decoration: BoxDecoration(
+                  color: color,
+                  border: Border.symmetric(horizontal: BorderSide(color: kGold, width: max(1.0, width * 0.02))),
+                  boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 3)],
+                ),
+                child: Text(
+                  label.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                  style: TextStyle(color: Colors.white, fontSize: max(6.0, width * 0.115), fontWeight: FontWeight.w900, letterSpacing: 0.3),
+                ),
+              ),
+            ),
+          ]),
         ),
       ),
+    );
+  }
+}
+
+/// Lot : trois boosters en éventail et « ×5 »
+class _LotArt extends StatelessWidget {
+  final double width;
+  const _LotArt({this.width = 74});
+  @override
+  Widget build(BuildContext context) {
+    const color = Color(0xFF534AB7);
+    final w = width * 0.62;
+    return SizedBox(
+      width: width,
+      height: w * _kPackH / _kPackW + width * 0.12,
+      child: Stack(clipBehavior: Clip.none, alignment: Alignment.center, children: [
+        Transform.translate(offset: Offset(-width * 0.2, 0), child: Transform.rotate(angle: -0.22, child: _MiniBooster(kind: 'mixte', label: t('Lot', 'Bundle'), color: color, width: w))),
+        Transform.translate(offset: Offset(width * 0.2, 0), child: Transform.rotate(angle: 0.22, child: _MiniBooster(kind: 'mixte', label: t('Lot', 'Bundle'), color: color, width: w))),
+        _MiniBooster(kind: 'mixte', label: t('Lot', 'Bundle'), color: color, width: w),
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(color: kGold, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFF2A1800), width: 1.5)),
+            child: Text('×5', style: TextStyle(color: const Color(0xFF2A1800), fontWeight: FontWeight.w900, fontSize: width * 0.15)),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Cadeaux reçus : la liste des donateurs, chacun avec son paquet à ouvrir
+class GiftsPage extends StatefulWidget {
+  const GiftsPage({super.key});
+  @override
+  State<GiftsPage> createState() => _GiftsPageState();
+}
+
+class _GiftsPageState extends State<GiftsPage> {
+  List<Map<String, dynamic>>? rows;
+  String? error;
+  bool busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load() async {
+    try {
+      final r = await RcServer.giftsList();
+      if (mounted) {
+        setState(() {
+          rows = r;
+          error = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => error = errText(e));
+    }
+  }
+
+  Future<void> _open(int id) async {
+    if (busy) return;
+    setState(() => busy = true);
+    try {
+      await openPackFlow(context, 'gift', '$id');
+    } catch (e) {
+      toast(errText(e));
+    }
+    await load();
+    if (mounted) {
+      setState(() => busy = false);
+      if (rows != null && rows!.isEmpty) Navigator.pop(context);
+    }
+  }
+
+  String _when(String? s) {
+    final d = DateTime.tryParse(s ?? '')?.toLocal();
+    if (d == null) return '';
+    final now = DateTime.now();
+    final days = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+    final hm = '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    if (days == 0) return t('aujourd\'hui à $hm', 'today at $hm');
+    if (days == 1) return t('hier à $hm', 'yesterday at $hm');
+    return t('le ${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}', 'on ${d.month}/${d.day}');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(t('Cadeaux reçus', 'Gifts received'))),
+      body: error != null
+          ? Center(child: TextButton(onPressed: load, child: Text('$error\n${t('Réessayer', 'Retry')}', textAlign: TextAlign.center)))
+          : rows == null
+              ? const Center(child: CircularProgressIndicator(color: kGold))
+              : rows!.isEmpty
+                  ? Center(child: Text(t('Aucun cadeau à ouvrir', 'No gifts to open'), style: const TextStyle(color: Colors.white54)))
+                  : ListView(padding: const EdgeInsets.all(14), children: [
+                      Text(t('${rows!.length} paquet(s) de 5 cartes offert(s) par tes voisins', '${rows!.length} 5-card pack(s) from your neighbors'),
+                          style: const TextStyle(color: Colors.white60)),
+                      const SizedBox(height: 10),
+                      for (final g in rows!)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+                          decoration: BoxDecoration(
+                            color: kPanel,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFD8453C).withOpacity(0.7)),
+                          ),
+                          child: Row(children: [
+                            const _MiniBooster(kind: 'gift', label: 'Cadeau', color: Color(0xFFD8453C), width: 40),
+                            const SizedBox(width: 12),
+                            avatarWidget((g['avatar'] as num? ?? 0).toInt(), size: 30),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text(t('De ${g['name']}', 'From ${g['name']}'), style: const TextStyle(fontWeight: FontWeight.w800)),
+                                Text(_when(g['at'] as String?), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                              ]),
+                            ),
+                            FilledButton(
+                              style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
+                              onPressed: busy ? null : () => _open((g['id'] as num).toInt()),
+                              child: Text(t('Ouvrir', 'Open'), style: const TextStyle(fontWeight: FontWeight.w800)),
+                            ),
+                          ]),
+                        ),
+                    ]),
     );
   }
 }
