@@ -29,7 +29,7 @@ class _Question {
 }
 
 /// Cartes utilisables pour le quiz : celles dont la capture est sur le téléphone.
-List<RcCard> quizPool() => [for (final c in Catalog.cards.values) if (Catalog.shotFile(c) != null) c];
+List<RcCard> quizPool() => [for (final c in Catalog.cards.values) if (Catalog.hasShot(c)) c];
 
 List<_Question> _makeQuestions(Random rnd) {
   final pool = quizPool()..shuffle(rnd);
@@ -263,7 +263,7 @@ class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
   }
 
   Widget _questionView() {
-    final shot = Catalog.shotFile(q.answer);
+    final shot = Catalog.shot(q.answer);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
       child: Column(children: [
@@ -306,7 +306,7 @@ class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: shot == null ? const SizedBox(width: 200, height: 150) : Image.file(shot, fit: BoxFit.contain),
+                  child: shot == null ? const SizedBox(width: 200, height: 150) : Image(image: shot, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox(width: 200, height: 150)),
                 ),
               ),
               Positioned(

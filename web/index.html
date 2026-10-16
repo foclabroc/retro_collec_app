@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Pixel Trade — le jeu de cartes à collectionner du retrogaming : ouvre des boosters, complète tes séries et échange avec les autres joueurs.">
+  <meta name="theme-color" content="#1d0f33">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pixel Trade">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="manifest" href="manifest.json">
+  <title>Pixel Trade</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #1d0f33; }
+    #splash { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+              background: linear-gradient(#1d0f33, #3a1240); color: #ffb347; font: 600 14px system-ui, sans-serif; gap: 18px; }
+    #splash img { width: 112px; height: 112px; border-radius: 24px; animation: pulse 1.4s ease-in-out infinite; }
+    #splash .bar { width: 160px; height: 6px; border-radius: 3px; background: #ffffff22; overflow: hidden; }
+    #splash .bar i { display: block; height: 100%; width: 40%; background: #ffb347; border-radius: 3px; animation: load 1.2s ease-in-out infinite; }
+    @keyframes pulse { 50% { transform: scale(1.06); } }
+    @keyframes load { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }
+  </style>
+</head>
+<body>
+  <div id="splash"><img src="icons/Icon-192.png" alt=""><div>PIXEL TRADE</div><div class="bar"><i></i></div></div>
+  <script>
+    // le splash disparaît dès que Flutter a dessiné sa première image
+    window.addEventListener('flutter-first-frame', () => document.getElementById('splash')?.remove());
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

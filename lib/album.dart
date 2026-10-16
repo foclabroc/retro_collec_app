@@ -177,7 +177,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
           final total = x[0] + x[1] + x[2];
           final owned = total > 0;
           final myTotal = Game.i.qty(c.id);
-          final shot = owned || myTotal > 0 ? Catalog.shotFile(c) : null;
+          final shot = owned || myTotal > 0 ? Catalog.shot(c) : null;
           return Scaffold(
             appBar: AppBar(
               toolbarHeight: 66,
@@ -217,7 +217,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
                 ),
               const SizedBox(height: 16),
               if (shot != null)
-                ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.file(shot, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox())),
+                ClipRRect(borderRadius: BorderRadius.circular(10), child: Image(image: shot, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox())),
               if (owned || myTotal > 0) ...[
                 const SizedBox(height: 14),
                 _info(t('Console', 'System'), Catalog.system(c.sys)?.name ?? c.sys),

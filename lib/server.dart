@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -112,16 +113,22 @@ class RcServer {
 
   static String _sig(String s) => sha256.convert(utf8.encode('$_salt|$s')).toString();
 
+  static final _http = http.Client();
+
   static Future<dynamic> _rpc(String fn, Map<String, dynamic> body) async {
-    final client = HttpClient()..connectionTimeout = const Duration(seconds: 8);
     try {
-      final req = await client.openUrl('POST', Uri.parse('$kRcUrl/rest/v1/rpc/$fn')).timeout(const Duration(seconds: 10));
-      req.headers.set('apikey', kRcKey);
-      if (kRcKey.startsWith('eyJ')) req.headers.set('Authorization', 'Bearer $kRcKey');
-      req.headers.contentType = ContentType.json;
-      req.add(utf8.encode(jsonEncode(body)));
-      final res = await req.close().timeout(const Duration(seconds: 15));
-      final txt = await res.transform(utf8.decoder).join().timeout(const Duration(seconds: 15));
+      final res = await _http
+          .post(
+            Uri.parse('$kRcUrl/rest/v1/rpc/$fn'),
+            headers: {
+              'apikey': kRcKey,
+              if (kRcKey.startsWith('eyJ')) 'Authorization': 'Bearer $kRcKey',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 20));
+      final txt = utf8.decode(res.bodyBytes);
       if (res.statusCode >= 300) {
         var msg = 'HTTP ${res.statusCode}';
         try {
@@ -135,8 +142,6 @@ class RcServer {
       rethrow;
     } catch (_) {
       throw const RcError('hors ligne', offline: true);
-    } finally {
-      client.close(force: true);
     }
   }
 

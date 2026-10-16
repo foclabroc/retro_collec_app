@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'web_audio_stub.dart' if (dart.library.js_interop) 'web_audio_web.dart';
 
 /// Service audio léger pour le Quiz.
 /// Utilise un MethodChannel vers AudioTrack Android natif.
@@ -115,6 +118,10 @@ class RcAudio {
   }
 
   static Future<void> _invoke(String method, [Map<String, dynamic>? args]) async {
+    if (kIsWeb) {
+      webMusic(method, args); // web : musique seulement (pas d'effets sonores natifs)
+      return;
+    }
     try {
       await _ch.invokeMethod(method, args);
     } catch (_) {

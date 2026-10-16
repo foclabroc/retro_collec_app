@@ -12,6 +12,8 @@
 
 <p align="center">
   <a href="https://github.com/foclabroc/retro_collec_app/releases/latest"><b>⬇️ Télécharger le dernier APK</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://foclabroc.github.io/retro_collec_app/"><b>🌐 Jouer dans le navigateur</b></a>
 </p>
 
 ---
@@ -76,6 +78,8 @@ Chaque carte a une **rareté** (commune, peu commune, rare, épique, légendaire
 2. Ouvre-le sur ton téléphone Android et autorise l'installation d'applis inconnues si Android le demande.
 3. Au premier lancement, les cartes sont téléchargées une fois (environ 90 Mo), puis l'appli choisit ton pseudo et ton avatar.
 
+**Version web** : [foclabroc.github.io/retro_collec_app](https://foclabroc.github.io/retro_collec_app/), sur PC, Mac, iPhone ou tablette, sans rien installer (« Ajouter à l'écran d'accueil » pour l'avoir comme une appli). Pour retrouver ton profil Android, connecte-toi avec ton pseudo + mot de passe ou ton code de sauvegarde. Pas de notifications ni d'effets sonores sur le web.
+
 Une connexion Internet est nécessaire pour jouer : toute la partie (pièces, tirages, collection) est gérée par le serveur.
 
 ## 🛠️ Architecture
@@ -119,6 +123,8 @@ flutter pub get
 dart run flutter_launcher_icons   # seulement si l'icône change
 flutter run --release              # téléphone branché
 flutter build apk --release        # APK dans build/app/outputs/flutter-apk/
+flutter run -d chrome              # version web en local
+flutter build web --release --base-href /retro_collec_app/   # version web dans build/web/
 ```
 
 ### Publier une nouvelle version
@@ -131,6 +137,10 @@ flutter build apk --release        # APK dans build/app/outputs/flutter-apk/
 6. Créer une release GitHub `v<version>` sur ce dépôt et y joindre l'APK.
 
 Les joueurs sont prévenus au lancement suivant. Toujours signer avec la même clé (même PC), sinon la mise à jour ne s'installe pas par-dessus.
+
+### Version web
+
+Publiée automatiquement par GitHub Actions (`.github/workflows/web.yml`) à chaque push sur `main`, sur [foclabroc.github.io/retro_collec_app](https://foclabroc.github.io/retro_collec_app/). Les jaquettes sont lues directement sur `retro_collec_assets` (rien à télécharger d'avance).
 
 ### Mettre à jour les cartes
 

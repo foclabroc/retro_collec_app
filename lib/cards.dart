@@ -147,12 +147,13 @@ class CardView extends StatelessWidget {
     final sys = Catalog.system(card.sys);
     final dpr = MediaQuery.of(context).devicePixelRatio;
     final small = w < 140;
-    final img = Catalog.imageFile(card);
+    final img = Catalog.image(card);
     final cacheW = (w * dpr).round().clamp(64, 900);
+    final small3 = ResizeImage.resizeIfNeeded((cacheW / 3).round().clamp(32, 300), null, img);
 
-    Widget picture = Image.file(img,
+    Widget picture = Image(
+        image: ResizeImage.resizeIfNeeded(cacheW, null, img),
         fit: BoxFit.contain,
-        cacheWidth: cacheW,
         errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported, color: Colors.white24, size: w * 0.2));
     if (!owned) {
       picture = Stack(alignment: Alignment.center, children: [
@@ -168,13 +169,13 @@ class CardView extends StatelessWidget {
         ? (small
             ? Opacity(
                 opacity: 0.35,
-                child: Image.file(img, fit: BoxFit.cover, cacheWidth: (cacheW / 3).round().clamp(32, 300), errorBuilder: (_, __, ___) => const SizedBox()),
+                child: Image(image: small3, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
               )
             : ImageFiltered(
                 imageFilter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: Opacity(
                   opacity: 0.55,
-                  child: Image.file(img, fit: BoxFit.cover, cacheWidth: (cacheW / 3).round().clamp(32, 300), errorBuilder: (_, __, ___) => const SizedBox()),
+                  child: Image(image: small3, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
                 ),
               ))
         : const SizedBox();

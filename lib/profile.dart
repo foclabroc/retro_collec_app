@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -208,7 +209,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                     ),
                     const Divider(height: 1, color: Colors.white12),
-                    FutureBuilder<bool>(
+                    if (!kIsWeb) FutureBuilder<bool>(
                       future: PushWatch.enabled(),
                       builder: (context, snap) => SwitchListTile(
                         secondary: const Icon(Icons.notifications_active),
@@ -348,7 +349,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: const TextStyle(color: Colors.white38, fontSize: 12)),
                   ),
                 ),
-                Center(
+                if (!kIsWeb) Center(
                   child: TextButton(
                     onPressed: () async {
                       final st = context.findAncestorStateOfType<UpdateGateState>();

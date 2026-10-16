@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,6 +32,7 @@ class RetroCollecUpdate {
 /// du fichier, ex. « retro.collec.V1.0.1.apk » (le plus récent est retenu).
 /// throwOnError : lève une exception si GitHub est injoignable (vérification manuelle).
 Future<RetroCollecUpdate?> checkRetroCollecUpdate({bool throwOnError = false}) async {
+  if (kIsWeb) return null; // web : toujours la dernière version en ligne
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 5);
   try {
     final req = await client.getUrl(Uri.parse(_apiLatest));

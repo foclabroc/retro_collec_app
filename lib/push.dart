@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
@@ -51,6 +53,7 @@ class PushWatch {
 
   /// Au lancement de l'appli : autorisation et tâche périodique.
   static Future<void> start() async {
+    if (kIsWeb) return; // pas de notifications Android sur le web
     try {
       await Workmanager().initialize(pushWatchDispatcher);
       if (!await enabled()) return;
@@ -69,6 +72,7 @@ class PushWatch {
 
   /// Réglage « Notifications » du profil
   static Future<void> setEnabled(bool v) async {
+    if (kIsWeb) return; // pas de notifications Android sur le web
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_kEnabledKey, v);
@@ -115,6 +119,7 @@ class PushWatch {
 
   /// Appli ouverte : tout ce que l'appli vient d'afficher est « vu ».
   static Future<void> seen(Map<String, dynamic> r) async {
+    if (kIsWeb) return; // pas de notifications Android sur le web
     try {
       final prefs = await SharedPreferences.getInstance();
       final old = await _load(prefs);
@@ -134,6 +139,7 @@ class PushWatch {
 
   /// Tâche de fond : compare l'état du serveur au dernier état connu et notifie.
   static Future<void> check({required bool notify}) async {
+    if (kIsWeb) return; // pas de notifications Android sur le web
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload(); // l'appli a pu écrire entre-temps
     if (!await RcServer.hasProfile()) return;

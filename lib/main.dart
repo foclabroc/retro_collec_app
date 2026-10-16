@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -34,7 +37,7 @@ int rcEdgeMenuBlocked = 0; // nombre d'écrans d'ouverture de paquet affichés
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  if (!kIsWeb) await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   await loadLang();
   await RcAudio.loadPrefs();
   await Tilt.loadPrefs();
@@ -69,16 +72,59 @@ class RetroCollecApp extends StatelessWidget {
       navigatorKey: rcNav,
       // Fond animé rétro derrière tous les écrans.
       // Android 15 (bord à bord) : rien ne passe sous la barre des boutons Android.
-      builder: (context, child) => Stack(children: [
-        const Positioned.fill(child: RetroBackground()),
-        Positioned.fill(child: SafeArea(top: false, left: false, right: false, child: child ?? const SizedBox())),
-        // bord gauche : glisser vers la droite ouvre le menu, depuis n'importe quel écran
-        const Positioned(left: 0, top: 0, bottom: 0, width: 22, child: _EdgeMenuSwipe()),
-      ]),
+      // Web : la souris peut aussi faire défiler en glissant (listes, carrousels)
+      scrollBehavior: const MaterialScrollBehavior().copyWith(dragDevices: {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.stylus,
+        PointerDeviceKind.trackpad,
+      }),
+      builder: (context, child) => _WebFrame(
+        child: Stack(children: [
+          const Positioned.fill(child: RetroBackground()),
+          Positioned.fill(child: SafeArea(top: false, left: false, right: false, child: child ?? const SizedBox())),
+          // bord gauche : glisser vers la droite ouvre le menu, depuis n'importe quel écran
+          const Positioned(left: 0, top: 0, bottom: 0, width: 22, child: _EdgeMenuSwipe()),
+        ]),
+      ),
       theme: retroTheme(),
       home: UpdateGate(french: rcFrench, child: const StartScreen()),
       ),
     );
+  }
+}
+
+/// Version web sur grand écran (PC, tablette en paysage) : l'appli reste au format
+/// téléphone, centrée, sur le fond rétro. Sur mobile et sur Android : rien ne change.
+class _WebFrame extends StatelessWidget {
+  final Widget child;
+  const _WebFrame({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!kIsWeb) return child;
+    final mq = MediaQuery.of(context);
+    final size = mq.size;
+    if (size.width <= 560) return child;
+    final h = size.height;
+    final w = math.min(460.0, math.max(360.0, h * 0.52));
+    return Stack(children: [
+      const Positioned.fill(child: RetroBackground()),
+      Positioned.fill(child: ColoredBox(color: Colors.black.withOpacity(0.35))),
+      Center(
+        child: Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            border: Border.symmetric(vertical: BorderSide(color: kGold.withOpacity(0.5), width: 2)),
+            boxShadow: const [BoxShadow(color: Colors.black87, blurRadius: 40)],
+          ),
+          child: ClipRect(
+            child: MediaQuery(data: mq.copyWith(size: Size(w, h)), child: child),
+          ),
+        ),
+      ),
+    ]);
   }
 }
 

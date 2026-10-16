@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show consolidateHttpClientResponseBytes;
+import 'package:flutter/foundation.dart' show consolidateHttpClientResponseBytes, kIsWeb;
+import 'package:flutter/painting.dart';
 
 import 'package:archive/archive.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,6 +17,8 @@ import 'game.dart';
 // Les images sont téléchargées UNE fois par console (packs/<console>.zip) et
 // gardées dans le stockage interne de l'appli ; seuls les packs modifiés
 // (empreinte « hash » différente) sont retéléchargés.
+// Version web : rien n'est téléchargé d'avance, chaque image est lue en ligne
+// (cache du navigateur) directement sur GitHub Pages.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const kAssetsBase = 'https://foclabroc.github.io/retro_collec_assets/';
@@ -93,6 +97,9 @@ class RcSystem {
         'psx' => 'PlayStation',
         'gba' => 'GB Advance',
         'gbc' => 'GB Color',
+        'ps2' => 'PlayStation 2',
+        'gamecube' => 'GameCube',
+        'gamegear' => 'Game Gear',
         _ => name,
       };
 }
@@ -114,14 +121,26 @@ class Catalog {
     return null;
   }
 
-  static File imageFile(RcCard c) => File('$dir/${c.img}');
-  static File? shotFile(RcCard c) {
-    if (c.shot == null) return null;
-    final f = File('$dir/${c.shot}');
-    return f.existsSync() ? f : null;
+  /// Version web : adresse en ligne, avec l'empreinte du pack pour suivre les mises à jour
+  static String _url(String path, String sys) => '$kAssetsBase$path?h=${system(sys)?.hash ?? version}';
+
+  /// Jaquette de la carte (fichier local sur Android, image en ligne sur le web)
+  static ImageProvider image(RcCard c) =>
+      kIsWeb ? NetworkImage(_url(c.img, c.sys)) : FileImage(File('$dir/${c.img}')) as ImageProvider;
+
+  /// Capture d'écran du jeu, ou null si absente (pas encore téléchargée sur Android)
+  static ImageProvider? shot(RcCard c) {
+    final s = c.shot;
+    if (s == null) return null;
+    if (kIsWeb) return NetworkImage(_url(s, c.sys));
+    final f = File('$dir/$s');
+    return f.existsSync() ? FileImage(f) : null;
   }
 
+  static bool hasShot(RcCard c) => kIsWeb ? c.shot != null : shot(c) != null;
+
   static Future<void> _init() async {
+    if (kIsWeb) return;
     final base = await getApplicationSupportDirectory();
     dir = '${base.path}/rc';
     await Directory(dir).create(recursive: true);
@@ -144,6 +163,7 @@ class Catalog {
 
   /// Charge le catalogue déjà téléchargé. Faux si rien en local (premier lancement).
   static Future<bool> loadLocal() async {
+    if (kIsWeb) return false; // web : catalogue relu en ligne à chaque lancement
     await _init();
     final f = File('$dir/catalog.json');
     if (!await f.exists()) return false;
@@ -161,6 +181,11 @@ class Catalog {
   }
 
   static Future<List<int>> _get(String url, {void Function(int got, int total)? progress}) async {
+    if (kIsWeb) {
+      final r = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 40));
+      if (r.statusCode != 200) throw Exception('HTTP ${r.statusCode} $url');
+      return r.bodyBytes;
+    }
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
     try {
       final req = await client.getUrl(Uri.parse(url));
@@ -189,6 +214,12 @@ class Catalog {
     await _init();
     final prefs = await SharedPreferences.getInstance();
     final txt = utf8.decode(await _get('${kAssetsBase}catalog.json?t=${DateTime.now().millisecondsSinceEpoch}'));
+    if (kIsWeb) {
+      progress?.call(0.5, '');
+      _parse(txt);
+      progress?.call(1, '');
+      return;
+    }
     final j = jsonDecode(txt) as Map<String, dynamic>;
     final remote = [for (final s in j['systems'] as List) RcSystem.fromJson(Map<String, dynamic>.from(s as Map))];
     final todo = [for (final s in remote) if (prefs.getString('rc_pack_${s.id}') != s.hash) s];
@@ -209,6 +240,7 @@ class Catalog {
 
   /// Captures d'écran (fiches des jeux) : téléchargées en arrière-plan, sans bloquer le jeu.
   static Future<void> updateShots() async {
+    if (kIsWeb) return; // web : captures lues en ligne
     try {
       final prefs = await SharedPreferences.getInstance();
       for (final s in systems) {
