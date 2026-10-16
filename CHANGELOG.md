@@ -1,5 +1,11 @@
 # Pixel Trade — Changelog
 
+## v1.0.4 (à venir)
+- **Gamedle** (onglet Bonus) : le jeu du jour, le même pour tout le monde. 6 essais : la jaquette pixelisée
+  se précise à chaque essai, et chaque proposition indique si la console, l'année (⬆️ ⬇️) et le genre
+  correspondent. Jusqu'à 100 pièces, résultat à partager en émojis.
+- **Actualités** (menu) : les exploits des joueurs — légendaire ou dorée obtenue, série complétée, Gamedle trouvé.
+
 ## v1.0.3
 - 🎁 **Cadeau : 800 pièces offertes** à tous les joueurs (une seule fois, au premier lancement de la v1.0.3).
 - Écran **Nouveautés** au lancement, avec « Ne plus afficher ».

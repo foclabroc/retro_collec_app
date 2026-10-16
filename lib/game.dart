@@ -353,6 +353,8 @@ String errText(Object e) {
     if (e.offline) return t('Pas de connexion au serveur', 'No connection to the server');
     return switch (e.message) {
       'pas assez de pièces' => t('Pas assez de pièces', 'Not enough coins'),
+      'déjà proposé' => t('Tu as déjà proposé ce jeu', 'You already guessed this game'),
+      'gamedle terminé' => t('Gamedle terminé : reviens demain !', 'Gamedle over: come back tomorrow!'),
       'pas assez d\'exemplaires' => t('Pas assez d\'exemplaires pour fusionner', 'Not enough copies to fuse'),
       'fusion impossible' => t('Fusion impossible', 'Cannot fuse'),
       'déjà ouvert aujourd\'hui' => t('Paquet gratuit déjà ouvert aujourd\'hui', 'Free pack already opened today'),

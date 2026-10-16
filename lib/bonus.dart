@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
+import 'gamedle.dart';
 import 'game.dart';
 import 'main.dart';
 import 'notifs.dart';
@@ -48,6 +49,8 @@ class BonusScreen extends StatelessWidget {
         child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: const [
           WheelPanel(),
           SizedBox(height: 18),
+          GamedleTile(),
+          SizedBox(height: 12),
           QuizTile(),
         ]),
       ),

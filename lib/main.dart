@@ -13,6 +13,7 @@ import 'catalog.dart';
 import 'game.dart';
 import 'bonus.dart';
 import 'chat.dart';
+import 'feed.dart';
 import 'bourse.dart';
 import 'neighbors.dart';
 import 'notifs.dart';
@@ -510,6 +511,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     if (i == 3) BourseScreenState.current?.opened();
     if (i == 4) MessagesScreenState.current?.active(true);
     if (i == 5) NeighborsScreenState.current?.load();
+    if (i == 6) FeedScreenState.current?.load();
     if (i == 2 || i == 5) Notifs.i.refresh();
   }
 
@@ -544,6 +546,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             BourseScreen(),
             MessagesScreen(),
             NeighborsScreen(),
+            FeedScreen(),
           ]),
         ),
       ),
@@ -639,12 +642,13 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                           : g.free
                               ? t('Paquet gratuit dispo !', 'Free pack ready!')
                               : null),
-                  item(2, 'bonus', t('Bonus', 'Bonus'), dot: n.wheel, hint: t('Roue et quiz', 'Wheel and quiz')),
+                  item(2, 'bonus', t('Bonus', 'Bonus'), dot: n.wheel, hint: t('Roue, Gamedle et quiz', 'Wheel, Gamedle and quiz')),
                   item(3, 'market', t('Bourse', 'Exchange'),
                       count: n.trades + n.sales.length, hint: t('Acheter, vendre, échanger', 'Buy, sell, trade')),
                   item(4, 'messages', t('Messages', 'Messages'),
                       count: n.chat, dot: n.mention, hint: n.mention ? t('On t\'a mentionné', 'You were mentioned') : null),
                   item(5, 'neighbors', t('Voisinage', 'Neighbors'), hint: n.canGift ? t('${n.giftsLeft} cadeau(x) à offrir', '${n.giftsLeft} gift(s) to give') : null),
+                  item(6, 'news', t('Actualités', 'News'), hint: t('Les exploits des joueurs', 'What players are up to')),
                 ]),
               ),
               Padding(

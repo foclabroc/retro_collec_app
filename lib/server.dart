@@ -242,6 +242,24 @@ class RcServer {
     await _rpc('rc_gift', {'p_device': d, 'p_to_pid': toPid, 'p_sig': _sig('$d|gift|$toPid')});
   }
 
+  // ── Fil d'actualité ─────────────────────────────────────────────────────
+  /// 60 dernières nouvelles (plus récentes d'abord) : {id, at, kind, card, f, sys, n, pid, name, avatar}
+  static Future<List<Map<String, dynamic>>> feed([int after = 0]) async =>
+      _list(await _rpc('rc_feed_list', {'p_after': after}));
+
+  // ── Gamedle (jeu du jour) ───────────────────────────────────────────────
+  /// {day, card, guesses, won, solvers, players, coins}
+  static Future<Map<String, dynamic>> gamedleState() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_gamedle_state', {'p_device': d}));
+  }
+
+  /// Une proposition : l'état mis à jour + {ok, reward, answer}
+  static Future<Map<String, dynamic>> gamedleGuess(String card) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_gamedle_guess', {'p_device': d, 'p_card': card, 'p_sig': _sig('$d|gamedle|$card')}));
+  }
+
   // ── Quiz rétro ──────────────────────────────────────────────────────────
   /// Pièces encore gagnables aujourd'hui (0 à 100).
   static Future<int> quizStatus() async {
