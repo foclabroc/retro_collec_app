@@ -18,7 +18,7 @@ import 'server.dart';
 
 const _kMax = 6;
 const _kReward = [100, 80, 60, 45, 30, 20];
-const _kPixels = [7, 11, 16, 24, 36, 54]; // largeur de la jaquette (en pixels) selon le nombre d'essais
+const _kPixels = [14, 22, 32, 46, 66, 96]; // largeur de la jaquette (en pixels) selon le nombre d'essais
 const _kColor = Color(0xFF3DD9FF);
 const _green = Color(0xFF3FB950), _yellow = Color(0xFFE3B341), _red = Color(0xFFB0413E);
 
@@ -248,6 +248,7 @@ class _GamedlePageState extends State<GamedlePage> {
               const SizedBox(height: 12),
               Center(child: done ? SizedBox(width: 190, child: CardView(card: a, finish: won ? 1 : 0)) : _Pixelated(card: a, level: guesses.length)),
               const SizedBox(height: 14),
+              if (!done && guesses.isNotEmpty) ...[_hints(a), const SizedBox(height: 12)],
               if (!done) _input(),
               if (done) _result(a),
               const SizedBox(height: 14),
@@ -351,6 +352,48 @@ class _GamedlePageState extends State<GamedlePage> {
       const SizedBox(height: 6),
       Text(t('Nouveau jeu demain à minuit', 'New game tomorrow at midnight'), style: const TextStyle(color: Colors.white38, fontSize: 12)),
     ]);
+  }
+
+  /// Indices débloqués au fil des erreurs : console, année, genre, développeur, initiales du titre
+  Widget _hints(RcCard a) {
+    final n = guesses.length;
+    final initials = a.title
+        .split(RegExp(r'\s+'))
+        .map((w) => w.isEmpty ? '' : w[0].toUpperCase() + List.filled(w.length - 1, '_').join())
+        .join(' ');
+    final rows = <(String, String, String)>[
+      ('🎮', t('Console', 'System'), Catalog.system(a.sys)?.name ?? a.sys),
+      ('📅', t('Année', 'Year'), '${a.year ?? '?'}'),
+      ('🏷️', t('Genre', 'Genre'), a.genreL.isEmpty ? '?' : a.genreL),
+      ('🛠️', t('Développeur', 'Developer'), a.dev.isEmpty ? '?' : a.dev),
+      ('🔤', t('Titre', 'Title'), initials),
+    ];
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      decoration: BoxDecoration(
+        color: kPanel,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kGold.withOpacity(0.5)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(t('Indices', 'Hints'), style: pixelStyle(size: 10)),
+        const SizedBox(height: 6),
+        for (var i = 0; i < rows.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(children: [
+              SizedBox(width: 26, child: Text(rows[i].$1, style: const TextStyle(fontSize: 15))),
+              SizedBox(width: 92, child: Text(rows[i].$2, style: const TextStyle(color: Colors.white54, fontSize: 13))),
+              Expanded(
+                child: i < n
+                    ? Text(rows[i].$3, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, letterSpacing: 0.5))
+                    : Text(t('après ${i + 1} erreur${i > 0 ? 's' : ''}', 'after ${i + 1} miss${i > 0 ? 'es' : ''}'),
+                        style: const TextStyle(color: Colors.white24, fontSize: 12, fontStyle: FontStyle.italic)),
+              ),
+            ]),
+          ),
+      ]),
+    );
   }
 
   Widget _legend() {

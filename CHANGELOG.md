@@ -3,7 +3,8 @@
 ## v1.0.4 (à venir)
 - **Gamedle** (onglet Bonus) : le jeu du jour, le même pour tout le monde. 6 essais : la jaquette pixelisée
   se précise à chaque essai, et chaque proposition indique si la console, l'année (⬆️ ⬇️) et le genre
-  correspondent. Jusqu'à 100 pièces, résultat à partager en émojis.
+  correspondent. Un indice de plus à chaque erreur (console, année, genre, développeur,
+  initiales du titre). Jusqu'à 100 pièces, résultat à partager en émojis.
 - **Actualités** (menu) : les exploits des joueurs — légendaire ou dorée obtenue, série complétée, Gamedle trouvé.
 
 ## v1.0.3
