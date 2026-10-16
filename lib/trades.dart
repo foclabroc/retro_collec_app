@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
+import 'layout.dart';
 import 'game.dart';
 import 'main.dart';
 import 'notifs.dart';
@@ -322,7 +323,7 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return MaxWidth(max: 820, child: Scaffold(
       appBar: AppBar(
         title: Text(t('Échange avec ${widget.name}', 'Trade with ${widget.name}')),
         bottom: TabBar(controller: tabs, indicatorColor: kGold, labelColor: kGold, tabs: [
@@ -395,7 +396,7 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
                 ),
               ),
             ]),
-    );
+    ));
   }
 
   Widget _selected(String title, List<(String, int)> l, Color color) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

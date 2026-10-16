@@ -14,6 +14,7 @@ import 'game.dart';
 import 'bonus.dart';
 import 'chat.dart';
 import 'feed.dart';
+import 'layout.dart';
 import 'bourse.dart';
 import 'neighbors.dart';
 import 'notifs.dart';
@@ -38,7 +39,11 @@ int rcEdgeMenuBlocked = 0; // nombre d'écrans d'ouverture de paquet affichés
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (!kIsWeb) await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  // téléphone : toujours en portrait ; tablette : peut tourner (mode tablette en paysage)
+  detectTablet();
+  if (!kIsWeb && !rcTabletDevice) {
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  }
   await loadLang();
   await RcAudio.loadPrefs();
   await Tilt.loadPrefs();
@@ -106,7 +111,7 @@ class _WebFrame extends StatelessWidget {
     if (!kIsWeb) return child;
     final mq = MediaQuery.of(context);
     final size = mq.size;
-    if (size.width <= 560) return child;
+    if (size.width <= 560 || size.width >= 900) return child; // ≥ 900 : mode tablette plein écran
     final h = size.height;
     final w = math.min(460.0, math.max(360.0, h * 0.52));
     return Stack(children: [
@@ -149,7 +154,12 @@ class _EdgeMenuSwipeState extends State<_EdgeMenuSwipe> {
   }
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) {
+    if (isWide(context)) return const SizedBox.shrink(); // menu déjà visible à gauche
+    return _build(context);
+  }
+
+  Widget _build(BuildContext context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
         onHorizontalDragStart: (_) {
           dx = 0;
@@ -531,25 +541,117 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           widget.onBackToTitle?.call();
         }
       },
-      child: Scaffold(
-        key: scaffoldKey,
-        drawerEdgeDragWidth: 28,
-        drawer: _menu(),
-        onDrawerChanged: (open) {
-          if (open) Notifs.i.refresh();
-        },
-        body: SafeArea(
-          child: IndexedStack(index: tab, children: const [
-            LibraryScreen(),
-            PacksScreen(),
-            BonusScreen(),
-            BourseScreen(),
-            MessagesScreen(),
-            NeighborsScreen(),
-            FeedScreen(),
+      child: Builder(builder: (context) {
+        // Mode large (tablette en paysage, PC) : menu toujours visible à gauche, pas de tiroir
+        final wide = isWide(context);
+        final stack = IndexedStack(key: _stackKey, index: tab, children: const [
+          LibraryScreen(),
+          MaxWidth(child: PacksScreen()),
+          MaxWidth(child: BonusScreen()),
+          BourseScreen(),
+          MaxWidth(child: MessagesScreen()),
+          NeighborsScreen(),
+          MaxWidth(child: FeedScreen()),
+        ]);
+        return Scaffold(
+          key: scaffoldKey,
+          drawerEdgeDragWidth: wide ? 0 : 28,
+          drawer: wide ? null : _menu(),
+          onDrawerChanged: (open) {
+            if (open) Notifs.i.refresh();
+          },
+          body: SafeArea(
+            child: wide ? Row(children: [_rail(), Expanded(child: stack)]) : stack,
+          ),
+        );
+      }),
+    );
+  }
+
+  final _stackKey = GlobalKey(); // garde l'état des onglets quand on passe du mode téléphone au mode large
+
+  /// Mode large : colonne d'icônes toujours visible (mêmes rubriques et pastilles que le menu)
+  Widget _rail() {
+    return ListenableBuilder(
+      listenable: Listenable.merge([Game.i, Notifs.i]),
+      builder: (context, _) {
+        final g = Game.i, n = Notifs.i;
+        Widget item(int i, String icon, String label, {int count = 0, bool dot = false}) {
+          final sel = tab == i;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Material(
+              color: sel ? kGold.withOpacity(0.16) : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => _select(i),
+                child: SizedBox(
+                  width: 84,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 7),
+                    child: Column(children: [
+                      Badge(
+                        isLabelVisible: count > 0 || dot,
+                        label: count > 0 ? Text(count > 99 ? '99+' : '$count') : null,
+                        smallSize: 9,
+                        backgroundColor: const Color(0xFFE24B4A),
+                        child: TabIcon(icon, selected: sel),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 10.5, fontWeight: sel ? FontWeight.w800 : FontWeight.w600, color: sel ? kGold : Colors.white70)),
+                    ]),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          width: 96,
+          decoration: BoxDecoration(
+            color: kBg.withOpacity(0.72),
+            border: const Border(right: BorderSide(color: Colors.white12)),
+          ),
+          child: Column(children: [
+            const SizedBox(height: 12),
+            Tooltip(
+              message: t('Mon profil et réglages', 'My profile and settings'),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyProfilePage())),
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: kGold),
+                  child: avatarWidget(g.avatar, size: 50),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(children: [
+                  item(0, 'collection', t('Collection', 'Collection')),
+                  item(1, 'packs', t('Paquets', 'Packs'), dot: g.free || n.lotFree, count: n.gifts + n.lots),
+                  item(2, 'bonus', t('Bonus', 'Bonus'), dot: n.wheel),
+                  item(3, 'market', t('Bourse', 'Exchange'), count: n.trades + n.sales.length),
+                  item(4, 'messages', t('Messages', 'Messages'), count: n.chat, dot: n.mention),
+                  item(5, 'neighbors', t('Voisinage', 'Neighbors')),
+                  item(6, 'news', t('Actualités', 'News')),
+                ]),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Text('v$kRetroCollecVersion', style: const TextStyle(color: Colors.white30, fontSize: 10)),
+            ),
           ]),
-        ),
-      ),
+        );
+      },
     );
   }
 

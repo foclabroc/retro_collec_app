@@ -4,6 +4,7 @@ import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
+import 'layout.dart';
 import 'main.dart';
 import 'retro_theme.dart';
 import 'filters.dart';
@@ -56,7 +57,8 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
               Padding(padding: const EdgeInsets.only(right: 12), child: Center(child: CoinChip(g.coins))),
             ],
           ),
-          body: Column(children: [
+          body: SplitCardDetail(
+           child: Column(children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
               child: Column(children: [
@@ -100,7 +102,8 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
             Expanded(
               child: CardGrid(list),
             ),
-          ]),
+           ]),
+          ),
         );
       },
     );
@@ -139,7 +142,67 @@ Future<void> recycleAllDupes(BuildContext context) async {
 }
 
 void openCardDetail(BuildContext context, RcCard c, {Map<String, List<int>>? otherOwned, String? otherName}) {
+  final split = context.getInheritedWidgetOfExactType<_SplitScope>();
+  final st = split?.state;
+  if (st != null && otherOwned == null) {
+    st.select(c); // mode large : la fiche s'affiche à droite, sans changer d'écran
+    return;
+  }
   Navigator.of(context).push(MaterialPageRoute(builder: (_) => CardDetailPage(card: c, otherOwned: otherOwned, otherName: otherName)));
+}
+
+// ─── Mode large : liste à gauche, fiche de la carte choisie à droite ───────
+class SplitCardDetail extends StatefulWidget {
+  final Widget child;
+  const SplitCardDetail({super.key, required this.child});
+  @override
+  State<SplitCardDetail> createState() => _SplitCardDetailState();
+}
+
+class _SplitCardDetailState extends State<SplitCardDetail> {
+  RcCard? selected;
+
+  void select(RcCard c) => setState(() => selected = c);
+
+  @override
+  Widget build(BuildContext context) {
+    final wide = isWide(context);
+    final sel = selected;
+    return _SplitScope(
+      state: wide ? this : null,
+      child: Row(children: [
+        Expanded(child: widget.child),
+        if (wide)
+          Container(
+            width: 420,
+            decoration: BoxDecoration(
+              color: kBg.withOpacity(0.55),
+              border: const Border(left: BorderSide(color: Colors.white12)),
+            ),
+            child: sel == null
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.touch_app, size: 42, color: Colors.white24),
+                        const SizedBox(height: 10),
+                        Text(t('Touche une carte pour voir sa fiche', 'Tap a card to see its details'),
+                            textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54)),
+                      ]),
+                    ),
+                  )
+                : CardDetailPage(key: ValueKey(sel.id), card: sel, embedded: true),
+          ),
+      ]),
+    );
+  }
+}
+
+class _SplitScope extends InheritedWidget {
+  final _SplitCardDetailState? state;
+  const _SplitScope({required this.state, required super.child});
+  @override
+  bool updateShouldNotify(_SplitScope old) => old.state != state;
 }
 
 // ─── Fiche d'une carte ─────────────────────────────────────────────────────
@@ -147,7 +210,8 @@ class CardDetailPage extends StatefulWidget {
   final RcCard card;
   final Map<String, List<int>>? otherOwned; // collection d'un autre joueur (lecture seule)
   final String? otherName;
-  const CardDetailPage({super.key, required this.card, this.otherOwned, this.otherName});
+  final bool embedded; // mode large : affichée à droite de l'album (pas de bouton retour)
+  const CardDetailPage({super.key, required this.card, this.otherOwned, this.otherName, this.embedded = false});
   @override
   State<CardDetailPage> createState() => _CardDetailPageState();
 }
@@ -179,8 +243,11 @@ class _CardDetailPageState extends State<CardDetailPage> {
           final myTotal = Game.i.qty(c.id);
           final shot = owned || myTotal > 0 ? Catalog.shot(c) : null;
           return Scaffold(
+            backgroundColor: widget.embedded ? Colors.transparent : null,
             appBar: AppBar(
               toolbarHeight: 66,
+              automaticallyImplyLeading: !widget.embedded,
+              backgroundColor: widget.embedded ? Colors.transparent : null,
               // titre complet : police pixel plus petite, sur 2 lignes si besoin
               title: Text(owned || myTotal > 0 ? c.title : '#${c.num.toString().padLeft(3, '0')}',
                   maxLines: 2, overflow: TextOverflow.ellipsis, style: pixelStyle(size: 11, color: Colors.white, shadow: false)),

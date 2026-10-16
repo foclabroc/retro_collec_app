@@ -8,6 +8,7 @@ import 'album.dart';
 import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
+import 'layout.dart';
 import 'game.dart';
 import 'house.dart';
 import 'main.dart';
@@ -593,7 +594,7 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
   @override
   Widget build(BuildContext context) {
     final name = p?['name'] as String? ?? '';
-    return Scaffold(
+    return MaxWidth(max: 820, child: Scaffold(
       appBar: AppBar(title: Text(name)),
       body: error != null
           ? Center(child: Text(error!, style: const TextStyle(color: Colors.white60)))
@@ -674,7 +675,7 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                       child: _setRow(s.name, _in(s.id), s.count),
                     ),
                 ]),
-    );
+    ));
   }
 }
 

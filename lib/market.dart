@@ -5,6 +5,7 @@ import 'audio.dart';
 import 'bourse.dart';
 import 'cards.dart';
 import 'catalog.dart';
+import 'layout.dart';
 import 'game.dart';
 import 'main.dart';
 import 'notifs.dart';
@@ -96,7 +97,7 @@ class _CardOffers extends StatefulWidget {
   final String cardId;
   final int? finish;
   final ScrollController scroll;
-  const _CardOffers({required this.cardId, required this.finish, required this.scroll});
+  const _CardOffers({super.key, required this.cardId, required this.finish, required this.scroll});
   @override
   State<_CardOffers> createState() => _CardOffersState();
 }
@@ -211,6 +212,14 @@ class MarketGroupsState extends State<MarketGroups> {
   String sys = '';
   bool missing = false;
   int sort = 0; // 0 récents, 1 moins chers, 2 plus rares
+  (String, int)? sel; // mode large : carte dont les offres sont affichées à droite
+  final _offersScroll = ScrollController();
+
+  @override
+  void dispose() {
+    _offersScroll.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -230,6 +239,32 @@ class MarketGroupsState extends State<MarketGroups> {
 
   @override
   Widget build(BuildContext context) {
+    final list = _list(context);
+    if (!isWide(context)) return list;
+    // mode large : la liste à gauche, les offres de la carte choisie à droite
+    final s = sel;
+    return Row(children: [
+      Expanded(child: list),
+      Container(
+        width: 430,
+        decoration: BoxDecoration(
+          color: kBg.withOpacity(0.55),
+          border: const Border(left: BorderSide(color: Colors.white12)),
+        ),
+        child: s == null
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(t('Touche une carte pour voir ses offres', 'Tap a card to see its offers'),
+                      textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54)),
+                ),
+              )
+            : _CardOffers(key: ValueKey(s), cardId: s.$1, finish: s.$2, scroll: _offersScroll),
+      ),
+    ]);
+  }
+
+  Widget _list(BuildContext context) {
     return Column(children: [
       Padding(
         padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
@@ -312,11 +347,15 @@ class MarketGroupsState extends State<MarketGroups> {
           final lots = (r['lots'] as num).toInt();
           final known = Game.i.has(c.id);
           return Material(
-            color: kPanel,
+            color: sel == (c.id, f) ? kGold.withOpacity(0.18) : kPanel,
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: () async {
+                if (isWide(context)) {
+                  setState(() => sel = (c.id, f));
+                  return;
+                }
                 await showCardOffers(context, c.id, finish: f);
                 load();
               },
@@ -714,7 +753,11 @@ class _SellPickerPageState extends State<SellPickerPage> {
               ? Center(child: Text(t('Aucune carte', 'No cards'), style: const TextStyle(color: Colors.white38)))
               : GridView.builder(
                   padding: const EdgeInsets.all(10),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 5 / 7.6, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: adaptiveCols(context, MediaQuery.sizeOf(context).width, phone: 3, minTile: 130, max: 8),
+                      childAspectRatio: 5 / 7.6,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8),
                   itemCount: items.length,
                   itemBuilder: (_, i) {
                     final (c, f, n) = items[i];

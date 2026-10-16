@@ -6,6 +6,7 @@ import 'album.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'filters.dart';
+import 'layout.dart';
 import 'game.dart';
 import 'main.dart';
 
@@ -76,14 +77,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.68,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
+                // 2 posters par ligne sur téléphone, 3 à 5 sur tablette / PC
+                sliver: SliverLayoutBuilder(
+                  builder: (context, box) => SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: adaptiveCols(context, box.crossAxisExtent, phone: 2, minTile: 230, max: 5),
+                      childAspectRatio: 0.68,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    delegate: SliverChildBuilderDelegate((_, i) => _ConsoleTile(sys: systems[i]), childCount: systems.length),
                   ),
-                  delegate: SliverChildBuilderDelegate((_, i) => _ConsoleTile(sys: systems[i]), childCount: systems.length),
                 ),
               ),
             ]),
@@ -124,16 +128,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
         );
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 0),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: kPanel,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: kGold.withOpacity(0.45)),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
+    final wide = isWide(context);
+    // anneau + barres de rareté
+    final summary = Row(children: [
           // anneau de progression
           SizedBox(
             width: 92,
@@ -179,20 +176,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 ),
             ]),
           ),
-        ]),
-        const SizedBox(height: 12),
-        // raccourcis
-        Row(children: [
-          action('♻', '${g.dupes}', t('doublons', 'duplicates'), Colors.white, g.dupes > 0 ? () => recycleAllDupes(context) : null),
-          const SizedBox(width: 6),
-          action('⚡', '${g.fusable}', t('fusions', 'fusions'), g.fusable > 0 ? kGold : Colors.white54, () => _openCards(show: 3, sort: 5)),
-          const SizedBox(width: 6),
-          action('✦', '${g.holoCount}', t('brillantes', 'holo'), const Color(0xFFB4A9FF), () => _openCards(show: 4, sort: 1)),
-          const SizedBox(width: 6),
-          action('★', '${g.goldCount}', t('dorées', 'gold'), const Color(0xFFFFD54F), () => _openCards(show: 5, sort: 1)),
-        ]),
-        if (recent.isNotEmpty) ...[
-          const SizedBox(height: 12),
+        ]);
+    // raccourcis
+    final a1 = action('♻', '${g.dupes}', t('doublons', 'duplicates'), Colors.white, g.dupes > 0 ? () => recycleAllDupes(context) : null);
+    final a2 = action('⚡', '${g.fusable}', t('fusions', 'fusions'), g.fusable > 0 ? kGold : Colors.white54, () => _openCards(show: 3, sort: 5));
+    final a3 = action('✦', '${g.holoCount}', t('brillantes', 'holo'), const Color(0xFFB4A9FF), () => _openCards(show: 4, sort: 1));
+    final a4 = action('★', '${g.goldCount}', t('dorées', 'gold'), const Color(0xFFFFD54F), () => _openCards(show: 5, sort: 1));
+    // dernières cartes
+    final latest = recent.isEmpty
+        ? const SizedBox()
+        : Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
           Row(children: [
             Text(t('Dernières cartes', 'Latest cards'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
             const Spacer(),
@@ -217,7 +210,46 @@ class _LibraryScreenState extends State<LibraryScreen> {
               },
             ),
           ),
-        ],
+        ]);
+    final box = BoxDecoration(
+      color: kPanel,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: kGold.withOpacity(0.45)),
+    );
+    if (wide) {
+      // mode large : tout sur une ligne
+      return Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+        padding: const EdgeInsets.all(14),
+        decoration: box,
+        child: SizedBox(
+          height: 116,
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Expanded(flex: 5, child: Center(child: summary)),
+            const SizedBox(width: 14),
+            SizedBox(
+              width: 210,
+              child: Column(children: [
+                Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [a1, const SizedBox(width: 6), a2])),
+                const SizedBox(height: 6),
+                Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [a3, const SizedBox(width: 6), a4])),
+              ]),
+            ),
+            const SizedBox(width: 14),
+            Expanded(flex: 4, child: latest),
+          ]),
+        ),
+      );
+    }
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: box,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        summary,
+        const SizedBox(height: 12),
+        Row(children: [a1, const SizedBox(width: 6), a2, const SizedBox(width: 6), a3, const SizedBox(width: 6), a4]),
+        if (recent.isNotEmpty) ...[const SizedBox(height: 12), latest],
       ]),
     );
   }

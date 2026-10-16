@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
+import 'layout.dart';
 import 'game.dart';
 import 'main.dart';
 import 'retro_theme.dart';
@@ -248,7 +249,7 @@ class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return MaxWidth(max: 820, child: Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -259,7 +260,7 @@ class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
         ],
       ),
       body: SafeArea(top: false, child: finished ? _resultView() : _questionView()),
-    );
+    ));
   }
 
   Widget _questionView() {

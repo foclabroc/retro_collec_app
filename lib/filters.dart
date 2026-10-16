@@ -4,6 +4,7 @@ import 'album.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
+import 'layout.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Filtres et tri des cartes : albums des consoles et « Toutes mes cartes ».
@@ -237,9 +238,14 @@ class CardGrid extends StatelessWidget {
         ),
       );
     }
-    return GridView.builder(
+    // 3 colonnes sur téléphone, 4 à 8 sur tablette / PC
+    return LayoutBuilder(builder: (context, box) => GridView.builder(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 5 / 7.4, crossAxisSpacing: 8, mainAxisSpacing: 8),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: adaptiveCols(context, box.maxWidth, phone: 3, minTile: 120, max: 8),
+          childAspectRatio: 5 / 7.4,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8),
       itemCount: cards.length,
       itemBuilder: (_, i) {
         final c = cards[i];
@@ -263,7 +269,7 @@ class CardGrid extends StatelessWidget {
           ]),
         );
       },
-    );
+    ));
   }
 }
 
@@ -299,7 +305,7 @@ class _AllCardsPageState extends State<AllCardsPage> {
               const SizedBox(width: 6),
             ],
           ),
-          body: Column(children: [
+          body: SplitCardDetail(child: Column(children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
               child: TextField(
@@ -335,7 +341,7 @@ class _AllCardsPageState extends State<AllCardsPage> {
               ]),
             ),
             Expanded(child: CardGrid(list)),
-          ]),
+          ])),
         );
       },
     );

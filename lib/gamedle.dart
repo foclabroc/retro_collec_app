@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
+import 'layout.dart';
 import 'game.dart';
 import 'main.dart';
 import 'retro_theme.dart';
@@ -221,7 +222,7 @@ class _GamedlePageState extends State<GamedlePage> {
   @override
   Widget build(BuildContext context) {
     final a = answer;
-    return Scaffold(
+    return MaxWidth(max: 820, child: Scaffold(
       appBar: AppBar(
         title: Text('GAMEDLE${st == null ? '' : ' #${st!['day']}'}', style: pixelStyle(size: 14, color: _kColor)),
         actions: [
@@ -268,7 +269,7 @@ class _GamedlePageState extends State<GamedlePage> {
                     textAlign: TextAlign.center, style: const TextStyle(color: Colors.white38, fontSize: 11)),
               ],
             ]),
-    );
+    ));
   }
 
   Widget _input() {
