@@ -156,8 +156,16 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
               ]),
             const SizedBox(height: 16),
             Text(t('Reviens demain pour un nouveau tour', 'Come back tomorrow for another spin'), style: const TextStyle(color: Colors.white60)),
-            const SizedBox(height: 8),
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(t('SUPER !', 'GREAT!'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+              ),
+            ),
           ]),
         ),
       ),
