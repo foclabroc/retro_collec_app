@@ -12,19 +12,17 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('🎁', '800 pièces offertes à tous les joueurs !', '800 free coins for every player!'),
-  ('🕹️', '4 nouvelles consoles : PSP, Game Gear, GameCube et PS2', '4 new consoles: PSP, Game Gear, GameCube and PS2'),
-  ('📈', 'La Bourse : marché groupé par carte, ventes, échanges et historique',
-      'The Exchange: market grouped by card, sales, trades and history'),
-  ('🏠', 'Voisinage : 12 maisons à choisir, 3 paquets à offrir par jour',
-      'Neighbourhood: 12 houses to choose, 3 packs to gift per day'),
-  ('📦', 'Lot de 5 paquets (500 pièces), gratuit chaque samedi', 'Bundle of 5 packs (500 coins), free every Saturday'),
-  ('✨', 'Fusion : 5 normales → 1 brillante, 3 brillantes → 1 dorée', 'Fusion: 5 normal → 1 shiny, 3 shiny → 1 gold'),
-  ('🔔', 'Notifications Android, même appli fermée', 'Android notifications, even when the app is closed'),
-  ('🗂️', 'Ma collection repensée : tableau de bord et posters rétro', 'My collection redesigned: dashboard and retro posters'),
-  ('⚙️', 'Filtres, tri et recherche dans les albums', 'Filters, sorting and search in albums'),
-  ('🎨', '5 thèmes d\'interface, 18 avatars, 5 nouvelles musiques', '5 interface themes, 18 avatars, 5 new music tracks'),
-  ('🃏', 'Nouveaux boosters à faire tourner au doigt', 'New boosters you can spin with your finger'),
+  ('🧩', 'Gamedle : devine le jeu du jour (onglet Bonus), jusqu\'à 100 pièces',
+      'Gamedle: guess the game of the day (Bonus tab), up to 100 coins'),
+  ('📰', 'Actualités : les légendaires, dorées et séries complétées des joueurs',
+      'News: players\' legendaries, gold cards and completed sets'),
+  ('✨', 'Roue en or tous les 7 jours d\'affilée : gains doublés et JACKPOT',
+      'Golden wheel every 7-day streak: double prizes and JACKPOT'),
+  ('🎉', 'La roue fait la fête : confettis pour les gros lots', 'The wheel celebrates: confetti for big wins'),
+  ('📱', 'Mode tablette : menu fixe, plus de cartes à l\'écran, fiche à côté',
+      'Tablet mode: fixed menu, more cards on screen, details side by side'),
+  ('🌐', 'Version web : joue aussi sur PC et iPhone (foclabroc.github.io/retro_collec_app)',
+      'Web version: also play on PC and iPhone (foclabroc.github.io/retro_collec_app)'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';

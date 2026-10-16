@@ -1,12 +1,21 @@
 # Pixel Trade — Changelog
 
-## v1.0.4 (à venir)
+## v1.0.4
 - **Gamedle** (onglet Bonus) : le jeu du jour, le même pour tout le monde. 6 essais : la jaquette pixelisée
   se précise à chaque essai, et chaque proposition indique si la console, l'année (⬆️ ⬇️) et le genre
   correspondent. Console donnée d'entrée, puis un indice de plus à chaque erreur (année, genre,
   développeur, initiales du titre) et, après 2 erreurs, un joker « 4 propositions ».
   Jusqu'à 100 pièces, résultat à partager en émojis.
 - **Actualités** (menu) : les exploits des joueurs — légendaire ou dorée obtenue, série complétée, Gamedle trouvé.
+- **Roue en or** : tous les 7 jours de connexion d'affilée, gains en pièces doublés, cartes meilleures
+  et case **JACKPOT** (1000 pièces + une légendaire).
+- La roue fait la fête : confettis selon le lot, la roue tremble pour les gros gains, vrai bouton « SUPER ! ».
+- Correctif : les cases « CARTE » et « RARE » de la roue renvoyaient une erreur.
+- **Mode tablette** (et PC en version web) : menu toujours visible à gauche, tableau de bord sur une ligne,
+  plus de colonnes, fiche de la carte et offres de la Bourse affichées à côté de la liste.
+  Sur téléphone, rien ne change (toujours en portrait).
+- **Version web** : https://foclabroc.github.io/retro_collec_app/ (musique en mp3 sur iPhone / Safari).
+- APK compilé par GitHub Actions (onglet Actions › APK Android), signé avec la même clé.
 
 ## v1.0.3
 - 🎁 **Cadeau : 800 pièces offertes** à tous les joueurs (une seule fois, au premier lancement de la v1.0.3).

@@ -63,11 +63,13 @@ Chaque carte a une **rareté** (commune, peu commune, rare, épique, légendaire
 - 🏆 **Profils publics** : vitrine de tes plus belles cartes, statistiques, collection visible.
 
 **Bonus et confort**
-- 🎡 **Bonus** : roue de la fortune quotidienne et quiz rétro (devine le jeu d'après sa capture).
+- 🎡 **Bonus** : roue de la fortune quotidienne (roue en or tous les 7 jours d'affilée), **Gamedle** (le jeu du jour) et quiz rétro.
+- 📰 **Actualités** : les exploits des joueurs (légendaires, dorées, séries complétées).
 - 📅 **Missions du jour** et bonus de connexion.
 - 🔔 **Notifications Android**, même appli fermée : cadeau reçu, carte vendue, échange proposé, mention, paquet gratuit.
 - 🎨 **Personnalisation** : 5 thèmes d'interface, 18 avatars pixel art, 8 musiques chiptune.
 - ☰ **Menu latéral** accessible depuis n'importe quel écran (glisser depuis le bord gauche).
+- 📱 **Mode tablette** : sur tablette en paysage et sur PC, menu toujours visible, plus de colonnes, fiche et offres affichées à côté.
 - 🔐 **Compte** : pseudo + mot de passe ou code de sauvegarde pour retrouver ton profil sur un autre téléphone.
 - 🌍 **Français / English** : automatique selon le téléphone, ou au choix dans les réglages.
 - ⬆️ **Mises à jour** : l'appli prévient quand une nouvelle version est disponible et l'installe ; écran « Nouveautés » à chaque version.

@@ -38,6 +38,22 @@ const _segs = [
   _Seg('300', 300, Color(0xFFD4A017)),
 ];
 
+/// Roue en or (tous les 7 jours de connexion d'affilée) : mêmes cases, gains doublés, JACKPOT
+const _goldSegs = [
+  _Seg('40', 40, Color(0xFFB8860B)),
+  _Seg('100', 100, Color(0xFFE6B422)),
+  _Seg('CARTE', 0, Color(0xFFC9A227)),
+  _Seg('60', 60, Color(0xFFB07A10)),
+  _Seg('200', 200, Color(0xFFF2C94C)),
+  _Seg('80', 80, Color(0xFFA67C00)),
+  _Seg('ÉPIQUE', 0, Color(0xFFD99A00), rare: true),
+  _Seg('JACKPOT', 1000, Color(0xFFFF4F79)),
+];
+
+/// Vrai le jour de la roue en or (série de connexion multiple de 7)
+bool get _goldDay => Game.i.streak > 0 && Game.i.streak % 7 == 0;
+List<_Seg> get _wheelSegs => _goldDay ? _goldSegs : _segs;
+
 class BonusScreen extends StatelessWidget {
   const BonusScreen({super.key});
 
@@ -64,8 +80,9 @@ class WheelPanel extends StatefulWidget {
   State<WheelPanel> createState() => _WheelPanelState();
 }
 
-class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateMixin {
+class _WheelPanelState extends State<WheelPanel> with TickerProviderStateMixin {
   late final AnimationController spin = AnimationController(vsync: this, duration: const Duration(milliseconds: 4800));
+  late final AnimationController shake = AnimationController(vsync: this, duration: const Duration(milliseconds: 650));
   double from = 0, to = 0; // angles (radians)
   bool busy = false;
   int _lastTick = 0;
@@ -88,6 +105,7 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
   @override
   void dispose() {
     spin.dispose();
+    shake.dispose();
     super.dispose();
   }
 
@@ -105,7 +123,7 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
     }
     final seg = (r['seg'] as num).toInt();
     // case gagnante en haut, sous le pointeur, après 6 tours
-    final segAngle = 2 * pi / _segs.length;
+    final segAngle = 2 * pi / _wheelSegs.length;
     final jitter = (Random().nextDouble() - 0.5) * segAngle * 0.6;
     final base = angle % (2 * pi);
     from = angle;
@@ -113,6 +131,12 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
     _lastTick = (from / (pi / 4)).floor();
     RcAudio.sfx('continue');
     await spin.forward(from: 0);
+    if (!mounted) return;
+    // gros lot : la roue tremble avant la fête
+    if (_prizeLevel(r) >= 2) {
+      HapticFeedback.heavyImpact();
+      await shake.forward(from: 0);
+    }
     if (!mounted) return;
     Game.i.setCoins((r['coins'] as num? ?? Game.i.coins).toInt());
     Game.i.emit(r['events']);
@@ -122,7 +146,18 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
     if (mounted) setState(() => busy = false);
   }
 
+  /// 0 petit gain, 1 joli gain, 2 gros lot (300 et plus, épique / légendaire), 3 JACKPOT
+  int _prizeLevel(Map<String, dynamic> r) {
+    final gain = (r['gain'] as num? ?? 0).toInt();
+    final cr = r['card'] is Map ? ((r['card'] as Map)['r'] as num? ?? 0).toInt() : -1;
+    if (r['gold'] == true && (r['seg'] as num?)?.toInt() == 7) return 3;
+    if (gain >= 300 || cr >= 3) return 2;
+    if (gain >= 100 || cr >= 0) return 1;
+    return 0;
+  }
+
   Future<void> _showPrize(Map<String, dynamic> r) async {
+    final level = _prizeLevel(r);
     final gain = (r['gain'] as num? ?? 0).toInt();
     final card = r['card'] is Map ? Map<String, dynamic>.from(r['card'] as Map) : null;
     final c = card == null ? null : Catalog.cards[card['c']];
@@ -133,22 +168,39 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
       RcAudio.sfx(gain >= 100 ? 'powerup' : 'coin');
     }
     HapticFeedback.mediumImpact();
+    if (level >= 2) RcAudio.win();
     await showDialog<void>(
       context: context,
       builder: (ctx) => Dialog(
         backgroundColor: kBg.withOpacity(0.95),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: kGold, width: 2)),
-        child: Padding(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: kGold, width: level >= 2 ? 3 : 2)),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(children: [
+         // confettis : plus il y en a, plus le lot est gros
+         if (level > 0) Positioned.fill(child: IgnorePointer(child: _Confetti(count: const [0, 40, 90, 160][level]))),
+         Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(t('GAGNÉ !', 'YOU WIN!'), style: pixelStyle(size: 18)),
+            Text(
+                level == 3
+                    ? 'JACKPOT !!!'
+                    : level == 2
+                        ? t('ÉNORME !', 'HUGE!')
+                        : t('GAGNÉ !', 'YOU WIN!'),
+                style: pixelStyle(size: level >= 2 ? 22 : 18, color: level == 3 ? const Color(0xFFFF4F79) : kGold)),
+            if (r['gold'] == true) ...[
+              const SizedBox(height: 6),
+              Text(t('✨ Roue en or ✨', '✨ Golden wheel ✨'), style: const TextStyle(color: Color(0xFFFFD54F), fontWeight: FontWeight.w800)),
+            ],
             const SizedBox(height: 18),
             if (c != null) ...[
               SizedBox(width: 170, child: CardView(card: c, finish: f)),
               const SizedBox(height: 10),
               if (card?['n'] == true)
                 Text(t('Nouvelle carte !', 'New card!'), style: pixelStyle(size: 11, color: const Color(0xFF5DCAA5))),
-            ] else
+              if (gain > 0) const SizedBox(height: 10),
+            ],
+            if (c == null || gain > 0)
               Row(mainAxisSize: MainAxisSize.min, children: [
                 Text('+$gain', style: pixelStyle(size: 30)),
                 const SizedBox(width: 10),
@@ -167,7 +219,8 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
               ),
             ),
           ]),
-        ),
+         ),
+        ]),
       ),
     );
   }
@@ -178,20 +231,32 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
       listenable: Notifs.i,
       builder: (context, _) {
         final can = Notifs.i.wheel && !busy;
+        final gold = _goldDay;
         final now = DateTime.now();
         final left = DateTime(now.year, now.month, now.day + 1).difference(now);
-        return Container(
+        final toGold = 7 - Game.i.streak % 7;
+        return AnimatedBuilder(
+          animation: shake,
+          builder: (_, child) => Transform.translate(offset: Offset(sin(shake.value * pi * 10) * 9 * (1 - shake.value), 0), child: child),
+          child: Container(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
           decoration: BoxDecoration(
             color: kPanel,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: kGold.withOpacity(0.6), width: 1.5),
+            border: Border.all(color: gold ? const Color(0xFFFFD54F) : kGold.withOpacity(0.6), width: gold ? 3 : 1.5),
+            boxShadow: gold ? [BoxShadow(color: const Color(0xFFFFD54F).withOpacity(0.45), blurRadius: 22)] : null,
           ),
           child: Column(children: [
-            Text(t('ROUE DE LA FORTUNE', 'WHEEL OF FORTUNE'), style: pixelStyle(size: 12)),
+            Text(gold ? t('✨ ROUE EN OR ✨', '✨ GOLDEN WHEEL ✨') : t('ROUE DE LA FORTUNE', 'WHEEL OF FORTUNE'),
+                style: pixelStyle(size: 12, color: gold ? const Color(0xFFFFD54F) : kGold)),
             const SizedBox(height: 4),
-            Text(t('Un tour gratuit par jour : pièces ou carte !', 'One free spin a day: coins or a card!'),
-                style: const TextStyle(color: Colors.white60, fontSize: 12)),
+            Text(
+                gold
+                    ? t('${Game.i.streak} jours d\'affilée : gains doublés et JACKPOT !', '${Game.i.streak}-day streak: double prizes and JACKPOT!')
+                    : t('Un tour gratuit par jour · roue en or dans $toGold jour${toGold > 1 ? 's' : ''} de connexion',
+                        'One free spin a day · golden wheel in $toGold login day${toGold > 1 ? 's' : ''}'),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: gold ? const Color(0xFFFFE08A) : Colors.white60, fontSize: 12)),
             const SizedBox(height: 14),
             LayoutBuilder(builder: (context, box) {
               final size = min(box.maxWidth, 300.0);
@@ -203,7 +268,7 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
                     top: 14,
                     child: AnimatedBuilder(
                       animation: spin,
-                      builder: (_, __) => Transform.rotate(angle: angle, child: CustomPaint(painter: _WheelPainter())),
+                      builder: (_, __) => Transform.rotate(angle: angle, child: CustomPaint(painter: _WheelPainter(_wheelSegs, gold))),
                     ),
                   ),
                   // pointeur
@@ -249,25 +314,81 @@ class _WheelPanelState extends State<WheelPanel> with SingleTickerProviderStateM
               ),
             ),
           ]),
+          ),
         );
       },
     );
   }
 }
 
+/// Pluie de confettis (fenêtre de gain)
+class _Confetti extends StatefulWidget {
+  final int count;
+  const _Confetti({required this.count});
+  @override
+  State<_Confetti> createState() => _ConfettiState();
+}
+
+class _ConfettiState extends State<_Confetti> with SingleTickerProviderStateMixin {
+  late final AnimationController c = AnimationController(vsync: this, duration: const Duration(milliseconds: 2600))..forward();
+  late final List<List<double>> parts = () {
+    final rnd = Random();
+    // x, vitesse, taille, dérive, couleur, rotation, départ
+    return [for (var i = 0; i < widget.count; i++) [rnd.nextDouble(), 0.5 + rnd.nextDouble(), 4 + rnd.nextDouble() * 5, rnd.nextDouble() * 2 - 1, rnd.nextInt(6).toDouble(), rnd.nextDouble() * 6, -rnd.nextDouble() * 0.4]];
+  }();
+
+  @override
+  void dispose() {
+    c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(animation: c, builder: (_, __) => CustomPaint(painter: _ConfettiPainter(parts, c.value)));
+}
+
+class _ConfettiPainter extends CustomPainter {
+  final List<List<double>> parts;
+  final double t;
+  _ConfettiPainter(this.parts, this.t);
+  static const _colors = [Color(0xFFFFD54F), Color(0xFFFF4F79), Color(0xFF3DD9FF), Color(0xFF5DCAA5), Color(0xFFB18CFF), Colors.white];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final p in parts) {
+      final y = (p[6] + t * p[1] * 1.4) * size.height;
+      if (y < -10 || y > size.height + 10) continue;
+      final x = p[0] * size.width + sin(t * 8 + p[5]) * 14 * p[3];
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(p[5] + t * 10 * p[3]);
+      canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: p[2], height: p[2] * 0.55),
+          Paint()..color = _colors[p[4].toInt()].withOpacity(t > 0.85 ? (1 - t) / 0.15 : 1));
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ConfettiPainter old) => old.t != t;
+}
+
 class _WheelPainter extends CustomPainter {
+  final List<_Seg> segs;
+  final bool gold;
+  _WheelPainter(this.segs, this.gold);
+
   @override
   void paint(Canvas canvas, Size size) {
     final c = size.center(Offset.zero);
     final r = size.shortestSide / 2;
     final rect = Rect.fromCircle(center: c, radius: r - 6);
-    final n = _segs.length;
+    final n = segs.length;
     final sweep = 2 * pi / n;
     // contour
     canvas.drawCircle(c, r, Paint()..color = const Color(0xFF10142E));
     for (var i = 0; i < n; i++) {
       final start = -pi / 2 + i * sweep;
-      final s = _segs[i];
+      final s = segs[i];
       canvas.drawArc(
         rect,
         start,
@@ -287,10 +408,10 @@ class _WheelPainter extends CustomPainter {
       final isCoins = s.coins > 0;
       final tp = TextPainter(
         text: TextSpan(
-          text: isCoins ? s.label : (s.rare ? t('RARE', 'RARE') : t('CARTE', 'CARD')),
+          text: s.label == 'JACKPOT' ? 'JACKPOT' : isCoins ? s.label : (s.rare ? (gold ? t('ÉPIQUE', 'EPIC') : t('RARE', 'RARE')) : t('CARTE', 'CARD')),
           style: TextStyle(
             color: Colors.white,
-            fontSize: r * (isCoins ? 0.13 : 0.085),
+            fontSize: r * (s.label == 'JACKPOT' ? 0.075 : isCoins ? 0.13 : 0.085),
             fontWeight: FontWeight.w900,
             shadows: const [Shadow(color: Colors.black54, blurRadius: 3)],
           ),
@@ -299,7 +420,7 @@ class _WheelPainter extends CustomPainter {
       )..layout();
       tp.paint(canvas, Offset(-tp.width / 2, -r * 0.78));
       // petite icône sous le texte
-      final icon = isCoins ? Icons.monetization_on : (s.rare ? Icons.auto_awesome : Icons.style);
+      final icon = s.label == 'JACKPOT' ? Icons.emoji_events : isCoins ? Icons.monetization_on : (s.rare ? Icons.auto_awesome : Icons.style);
       final ip = TextPainter(
         text: TextSpan(text: String.fromCharCode(icon.codePoint), style: TextStyle(fontSize: r * 0.12, fontFamily: icon.fontFamily, color: Colors.white.withOpacity(0.85))),
         textDirection: TextDirection.ltr,
@@ -310,8 +431,8 @@ class _WheelPainter extends CustomPainter {
     // cercle doré + ampoules
     canvas.drawCircle(c, r - 6, Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..color = kGold);
+      ..strokeWidth = gold ? 8 : 6
+      ..color = gold ? const Color(0xFFFFE082) : kGold);
     for (var i = 0; i < 24; i++) {
       final a = i * 2 * pi / 24;
       canvas.drawCircle(c + Offset(cos(a), sin(a)) * (r - 6), 3.2, Paint()..color = i.isEven ? const Color(0xFFFFF6D5) : const Color(0xFFFFC94D));
@@ -319,7 +440,7 @@ class _WheelPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(_WheelPainter old) => old.gold != gold;
 }
 
 class _PointerPainter extends CustomPainter {

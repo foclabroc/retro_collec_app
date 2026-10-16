@@ -15,7 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Version de l'application (identique au pubspec.yaml, sans le « +N »).
-const kRetroCollecVersion = '1.0.3';
+const kRetroCollecVersion = '1.0.4';
 
 const _apiLatest = 'https://api.github.com/repos/foclabroc/retro_collec_app/releases/latest';
 const _releasesPage = 'https://github.com/foclabroc/retro_collec_app/releases/latest';
