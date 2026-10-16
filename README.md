@@ -78,7 +78,7 @@ Chaque carte a une **rareté** (commune, peu commune, rare, épique, légendaire
 2. Ouvre-le sur ton téléphone Android et autorise l'installation d'applis inconnues si Android le demande.
 3. Au premier lancement, les cartes sont téléchargées une fois (environ 90 Mo), puis l'appli choisit ton pseudo et ton avatar.
 
-**Version web** : [foclabroc.github.io/retro_collec_app](https://foclabroc.github.io/retro_collec_app/), sur PC, Mac, iPhone ou tablette, sans rien installer (« Ajouter à l'écran d'accueil » pour l'avoir comme une appli). Pour retrouver ton profil Android, connecte-toi avec ton pseudo + mot de passe ou ton code de sauvegarde. Pas de notifications ni d'effets sonores sur le web.
+**Version web** : [foclabroc.github.io/retro_collec_app](https://foclabroc.github.io/retro_collec_app/), sur PC, Mac, iPhone ou tablette, sans rien installer (« Ajouter à l'écran d'accueil » pour l'avoir comme une appli). Pour retrouver ton profil Android, connecte-toi avec ton pseudo + mot de passe ou ton code de sauvegarde. Pas de notifications ni d'effets sonores sur le web (la musique, elle, marche partout, iPhone compris).
 
 Une connexion Internet est nécessaire pour jouer : toute la partie (pièces, tirages, collection) est gérée par le serveur.
 

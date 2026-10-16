@@ -7,7 +7,11 @@ web.HTMLAudioElement? _audio;
 int? _index;
 bool _wanted = false;
 
-String _src(int i) => 'assets/assets/music/collec_music_${i + 1}.ogg';
+// .ogg (Chrome, Firefox, Android) ; .mp3 pour Safari / iPhone qui ne lisent pas l'ogg.
+// Les mp3 sont dans web/music/ : ils ne sont pas ajoutés à l'APK.
+final bool _ogg = web.HTMLAudioElement().canPlayType('audio/ogg; codecs="vorbis"').isNotEmpty;
+
+String _src(int i) => _ogg ? 'assets/assets/music/collec_music_${i + 1}.ogg' : 'music/collec_music_${i + 1}.mp3';
 
 void webMusic(String method, Map<String, dynamic>? args) {
   try {
