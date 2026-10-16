@@ -32,6 +32,8 @@ jobs:
           fi
           mkdir -p ~/.android
           echo "$KEY" | base64 -d > ~/.android/debug.keystore
+          # signature explicite (ne dépend pas de l'emplacement par défaut de la clé debug)
+          printf 'storeFile=%s\nstorePassword=android\nkeyAlias=androiddebugkey\nkeyPassword=android\n' "$HOME/.android/debug.keystore" > android/key.properties
 
       - uses: actions/setup-java@v4
         with:
@@ -45,6 +47,13 @@ jobs:
 
       - run: flutter pub get
       - run: flutter build apk --release
+
+      - name: Vérification de la signature (même clé que l'appli publiée)
+        run: |
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs build/app/outputs/flutter-apk/app-release.apk | tee certs.txt
+          grep -qi "457526b68d8f904b3c1dca7a82bfd4508106131f822d4a1c276f667e7fe38ffb" certs.txt \
+            || { echo "::error::L'APK n'est pas signé avec ta clé : il ne s'installerait pas par-dessus l'appli"; exit 1; }
 
       - name: Nom de l'APK
         id: v
