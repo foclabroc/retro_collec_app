@@ -18,7 +18,7 @@ import 'server.dart';
 
 const _kMax = 6;
 const _kReward = [100, 80, 60, 45, 30, 20];
-const _kPixels = [14, 22, 32, 46, 66, 96]; // largeur de la jaquette (en pixels) selon le nombre d'essais
+const _kPixels = [26, 38, 54, 76, 110, 160]; // largeur de la jaquette (en pixels) selon le nombre d'essais
 const _kColor = Color(0xFF3DD9FF);
 const _green = Color(0xFF3FB950), _yellow = Color(0xFFE3B341), _red = Color(0xFFB0413E);
 
@@ -248,7 +248,8 @@ class _GamedlePageState extends State<GamedlePage> {
               const SizedBox(height: 12),
               Center(child: done ? SizedBox(width: 190, child: CardView(card: a, finish: won ? 1 : 0)) : _Pixelated(card: a, level: guesses.length)),
               const SizedBox(height: 14),
-              if (!done && guesses.isNotEmpty) ...[_hints(a), const SizedBox(height: 12)],
+              if (!done) ...[_hints(a), const SizedBox(height: 12)],
+              if (!done && guesses.length >= 2) ...[_choices(a), const SizedBox(height: 12)],
               if (!done) _input(),
               if (done) _result(a),
               const SizedBox(height: 14),
@@ -278,11 +279,11 @@ class _GamedlePageState extends State<GamedlePage> {
       displayStringForOption: (c) => c.title,
       optionsBuilder: (v) {
         final q = _norm(v.text);
-        if (q.length < 2) return const Iterable<RcCard>.empty();
+        if (q.isEmpty) return const Iterable<RcCard>.empty();
         final seen = <String>{};
         final out = <RcCard>[];
         for (final c in Catalog.cards.values) {
-          if (used.contains(c.id) || !_norm(c.title).contains(q)) continue;
+          if (c.sys != answer?.sys || used.contains(c.id) || !_norm(c.title).contains(q)) continue;
           if (!seen.add('${_norm(c.title)}|${c.sys}')) continue;
           out.add(c);
           if (out.length >= 30) break;
@@ -297,7 +298,7 @@ class _GamedlePageState extends State<GamedlePage> {
         enabled: !busy,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: t('Tape le nom d\'un jeu…', 'Type a game name…'),
+          hintText: t('Tape le nom d\'un jeu ${Catalog.system(answer?.sys ?? "")?.short ?? ""}…', 'Type a ${Catalog.system(answer?.sys ?? "")?.short ?? ""} game name…'),
           prefixIcon: busy ? const Padding(padding: EdgeInsets.all(14), child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))) : const Icon(Icons.search),
           filled: true,
           fillColor: kPanel,
@@ -354,6 +355,37 @@ class _GamedlePageState extends State<GamedlePage> {
     ]);
   }
 
+  /// Après 2 erreurs : 4 jaquettes au choix (la bonne + 3 autres de la même console, tirées de façon fixe pour la journée)
+  Widget _choices(RcCard a) {
+    final used = {for (final g in guesses) g.id};
+    final pool = [for (final c in Catalog.bySys[a.sys] ?? const <RcCard>[]) if (c.id != a.id && _norm(c.title) != _norm(a.title)) c];
+    final seed = (st?['day'] as num? ?? 0).toInt();
+    pool.sort((x, y) => ((x.num * 7919 + seed * 104729) % 1009).compareTo((y.num * 7919 + seed * 104729) % 1009));
+    final opts = [a, ...pool.take(3)]..sort((x, y) => ((x.num * 31 + seed) % 97).compareTo((y.num * 31 + seed) % 97));
+    opts.removeWhere((c) => used.contains(c.id)); // les mauvais choix déjà tentés disparaissent
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(t('🃏 Joker : c\'est l\'un de ces 4 jeux !', '🃏 Joker: it\'s one of these 4 games!'),
+          textAlign: TextAlign.center, style: const TextStyle(color: kGold, fontWeight: FontWeight.w800)),
+      const SizedBox(height: 8),
+      Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
+        for (final c in opts)
+          SizedBox(
+            width: 160,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: BorderSide(color: _kColor.withOpacity(0.6)),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: busy ? null : () => _guess(c),
+              child: Text(c.title, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+            ),
+          ),
+      ]),
+    ]);
+  }
+
   /// Indices débloqués au fil des erreurs : console, année, genre, développeur, initiales du titre
   Widget _hints(RcCard a) {
     final n = guesses.length;
@@ -385,9 +417,9 @@ class _GamedlePageState extends State<GamedlePage> {
               SizedBox(width: 26, child: Text(rows[i].$1, style: const TextStyle(fontSize: 15))),
               SizedBox(width: 92, child: Text(rows[i].$2, style: const TextStyle(color: Colors.white54, fontSize: 13))),
               Expanded(
-                child: i < n
+                child: i <= n
                     ? Text(rows[i].$3, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, letterSpacing: 0.5))
-                    : Text(t('après ${i + 1} erreur${i > 0 ? 's' : ''}', 'after ${i + 1} miss${i > 0 ? 'es' : ''}'),
+                    : Text(t('après $i erreur${i > 1 ? 's' : ''}', 'after $i miss${i > 1 ? 'es' : ''}'),
                         style: const TextStyle(color: Colors.white24, fontSize: 12, fontStyle: FontStyle.italic)),
               ),
             ]),
