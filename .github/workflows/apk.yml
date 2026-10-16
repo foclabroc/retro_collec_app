@@ -1,0 +1,68 @@
+# Pixel Trade — APK Android compilé par GitHub (bouton « Run workflow » dans l'onglet Actions)
+# L'APK est signé avec TA clé (secret DEBUG_KEYSTORE_B64), donc il s'installe par-dessus
+# l'appli déjà installée. Sans ce secret, la compilation s'arrête avec un message clair.
+# Résultat : retro.collec.V<version>.apk dans « Artifacts » en bas de la page du lancement,
+# et ajouté à la release v<version> si « publier » est coché.
+name: APK Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      publier:
+        description: "Créer / compléter la release v<version> avec l'APK"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clé de signature
+        env:
+          KEY: ${{ secrets.DEBUG_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::Secret DEBUG_KEYSTORE_B64 manquant (Settings > Secrets and variables > Actions)"
+            exit 1
+          fi
+          mkdir -p ~/.android
+          echo "$KEY" | base64 -d > ~/.android/debug.keystore
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter build apk --release
+
+      - name: Nom de l'APK
+        id: v
+        run: |
+          V=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          cp build/app/outputs/flutter-apk/app-release.apk "retro.collec.V$V.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: retro.collec.V${{ steps.v.outputs.version }}
+          path: retro.collec.V${{ steps.v.outputs.version }}.apk
+
+      - name: Release
+        if: ${{ inputs.publier }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=${{ steps.v.outputs.version }}
+          gh release view "v$V" >/dev/null 2>&1 || gh release create "v$V" --title "Pixel Trade v$V" --notes "Voir CHANGELOG.md"
+          gh release upload "v$V" "retro.collec.V$V.apk" --clobber
