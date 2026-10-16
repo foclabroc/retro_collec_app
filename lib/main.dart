@@ -41,9 +41,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // téléphone : toujours en portrait ; tablette : peut tourner (mode tablette en paysage)
   detectTablet();
-  if (!kIsWeb && !rcTabletDevice) {
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-  }
+  await loadLayoutMode();
+  await applyOrientation();
+  rcLayoutMode.addListener(_rebuildAll);
   await loadLang();
   await RcAudio.loadPrefs();
   await Tilt.loadPrefs();

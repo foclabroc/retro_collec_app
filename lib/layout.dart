@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Mode tablette : décidé sur la taille réelle de l'appareil (plus petit côté
@@ -20,11 +22,46 @@ void detectTablet() {
   } catch (_) {}
 }
 
+/// Réglage « Affichage » : 0 automatique, 1 toujours téléphone, 2 toujours tablette
+/// (le mode tablette forcé permet aussi d'essayer sur téléphone, en paysage).
+final rcLayoutMode = ValueNotifier<int>(0);
+const _kLayoutKey = 'rc_layout';
+
+Future<void> loadLayoutMode() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    rcLayoutMode.value = (prefs.getInt(_kLayoutKey) ?? 0).clamp(0, 2);
+  } catch (_) {}
+}
+
+Future<void> setLayoutMode(int m) async {
+  rcLayoutMode.value = m;
+  await applyOrientation();
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kLayoutKey, m);
+  } catch (_) {}
+}
+
+/// Téléphone : portrait seulement ; tablette (ou mode tablette forcé) : rotation libre.
+Future<void> applyOrientation() async {
+  if (kIsWeb) return;
+  final free = rcLayoutMode.value == 2 || (rcTabletDevice && rcLayoutMode.value == 0);
+  try {
+    await SystemChrome.setPreferredOrientations(free ? const [] : const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  } catch (_) {}
+}
+
 /// Mise en page tablette (plus de colonnes) : tablette, ou navigateur assez large.
-bool isTablet(BuildContext c) => kIsWeb ? MediaQuery.sizeOf(c).width >= 700 : rcTabletDevice;
+bool isTablet(BuildContext c) => switch (rcLayoutMode.value) {
+      1 => false,
+      2 => true,
+      _ => kIsWeb ? MediaQuery.sizeOf(c).width >= 700 : rcTabletDevice,
+    };
 
 /// Mise en page large (menu fixe à gauche, écrans en deux parties) : tablette en paysage, PC.
-bool isWide(BuildContext c) => isTablet(c) && MediaQuery.sizeOf(c).width >= 900;
+/// En mode tablette forcé, dès 640 px (téléphone tourné en paysage).
+bool isWide(BuildContext c) => isTablet(c) && MediaQuery.sizeOf(c).width >= (rcLayoutMode.value == 2 ? 640 : 900);
 
 /// Nombre de colonnes : [phone] sur téléphone, sinon selon la largeur disponible.
 int adaptiveCols(BuildContext c, double width, {required int phone, required double minTile, int max = 10}) =>

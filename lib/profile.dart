@@ -197,6 +197,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Container(
                   decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(12)),
                   child: Column(children: [
+                    ListTile(
+                      leading: const Icon(Icons.tablet_android),
+                      title: Text(t('Affichage', 'Layout')),
+                      subtitle: Text(
+                          [t('Automatique', 'Automatic'), t('Toujours téléphone', 'Always phone'), t('Mode tablette (essai possible sur téléphone, en paysage)', 'Tablet mode (can be tried on a phone, in landscape)')][rcLayoutMode.value],
+                          style: const TextStyle(fontSize: 12, color: Colors.white54)),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () async {
+                        final m = await showDialog<int>(
+                          context: context,
+                          builder: (ctx) => SimpleDialog(
+                            title: Text(t('Affichage', 'Layout')),
+                            children: [
+                              for (final (i, label) in [
+                                (0, t('Automatique (tablette sur les grands écrans)', 'Automatic (tablet on large screens)')),
+                                (1, t('Toujours téléphone', 'Always phone')),
+                                (2, t('Mode tablette (tourne le téléphone en paysage)', 'Tablet mode (turn the phone to landscape)')),
+                              ])
+                                RadioListTile<int>(
+                                  value: i,
+                                  groupValue: rcLayoutMode.value,
+                                  activeColor: kGold,
+                                  title: Text(label),
+                                  onChanged: (v) => Navigator.pop(ctx, v),
+                                ),
+                            ],
+                          ),
+                        );
+                        if (m != null) {
+                          await setLayoutMode(m);
+                          if (mounted) setState(() {});
+                        }
+                      },
+                    ),
+                    const Divider(height: 1, color: Colors.white12),
                     SwitchListTile(
                       secondary: const Icon(Icons.screen_rotation),
                       title: Text(t('Inclinaison des cartes (gyroscope)', 'Card tilt (gyroscope)')),
