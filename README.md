@@ -17,15 +17,19 @@
 ---
 
 <p align="center">
+  <img src="docs/screenshots/titre.jpg" width="200">
   <img src="docs/screenshots/collection.jpg" width="200">
-  <img src="docs/screenshots/paquets.jpg" width="200">
-  <img src="docs/screenshots/ouverture.jpg" width="200">
-</p>
-<p align="center">
-  <img src="docs/screenshots/booster.jpg" width="200">
-  <img src="docs/screenshots/carte.jpg" width="200">
   <img src="docs/screenshots/album.jpg" width="200">
 </p>
+<p align="center">
+  <img src="docs/screenshots/paquets.jpg" width="200">
+  <img src="docs/screenshots/bourse.jpg" width="200">
+  <img src="docs/screenshots/voisinage.jpg" width="200">
+</p>
+
+> **Nouveau en v1.0.3** : 4 consoles (PSP, Game Gear, GameCube, PS2), la Bourse, le Voisinage en maisons,
+> la fusion, les notifications Android, les thèmes… et **800 pièces offertes** à tous les joueurs !
+> Détails dans le [CHANGELOG](CHANGELOG.md).
 
 ## 🎮 Le jeu
 
@@ -40,21 +44,31 @@ Chaque carte a une **rareté** (commune, peu commune, rare, épique, légendaire
 
 ### Fonctionnalités
 
-- 🎁 **Boosters** : paquet gratuit chaque jour, paquet mixte, paquet console (au choix), paquet premium (rare garantie). Une épique ou mieux est garantie au plus tard au 30e paquet.
-- ✨ **Ouverture animée** : on déchire le paquet du doigt, suspense selon la rareté, effets spéciaux pour les épiques et légendaires, reflet holographique au gyroscope.
-- 📚 **Collection** : un album par console, avec la progression et des récompenses à 25, 50, 75 et 100 %.
-- ♻️ **Recyclage et fabrication** : les doublons rapportent des pièces, qui servent à fabriquer la carte qui te manque.
-- 📈 **Bourse** : marché groupé par carte (acheter, vendre), échanges jusqu'à 5 cartes contre 5, historique.
+**Boosters et collection**
+- 🎁 **Boosters** : paquet gratuit chaque jour, mixte, console (au choix), premium (rare garantie), mystère (3, 5 ou 8 cartes). Une épique ou mieux est garantie au plus tard au 30e paquet.
+- 📦 **Lot de 5 paquets mixtes** (500 pièces), **gratuit chaque samedi**.
+- ✨ **Ouverture animée** : fais tourner le booster au doigt comme une carte, déchire-le le long du pointillé, suspense selon la rareté, effets pour les épiques et légendaires.
+- 📚 **Ma collection** : tableau de bord (progression, raretés, doublons, brillantes, dernières cartes) et consoles en **posters rétro** ; un album par console avec récompenses à 25, 50, 75 et 100 %.
+- 🔍 **Filtres, tri et recherche** : possédées, manquantes, doublons, finition, rareté, genre ; recherche dans toutes ses cartes.
+- ♻️ **Recyclage et fabrication** : les doublons rapportent des pièces pour fabriquer la carte qui te manque.
 - ⚗️ **Fusion** : 5 normales → 1 brillante, 3 brillantes → 1 dorée.
-- 🏠 **Voisinage** : une maison par joueur (12 au choix), profils, paquets à offrir (3 par jour).
-- 💬 **Messages** entre joueurs, mentions @pseudo.
-- 🔔 **Notifications Android** : cadeau reçu, carte vendue, échange proposé, paquet gratuit…
-- 🎨 **Thèmes**, avatars pixel art, musiques chiptune, filtres et tri des albums.
-- 🏆 **Profils publics** : vitrine de tes plus belles cartes, collection visible, classement.
+
+**Entre joueurs**
+- 📈 **Bourse** : marché groupé par carte (prix le plus bas, tri), ventes, échanges jusqu'à 5 cartes contre 5, historique. Chaque fiche de carte propose Acheter / Vendre / Échanger.
+- 🏠 **Voisinage** : une parcelle et une **maison** par joueur (12 au choix, certaines débloquées par la collection), classement, profils et albums des voisins.
+- 🎀 **Cadeaux** : offre jusqu'à 3 paquets par jour ; les paquets reçus s'ouvrent depuis « Cadeaux reçus » avec la liste des donateurs.
+- 💬 **Messages** : chat entre joueurs, mentions @pseudo, filtre et signalement.
+- 🏆 **Profils publics** : vitrine de tes plus belles cartes, statistiques, collection visible.
+
+**Bonus et confort**
+- 🎡 **Bonus** : roue de la fortune quotidienne et quiz rétro (devine le jeu d'après sa capture).
 - 📅 **Missions du jour** et bonus de connexion.
+- 🔔 **Notifications Android**, même appli fermée : cadeau reçu, carte vendue, échange proposé, mention, paquet gratuit.
+- 🎨 **Personnalisation** : 5 thèmes d'interface, 18 avatars pixel art, 8 musiques chiptune.
+- ☰ **Menu latéral** accessible depuis n'importe quel écran (glisser depuis le bord gauche).
 - 🔐 **Compte** : pseudo + mot de passe ou code de sauvegarde pour retrouver ton profil sur un autre téléphone.
 - 🌍 **Français / English** : automatique selon le téléphone, ou au choix dans les réglages.
-- 🔔 **Mises à jour** : l'appli prévient quand une nouvelle version est disponible et l'installe.
+- ⬆️ **Mises à jour** : l'appli prévient quand une nouvelle version est disponible et l'installe ; écran « Nouveautés » à chaque version.
 
 ## 📲 Installation
 
@@ -73,7 +87,7 @@ Batocera (scrapes)  ──►  retro_collec_export.py  ──►  GitHub Pages (
 Appli Flutter (ce dépôt)  ◄─────────────────────────────────────┘
         │
         └──►  Supabase (tables rc_*, fonctions SQL signées) : joueurs, collection,
-              tirages, marché, échanges, classement
+              tirages, bourse, cadeaux, messages, classement
 ```
 
 - **Appli** : Flutter (Android), police Press Start 2P, musique et effets sonores natifs.
@@ -110,9 +124,11 @@ flutter build apk --release        # APK dans build/app/outputs/flutter-apk/
 ### Publier une nouvelle version
 
 1. Changer `kRetroCollecVersion` dans `lib/update_check.dart` **et** `version:` dans `pubspec.yaml`.
-2. `flutter build apk --release`
-3. Renommer l'APK en `retro.collec.V<version>.apk` (ex. `retro.collec.V1.0.1.apk`).
-4. Créer une release GitHub `v<version>` sur ce dépôt et y joindre l'APK.
+2. Mettre à jour la liste `_kNews` dans `lib/whats_new.dart` (écran Nouveautés) et le `CHANGELOG.md`.
+3. Si besoin, lancer le patch SQL de la version dans Supabase (ex. `patch_v103.sql`).
+4. `flutter build apk --release`
+5. Renommer l'APK en `retro.collec.V<version>.apk` (ex. `retro.collec.V1.0.3.apk`).
+6. Créer une release GitHub `v<version>` sur ce dépôt et y joindre l'APK.
 
 Les joueurs sont prévenus au lancement suivant. Toujours signer avec la même clé (même PC), sinon la mise à jour ne s'installe pas par-dessus.
 
