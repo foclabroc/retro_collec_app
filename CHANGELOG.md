@@ -5,6 +5,10 @@
 - **10 nouveaux thèmes animés** (Réglages > Thème) : Synthwave, Galaxie, Pixel ciel, Salle d'arcade, Terminal,
   Océan, Donjon, Blocs, Aurore et Circuit — des fonds bien visibles, avec un aperçu animé dans le choix du thème,
   et un choix « Aléatoire » qui change de thème à chaque lancement.
+- **Fiche d'une carte** : flèches ‹ › (ou glisser l'écran, ou flèches du clavier) pour passer à la carte
+  possédée précédente / suivante, dans l'ordre de l'album ou de la liste d'où on vient (filtres et tri compris).
+- **Ouverture des paquets** : le paquet s'ouvre aussi de dos. Ouvert de dos, les cartes sortent de dos
+  (on les retourne une à une) ; ouvert de face, elles sortent déjà de face.
 - Bonus : la roue de la fortune passe dans une case, comme Gamedle et le quiz (elle s'ouvre en plein écran).
 - Version web plus rapide à lancer : le catalogue se télécharge pendant le chargement et reste en cache.
 - Correction : « Cadeau suivant » ouvre bien le cadeau suivant (on retombait sur la liste vide des cadeaux).

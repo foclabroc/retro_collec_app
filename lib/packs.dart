@@ -561,6 +561,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   double pw = _kPackW, ph = _kPackH; // taille du paquet à l'écran
   double get pcap => ph * _kCapFrac;
   bool _tearing = false, _keepX = true;
+  bool faceUp = false; // paquet ouvert de face : les cartes sortent de face (déjà retournées)
   late final AnimationController spinCtl = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))
     ..addListener(() {
       final v = Curves.easeOutCubic.transform(spinCtl.value);
@@ -650,7 +651,10 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     spinCtl.stop();
     _tearing = d.localPosition.dy < ph * 0.22;
     if (_tearing) {
-      _spinTo((rotY / (2 * pi)).roundToDouble() * 2 * pi, keepX: false); // remis de face pour déchirer
+      // remis bien droit, du côté (recto / verso) le plus proche, pour déchirer
+      final target = (rotY / pi).roundToDouble() * pi;
+      faceUp = cos(target) > 0;
+      _spinTo(target, keepX: false);
       _dragStart(d);
     }
   }
@@ -724,6 +728,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     RcAudio.sfx('break');
     HapticFeedback.mediumImpact();
     tearCtl.forward(from: 0);
+    if (faceUp) flipCtl.value = 1; // les cartes arrivent déjà de face
     await Future.delayed(const Duration(milliseconds: 420));
     if (!mounted) return;
     setState(() => phase = _Phase.reveal);
@@ -743,6 +748,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       banner = false;
       fingerTilt = null;
     });
+    if (faceUp) _reveal(instant: true); // déjà de face : effets de rareté tout de suite
   }
 
   Future<void> _tap() async {
@@ -754,19 +760,27 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     }
   }
 
-  Future<void> _reveal() async {
+  Future<void> _reveal({bool instant = false}) async {
     busy = true;
     final p = pulled[idx];
     if (p.r >= 3) setState(() => dim = p.r == 4 ? 0.82 : 0.55);
-    if (p.r == 4) {
-      RcAudio.sfx('alarm');
-      HapticFeedback.heavyImpact();
-      await liftCtl.forward(from: 0);
+    if (instant) {
+      flipCtl.value = 1;
+      if (p.r == 4) {
+        RcAudio.sfx('alarm');
+        HapticFeedback.heavyImpact();
+      }
+    } else {
+      if (p.r == 4) {
+        RcAudio.sfx('alarm');
+        HapticFeedback.heavyImpact();
+        await liftCtl.forward(from: 0);
+      }
+      final ms = const [420, 480, 620, 950, 1500][p.r];
+      flipCtl.duration = Duration(milliseconds: ms);
+      RcAudio.sfx('jump');
+      await flipCtl.forward(from: 0);
     }
-    final ms = const [420, 480, 620, 950, 1500][p.r];
-    flipCtl.duration = Duration(milliseconds: ms);
-    RcAudio.sfx('jump');
-    await flipCtl.forward(from: 0);
     if (!mounted) return;
     final c = _center;
     final colors = [kRarityColor[p.r], kRarityLight[p.r], Colors.white];
@@ -804,7 +818,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     });
     await outCtl.forward(from: 0);
     if (!mounted) return;
-    flipCtl.value = 0;
+    flipCtl.value = faceUp ? 1 : 0;
     liftCtl.value = 0;
     outCtl.value = 0;
     dragDx = 0;
@@ -951,8 +965,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   String _hint() {
     switch (phase) {
       case _Phase.pack:
-        return t('Fais tourner le paquet avec ton doigt · glisse le long du pointillé en haut pour l\'ouvrir',
-            'Spin the pack with your finger · swipe along the dotted line at the top to open it');
+        return t('Fais tourner le paquet avec ton doigt · glisse le long du pointillé en haut pour l\'ouvrir\nOuvert de face, les cartes sortent de face · ouvert de dos, elles sortent de dos',
+            'Spin the pack with your finger · swipe along the dotted line at the top to open it\nOpened face up, the cards come out face up · opened from the back, face down');
       case _Phase.reveal:
         if (pulled.isEmpty) return '';
         if (flipped) return t('Bouge le doigt sur la carte pour la faire briller · touche ou glisse à droite pour continuer', 'Move your finger over the card to make it shine · tap or swipe right to continue');
@@ -1024,12 +1038,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                   child: const CardSparkle(color: Color(0xFFFFF3C4), stars: 7, seed: 7, sweep: false),
                 ),
               );
-              final Widget backFace = SizedBox(
-                width: w,
-                height: h,
-                child: Stack(children: [shiny('assets/booster_back.webp'), Positioned.fill(child: twinkle)]),
-              );
-              final Widget frontFace = SizedBox(
+              // une face du paquet, déchirable (recto ou verso)
+              Widget tearable(String asset) => SizedBox(
                       width: w,
                       height: h,
                       child: Stack(clipBehavior: Clip.none, children: [
@@ -1050,7 +1060,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                                   maxWidth: w,
                                   minHeight: h,
                                   maxHeight: h,
-                                  child: Stack(children: [shiny('assets/booster_front.webp'), Positioned.fill(child: twinkle)]),
+                                  child: Stack(children: [shiny(asset), Positioned.fill(child: twinkle)]),
                                 ),
                               ),
                             ),
@@ -1097,7 +1107,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                                     maxWidth: w,
                                     minHeight: h,
                                     maxHeight: h,
-                                    child: img('assets/booster_front.webp'),
+                                    child: img(asset),
                                   ),
                                 ),
                               ),
@@ -1106,6 +1116,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                         ),
                       ]),
                     );
+              final Widget frontFace = tearable('assets/booster_front.webp');
+              final Widget backFace = tearable('assets/booster_back.webp');
               // ── Paquet : recto ou verso selon la rotation (sans épaisseur) ──
               final base = Matrix4.identity()
                 ..setEntry(3, 2, 0.0012)
@@ -1113,7 +1125,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                 ..rotateY(rotY);
               Widget faceAt(Matrix4 local, Widget child) =>
                   Transform(alignment: Alignment.center, transform: base.clone()..multiply(local), child: child);
-              final showBack = !torn && cos(rotY) < 0;
+              final showBack = cos(rotY) < 0;
               final faces = <Widget>[
                 if (showBack)
                   faceAt(Matrix4.rotationY(pi), backFace)
@@ -1218,7 +1230,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                   child: Opacity(opacity: d.clamp(0, 1).toDouble(), child: child),
                 );
               },
-              child: const SizedBox(width: cw, child: CardBack()),
+              child: SizedBox(width: cw, child: faceUp ? CardView(card: pulled[idx + k].card, finish: pulled[idx + k].f) : const CardBack()),
             ),
           if (remaining > 0) _topCard(cw),
           Positioned(
