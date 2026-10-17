@@ -293,8 +293,10 @@ class Game extends ChangeNotifier {
   }
 
   /// Paquet cadeau : pas de choix, un booster de couleur au hasard.
-  Future<Map<String, dynamic>> autoPickGift(Map<String, dynamic> r) async =>
-      r['choose'] != null && r['cards'] == null && r['kind'] == 'gift' ? pickPack(Random().nextInt(6)) : r;
+  Future<Map<String, dynamic>> autoPickGift(Map<String, dynamic> r) async {
+    if (r['choose'] != null && r['cards'] == null && r['kind'] == 'gift') return pickPack(Random().nextInt(6));
+    return r;
+  }
 
   /// Booster choisi (0 à 5) : ses cartes arrivent dans la collection.
   Future<Map<String, dynamic>> pickPack(int choice) async {
