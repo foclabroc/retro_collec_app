@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'audio.dart';
 import 'cards.dart';
@@ -141,14 +142,76 @@ Future<void> recycleAllDupes(BuildContext context) async {
   }
 }
 
-void openCardDetail(BuildContext context, RcCard c, {Map<String, List<int>>? otherOwned, String? otherName}) {
+/// [list] : cartes affichées autour (grille de l'album, toutes mes cartes…) ;
+/// si fourni, la fiche permet de passer à la carte possédée précédente / suivante.
+void openCardDetail(BuildContext context, RcCard c, {Map<String, List<int>>? otherOwned, String? otherName, List<RcCard>? list}) {
   final split = context.getInheritedWidgetOfExactType<_SplitScope>();
   final st = split?.state;
   if (st != null && otherOwned == null) {
-    st.select(c); // mode large : la fiche s'affiche à droite, sans changer d'écran
+    st.select(c, list); // mode large : la fiche s'affiche à droite, sans changer d'écran
     return;
   }
-  Navigator.of(context).push(MaterialPageRoute(builder: (_) => CardDetailPage(card: c, otherOwned: otherOwned, otherName: otherName)));
+  Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => otherOwned == null && list != null
+          ? CardBrowser(list: list, card: c)
+          : CardDetailPage(card: c, otherOwned: otherOwned, otherName: otherName)));
+}
+
+/// Navigation entre cartes possédées depuis la fiche (flèches, glisser, clavier).
+class CardNav {
+  final VoidCallback? prev, next;
+  final int pos, count; // position parmi les cartes possédées de la liste (0 = carte non possédée)
+  const CardNav({this.prev, this.next, required this.pos, required this.count});
+}
+
+/// Fiche d'une carte avec passage à la carte possédée précédente / suivante de [list].
+class CardBrowser extends StatefulWidget {
+  final List<RcCard> list;
+  final RcCard card;
+  final bool embedded;
+  const CardBrowser({super.key, required this.list, required this.card, this.embedded = false});
+  @override
+  State<CardBrowser> createState() => _CardBrowserState();
+}
+
+class _CardBrowserState extends State<CardBrowser> {
+  late RcCard cur = widget.card;
+
+  RcCard? _step(int d) {
+    final l = widget.list;
+    var i = l.indexWhere((x) => x.id == cur.id);
+    if (i < 0) return null;
+    for (i += d; i >= 0 && i < l.length; i += d) {
+      if (Game.i.has(l[i].id)) return l[i];
+    }
+    return null;
+  }
+
+  void _go(int d) {
+    final n = _step(d);
+    if (n == null) return;
+    setState(() => cur = n);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Game.i,
+      builder: (context, _) {
+        final owned = [for (final c in widget.list) if (Game.i.has(c.id)) c.id];
+        final nav = CardNav(
+          prev: _step(-1) == null ? null : () => _go(-1),
+          next: _step(1) == null ? null : () => _go(1),
+          pos: owned.indexOf(cur.id) + 1,
+          count: owned.length,
+        );
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          child: CardDetailPage(key: ValueKey(cur.id), card: cur, embedded: widget.embedded, nav: nav),
+        );
+      },
+    );
+  }
 }
 
 // ─── Mode large : liste à gauche, fiche de la carte choisie à droite ───────
@@ -161,8 +224,12 @@ class SplitCardDetail extends StatefulWidget {
 
 class _SplitCardDetailState extends State<SplitCardDetail> {
   RcCard? selected;
+  List<RcCard>? list;
 
-  void select(RcCard c) => setState(() => selected = c);
+  void select(RcCard c, [List<RcCard>? l]) => setState(() {
+        selected = c;
+        list = l;
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +258,9 @@ class _SplitCardDetailState extends State<SplitCardDetail> {
                       ]),
                     ),
                   )
-                : CardDetailPage(key: ValueKey(sel.id), card: sel, embedded: true),
+                : list != null
+                    ? CardBrowser(key: ValueKey(sel.id), list: list!, card: sel, embedded: true)
+                    : CardDetailPage(key: ValueKey(sel.id), card: sel, embedded: true),
           ),
       ]),
     );
@@ -211,7 +280,8 @@ class CardDetailPage extends StatefulWidget {
   final Map<String, List<int>>? otherOwned; // collection d'un autre joueur (lecture seule)
   final String? otherName;
   final bool embedded; // mode large : affichée à droite de l'album (pas de bouton retour)
-  const CardDetailPage({super.key, required this.card, this.otherOwned, this.otherName, this.embedded = false});
+  final CardNav? nav; // passage à la carte possédée précédente / suivante
+  const CardDetailPage({super.key, required this.card, this.otherOwned, this.otherName, this.embedded = false, this.nav});
   @override
   State<CardDetailPage> createState() => _CardDetailPageState();
 }
@@ -219,6 +289,26 @@ class CardDetailPage extends StatefulWidget {
 class _CardDetailPageState extends State<CardDetailPage> {
   int finish = 0;
   bool busy = false;
+  final _cardKey = GlobalKey();
+  Offset? _down;
+  Duration _downT = Duration.zero;
+
+  // glisser l'écran (hors de la carte, qui garde son geste de rotation) = carte suivante / précédente
+  bool _onCard(Offset p) {
+    final b = _cardKey.currentContext?.findRenderObject() as RenderBox?;
+    if (b == null || !b.hasSize) return false;
+    return (b.localToGlobal(Offset.zero) & b.size).contains(p);
+  }
+
+  void _swipeEnd(PointerUpEvent e) {
+    final d = _down, nav = widget.nav;
+    _down = null;
+    if (d == null || nav == null) return;
+    final dx = e.position.dx - d.dx, dy = e.position.dy - d.dy;
+    final ms = (e.timeStamp - _downT).inMilliseconds;
+    if (dx.abs() < 60 || dx.abs() < dy.abs() * 1.5 || ms > 700) return;
+    (dx < 0 ? nav.next : nav.prev)?.call();
+  }
 
   List<int> get q => widget.otherOwned != null ? (widget.otherOwned![widget.card.id] ?? const [0, 0, 0]) : (Game.i.owned[widget.card.id] ?? const [0, 0, 0]);
 
@@ -242,7 +332,19 @@ class _CardDetailPageState extends State<CardDetailPage> {
           final owned = total > 0;
           final myTotal = Game.i.qty(c.id);
           final shot = owned || myTotal > 0 ? Catalog.shot(c) : null;
-          return Scaffold(
+          final nav = widget.nav;
+          final cardW = SizedBox(key: _cardKey, width: 240, child: SpinCard(key: ValueKey('$finish'), card: c, finish: owned ? finish : 0, owned: owned));
+          Widget arrow(IconData i, VoidCallback? f, String tip) => IconButton(
+                tooltip: tip,
+                iconSize: 38,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 38, minHeight: 64),
+                color: kGold,
+                disabledColor: Colors.white12,
+                icon: Icon(i),
+                onPressed: f,
+              );
+          final page = Scaffold(
             backgroundColor: widget.embedded ? Colors.transparent : null,
             appBar: AppBar(
               toolbarHeight: 66,
@@ -253,11 +355,36 @@ class _CardDetailPageState extends State<CardDetailPage> {
                   maxLines: 2, overflow: TextOverflow.ellipsis, style: pixelStyle(size: 11, color: Colors.white, shadow: false)),
               actions: [if (!readOnly) Padding(padding: const EdgeInsets.only(right: 12), child: Center(child: CoinChip(Game.i.coins)))],
             ),
-            body: ListView(padding: const EdgeInsets.all(16), children: [
-              Center(child: SizedBox(width: 240, child: SpinCard(key: ValueKey('$finish'), card: c, finish: owned ? finish : 0, owned: owned))),
+            body: Listener(
+             onPointerDown: (e) {
+               _down = _onCard(e.position) ? null : e.position;
+               _downT = e.timeStamp;
+             },
+             onPointerUp: _swipeEnd,
+             onPointerCancel: (_) => _down = null,
+             child: ListView(padding: const EdgeInsets.all(16), children: [
+              if (nav == null)
+                Center(child: cardW)
+              else
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  arrow(Icons.chevron_left, nav.prev, t('Carte précédente', 'Previous card')),
+                  Flexible(child: cardW),
+                  arrow(Icons.chevron_right, nav.next, t('Carte suivante', 'Next card')),
+                ]),
               const SizedBox(height: 6),
               Text(t('Fais tourner la carte avec ton doigt · double-tap pour la remettre de face', 'Spin the card with your finger · double-tap to reset'),
                   textAlign: TextAlign.center, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+              if (nav != null && nav.count > 1)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    nav.pos > 0
+                        ? t('${nav.pos} / ${nav.count} · glisse l\'écran pour changer de carte', '${nav.pos} / ${nav.count} · swipe the screen to change card')
+                        : t('${nav.count} cartes possédées · glisse l\'écran pour les parcourir', '${nav.count} owned cards · swipe the screen to browse them'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: kGold, fontSize: 11, fontWeight: FontWeight.w700),
+                  ),
+                ),
               if (owned) ...[
                 const SizedBox(height: 12),
                 Wrap(alignment: WrapAlignment.center, spacing: 8, children: [
@@ -308,7 +435,17 @@ class _CardDetailPageState extends State<CardDetailPage> {
                   ),
                 ),
               if (!readOnly) ...[const SizedBox(height: 20), ..._actions(context, c, x, total)],
-            ]),
+             ]),
+            ),
+          );
+          if (nav == null) return page;
+          // clavier (web / PC) : flèches gauche / droite
+          return CallbackShortcuts(
+            bindings: {
+              if (nav.prev != null) const SingleActivator(LogicalKeyboardKey.arrowLeft): nav.prev!,
+              if (nav.next != null) const SingleActivator(LogicalKeyboardKey.arrowRight): nav.next!,
+            },
+            child: Focus(autofocus: true, child: page),
           );
         },
       ),

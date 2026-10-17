@@ -253,7 +253,7 @@ class CardGrid extends StatelessWidget {
         final best = q == null ? 0 : (q[2] > 0 ? 2 : q[1] > 0 ? 1 : 0);
         final n = g.qty(c.id);
         return GestureDetector(
-          onTap: () => openCardDetail(context, c),
+          onTap: () => openCardDetail(context, c, list: cards),
           child: Stack(clipBehavior: Clip.none, children: [
             Positioned.fill(child: Align(alignment: Alignment.topCenter, child: CardView(card: c, finish: best, owned: n > 0))),
             if (n > 1)

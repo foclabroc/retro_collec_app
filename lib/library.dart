@@ -204,7 +204,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               itemBuilder: (_, i) {
                 final (c, f) = recent[i];
                 return GestureDetector(
-                  onTap: () => openCardDetail(context, c),
+                  onTap: () => openCardDetail(context, c, list: [for (final (rc, _) in recent) rc]),
                   child: SizedBox(width: 60, child: CardView(card: c, finish: f, owned: g.has(c.id))),
                 );
               },
