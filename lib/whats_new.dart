@@ -12,14 +12,15 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('🏢', 'Voisinage en immeuble : chaque joueur a son étage, le n°1 au penthouse',
-      'Neighbors become a building: every player has a floor, #1 gets the penthouse'),
-  ('🎨', 'Thème de ton étage : 16 styles à débloquer avec tes cartes', 'Your floor theme: 16 styles to unlock with your cards'),
-  ('🟨', 'Pixels : 1 par booster ouvert, à échanger contre des boosters spéciaux',
-      'Pixels: 1 per booster opened, to trade for special boosters'),
-  ('⭐', 'Boosters Étoile, Console+ et Rétro d\'or avec cartes garanties', 'Star, Console+ and Retro Gold boosters with guaranteed cards'),
-  ('✦', 'Fusions toujours visibles dans la fiche d\'une carte', 'Fusions always visible on the card page'),
-  ('📊', 'Collection : touche une rareté pour voir tes cartes', 'Collection: tap a rarity to see your cards'),
+  ('🚢', 'Console Wars : bataille navale à 2 avec une flotte de consoles, en direct ou tour par tour',
+      'Console Wars: 2-player battleship with a fleet of consoles, live or turn-based'),
+  ('🔴', '4 en ligne : défie un joueur, 50 pièces chacun, le gagnant rafle 100 + 1 pixel',
+      'Connect 4: challenge a player, 50 coins each, the winner takes 100 + 1 pixel'),
+  ('🎉', 'Événements : cadeaux, pixels ×2, défis à paliers… et des surprises à venir',
+      'Events: gifts, double pixels, step challenges… and surprises to come'),
+  ('🃏', 'Nouvel écran titre, musique dès l\'accueil et bouton son', 'New title screen, music from the start and a sound button'),
+  ('💱', 'Bourse : onglets en carrés de couleur', 'Exchange: colored square tabs'),
+  ('🔊', 'Version web : les bruitages marchent enfin', 'Web version: sound effects finally work'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';

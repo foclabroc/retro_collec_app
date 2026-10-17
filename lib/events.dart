@@ -270,6 +270,7 @@ class _EventsPageState extends State<EventsPage> {
     final label = switch (e['goal']) {
       'packs' => t('Boosters ouverts', 'Boosters opened'),
       'c4_wins' => t('Parties de 4 en ligne gagnées', 'Connect 4 games won'),
+      'bs_wins' => t('Parties de Console Wars gagnées', 'Console Wars games won'),
       'gamedle' => t('Gamedle trouvés', 'Gamedles solved'),
       _ => t('Progression', 'Progress'),
     };

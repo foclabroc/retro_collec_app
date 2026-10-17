@@ -72,6 +72,8 @@ class BonusScreen extends StatelessWidget {
           QuizTile(),
           SizedBox(height: 12),
           Connect4Tile(),
+          SizedBox(height: 12),
+          BattleTile(),
         ]),
       ),
     ]);

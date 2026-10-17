@@ -261,6 +261,60 @@ class RcServer {
   static Future<Map<String, dynamic>> c4Resign(int id) async {
     final d = await deviceId();
     return _map(await _rpc('rc_c4_resign', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|c4resign|$id')}));
+  // ── Console Wars, bataille navale (rc_bs_*) ────────────────────────────
+  static Future<List<Map<String, dynamic>>> bsOnline() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_bs_online', {'p_device': d}));
+  }
+
+  static Future<List<Map<String, dynamic>>> bsList() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_bs_list', {'p_device': d}));
+  }
+
+  static Future<Map<String, dynamic>> bsState(int id) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_bs_state', {'p_device': d, 'p_id': id}));
+  }
+
+  static Future<Map<String, dynamic>> bsInvite(String pid, String mode) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_bs_invite', {'p_device': d, 'p_pid': pid, 'p_mode': mode, 'p_sig': _sig('$d|bsinv|$pid|$mode')}));
+  }
+
+  static Future<Map<String, dynamic>> bsAnswer(int id, bool accept) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_bs_answer', {'p_device': d, 'p_id': id, 'p_accept': accept, 'p_sig': _sig('$d|bsans|$id|${accept ? 1 : 0}')}));
+  }
+
+  /// Flotte : [{k, r, c, h}] (neo 5, ps 4, md 3, nes 3, gb 2 cases)
+  static Future<Map<String, dynamic>> bsPlace(int id, List<Map<String, dynamic>> fleet) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_bs_place', {'p_device': d, 'p_id': id, 'p_fleet': fleet, 'p_sig': _sig('$d|bsplace|$id')}));
+  }
+
+  static Future<Map<String, dynamic>> bsShoot(int id, int cell) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_bs_shoot', {'p_device': d, 'p_id': id, 'p_cell': cell, 'p_sig': _sig('$d|bsshoot|$id|$cell')}));
+  }
+
+  static Future<Map<String, dynamic>> bsResign(int id) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_bs_resign', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|bsresign|$id')}));
+  }
+
+  static Future<void> bsEmote(int id, String emo) async {
+    final d = await deviceId();
+    await _rpc('rc_bs_emote', {'p_device': d, 'p_id': id, 'p_emo': emo, 'p_sig': _sig('$d|bsemo|$id|$emo')});
+  }
+
+  static Future<Map<String, dynamic>> bsStats() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_bs_stats', {'p_device': d}));
+  }
+
+  static Future<List<Map<String, dynamic>>> bsTop() async => _list(await _rpc('rc_bs_top', {}));
+
   // ── Événements (table rc_events, gérée dans Supabase) ──────────────────
   static Future<List<Map<String, dynamic>>> events() async {
     final d = await deviceId();

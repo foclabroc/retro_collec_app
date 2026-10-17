@@ -11,6 +11,8 @@ import 'main.dart';
 import 'retro_theme.dart';
 import 'server.dart';
 
+part 'battleship.dart';
+
 // ═══════════════════════════════════════════════════════════════════════════
 // 4 en ligne à 2 joueurs (onglet « Bonus / Jeux ») : 50 pièces chacun, le
 // gagnant prend 100 + 1 pixel. « En direct » : 1 min par coup, contre un joueur
@@ -184,14 +186,54 @@ class _Connect4TileState extends State<Connect4Tile> {
   }
 }
 
-// ─── Salon ─────────────────────────────────────────────────────────────────
+// ─── Salon (commun au 4 en ligne et à Console Wars) ─────────────────────────
+/// Ce qui change d'un jeu à l'autre dans le salon
+class DuelKind {
+  final String title, liveSub, turnSub;
+  final Future<List<Map<String, dynamic>>> Function() list, online, top;
+  final Future<Map<String, dynamic>> Function() stats;
+  final Future<Map<String, dynamic>> Function(String pid, String mode) invite;
+  final Future<Map<String, dynamic>> Function(int id, bool accept) answer;
+  final Widget Function(Map g) thumb; // miniature d'une partie tour par tour
+  final Widget Function(Map<String, dynamic> g) page; // écran de jeu
+  const DuelKind({
+    required this.title,
+    required this.liveSub,
+    required this.turnSub,
+    required this.list,
+    required this.online,
+    required this.top,
+    required this.stats,
+    required this.invite,
+    required this.answer,
+    required this.thumb,
+    required this.page,
+  });
+}
+
+final kC4Duel = DuelKind(
+  title: '4 EN LIGNE',
+  liveSub: '1 min par coup',
+  turnSub: '24 h par coup',
+  list: RcServer.c4List,
+  online: RcServer.c4Online,
+  top: RcServer.c4Top,
+  stats: RcServer.c4Stats,
+  invite: RcServer.c4Invite,
+  answer: RcServer.c4Answer,
+  thumb: (g) => _Thumb(g['board'] as String? ?? ''),
+  page: (g) => Connect4GamePage(initial: g),
+);
+
 class Connect4Lobby extends StatefulWidget {
-  const Connect4Lobby({super.key});
+  final DuelKind? kind;
+  const Connect4Lobby({super.key, this.kind});
   @override
   State<Connect4Lobby> createState() => _Connect4LobbyState();
 }
 
 class _Connect4LobbyState extends State<Connect4Lobby> {
+  DuelKind get k => widget.kind ?? kC4Duel;
   List<Map<String, dynamic>> games = [], online = [], top = [];
   Map<String, dynamic> stats = {};
   bool loaded = false, busy = false, inGame = false;
@@ -219,9 +261,9 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
 
   Future<void> _load({bool full = false}) async {
     try {
-      final r = await Future.wait([RcServer.c4List(), RcServer.c4Online()]);
+      final r = await Future.wait([k.list(), k.online()]);
       if (full || !loaded) {
-        final s = await Future.wait([RcServer.c4Stats().then((v) => [v]), RcServer.c4Top()]);
+        final s = await Future.wait([k.stats().then((v) => [v]), k.top()]);
         stats = (s[0] as List).first as Map<String, dynamic>;
         top = s[1] as List<Map<String, dynamic>>;
       }
@@ -261,7 +303,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
   Future<void> _openGame(Map<String, dynamic> g) async {
     _opened.add(_i(g['id']));
     inGame = true;
-    final again = await Navigator.of(context).push<Map<String, dynamic>>(MaterialPageRoute(builder: (_) => Connect4GamePage(initial: g)));
+    final again = await Navigator.of(context).push<Map<String, dynamic>>(MaterialPageRoute(builder: (_) => k.page(g)));
     inGame = false;
     Game.i.sync();
     await _load(full: true);
@@ -296,7 +338,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
     if (busy) return;
     setState(() => busy = true);
     try {
-      final g = await RcServer.c4Invite(pid, mode);
+      final g = await k.invite(pid, mode);
       RcAudio.sfx('continue');
       if (mode == 'live') {
         _waitId = _i(g['id']);
@@ -311,7 +353,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
           final id = _waitId!;
           _waitId = null;
           try {
-            await RcServer.c4Answer(id, false);
+            await k.answer(id, false);
             toast(t('Défi annulé', 'Challenge cancelled'));
           } catch (_) {}
         }
@@ -499,9 +541,9 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(13)),
       child: Row(children: [
-        tabBtn(0, t('En direct', 'Live'), t('1 min par coup', '1 min per move'), liveCount, _kTeal),
+        tabBtn(0, t('En direct', 'Live'), t(k.liveSub, k.liveSub), liveCount, _kTeal),
         const SizedBox(width: 4),
-        tabBtn(1, t('Tour par tour', 'Turn-based'), t('24 h par coup', '24 h per move'), turnCount, _kRed),
+        tabBtn(1, t('Tour par tour', 'Turn-based'), t(k.turnSub, k.turnSub), turnCount, _kRed),
       ]),
     );
   }
@@ -535,9 +577,9 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
             lines: [Text('${g['mode'] == 'live' ? t('En direct', 'Live') : t('Tour par tour', 'Turn-based')} · ${_i(g['stake'], kC4Stake)} ${t('pièces', 'coins')}')],
             btns: [
               _Countdown(total: g['mode'] == 'live' ? 120 : 86400, left: _leftOf(g), label: _left(g)),
-              _btn(t('Jouer', 'Play'), () => _run(() => RcServer.c4Answer(_i(g['id']), true), open: true)),
+              _btn(t('Jouer', 'Play'), () => _run(() => k.answer(_i(g['id']), true), open: true)),
               IconButton(
-                onPressed: busy ? null : () => _run(() => RcServer.c4Answer(_i(g['id']), false), ok: t('Défi refusé', 'Challenge declined')),
+                onPressed: busy ? null : () => _run(() => k.answer(_i(g['id']), false), ok: t('Défi refusé', 'Challenge declined')),
                 icon: const Icon(Icons.close, color: Color(0xFFFFC4CF)),
                 style: IconButton.styleFrom(backgroundColor: const Color(0xFF4A1D2A)),
                 visualDensity: VisualDensity.compact,
@@ -602,7 +644,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
             lead: _avatar(_av(g)),
             title: Text(_name(g)),
             lines: [Text(t('Attend sa réponse · ${_left(g)}', 'Waiting for an answer · ${_left(g)}'))],
-            btns: [_btn(t('Annuler', 'Cancel'), () => _run(() => RcServer.c4Answer(_i(g['id']), false), ok: t('Défi annulé', 'Challenge cancelled')), ghost: true)],
+            btns: [_btn(t('Annuler', 'Cancel'), () => _run(() => k.answer(_i(g['id']), false), ok: t('Défi annulé', 'Challenge cancelled')), ghost: true)],
           ),
       ]);
     } else {
@@ -611,7 +653,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
         if (myTurn.isEmpty) _empty(t('Aucune partie où c\'est ton tour', 'No game waiting for you')),
         for (final g in myTurn)
           _card(
-            lead: _Thumb(g['board'] as String? ?? ''),
+            lead: k.thumb(g),
             title: Text(_name(g)),
             lines: [
               Text(t('À toi de jouer · reste ${_left(g)}', 'Your turn · ${_left(g)} left'), style: const TextStyle(color: _kGoldHi, fontWeight: FontWeight.w800)),
@@ -624,7 +666,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
         _section(t('En attente', 'Waiting'), sub: t('leur tour', 'their turn')),
         for (final g in theirTurn)
           _card(
-            lead: _Thumb(g['board'] as String? ?? ''),
+            lead: k.thumb(g),
             title: Text(_name(g)),
             lines: [
               Text(t('Au tour de ${_name(g)} · reste ${_left(g)}', '${_name(g)}\'s turn · ${_left(g)} left')),
@@ -637,7 +679,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
             lead: _avatar(_av(g)),
             title: Text(_name(g)),
             lines: [Text(t('Invitation envoyée · expire dans ${_left(g)}', 'Invitation sent · expires in ${_left(g)}'))],
-            btns: [_btn(t('Annuler', 'Cancel'), () => _run(() => RcServer.c4Answer(_i(g['id']), false), ok: t('Invitation annulée', 'Invitation cancelled')), ghost: true)],
+            btns: [_btn(t('Annuler', 'Cancel'), () => _run(() => k.answer(_i(g['id']), false), ok: t('Invitation annulée', 'Invitation cancelled')), ghost: true)],
           ),
         if (theirTurn.isEmpty && turnOut.isEmpty) _empty(t('Aucune partie en attente', 'No game waiting')),
         Align(
@@ -692,7 +734,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
       max: 760,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(t('4 EN LIGNE', 'CONNECT 4'), style: pixelStyle(size: 13)),
+          title: Text(k.title, style: pixelStyle(size: 13)),
           actions: [ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
         ),
         body: !loaded

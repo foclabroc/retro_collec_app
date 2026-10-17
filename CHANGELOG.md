@@ -9,6 +9,12 @@
   attente du défi avec compte à rebours. En partie : chronos autour des avatars, pion qui vise la colonne,
   dernier coup entouré, **réactions** 👍😮😂🔥👏 vues par l'adversaire, sons (coupables), règles, et écran de fin
   avec trophée, pièces qui défilent et confettis.
+- **Console Wars** (Bonus / Jeux) : bataille navale à 2 avec une flotte de consoles (Neo Geo, PlayStation, Mega Drive,
+  NES, Game Boy) sur une grille 8 × 8. Même salon que le 4 en ligne (En direct : 2 min pour placer, 30 s par tir ;
+  Tour par tour : 24 h), 50 pièces chacun, le gagnant rafle 100 + 1 pixel. Placement en glissant les consoles,
+  toucher pour les tourner (côte à côte permis), ou au hasard. Radar avec balayage et viseur, touché = on rejoue,
+  explosions, flammes, gerbes d'eau, épaves des consoles coulées, réactions, sons et écran de fin.
+  La flotte adverse n'est jamais envoyée au téléphone avant d'être coulée.
 - **Écran titre revu** : trois cartes en éventail (halos épique et rare qui pulsent, carte dorée qui flotte),
   logo avec reflet, ciel étoilé et sol néon. Le panneau du joueur affiche aussi les pixels et les nouvelles
   (paquet gratuit prêt ou dans combien de temps, 4 en ligne à toi de jouer, cadeaux reçus).
