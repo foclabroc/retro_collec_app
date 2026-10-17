@@ -1,5 +1,9 @@
 # Pixel Trade — Changelog
 
+## v1.0.7
+- Voisinage : plaque des joueurs plus large (toutes les infos visibles) ; la fenêtre de gauche laisse la place au balcon.
+- Voisinage : titre lisible, raccourcis « Mon étage », « Mon thème » et « Profil » sous le titre.
+
 ## v1.0.6
 - **Pixels** : chaque booster ouvert rapporte 1 pixel, quel que soit le paquet (tout le monde part de zéro).
   Les pixels s'échangent contre des **boosters spéciaux** :
