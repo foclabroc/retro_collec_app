@@ -414,6 +414,8 @@ String errText(Object e) {
     return switch (e.message) {
       'pas assez de pièces' => t('Pas assez de pièces', 'Not enough coins'),
       'pas assez de pixels' => t('Pas assez de pixels', 'Not enough pixels'),
+      'déjà récupéré' => t('Récompense déjà récupérée', 'Reward already claimed'),
+      'événement terminé' => t('Cet événement est terminé', 'This event has ended'),
       'déjà proposé' => t('Tu as déjà proposé ce jeu', 'You already guessed this game'),
       'gamedle terminé' => t('Gamedle terminé : reviens demain !', 'Gamedle over: come back tomorrow!'),
       'pas assez d\'exemplaires' => t('Pas assez d\'exemplaires pour fusionner', 'Not enough copies to fuse'),

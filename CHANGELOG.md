@@ -1,6 +1,9 @@
 # Pixel Trade — Changelog
 
 ## v1.0.7
+- **Événements** (menu) : fêtes, défis et annonces mis en ligne directement depuis le serveur, sans mise à jour
+  de l'appli. Un événement peut offrir une récompense (pièces, pixels) et emmener vers un onglet ;
+  pastille sur le menu quand un nouvel événement arrive.
 - Voisinage : plaque des joueurs plus large (toutes les infos visibles) ; la fenêtre de gauche laisse la place au balcon.
 - Voisinage : titre lisible, raccourcis « Mon étage », « Mon thème » et « Profil » sous le titre.
 
