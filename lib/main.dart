@@ -728,7 +728,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(g.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                         const SizedBox(height: 4),
-                        CoinChip(g.coins),
+                        Row(mainAxisSize: MainAxisSize.min, children: [CoinChip(g.coins), const SizedBox(width: 6), PixelChip(g.pixels)]),
                       ]),
                     ),
                     const Icon(Icons.settings, color: Colors.white54, size: 20),
@@ -794,7 +794,15 @@ class TabHeader extends StatelessWidget {
           Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: pixelStyle(size: 15))),
           ...actions,
           const SizedBox(width: 6),
-          ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)),
+          // pixels (boosters spéciaux) et pièces
+          ListenableBuilder(
+            listenable: Game.i,
+            builder: (_, __) => Row(mainAxisSize: MainAxisSize.min, children: [
+              PixelChip(Game.i.pixels),
+              const SizedBox(width: 6),
+              CoinChip(Game.i.coins),
+            ]),
+          ),
           const SizedBox(width: 8),
         ]),
       );
