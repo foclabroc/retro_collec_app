@@ -430,8 +430,6 @@ class TowerFloor extends StatelessWidget {
                     ]),
                   ),
                 const SizedBox(width: 8),
-                if (!penthouse) Padding(padding: const EdgeInsets.only(bottom: 8), child: window(w: 24, hh: 58, small: true)),
-                if (!penthouse) const SizedBox(width: 4),
                 Padding(padding: const EdgeInsets.only(top: 6), child: main),
                 const SizedBox(width: 6),
                 Expanded(child: Padding(padding: const EdgeInsets.only(bottom: 8), child: plaque)),

@@ -150,15 +150,32 @@ class NeighborsScreenState extends State<NeighborsScreen> {
       listenable: Listenable.merge([Game.i, Notifs.i]),
       builder: (context, _) {
         return Column(children: [
-          TabHeader(t('Voisinage', 'Neighbors'), actions: [
-            IconButton(tooltip: t('Mon étage', 'My floor'), icon: const Icon(Icons.my_location), onPressed: goMe),
-            IconButton(tooltip: t('Thème de mon étage', 'My floor theme'), icon: const Icon(Icons.format_paint), onPressed: _editTheme),
-            IconButton(
-              tooltip: t('Mon profil', 'My profile'),
-              icon: const Icon(Icons.person),
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyProfilePage())),
-            ),
-          ]),
+          TabHeader(t('Voisinage', 'Neighbors')),
+          // raccourcis sous le titre (le titre garde toute sa taille)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+            child: Row(children: [
+              for (final (icon, label, onTap) in <(IconData, String, VoidCallback)>[
+                (Icons.my_location, t('Mon étage', 'My floor'), () => goMe()),
+                (Icons.format_paint, t('Mon thème', 'My theme'), () => _editTheme()),
+                (Icons.person, t('Profil', 'Profile'), () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyProfilePage()))),
+              ]) ...[
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: Colors.black.withOpacity(0.25),
+                    ),
+                    onPressed: onTap,
+                    icon: Icon(icon, size: 16),
+                    label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+                  ),
+                ),
+                if (icon != Icons.person) const SizedBox(width: 6),
+              ],
+            ]),
+          ),
           // cadeau du jour
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 0, 18, 6),
