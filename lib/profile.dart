@@ -277,17 +277,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   onPressed: () => Navigator.pop(ctx, k),
                                   child: Row(children: [
                                     Container(
-                                      width: 54,
-                                      height: 36,
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(8),
-                                        gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: kThemes[k].bgGrad),
                                         border: Border.all(color: rcThemeIndex.value == k ? kGold : kThemes[k].line, width: rcThemeIndex.value == k ? 2.5 : 1.5),
                                       ),
-                                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                        for (final c in kThemes[k].pixels.take(3))
-                                          Container(width: 6, height: 6, margin: const EdgeInsets.all(2), color: c),
-                                      ]),
+                                      child: ClipRRect(borderRadius: BorderRadius.circular(6), child: ThemePreview(k, width: 64, height: 44)),
                                     ),
                                     const SizedBox(width: 14),
                                     Expanded(

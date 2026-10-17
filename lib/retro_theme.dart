@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'game.dart';
+import 'theme_scenes.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Thème « consoles rétro » : fond bleu animé (pixels qui flottent, traînées
@@ -21,8 +22,15 @@ class RcThemeData {
   final Color streak; // traînées de vitesse
   final List<Color> sprites; // envahisseurs et fantôme
   final Color bg, panel, panel2, surface, line;
+  final int scene; // 0 : fond rétro classique, sinon une scène animée (theme_scenes.dart)
   const RcThemeData(this.fr, this.en,
-      {required this.bgGrad, required this.pixels, required this.streak, required this.sprites, required this.bg, required this.panel, required this.panel2, required this.surface, required this.line});
+      {required this.bgGrad, required this.pixels, required this.streak, required this.sprites, required this.bg, required this.panel, required this.panel2, required this.surface, required this.line, this.scene = 0});
+
+  /// Thème « scène » : seuls le fond et les couleurs des panneaux changent
+  const RcThemeData.anim(this.fr, this.en, this.scene,
+      {required this.bgGrad, required this.pixels, required this.bg, required this.panel, required this.panel2, required this.surface, required this.line})
+      : streak = const Color(0xFFFFFFFF),
+        sprites = const [];
   String get name => t(fr, en);
 }
 
@@ -57,6 +65,37 @@ const kThemes = <RcThemeData>[
       streak: Color(0xFFFFFFFF),
       sprites: [Color(0x26FF3B3B), Color(0x26FFD23B), Color(0x263BA0FF)],
       bg: Color(0xFF0A0A0A), panel: Color(0xD91A1A1A), panel2: Color(0xFF333333), surface: Color(0xFF151515), line: Color(0xFF555555)),
+  // ── Thèmes scènes : fonds animés bien visibles, panneaux plus transparents ──
+  RcThemeData.anim('Synthwave', 'Synthwave', RcScene.synth,
+      bgGrad: [Color(0xFF12002A), Color(0xFFFF5FA2), Color(0xFF07000F)], pixels: [Color(0xFFFF4FD8), Color(0xFFFFE66B), Color(0xFFFF3D8B)],
+      bg: Color(0xFF14002A), panel: Color(0xB81E0832), panel2: Color(0xFF4A1A6E), surface: Color(0xFF1E0832), line: Color(0xFFFF4FD8)),
+  RcThemeData.anim('Galaxie', 'Galaxy', RcScene.space,
+      bgGrad: [Color(0xFF3A1D6E), Color(0xFF0D1440), Color(0xFF03040F)], pixels: [Color(0xFFFFFFFF), Color(0xFFFFB86B), Color(0xFF3DD9FF)],
+      bg: Color(0xFF070A24), panel: Color(0xB3080C28), panel2: Color(0xFF26306B), surface: Color(0xFF0D1440), line: Color(0xFF7AA8FF)),
+  RcThemeData.anim('Pixel ciel', 'Pixel sky', RcScene.sky,
+      bgGrad: [Color(0xFF3A8CFF), Color(0xFF9FD8FF), Color(0xFF5FBF5F)], pixels: [Color(0xFFFFFFFF), Color(0xFF5FBF5F), Color(0xFFFFD23B)],
+      bg: Color(0xFF14285A), panel: Color(0xAD142A5A), panel2: Color(0xFF2A4A8A), surface: Color(0xFF14285A), line: Color(0xFFFFD23B)),
+  RcThemeData.anim('Salle d\'arcade', 'Arcade hall', RcScene.arcade,
+      bgGrad: [Color(0xFF050A2A), Color(0xFF0C1A5C), Color(0xFF050A2A)], pixels: [Color(0xFF3DD9FF), Color(0xFFFF8C1A), Color(0xFF7DFF3D)],
+      bg: Color(0xFF060C30), panel: Color(0xAD0A0E32), panel2: Color(0xFF1E2A6B), surface: Color(0xFF0A0E32), line: Color(0xFF3DD9FF)),
+  RcThemeData.anim('Terminal', 'Terminal', RcScene.terminal,
+      bgGrad: [Color(0xFF010D05), Color(0xFF033015), Color(0xFF010D05)], pixels: [Color(0xFF33FF66), Color(0xFFD8FFE0), Color(0xFF1A8A3A)],
+      bg: Color(0xFF021208), panel: Color(0xBF001408), panel2: Color(0xFF0E3A1C), surface: Color(0xFF021A0A), line: Color(0xFF33FF66)),
+  RcThemeData.anim('Océan', 'Ocean', RcScene.ocean,
+      bgGrad: [Color(0xFF1AA0D8), Color(0xFF0B4F8A), Color(0xFF041A3A)], pixels: [Color(0xFFFFB347), Color(0xFF7DFFB0), Color(0xFFDCF5FF)],
+      bg: Color(0xFF04223F), panel: Color(0xAD001E3C), panel2: Color(0xFF0B4F8A), surface: Color(0xFF042A4A), line: Color(0xFF3DD9FF)),
+  RcThemeData.anim('Donjon', 'Dungeon', RcScene.dungeon,
+      bgGrad: [Color(0xFF1A1214), Color(0xFF33252A), Color(0xFF1A1214)], pixels: [Color(0xFFFFB347), Color(0xFFFF781E), Color(0xFFFFF3B0)],
+      bg: Color(0xFF1A1012), panel: Color(0xB81E0F0A), panel2: Color(0xFF4A2A22), surface: Color(0xFF22161A), line: Color(0xFFFF8C3A)),
+  RcThemeData.anim('Blocs', 'Blocks', RcScene.blocks,
+      bgGrad: [Color(0xFF0B0B24), Color(0xFF1A1A40), Color(0xFF0B0B24)], pixels: [Color(0xFFFF4F4F), Color(0xFFFFE14F), Color(0xFF3DD9FF)],
+      bg: Color(0xFF0B0B24), panel: Color(0xB30A0A1E), panel2: Color(0xFF2A2A5A), surface: Color(0xFF12122E), line: Color(0xFF9C8CFF)),
+  RcThemeData.anim('Aurore', 'Aurora', RcScene.aurora,
+      bgGrad: [Color(0xFF020617), Color(0xFF0D2A4A), Color(0xFFE8F4FF)], pixels: [Color(0xFF7DFFB0), Color(0xFF3DD9FF), Color(0xFFC878FF)],
+      bg: Color(0xFF061428), panel: Color(0xAD081428), panel2: Color(0xFF1A3A5A), surface: Color(0xFF0A1A30), line: Color(0xFF7DFFB0)),
+  RcThemeData.anim('Circuit', 'Circuit', RcScene.circuit,
+      bgGrad: [Color(0xFF04201A), Color(0xFF0D5A46), Color(0xFF04201A)], pixels: [Color(0xFF3DFFD0), Color(0xFFBFFFEF), Color(0xFF1D8A6A)],
+      bg: Color(0xFF041A14), panel: Color(0xB3051914), panel2: Color(0xFF0D4A3A), surface: Color(0xFF06241C), line: Color(0xFF3DFFD0)),
 ];
 
 /// Thème choisi (réglages, mémorisé)
@@ -181,6 +220,49 @@ class _RetroBackgroundState extends State<RetroBackground> with SingleTickerProv
   Widget build(BuildContext context) => RepaintBoundary(child: CustomPaint(painter: _BgPainter(time), child: const SizedBox.expand()));
 }
 
+/// Aperçu animé d'un thème (choix du thème dans les réglages) : la scène est
+/// dessinée à taille de téléphone puis réduite.
+class ThemePreview extends StatefulWidget {
+  final int index;
+  final double width, height;
+  const ThemePreview(this.index, {super.key, this.width = 64, this.height = 44});
+  @override
+  State<ThemePreview> createState() => _ThemePreviewState();
+}
+
+class _ThemePreviewState extends State<ThemePreview> with SingleTickerProviderStateMixin {
+  final time = ValueNotifier<double>(3);
+  late final Ticker _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker((d) => time.value = 3 + d.inMicroseconds / 1e6)..start();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    time.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: widget.width,
+        height: widget.height,
+        child: FittedBox(
+          fit: BoxFit.cover,
+          clipBehavior: Clip.hardEdge,
+          child: SizedBox(
+            width: 220,
+            height: 220 * widget.height / widget.width,
+            child: RepaintBoundary(child: CustomPaint(painter: _BgPainter(time, themeIndex: widget.index))),
+          ),
+        ),
+      );
+}
+
 class _Pix {
   final double x, y, size, vx, vy, alpha;
   final int color; // index dans les couleurs du thème
@@ -217,7 +299,8 @@ const _ghost = [
 
 class _BgPainter extends CustomPainter {
   final ValueNotifier<double> time;
-  _BgPainter(this.time) : super(repaint: Listenable.merge([time, rcThemeIndex]));
+  final int? themeIndex; // aperçu d'un thème précis (réglages)
+  _BgPainter(this.time, {this.themeIndex}) : super(repaint: Listenable.merge([time, rcThemeIndex]));
 
   static final List<_Pix> _pixels = () {
     final r = Random(42);
@@ -233,7 +316,14 @@ class _BgPainter extends CustomPainter {
     final t = time.value;
     final w = size.width, h = size.height;
     final p = Paint();
-    final th = rcTheme;
+    final th = themeIndex == null ? rcTheme : kThemes[themeIndex!];
+    if (th.scene != 0) {
+      canvas.save();
+      canvas.clipRect(Offset.zero & size);
+      paintScene(canvas, size, t, th.scene);
+      canvas.restore();
+      return;
+    }
 
     // dégradé de fond (bleu des pochettes rétro)
     p.shader = LinearGradient(
