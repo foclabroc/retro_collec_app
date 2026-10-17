@@ -264,7 +264,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ListTile(
                       leading: const Icon(Icons.palette),
                       title: Text(t('Thème', 'Theme')),
-                      subtitle: Text(rcTheme.name, style: const TextStyle(fontSize: 12, color: Colors.white54)),
+                      subtitle: Text(rcThemeRandom ? '${t('Aléatoire', 'Random')} · ${rcTheme.name}' : rcTheme.name,
+                          style: const TextStyle(fontSize: 12, color: Colors.white54)),
                       trailing: const Icon(Icons.chevron_right, color: Colors.white38),
                       onTap: () async {
                         final i = await showDialog<int>(
@@ -272,6 +273,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           builder: (ctx) => SimpleDialog(
                             title: Text(t('Thème de l\'interface', 'Interface theme')),
                             children: [
+                              SimpleDialogOption(
+                                onPressed: () => Navigator.pop(ctx, -1),
+                                child: Row(children: [
+                                  Container(
+                                    width: 64,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      gradient: const LinearGradient(colors: [Color(0xFFFF4FD8), Color(0xFF3DD9FF), Color(0xFF7DFF3D)]),
+                                      border: Border.all(color: rcThemeRandom ? kGold : Colors.white24, width: rcThemeRandom ? 2.5 : 1.5),
+                                    ),
+                                    child: const Center(child: Text('🎲', style: TextStyle(fontSize: 22))),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                      Text(t('Aléatoire', 'Random'),
+                                          style: TextStyle(fontWeight: FontWeight.w700, color: rcThemeRandom ? kGold : Colors.white)),
+                                      Text(t('Un thème différent à chaque lancement', 'A different theme at each launch'),
+                                          style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                                    ]),
+                                  ),
+                                  if (rcThemeRandom) const Icon(Icons.check, color: kGold),
+                                ]),
+                              ),
                               for (var k = 0; k < kThemes.length; k++)
                                 SimpleDialogOption(
                                   onPressed: () => Navigator.pop(ctx, k),
@@ -286,9 +312,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     const SizedBox(width: 14),
                                     Expanded(
                                       child: Text(kThemes[k].name,
-                                          style: TextStyle(fontWeight: FontWeight.w700, color: rcThemeIndex.value == k ? kGold : Colors.white)),
+                                          style: TextStyle(fontWeight: FontWeight.w700, color: !rcThemeRandom && rcThemeIndex.value == k ? kGold : Colors.white)),
                                     ),
-                                    if (rcThemeIndex.value == k) const Icon(Icons.check, color: kGold),
+                                    if (!rcThemeRandom && rcThemeIndex.value == k) const Icon(Icons.check, color: kGold),
                                   ]),
                                 ),
                             ],

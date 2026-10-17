@@ -102,18 +102,42 @@ const kThemes = <RcThemeData>[
 final rcThemeIndex = ValueNotifier<int>(0);
 RcThemeData get rcTheme => kThemes[rcThemeIndex.value.clamp(0, kThemes.length - 1)];
 
+/// Thème « Aléatoire » : un thème différent tiré au hasard à chaque lancement
+bool rcThemeRandom = false;
+
+int _randomTheme() {
+  if (kThemes.length < 2) return 0;
+  final cur = rcThemeIndex.value;
+  int i;
+  do {
+    i = Random().nextInt(kThemes.length);
+  } while (i == cur);
+  return i;
+}
+
 Future<void> loadTheme() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    rcThemeIndex.value = (prefs.getInt('rc_theme') ?? 0).clamp(0, kThemes.length - 1);
+    final v = prefs.getInt('rc_theme') ?? 0;
+    rcThemeRandom = v < 0;
+    if (rcThemeRandom) {
+      rcThemeIndex.value = (prefs.getInt('rc_theme_last') ?? 0).clamp(0, kThemes.length - 1);
+      rcThemeIndex.value = _randomTheme();
+      await prefs.setInt('rc_theme_last', rcThemeIndex.value);
+    } else {
+      rcThemeIndex.value = v.clamp(0, kThemes.length - 1);
+    }
   } catch (_) {}
 }
 
+/// [i] = -1 : aléatoire
 Future<void> setTheme(int i) async {
-  rcThemeIndex.value = i;
+  rcThemeRandom = i < 0;
+  rcThemeIndex.value = rcThemeRandom ? _randomTheme() : i;
   try {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('rc_theme', i);
+    await prefs.setInt('rc_theme', i < 0 ? -1 : i);
+    await prefs.setInt('rc_theme_last', rcThemeIndex.value);
   } catch (_) {}
 }
 

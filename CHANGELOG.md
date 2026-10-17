@@ -3,7 +3,8 @@
 ## v1.0.5
 - **Nouveau dos des cartes** : une salle d'arcade aux couleurs de Pixel Trade, et l'icône de l'appli assortie.
 - **10 nouveaux thèmes animés** (Réglages > Thème) : Synthwave, Galaxie, Pixel ciel, Salle d'arcade, Terminal,
-  Océan, Donjon, Blocs, Aurore et Circuit — des fonds bien visibles, avec un aperçu animé dans le choix du thème.
+  Océan, Donjon, Blocs, Aurore et Circuit — des fonds bien visibles, avec un aperçu animé dans le choix du thème,
+  et un choix « Aléatoire » qui change de thème à chaque lancement.
 - Bonus : la roue de la fortune passe dans une case, comme Gamedle et le quiz (elle s'ouvre en plein écran).
 - Version web plus rapide à lancer : le catalogue se télécharge pendant le chargement et reste en cache.
 - Correction : « Cadeau suivant » ouvre bien le cadeau suivant (on retombait sur la liste vide des cadeaux).
