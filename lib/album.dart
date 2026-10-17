@@ -493,39 +493,30 @@ class _CardDetailPageState extends State<CardDetailPage> {
         ]),
         const SizedBox(height: 8),
       ],
-      // fusion : 5 normales → brillante, 3 brillantes → dorée
-      if (x[0] >= 5 || x[1] >= 3) ...[
+      // fusion : 5 normales → brillante, 3 brillantes → dorée (boutons toujours visibles, grisés s'il manque des cartes)
+      if (total > 0)
         for (final f in [0, 1])
-          if (x[f] >= (f == 0 ? 5 : 3))
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: f == 0 ? const Color(0xFF3C3489) : const Color(0xFF7A5A0E),
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(46),
-                  side: BorderSide(color: f == 0 ? const Color(0xFFB4A9FF) : kGold, width: 1.5),
-                ),
-                icon: Text(f == 0 ? '✦' : '★', style: const TextStyle(fontSize: 18)),
-                label: Text(
-                  f == 0
-                      ? t('Fusionner 5 normales → 1 brillante', 'Fuse 5 normal → 1 holo')
-                      : t('Fusionner 3 brillantes → 1 dorée', 'Fuse 3 holo → 1 gold'),
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                onPressed: busy ? null : () => _fuse(c, f),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: f == 0 ? const Color(0xFF3C3489) : const Color(0xFF7A5A0E),
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: (f == 0 ? const Color(0xFF3C3489) : const Color(0xFF7A5A0E)).withOpacity(0.35),
+                disabledForegroundColor: Colors.white54,
+                minimumSize: const Size.fromHeight(46),
+                side: BorderSide(color: (f == 0 ? const Color(0xFFB4A9FF) : kGold).withOpacity(x[f] >= (f == 0 ? 5 : 3) ? 1 : 0.35), width: 1.5),
               ),
+              icon: Text(f == 0 ? '✦' : '★', style: const TextStyle(fontSize: 18)),
+              label: Text(
+                f == 0
+                    ? t('Fusionner 5 normales → 1 brillante (${x[0]}/5)', 'Fuse 5 normal → 1 holo (${x[0]}/5)')
+                    : t('Fusionner 3 brillantes → 1 dorée (${x[1]}/3)', 'Fuse 3 holo → 1 gold (${x[1]}/3)'),
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              onPressed: busy || x[f] < (f == 0 ? 5 : 3) ? null : () => _fuse(c, f),
             ),
-      ] else if (total > 1)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Text(
-            t('Fusion : 5 normales → 1 brillante · 3 brillantes → 1 dorée (tu as ${x[0]} normale(s), ${x[1]} brillante(s))',
-                'Fusion: 5 normal → 1 holo · 3 holo → 1 gold (you have ${x[0]} normal, ${x[1]} holo)'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11, color: Colors.white38),
           ),
-        ),
       ElevatedButton.icon(
         icon: const Icon(Icons.auto_fix_high),
         label: Text(t('Fabriquer (${fmt(cost)} pièces)', 'Craft (${fmt(cost)} coins)')),

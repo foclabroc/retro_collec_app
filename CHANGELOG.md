@@ -11,6 +11,13 @@
   (il se ferme en glissant vers le bas).
 - Compteur de pixels à côté des pièces, en haut de chaque onglet et dans le menu.
 - Récap d'ouverture : « +1 pixel » et ton total.
+- **Voisinage en immeuble** : la « Pixel Tower », un immeuble en pierre où chaque joueur a son étage selon le classement
+  (le n°1 au penthouse). Fenêtres allumées pour les joueurs en ligne, balcons fleuris, ascenseur à grille,
+  plaque avec score, % de collection, cartes et pièces. Le hall donne accès aux cadeaux et à la recherche.
+- **Thème de mon étage** (à la place de la maison) : 16 thèmes (pierre, brique, bois, lierre, néon, art déco, verre,
+  château, japonais, arcade, spatial, sous-marin, plage, neige, Halloween, or), débloqués au nombre de cartes.
+- Fiche d'une carte : les boutons de fusion (brillante, dorée) restent visibles, grisés avec le compte (ex. 3/5).
+- Collection : toucher une rareté du tableau de bord affiche tes cartes de cette rareté.
 - Correction : les titres des onglets ne sont plus coupés (« Ma collect… »), ils se réduisent pour tenir.
 
 ## v1.0.5

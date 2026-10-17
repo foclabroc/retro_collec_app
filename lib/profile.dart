@@ -10,7 +10,7 @@ import 'cards.dart';
 import 'catalog.dart';
 import 'layout.dart';
 import 'game.dart';
-import 'house.dart';
+import 'tower.dart';
 import 'main.dart';
 import 'server.dart';
 import 'trades.dart';
@@ -656,9 +656,18 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
           : p == null
               ? const Center(child: CircularProgressIndicator(color: kGold))
               : ListView(padding: const EdgeInsets.all(16), children: [
-                  // sa maison
+                  // son étage dans l'immeuble
                   Center(
-                    child: SizedBox(width: 220, height: 190, child: HouseView(HouseSpec.parse(p!['house'] as String?, seed: widget.pid))),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: DecoratedBox(
+                          decoration: const BoxDecoration(border: Border.symmetric(vertical: BorderSide(color: Color(0xFFEFE2C3), width: 8))),
+                          child: TowerFloor(d: FloorData.of(p!), level: 0, shaft: false),
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Row(children: [
