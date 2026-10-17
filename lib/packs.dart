@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -28,6 +29,8 @@ Future<void> openPackFlow(BuildContext context, String kind, [String? sys]) asyn
 
 /// Écran d'ouverture pour un résultat de [Game.openChoice] (ou un achat resté sans choix).
 Future<void> showPackOpening(BuildContext context, Map<String, dynamic> r, String kind, [String? sys]) async {
+  r = await Game.i.autoPickGift(r); // cadeau resté en attente : couleur au hasard
+  if (!context.mounted) return;
   final k = (r['kind'] as String?) ?? kind;
   final s = r.containsKey('kind') ? r['sys'] as String? : sys;
   if (r['resumed'] == true) toast(t('Tu n\'avais pas encore choisi ton booster', 'You hadn\'t picked your booster yet'));
@@ -224,9 +227,6 @@ class _PacksScreenState extends State<PacksScreen> {
       listenable: Listenable.merge([Game.i, Notifs.i]),
       builder: (context, _) {
         final g = Game.i;
-        final now = DateTime.now();
-        final midnight = DateTime(now.year, now.month, now.day + 1);
-        final left = midnight.difference(now);
         return Column(children: [
           TabHeader(t('Paquets', 'Packs')),
           Expanded(
@@ -260,11 +260,10 @@ class _PacksScreenState extends State<PacksScreen> {
                 ),
               _PackOffer(
                 kind: 'free',
-                packLabel: t('Du jour', 'Daily'),
-                title: t('Paquet du jour', 'Daily pack'),
-                subtitle: g.free
-                    ? t('5 cartes offertes, toutes consoles', '5 free cards, all systems')
-                    : t('Prochain dans ${left.inHours} h ${left.inMinutes % 60} min', 'Next one in ${left.inHours} h ${left.inMinutes % 60} min'),
+                packLabel: t('Gratuit', 'Free'),
+                title: t('Paquet gratuit', 'Free pack'),
+                subtitle: g.free ? t('5 cartes offertes, toutes consoles · toutes les 6 h', '5 free cards, all systems · every 6 h') : '',
+                below: g.free ? null : const _FreeCountdown(),
                 price: 0,
                 color: const Color(0xFF1D9E75),
                 highlight: g.free,
@@ -366,7 +365,7 @@ const _kOfferColor = {
 };
 
 String _offerLabel(String kind) => switch (kind) {
-      'free' => t('Du jour', 'Daily'),
+      'free' => t('Gratuit', 'Free'),
       'console' => 'Console',
       'premium' => 'Premium',
       'mystery' => t('Mystère', 'Mystery'),
@@ -441,8 +440,8 @@ class _PackOffer extends StatelessWidget {
   final bool enabled, highlight;
   final VoidCallback onTap;
   final String kind, packLabel;
-  final Widget? art, trailing;
-  const _PackOffer({required this.kind, required this.packLabel, required this.title, required this.subtitle, required this.price, required this.color, required this.enabled, required this.onTap, this.highlight = false, this.art, this.trailing});
+  final Widget? art, trailing, below;
+  const _PackOffer({required this.kind, required this.packLabel, required this.title, required this.subtitle, required this.price, required this.color, required this.enabled, required this.onTap, this.highlight = false, this.art, this.trailing, this.below});
 
   @override
   Widget build(BuildContext context) {
@@ -467,7 +466,8 @@ class _PackOffer extends StatelessWidget {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                   const SizedBox(height: 3),
-                  Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                  if (subtitle.isNotEmpty) Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                  if (below != null) below!,
                 ]),
               ),
               Opacity(
@@ -631,7 +631,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     list.sort((a, b) => (a.r * 3 + a.f).compareTo(b.r * 3 + b.f));
     pulled = list;
     booster = (r['choice'] as num?)?.toInt();
-    missed = r['missed'] is Map && Catalog.cards[(r['missed'] as Map)['c']] != null ? r['missed'] as Map : null;
+    // cadeau : pas de choix, donc pas de « tu as raté »
+    missed = widget.kind != 'gift' && r['missed'] is Map && Catalog.cards[(r['missed'] as Map)['c']] != null ? r['missed'] as Map : null;
   }
 
   /// Booster choisi : le serveur donne ses cartes, puis on passe au paquet à déchirer.
@@ -912,7 +913,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
               Expanded(
                 child: Text(
                   switch (widget.kind) {
-                    'free' => t('Paquet du jour', 'Daily pack'),
+                    'free' => t('Paquet gratuit', 'Free pack'),
                     'console' => t('Paquet ${Catalog.system(widget.sys ?? '')?.name ?? ''}', '${Catalog.system(widget.sys ?? '')?.name ?? ''} pack'),
                     'premium' => t('Paquet premium', 'Premium pack'),
                     'mystery' => t('Paquet mystère', 'Mystery pack'),
@@ -1240,7 +1241,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       };
 
   String _packLabel() => switch (widget.kind) {
-        'free' => t('Paquet du jour', 'Daily pack'),
+        'free' => t('Paquet gratuit', 'Free pack'),
         'console' => Catalog.system(widget.sys ?? '')?.name ?? '',
         'premium' => t('Premium', 'Premium'),
         'mystery' => t('Mystère', 'Mystery'),
@@ -1797,5 +1798,60 @@ class _GiftsPageState extends State<GiftsPage> {
                         ),
                     ]),
     );
+  }
+}
+
+
+/// Compte à rebours du prochain paquet gratuit (toutes les 6 h), mis à jour chaque seconde.
+class _FreeCountdown extends StatefulWidget {
+  const _FreeCountdown();
+  @override
+  State<_FreeCountdown> createState() => _FreeCountdownState();
+}
+
+class _FreeCountdownState extends State<_FreeCountdown> {
+  Timer? _tm;
+  bool _asked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tm = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      // l'heure est passée : on redemande au serveur (une fois)
+      if (!_asked && !DateTime.now().isBefore(_target())) {
+        _asked = true;
+        Game.i.sync();
+      }
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tm?.cancel();
+    super.dispose();
+  }
+
+  DateTime _target() {
+    final now = DateTime.now();
+    return Game.i.freeAt ?? DateTime(now.year, now.month, now.day + 1); // ancien serveur : minuit
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final left = _target().difference(DateTime.now());
+    if (left.isNegative) {
+      return Text(t('Bientôt disponible…', 'Almost ready…'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 12, fontWeight: FontWeight.w700));
+    }
+    String two(int n) => n.toString().padLeft(2, '0');
+    final h = left.inHours, m = left.inMinutes % 60, sec = left.inSeconds % 60;
+    return Row(children: [
+      const Icon(Icons.timer_outlined, size: 14, color: kGold),
+      const SizedBox(width: 4),
+      Text(t('Prochain dans ', 'Next one in '), style: const TextStyle(color: Colors.white60, fontSize: 12)),
+      Text('$h:${two(m)}:${two(sec)}',
+          style: const TextStyle(color: kGold, fontSize: 13, fontWeight: FontWeight.w900, fontFeatures: [FontFeature.tabularFigures()])),
+    ]);
   }
 }

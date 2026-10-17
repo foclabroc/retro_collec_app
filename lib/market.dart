@@ -346,6 +346,7 @@ class MarketGroupsState extends State<MarketGroups> {
           final f = (r['finish'] as num).toInt();
           final lots = (r['lots'] as num).toInt();
           final known = Game.i.has(c.id);
+          final seller = (r['seller'] as String?) ?? '';
           return Material(
             color: sel == (c.id, f) ? kGold.withOpacity(0.18) : kPanel,
             borderRadius: BorderRadius.circular(12),
@@ -371,13 +372,21 @@ class MarketGroupsState extends State<MarketGroups> {
                       Text('${Catalog.system(c.sys)?.short ?? c.sys} · ${rarityName(c.rarity)}${f > 0 ? ' · ${finishName(f)}' : ''}',
                           maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: kRarityLight[c.rarity], fontSize: 12)),
                       const SizedBox(height: 2),
-                      Row(children: [
-                        Text(t('$lots en vente', '$lots for sale'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                        if (!known) ...[
-                          const SizedBox(width: 8),
-                          Text(t('· manquante', '· missing'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 12, fontWeight: FontWeight.w700)),
-                        ],
-                      ]),
+                      Text.rich(
+                        TextSpan(children: [
+                          TextSpan(text: t('$lots en vente', '$lots for sale')),
+                          // vendeur (le moins cher s'il y en a plusieurs)
+                          if (seller.isNotEmpty) ...[
+                            TextSpan(text: lots == 1 ? t(' · par ', ' · by ') : t(' · moins cher : ', ' · cheapest: ')),
+                            TextSpan(text: seller, style: const TextStyle(color: Color(0xFF8FD3FF), fontWeight: FontWeight.w700)),
+                          ],
+                          if (!known)
+                            TextSpan(text: t('  · manquante', '  · missing'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w700)),
+                        ]),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
                     ]),
                   ),
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [

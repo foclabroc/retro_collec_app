@@ -261,10 +261,7 @@ class CardView extends StatelessWidget {
           margin: EdgeInsets.symmetric(horizontal: w * 0.03),
           padding: EdgeInsets.symmetric(horizontal: w * 0.025, vertical: w * 0.012),
           decoration: BoxDecoration(color: Colors.black.withOpacity(0.35), borderRadius: BorderRadius.circular(w * 0.02)),
-          child: Text(owned ? card.title : '???',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.white, fontSize: 12.5 * fs, fontWeight: FontWeight.w800)),
+          child: _CardTitle(owned ? card.title : '???', TextStyle(color: Colors.white, fontSize: 12.5 * fs, fontWeight: FontWeight.w800)),
         ),
         // pied : année + rareté écrite + gemmes + finition
         Padding(
@@ -690,5 +687,38 @@ class _SpinCardState extends State<SpinCard> with SingleTickerProviderStateMixin
         },
       ),
     );
+  }
+}
+
+
+/// Titre de la carte : sur une ligne s'il tient, sinon un peu plus petit,
+/// sinon sur deux lignes (les titres longs restent lisibles en entier).
+class _CardTitle extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  const _CardTitle(this.text, this.style);
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, box) {
+      final scaler = MediaQuery.textScalerOf(context);
+      bool fits(TextStyle st, int lines) {
+        final tp = TextPainter(
+          text: TextSpan(text: text, style: st),
+          maxLines: lines,
+          textDirection: TextDirection.ltr,
+          textScaler: scaler,
+        )..layout(maxWidth: box.maxWidth);
+        final ok = !tp.didExceedMaxLines;
+        tp.dispose();
+        return ok;
+      }
+
+      final size = style.fontSize ?? 12;
+      if (fits(style, 1)) return Text(text, maxLines: 1, style: style);
+      final smaller = style.copyWith(fontSize: size * 0.85);
+      if (fits(smaller, 1)) return Text(text, maxLines: 1, style: smaller);
+      return Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: style.copyWith(fontSize: size * 0.78, height: 1.12));
+    });
   }
 }

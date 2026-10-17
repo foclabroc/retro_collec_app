@@ -117,6 +117,11 @@ class PushWatch {
 
   static int _i(dynamic v) => (v as num? ?? 0).toInt();
 
+  /// Paquet gratuit pas encore signalé : chaque paquet (toutes les 6 h) est repéré par free_at
+  /// (heure du paquet précédent) ; ancien serveur sans free_at : une fois par jour.
+  static bool _freeNew(Map r, Map old) =>
+      r.containsKey('free_at') ? '${_i(r['free_at'])}' != '${old['freeAt']}' : old['freeDay'] != _today();
+
   /// Appli ouverte : tout ce que l'appli vient d'afficher est « vu ».
   static Future<void> seen(Map<String, dynamic> r) async {
     if (kIsWeb) return; // pas de notifications Android sur le web
@@ -131,6 +136,7 @@ class PushWatch {
           'gift': _i(r['gift_last']),
           'mention': _i(r['mention']) > _i(old['mention']) ? _i(r['mention']) : _i(old['mention']),
           'freeDay': _today(), // l'appli a été ouverte aujourd'hui : pas de rappel
+          'freeAt': r['free'] == true ? _i(r['free_at']) : old['freeAt'], // paquet gratuit vu dans l'appli : pas de rappel
           'lotDay': r['lot_free'] == true ? _today() : old['lotDay'],
         }),
       );
@@ -188,9 +194,9 @@ class PushWatch {
       // lot gratuit du samedi (une fois)
       if (r['lot_free'] == true && old['lotDay'] != today) {
         msgs.add((5, t('🎉 C\'est samedi !', '🎉 It\'s Saturday!'), t('Ton lot de 5 paquets mixtes est gratuit aujourd\'hui', 'Your 5 mixed packs bundle is free today')));
-      } else if (r['free'] == true && old['freeDay'] != today && DateTime.now().hour >= 9) {
-        // paquet du jour (une fois par jour, à partir de 9 h, si l'appli n'a pas été ouverte)
-        msgs.add((6, t('🃏 Paquet du jour', '🃏 Daily pack'),
+      } else if (r['free'] == true && _freeNew(r, old) && DateTime.now().hour >= 9 && DateTime.now().hour < 22) {
+        // paquet gratuit (toutes les 6 h ; une fois par paquet, de 9 h à 22 h, si l'appli n'a pas été ouverte)
+        msgs.add((6, t('🃏 Paquet gratuit', '🃏 Free pack'),
             r['wheel'] == true
                 ? t('Ton paquet gratuit et la roue de la fortune t\'attendent', 'Your free pack and the wheel of fortune are waiting')
                 : t('Ton paquet gratuit t\'attend', 'Your free pack is waiting')));
@@ -205,6 +211,7 @@ class PushWatch {
         'gift': _i(r['gift_last']),
         'mention': _i(r['mention']) > _i(old['mention']) ? _i(r['mention']) : _i(old['mention']),
         'freeDay': msgs.any((m) => m.$1 == 6) || first ? today : old['freeDay'],
+        'freeAt': msgs.any((m) => m.$1 == 6) || (first && r['free'] == true) ? _i(r['free_at']) : old['freeAt'],
         'lotDay': msgs.any((m) => m.$1 == 5) || (first && r['lot_free'] == true) ? today : old['lotDay'],
       }),
     );

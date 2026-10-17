@@ -1,3 +1,4 @@
+import 'dart:math' show Random;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -129,6 +130,7 @@ class Game extends ChangeNotifier {
   String house = ''; // maison du Voisinage (chargée avec le Voisinage)
   int avatar = 0, coins = 0, score = 0, cards = 0, packs = 0, pity = 0, streak = 0;
   bool free = false;
+  DateTime? freeAt; // prochain paquet gratuit (toutes les 6 h) ; null = inconnu (ancien serveur : minuit)
   Map<String, dynamic> missions = {};
   Set<String> milestones = {};
   Map<String, List<int>> owned = {};
@@ -212,6 +214,8 @@ class Game extends ChangeNotifier {
     pity = (m['pity'] as num? ?? pity).toInt();
     streak = (m['streak'] as num? ?? streak).toInt();
     free = m['free'] as bool? ?? free;
+    final fi = (m['free_in'] as num?)?.toInt();
+    freeAt = fi == null || free ? null : DateTime.now().add(Duration(seconds: fi));
     showcase = m['showcase'] as String? ?? showcase;
     if (m['missions'] is Map) missions = Map<String, dynamic>.from(m['missions'] as Map);
     if (m['milestones'] is List) {
@@ -274,9 +278,12 @@ class Game extends ChangeNotifier {
       try {
         final r = await RcServer.openChoice(kind, sys);
         coins = (r['coins'] as num? ?? coins).toInt();
-        if (kind == 'free' && r['resumed'] != true) free = false;
+        if (kind == 'free' && r['resumed'] != true) {
+          free = false;
+          freeAt = DateTime.now().add(const Duration(hours: 6));
+        }
         notifyListeners();
-        return r;
+        return autoPickGift(r);
       } on RcError catch (e) {
         if (!'$e'.contains('Could not find the function')) rethrow;
         _choiceOk = false;
@@ -284,6 +291,10 @@ class Game extends ChangeNotifier {
     }
     return openPack(kind, sys);
   }
+
+  /// Paquet cadeau : pas de choix, un booster de couleur au hasard.
+  Future<Map<String, dynamic>> autoPickGift(Map<String, dynamic> r) async =>
+      r['choose'] != null && r['cards'] == null && r['kind'] == 'gift' ? pickPack(Random().nextInt(6)) : r;
 
   /// Booster choisi (0 à 5) : ses cartes arrivent dans la collection.
   Future<Map<String, dynamic>> pickPack(int choice) async {

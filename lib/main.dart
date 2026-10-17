@@ -381,7 +381,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
                     Row(children: [
                       const Icon(Icons.card_giftcard, color: Color(0xFF5DCAA5), size: 18),
                       const SizedBox(width: 6),
-                      Text(t('Ton paquet du jour t\'attend !', 'Your daily pack is waiting!'),
+                      Text(t('Ton paquet gratuit t\'attend !', 'Your free pack is waiting!'),
                           style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w700)),
                     ]),
                   ],

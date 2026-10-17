@@ -12,6 +12,10 @@
 - **Choix du booster** : à chaque paquet, 6 boosters de couleurs différentes tournent en cercle et tu en choisis un.
   Chaque booster a son propre contenu ; après l'ouverture, on te montre la plus belle carte que tu as ratée
   et dans quel booster elle était. Si l'appli se ferme avant le choix, il t'attend au retour.
+  Les paquets cadeaux, eux, arrivent dans un booster de couleur au hasard.
+- **Paquet gratuit toutes les 6 heures** (au lieu d'un par jour), avec un compte à rebours dans la boutique.
+- Titres longs : le nom de la carte se réduit ou passe sur deux lignes au lieu d'être coupé.
+- Bourse : le nom du vendeur (le moins cher s'il y en a plusieurs) dans la liste des cartes à acheter.
 - Bonus : la roue de la fortune passe dans une case, comme Gamedle et le quiz (elle s'ouvre en plein écran).
 - Version web plus rapide à lancer : le catalogue se télécharge pendant le chargement et reste en cache.
 - Correction : « Cadeau suivant » ouvre bien le cadeau suivant (on retombait sur la liste vide des cadeaux).
