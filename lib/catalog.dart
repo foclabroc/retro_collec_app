@@ -213,7 +213,9 @@ class Catalog {
   static Future<void> update({void Function(double, String)? progress}) async {
     await _init();
     final prefs = await SharedPreferences.getInstance();
-    final txt = utf8.decode(await _get('${kAssetsBase}catalog.json?t=${DateTime.now().millisecondsSinceEpoch}'));
+    // web : même adresse que le préchargement de index.html (téléchargé en parallèle du moteur Flutter,
+    // puis gardé en cache par le navigateur et revalidé par GitHub Pages)
+    final txt = utf8.decode(await _get(kIsWeb ? '${kAssetsBase}catalog.json' : '${kAssetsBase}catalog.json?t=${DateTime.now().millisecondsSinceEpoch}'));
     if (kIsWeb) {
       progress?.call(0.5, '');
       _parse(txt);

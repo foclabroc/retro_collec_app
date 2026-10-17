@@ -14,6 +14,11 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="manifest" href="manifest.json">
+  <!-- chargement plus rapide : les connexions et le catalogue démarrent pendant que le moteur Flutter se télécharge -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://wwyxfcdubdnwokeanigk.supabase.co" crossorigin>
+  <link rel="preload" href="https://foclabroc.github.io/retro_collec_assets/catalog.json" as="fetch" crossorigin="anonymous">
   <title>Pixel Trade</title>
   <style>
     html, body { margin: 0; height: 100%; background: #1d0f33; }
