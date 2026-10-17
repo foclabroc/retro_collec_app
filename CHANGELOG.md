@@ -1,10 +1,17 @@
 # Pixel Trade — Changelog
 
 ## v1.0.6
-- **Pixels** : chaque booster ouvert rapporte 1 pixel (tout le monde part de zéro). Une jauge en haut de la boutique
-  montre où tu en es, et les pixels s'échangent contre des **boosters spéciaux** :
-  Booster Étoile (15 pixels, une épique ou mieux), Booster Console+ (25 pixels, console au choix,
-  une rare ou mieux et une brillante) et Booster Rétro d'or (40 pixels, une légendaire ou une carte dorée).
+- **Pixels** : chaque booster ouvert rapporte 1 pixel, quel que soit le paquet (tout le monde part de zéro).
+  Les pixels s'échangent contre des **boosters spéciaux** :
+  - **Booster Étoile** (15 pixels) : 5 cartes dont une épique ou mieux ;
+  - **Booster Console+** (25 pixels) : la console de ton choix, une rare ou mieux et une brillante garanties ;
+  - **Booster Rétro d'or** (40 pixels) : une légendaire… ou une carte dorée garantie.
+  Ils passent aussi par le choix parmi 6 boosters, et chacun des 6 respecte la garantie.
+- Boutique : une ligne « Boosters Pixels » avec sa jauge ouvre le sous-menu des boosters spéciaux
+  (il se ferme en glissant vers le bas).
+- Compteur de pixels à côté des pièces, en haut de chaque onglet et dans le menu.
+- Récap d'ouverture : « +1 pixel » et ton total.
+- Correction : les titres des onglets ne sont plus coupés (« Ma collect… »), ils se réduisent pour tenir.
 
 ## v1.0.5
 - **Nouveau dos des cartes** : une salle d'arcade aux couleurs de Pixel Trade, et l'icône de l'appli assortie.
