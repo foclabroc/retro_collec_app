@@ -4,6 +4,8 @@
     <!-- Notifications (tâche de fond toutes les 15 min) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Demander à ne pas être endormi par l'économie de batterie (notifications appli fermée) -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- Mise à jour dans l'appli : ouverture de l'installateur Android -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <application

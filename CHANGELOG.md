@@ -29,6 +29,10 @@
   - **défis** : objectif suivi par le serveur (boosters ouverts, parties de 4 en ligne gagnées, Gamedle trouvés)
     avec des paliers de récompenses et une barre de progression.
   Les événements à venir restent mystérieux : ni nom ni contenu, seulement le compte à rebours.
+- **Notifications appli fermée** plus fiables : au premier lancement, si l'économie de batterie d'Android endort l'appli,
+  un écran explique les 2 réglages à faire (batterie « Aucune restriction », démarrage automatique sur Xiaomi, Oppo,
+  Realme, Huawei, Samsung…) avec un bouton qui ouvre directement chaque réglage. Dans les Réglages, la ligne
+  « Notifications appli fermée » indique la dernière vérification faite en arrière-plan.
 - Voisinage : plaque des joueurs plus large (toutes les infos visibles) ; la fenêtre de gauche laisse la place au balcon.
 - Voisinage : titre lisible, raccourcis « Mon étage », « Mon thème » et « Profil » sous le titre.
 

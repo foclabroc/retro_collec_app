@@ -520,6 +520,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(const Duration(milliseconds: 600));
       if (mounted) await maybeShowWhatsNew(context);
+      if (mounted) await PushWatch.maybeAskBattery(context);
       await Game.i.claimRewards();
       Events.i.refresh();
       // booster payé mais pas encore choisi (appli fermée pendant le choix) : on reprend

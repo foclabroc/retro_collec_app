@@ -1,5 +1,12 @@
 package com.foclabroc.retro_collec
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.os.PowerManager
+import android.provider.Settings
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
@@ -55,6 +62,65 @@ class MainActivity : FlutterActivity() {
                 else           -> result.notImplemented()
             }
         }
+
+        // Notifications appli fermée : économie de batterie et démarrage automatique (Xiaomi, Oppo, Huawei…)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.foclabroc.retro_collec/system")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "batteryFree" -> {
+                        if (Build.VERSION.SDK_INT < 23) {
+                            result.success(true)
+                        } else {
+                            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+                            result.success(pm.isIgnoringBatteryOptimizations(packageName))
+                        }
+                    }
+                    "askBattery" -> {
+                        result.success(openFirst(listOf(
+                            Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")),
+                            Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
+                            appDetails(),
+                        )))
+                    }
+                    "autostart" -> {
+                        val brand = Build.MANUFACTURER.lowercase()
+                        val list = mutableListOf<Intent>()
+                        fun comp(p: String, c: String) = Intent().setComponent(ComponentName(p, c))
+                        when {
+                            brand.contains("xiaomi") || brand.contains("redmi") || brand.contains("poco") ->
+                                list.add(comp("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"))
+                            brand.contains("oppo") || brand.contains("realme") || brand.contains("oneplus") -> {
+                                list.add(comp("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity"))
+                                list.add(comp("com.coloros.safecenter", "com.coloros.safecenter.startupapp.StartupAppListActivity"))
+                                list.add(comp("com.oplus.battery", "com.oplus.startupapp.view.StartupAppListActivity"))
+                            }
+                            brand.contains("vivo") -> list.add(comp("com.vivo.permissionmanager", "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"))
+                            brand.contains("huawei") || brand.contains("honor") ->
+                                list.add(comp("com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"))
+                            brand.contains("samsung") ->
+                                list.add(comp("com.samsung.android.lool", "com.samsung.android.sm.battery.ui.BatteryActivity"))
+                        }
+                        list.add(appDetails())
+                        result.success(openFirst(list))
+                    }
+                    "brand" -> result.success(Build.MANUFACTURER)
+                    else -> result.notImplemented()
+                }
+            }
+    }
+
+    private fun appDetails() = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
+
+    /** Ouvre le premier écran de réglages qui existe sur ce téléphone */
+    private fun openFirst(list: List<Intent>): Boolean {
+        for (i in list) {
+            try {
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(i)
+                return true
+            } catch (_: Exception) {}
+        }
+        return false
     }
 
     // L'app passe en arrière-plan : on coupe la musique, puis on la reprend

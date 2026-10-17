@@ -260,6 +260,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                       ),
                     ),
+                    if (!kIsWeb)
+                      FutureBuilder<(DateTime?, bool)>(
+                        future: Future.wait([PushWatch.lastRun(), PushWatch.batteryFree()]).then((r) => (r[0] as DateTime?, r[1] as bool)),
+                        builder: (context, snap) {
+                          final last = snap.data?.$1;
+                          final free = snap.data?.$2 ?? true;
+                          String ago(DateTime d) {
+                            final m = DateTime.now().difference(d).inMinutes;
+                            if (m < 1) return t('à l\'instant', 'just now');
+                            if (m < 60) return t('il y a $m min', '$m min ago');
+                            if (m < 48 * 60) return t('il y a ${m ~/ 60} h', '${m ~/ 60} h ago');
+                            return t('il y a ${m ~/ 1440} j', '${m ~/ 1440} d ago');
+                          }
+
+                          return ListTile(
+                            leading: Icon(free ? Icons.battery_full : Icons.battery_alert, color: free ? null : const Color(0xFFFFB547)),
+                            title: Text(t('Notifications appli fermée', 'Notifications when closed')),
+                            subtitle: Text(
+                                [
+                                  last == null ? t('Aucune vérification en arrière-plan pour l\'instant', 'No background check yet') : t('Dernière vérification : ${ago(last)}', 'Last check: ${ago(last)}'),
+                                  if (!free) t('L\'économie de batterie bloque les notifications : touche pour régler', 'Battery saving blocks notifications: tap to fix'),
+                                ].join('\n'),
+                                style: TextStyle(fontSize: 12, color: free ? Colors.white54 : const Color(0xFFFFB547))),
+                            trailing: const Icon(Icons.chevron_right, color: Colors.white38),
+                            onTap: () async {
+                              await PushWatch.showReliableDialog(context);
+                              setState(() {});
+                            },
+                          );
+                        },
+                      ),
                     const Divider(height: 1, color: Colors.white12),
                     ListTile(
                       leading: const Icon(Icons.palette),

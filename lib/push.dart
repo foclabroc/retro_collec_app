@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart' hide Constraints;
+import 'package:flutter/services.dart';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,6 +26,9 @@ import 'server.dart';
 const _kTask = 'rc_push_watch';
 const _kStateKey = 'rc_push_state';
 const _kEnabledKey = 'rc_push';
+const _kLastKey = 'rc_push_last';
+const _kAskedKey = 'rc_push_battery_asked';
+const _sys = MethodChannel('com.foclabroc.retro_collec/system');
 
 /// Point d'entrée de la tâche de fond (isolat séparé).
 @pragma('vm:entry-point')
@@ -31,6 +36,9 @@ void pushWatchDispatcher() {
   Workmanager().executeTask((task, input) async {
     DartPluginRegistrant.ensureInitialized();
     try {
+      // repère de la dernière vérification (affiché dans les réglages)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_kLastKey, DateTime.now().millisecondsSinceEpoch);
       await loadLang();
       if (await PushWatch.enabled()) await PushWatch.check(notify: true);
     } catch (_) {}
@@ -41,6 +49,99 @@ void pushWatchDispatcher() {
 class PushWatch {
   static final _notif = FlutterLocalNotificationsPlugin();
   static bool _ready = false;
+
+  /// Dernière vérification faite appli fermée (null : jamais)
+  static Future<DateTime?> lastRun() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.reload();
+      final v = prefs.getInt(_kLastKey);
+      return v == null ? null : DateTime.fromMillisecondsSinceEpoch(v);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// L'appli échappe-t-elle à l'économie de batterie ?
+  static Future<bool> batteryFree() async {
+    if (kIsWeb) return true;
+    try {
+      return await _sys.invokeMethod<bool>('batteryFree') ?? true;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  static Future<void> askBattery() async {
+    try {
+      await _sys.invokeMethod('askBattery');
+    } catch (_) {}
+  }
+
+  static Future<void> openAutostart() async {
+    try {
+      await _sys.invokeMethod('autostart');
+    } catch (_) {}
+  }
+
+  static Future<String> brand() async {
+    try {
+      return (await _sys.invokeMethod<String>('brand') ?? '').toLowerCase();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Une seule fois : si Android endort l'appli, on explique comment recevoir les notifications
+  static Future<void> maybeAskBattery(BuildContext context) async {
+    if (kIsWeb || !await enabled()) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(_kAskedKey) ?? false) return;
+      if (await batteryFree()) return;
+      await prefs.setBool(_kAskedKey, true);
+      if (context.mounted) await showReliableDialog(context);
+    } catch (_) {}
+  }
+
+  /// Les 2 réglages Android qui empêchent les notifications appli fermée
+  static Future<void> showReliableDialog(BuildContext context) async {
+    final free = await batteryFree();
+    final b = await brand();
+    final oem = ['xiaomi', 'redmi', 'poco', 'oppo', 'realme', 'oneplus', 'vivo', 'huawei', 'honor', 'samsung'].any(b.contains);
+    if (!context.mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t('🔔 Notifications appli fermée', '🔔 Notifications when closed')),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(t('Android endort les applis fermées pour économiser la batterie : Pixel Trade ne peut alors plus vérifier les cadeaux, ventes et échanges.',
+              'Android puts closed apps to sleep to save battery: Pixel Trade then can no longer check for gifts, sales and trades.')),
+          const SizedBox(height: 12),
+          Text(t('1. Batterie : choisis « Aucune restriction » (ou « Ne pas optimiser »)', '1. Battery: choose "Unrestricted" (or "Don\'t optimize")'),
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          if (free)
+            Text(t('✓ Déjà fait', '✓ Already done'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w800))
+          else
+            FilledButton(onPressed: askBattery, child: Text(t('Ouvrir le réglage', 'Open the setting'))),
+          if (oem) ...[
+            const SizedBox(height: 12),
+            Text(t('2. Démarrage automatique : active Pixel Trade (téléphones Xiaomi, Oppo, Realme, Huawei, Samsung…)',
+                    '2. Autostart: turn Pixel Trade on (Xiaomi, Oppo, Realme, Huawei, Samsung phones…)'),
+                style: const TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 6),
+            OutlinedButton(onPressed: openAutostart, child: Text(t('Ouvrir le réglage', 'Open the setting'))),
+          ],
+          const SizedBox(height: 10),
+          Text(t('Ensuite, une vérification est faite environ toutes les 15 minutes (Android peut l\'espacer quand le téléphone dort).',
+                  'Then a check runs about every 15 minutes (Android may space it out while the phone sleeps).'),
+              style: const TextStyle(fontSize: 12, color: Colors.white60)),
+        ]),
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+      ),
+    );
+  }
 
   static Future<bool> enabled() async {
     try {
