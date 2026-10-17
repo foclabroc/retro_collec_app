@@ -640,7 +640,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 child: Column(children: [
                   item(0, 'collection', t('Collection', 'Collection')),
                   item(1, 'packs', t('Paquets', 'Packs'), dot: g.free || n.lotFree, count: n.gifts + n.lots),
-                  item(2, 'bonus', t('Bonus', 'Bonus'), dot: n.wheel),
+                  item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'), dot: n.wheel),
                   item(3, 'market', t('Bourse', 'Exchange'), count: n.trades + n.sales.length),
                   item(4, 'messages', t('Messages', 'Messages'), count: n.chat, dot: n.mention),
                   item(5, 'neighbors', t('Voisinage', 'Neighbors')),
@@ -747,7 +747,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                           : g.free
                               ? t('Paquet gratuit dispo !', 'Free pack ready!')
                               : null),
-                  item(2, 'bonus', t('Bonus', 'Bonus'), dot: n.wheel, hint: t('Roue, Gamedle et quiz', 'Wheel, Gamedle and quiz')),
+                  item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'), dot: n.wheel, hint: t('Roue, Gamedle, quiz, 4 en ligne', 'Wheel, Gamedle, quiz, Connect 4')),
                   item(3, 'market', t('Bourse', 'Exchange'),
                       count: n.trades + n.sales.length, hint: t('Acheter, vendre, échanger', 'Buy, sell, trade')),
                   item(4, 'messages', t('Messages', 'Messages'),

@@ -208,6 +208,46 @@ class RcServer {
     return r == null ? null : _map(r);
   }
 
+  // ── 4 en ligne (rc_c4_*) ───────────────────────────────────────────────
+  /// Joueurs en ligne à défier en direct : [{pid, name, avatar, score, busy}]
+  static Future<List<Map<String, dynamic>>> c4Online() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_c4_online', {'p_device': d}));
+  }
+
+  /// Mes parties (invitations, en cours, terminées récemment)
+  static Future<List<Map<String, dynamic>>> c4List() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_c4_list', {'p_device': d}));
+  }
+
+  static Future<Map<String, dynamic>> c4State(int id) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_c4_state', {'p_device': d, 'p_id': id}));
+  }
+
+  /// mode : live (1 min par coup) ou turn (24 h par coup)
+  static Future<Map<String, dynamic>> c4Invite(String pid, String mode) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_c4_invite', {'p_device': d, 'p_pid': pid, 'p_mode': mode, 'p_sig': _sig('$d|c4inv|$pid|$mode')}));
+  }
+
+  /// Accepter / refuser une invitation (ou annuler la sienne)
+  static Future<Map<String, dynamic>> c4Answer(int id, bool accept) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_c4_answer', {'p_device': d, 'p_id': id, 'p_accept': accept, 'p_sig': _sig('$d|c4ans|$id|${accept ? 1 : 0}')}));
+  }
+
+  static Future<Map<String, dynamic>> c4Play(int id, int col) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_c4_play', {'p_device': d, 'p_id': id, 'p_col': col, 'p_sig': _sig('$d|c4play|$id|$col')}));
+  }
+
+  static Future<Map<String, dynamic>> c4Resign(int id) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_c4_resign', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|c4resign|$id')}));
+  }
+
   // ── Recyclage / fabrication ─────────────────────────────────────────────
   static Future<Map<String, dynamic>> recycle(String card, int finish, int qty) async {
     final d = await deviceId();

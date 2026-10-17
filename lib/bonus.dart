@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'audio.dart';
+import 'connect4.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'gamedle.dart';
@@ -61,7 +62,7 @@ class BonusScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      TabHeader(t('Bonus', 'Bonus')),
+      TabHeader(t('Bonus / Jeux', 'Bonus / Games')),
       Expanded(
         child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: const [
           WheelTile(),
@@ -69,6 +70,8 @@ class BonusScreen extends StatelessWidget {
           GamedleTile(),
           SizedBox(height: 12),
           QuizTile(),
+          SizedBox(height: 12),
+          Connect4Tile(),
         ]),
       ),
     ]);
