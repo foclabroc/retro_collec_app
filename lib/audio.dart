@@ -119,7 +119,7 @@ class RcAudio {
 
   static Future<void> _invoke(String method, [Map<String, dynamic>? args]) async {
     if (kIsWeb) {
-      webMusic(method, args); // web : musique seulement (pas d'effets sonores natifs)
+      webMusic(method, args); // web : musique (<audio>) et effets (Web Audio)
       return;
     }
     try {

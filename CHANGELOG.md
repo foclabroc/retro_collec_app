@@ -9,6 +9,7 @@
   attente du défi avec compte à rebours. En partie : chronos autour des avatars, pion qui vise la colonne,
   dernier coup entouré, **réactions** 👍😮😂🔥👏 vues par l'adversaire, sons (coupables), règles, et écran de fin
   avec trophée, pièces qui défilent et confettis.
+- **Version web** : les bruitages marchent enfin (quiz, roue, 4 en ligne…), les mêmes que sur Android.
 - Voisinage : plaque des joueurs plus large (toutes les infos visibles) ; la fenêtre de gauche laisse la place au balcon.
 - Voisinage : titre lisible, raccourcis « Mon étage », « Mon thème » et « Profil » sous le titre.
 
