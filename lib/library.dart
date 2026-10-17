@@ -43,11 +43,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
     Game.i.loadRecent();
   }
 
-  void _openCards({int show = 1, int sort = 0}) {
+  void _openCards({int show = 1, int sort = 0, int? rarity}) {
     CardFilter.all
       ..reset(defShow: show)
       ..sort = sort
       ..query = '';
+    if (rarity != null) CardFilter.all.rarities.add(rarity);
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AllCardsPage()));
   }
 
@@ -149,8 +150,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
           // cartes par rareté
           Expanded(
             child: Column(children: [
+              // toucher une rareté : mes cartes de cette rareté
               for (var r = 4; r >= 0; r--)
-                Padding(
+                InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: ownByR[r] > 0 ? () => _openCards(rarity: r, sort: 1) : null,
+                  child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2),
                   child: Row(children: [
                     SizedBox(
@@ -172,7 +177,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       width: 52,
                       child: Text('${ownByR[r]}/${totalByR[r]}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 10.5, color: Colors.white70)),
                     ),
+                    Icon(Icons.chevron_right, size: 14, color: ownByR[r] > 0 ? Colors.white38 : Colors.transparent),
                   ]),
+                ),
                 ),
             ]),
           ),
