@@ -134,9 +134,13 @@ class _Connect4TileState extends State<Connect4Tile> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: _kRed.withOpacity(0.75), width: 2),
             gradient: LinearGradient(colors: [_kRed.withOpacity(0.16), Colors.transparent]),
             boxShadow: [BoxShadow(color: _kRed.withOpacity(0.25), blurRadius: 18, spreadRadius: -6)],
+          ),
+          // bordure dessinée par-dessus le panneau du plateau (sinon il mange les coins arrondis)
+          foregroundDecoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _kRed.withOpacity(0.75), width: 2),
           ),
           child: IntrinsicHeight(
             child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
