@@ -289,7 +289,7 @@ class TowerFloor extends StatelessWidget {
     final shutters = !penthouse && index.isEven;
     final flowers = !penthouse && index % 3 != 1;
     final main = SizedBox(
-      width: mainW + (shutters ? 30 : 6),
+      width: mainW + (penthouse ? 6 : 30), // même largeur avec ou sans volets : les plaques restent alignées
       height: mainH + 8,
       child: Stack(clipBehavior: Clip.none, alignment: Alignment.topCenter, children: [
         if (shutters) ...[
