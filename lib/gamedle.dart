@@ -154,11 +154,28 @@ class _GamedlePageState extends State<GamedlePage> {
   String? error;
   final _field = TextEditingController();
   final _focus = FocusNode();
+  final _inputKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
+    _focus.addListener(_onFocus);
     _load();
+  }
+
+  /// Champ sélectionné : on le remonte en haut de l'écran pour que la liste
+  /// des propositions (en dessous) ne soit pas cachée par le clavier.
+  void _onFocus() {
+    setState(() {}); // marge en bas tant que le clavier est ouvert
+    if (!_focus.hasFocus) return;
+    for (final ms in const [350, 700]) {
+      Future.delayed(Duration(milliseconds: ms), () {
+        final ctx = _inputKey.currentContext;
+        if (mounted && _focus.hasFocus && ctx != null) {
+          Scrollable.ensureVisible(ctx, alignment: 0.02, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+        }
+      });
+    }
   }
 
   @override
@@ -237,7 +254,7 @@ class _GamedlePageState extends State<GamedlePage> {
                       ? Text(t('Catalogue pas à jour : relance l\'appli', 'Catalog out of date: restart the app'),
                           style: const TextStyle(color: Colors.white54))
                       : const CircularProgressIndicator())
-          : ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 28), children: [
+          : ListView(padding: EdgeInsets.fromLTRB(16, 4, 16, _focus.hasFocus ? 360 : 28), children: [
               Text(
                 done
                     ? (won ? t('Bravo ! Tu as trouvé le jeu du jour 🎉', 'Well done! You found today\'s game 🎉') : t('Raté… voici le jeu du jour', 'Missed… here is today\'s game'))
@@ -251,7 +268,7 @@ class _GamedlePageState extends State<GamedlePage> {
               const SizedBox(height: 14),
               if (!done) ...[_hints(a), const SizedBox(height: 12)],
               if (!done && guesses.length >= 2) ...[_choices(a), const SizedBox(height: 12)],
-              if (!done) _input(),
+              if (!done) KeyedSubtree(key: _inputKey, child: _input()),
               if (done) _result(a),
               const SizedBox(height: 14),
               if (guesses.isNotEmpty) _legend(),
@@ -314,7 +331,11 @@ class _GamedlePageState extends State<GamedlePage> {
           elevation: 8,
           borderRadius: BorderRadius.circular(12),
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: 300, maxWidth: MediaQuery.of(context).size.width - 32),
+            // hauteur limitée à la place libre au-dessus du clavier
+            constraints: BoxConstraints(
+              maxHeight: (MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom - 200).clamp(120.0, 300.0),
+              maxWidth: MediaQuery.of(context).size.width - 32,
+            ),
             child: ListView(padding: EdgeInsets.zero, shrinkWrap: true, children: [
               for (final c in options)
                 ListTile(

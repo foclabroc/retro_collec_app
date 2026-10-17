@@ -33,6 +33,7 @@
   un écran explique les 2 réglages à faire (batterie « Aucune restriction », démarrage automatique sur Xiaomi, Oppo,
   Realme, Huawei, Samsung…) avec un bouton qui ouvre directement chaque réglage. Dans les Réglages, la ligne
   « Notifications appli fermée » indique la dernière vérification faite en arrière-plan.
+- Gamedle : en tapant un nom de jeu, le champ remonte en haut de l'écran et la liste des propositions n'est plus cachée par le clavier.
 - Voisinage : plaque des joueurs plus large (toutes les infos visibles) ; la fenêtre de gauche laisse la place au balcon.
 - Voisinage : titre lisible, raccourcis « Mon étage », « Mon thème » et « Profil » sous le titre.
 
