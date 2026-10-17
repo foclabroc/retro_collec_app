@@ -22,6 +22,7 @@ import 'push.dart';
 import 'packs.dart';
 import 'retro_theme.dart';
 import 'server.dart';
+import 'title_screen.dart';
 import 'update_check.dart';
 import 'welcome.dart';
 import 'whats_new.dart';
@@ -196,18 +197,66 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
   String step = '';
   String? error;
   late final AnimationController blink = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat(reverse: true);
-  late final AnimationController float = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat(reverse: true);
+
+  // Web : le navigateur n'autorise le son qu'après une première touche
+  bool _soundOn = !kIsWeb;
+  int _c4Turn = 0, _gifts = 0;
+  Timer? _clock;
 
   @override
   void initState() {
     super.initState();
+    // La musique d'accueil démarre dès l'écran titre (sur le web, à la première touche)
+    if (!kIsWeb) RcAudio.musicStart(RcAudio.homeTrack);
+    _clock = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted && !done) setState(() {});
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _start());
+  }
+
+  /// Nouvelles du panneau joueur : parties de 4 en ligne où c'est ton tour, cadeaux reçus
+  Future<void> _loadNews() async {
+    try {
+      final r = await Future.wait([RcServer.c4List(), RcServer.notifs().then((v) => [v])]);
+      if (!mounted) return;
+      setState(() {
+        _c4Turn = r[0].where((g) => g['status'] == 'playing' && g['turn'] == g['side']).length;
+        _gifts = ((r[1].first['gifts'] as num?) ?? 0).toInt();
+      });
+    } catch (_) {}
+  }
+
+  void _unlockSound() {
+    _soundOn = true;
+    if (RcAudio.musicEnabled) RcAudio.musicStart(RcAudio.homeTrack);
+    setState(() {});
+  }
+
+  void _toggleSound() {
+    HapticFeedback.selectionClick();
+    if (!_soundOn) {
+      if (!RcAudio.musicEnabled) RcAudio.setMusicEnabled(true);
+      _unlockSound();
+      return;
+    }
+    final v = !RcAudio.musicEnabled;
+    RcAudio.setMusicEnabled(v);
+    if (v) RcAudio.musicStart(RcAudio.homeTrack);
+    setState(() {});
+  }
+
+  void _tap() {
+    if (!_soundOn && RcAudio.musicEnabled) {
+      _unlockSound();
+      return;
+    }
+    _play();
   }
 
   @override
   void dispose() {
     blink.dispose();
-    float.dispose();
+    _clock?.cancel();
     super.dispose();
   }
 
@@ -265,6 +314,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
       return;
     }
     if (mounted) setState(() => ready = true);
+    _loadNews();
   }
 
   void _play() {
@@ -275,12 +325,24 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
     setState(() => done = true);
   }
 
+  static String _inText(DateTime at) {
+    final d = at.difference(DateTime.now());
+    if (d.isNegative) return '0 min';
+    return d.inHours > 0 ? '${d.inHours} h ${(d.inMinutes % 60).toString().padLeft(2, '0')}' : '${d.inMinutes} min';
+  }
+
+  Widget _news(String text, Color c) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(color: c.withOpacity(0.14), borderRadius: BorderRadius.circular(8)),
+        child: Text(text, style: TextStyle(color: c, fontWeight: FontWeight.w800, fontSize: 11.5)),
+      );
+
   @override
   Widget build(BuildContext context) {
     if (done) {
       return HomeShell(onBackToTitle: () {
-        RcAudio.musicStop();
-        setState(() => done = false);
+        setState(() => done = false); // la musique continue sur l'écran titre
+        _loadNews();
       });
     }
     final g = Game.i;
@@ -301,26 +363,18 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
       child: Scaffold(
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: _play,
-        child: SafeArea(
+        onTap: _tap,
+        child: Stack(children: [
+        const Positioned.fill(child: TitleSky()),
+        SafeArea(
           // pleine largeur : tout reste centré même quand seuls de petits éléments sont affichés
           child: SizedBox(
             width: double.infinity,
             child: Column(children: [
             const Spacer(flex: 2),
-            // carte qui flotte
-            AnimatedBuilder(
-              animation: float,
-              builder: (_, child) => Transform.translate(
-                offset: Offset(0, -8 + 16 * Curves.easeInOut.transform(float.value)),
-                child: Transform.rotate(angle: -0.06 + 0.12 * Curves.easeInOut.transform(float.value), child: child),
-              ),
-              child: const SizedBox(width: 150, child: CardBack(aura: kGold, glow: 0.7)),
-            ),
-            const SizedBox(height: 30),
-            Text('PIXEL', style: pixelStyle(size: 30)),
-            const SizedBox(height: 8),
-            Text('TRADE', style: pixelStyle(size: 30, color: const Color(0xFF3DD9FF))),
+            const TitleFan(),
+            const SizedBox(height: 18),
+            const TitleLogo(),
             const SizedBox(height: 10),
             Text(t('Collection de jeux rétro', 'Retro game collection'), style: const TextStyle(color: Colors.white60, letterSpacing: 1)),
             const Spacer(),
@@ -362,7 +416,11 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
                             style: const TextStyle(color: Colors.white60, fontSize: 12)),
                       ]),
                     ),
-                    CoinChip(g.coins),
+                    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                      CoinChip(g.coins),
+                      const SizedBox(height: 4),
+                      PixelChip(g.pixels),
+                    ]),
                   ]),
                   const SizedBox(height: 12),
                   Row(children: [
@@ -376,21 +434,27 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(value: total == 0 ? 0 : g.cards / total, minHeight: 7, color: kGold, backgroundColor: kPanel2),
                   ),
-                  if (g.free) ...[
-                    const SizedBox(height: 10),
-                    Row(children: [
-                      const Icon(Icons.card_giftcard, color: Color(0xFF5DCAA5), size: 18),
-                      const SizedBox(width: 6),
-                      Text(t('Ton paquet gratuit t\'attend !', 'Your free pack is waiting!'),
-                          style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(spacing: 6, runSpacing: 6, children: [
+                      if (g.free)
+                        _news('🎁 ' + t('Paquet gratuit prêt', 'Free pack ready'), const Color(0xFF5DCAA5))
+                      else if (g.freeAt != null)
+                        _news('🎁 ' + t('Gratuit dans ${_inText(g.freeAt!)}', 'Free in ${_inText(g.freeAt!)}'), Colors.white70),
+                      if (_c4Turn > 0) _news('⚔ ' + t('4 en ligne : à toi', 'Connect 4: your turn'), const Color(0xFFFF8A95)),
+                      if (_gifts > 0) _news(t('$_gifts cadeau${_gifts > 1 ? 'x' : ''}', '$_gifts gift${_gifts > 1 ? 's' : ''}'), const Color(0xFFFFD166)),
                     ]),
-                  ],
+                  ),
                 ]),
               ),
               const SizedBox(height: 26),
               FadeTransition(
                 opacity: blink,
-                child: Text(t('TOUCHE L\'ÉCRAN POUR JOUER', 'TAP THE SCREEN TO PLAY'), textAlign: TextAlign.center, style: pixelStyle(size: 11, color: Colors.white)),
+                child: Text(
+                    !_soundOn && RcAudio.musicEnabled ? t('▶ TOUCHE POUR LE SON', '▶ TAP FOR SOUND') : t('▶ TOUCHE POUR JOUER', '▶ TAP TO PLAY'),
+                    textAlign: TextAlign.center,
+                    style: pixelStyle(size: 11, color: Colors.white)),
               ),
             ],
             const Spacer(),
@@ -401,6 +465,17 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
           ]),
           ),
         ),
+        // son : coupe ou remet la musique (sur le web, la première touche l'active)
+        SafeArea(
+          child: Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: _SoundButton(on: _soundOn && RcAudio.musicEnabled, needsTap: !_soundOn && RcAudio.musicEnabled, onTap: _toggleSound),
+            ),
+          ),
+        ),
+        ]),
       ),
     ),
     );
@@ -829,4 +904,54 @@ class TabIcon extends StatelessWidget {
           child: Image.asset('assets/tabs/$name.png', width: 30, height: 30, filterQuality: FilterQuality.medium),
         ),
       );
+}
+
+/// Bouton son de l'écran titre (il pulse sur le web tant que le son n'est pas activé)
+class _SoundButton extends StatefulWidget {
+  final bool on, needsTap;
+  final VoidCallback onTap;
+  const _SoundButton({required this.on, required this.needsTap, required this.onTap});
+  @override
+  State<_SoundButton> createState() => _SoundButtonState();
+}
+
+class _SoundButtonState extends State<_SoundButton> with SingleTickerProviderStateMixin {
+  late final AnimationController c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400))..repeat();
+  @override
+  void dispose() {
+    c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const neon = Color(0xFFFF4FD8);
+    final label = widget.needsTap ? t('Activer le son', 'Turn sound on') : (widget.on ? t('Son', 'Sound') : t('Coupé', 'Muted'));
+    return AnimatedBuilder(
+      animation: c,
+      builder: (_, child) => Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [if (widget.needsTap) BoxShadow(color: neon.withOpacity(0.35 * (1 - c.value)), spreadRadius: 6 * c.value)],
+        ),
+        child: child,
+      ),
+      child: Material(
+        color: const Color(0xB30A0E32),
+        shape: StadiumBorder(side: BorderSide(color: widget.needsTap ? neon : Colors.white24, width: 1.5)),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: widget.onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(widget.on ? Icons.volume_up : Icons.volume_off, size: 17, color: Colors.white),
+              const SizedBox(width: 6),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
 }

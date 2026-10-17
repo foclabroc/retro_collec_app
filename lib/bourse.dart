@@ -77,20 +77,32 @@ class BourseScreenState extends State<BourseScreen> with SingleTickerProviderSta
       TabHeader(t('Bourse', 'Exchange'), actions: [
         IconButton(icon: const Icon(Icons.refresh), onPressed: reload),
       ]),
+      // 4 onglets en carrés de couleur : Acheter vert, Vendre orange, Échanges bleu, Historique violet
       ListenableBuilder(
-        listenable: Notifs.i,
-        builder: (_, __) => TabBar(
-          controller: tabs,
-          indicatorColor: kGold,
-          labelColor: kGold,
-          labelPadding: EdgeInsets.zero,
-          labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-          tabs: [
-            Tab(icon: const Icon(Icons.shopping_cart, size: 20), text: t('Acheter', 'Buy'), iconMargin: const EdgeInsets.only(bottom: 2)),
-            Tab(icon: countBadge(Notifs.i.sales.length, const Icon(Icons.sell, size: 20)), text: t('Vendre', 'Sell'), iconMargin: const EdgeInsets.only(bottom: 2)),
-            Tab(icon: countBadge(Notifs.i.trades, const Icon(Icons.swap_horiz, size: 20)), text: t('Échanges', 'Trades'), iconMargin: const EdgeInsets.only(bottom: 2)),
-            Tab(icon: const Icon(Icons.history, size: 20), text: t('Historique', 'History'), iconMargin: const EdgeInsets.only(bottom: 2)),
-          ],
+        listenable: Listenable.merge([Notifs.i, tabs.animation!]),
+        builder: (_, __) => Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+          child: Row(children: [
+            for (final (i, icon, label, color, badge) in [
+              (0, Icons.shopping_cart, t('Acheter', 'Buy'), const Color(0xFF5DCAA5), 0),
+              (1, Icons.sell, t('Vendre', 'Sell'), const Color(0xFFFFB547), Notifs.i.sales.length),
+              (2, Icons.swap_horiz, t('Échanges', 'Trades'), const Color(0xFF3EC7FF), Notifs.i.trades),
+              (3, Icons.history, t('Historique', 'History'), const Color(0xFFB48CFF), 0),
+            ])
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(left: i == 0 ? 0 : 8),
+                  child: _TabTile(
+                    icon: icon,
+                    label: label,
+                    color: color,
+                    badge: badge,
+                    on: (1 - ((tabs.animation!.value) - i).abs()).clamp(0.0, 1.0),
+                    onTap: () => tabs.animateTo(i),
+                  ),
+                ),
+              ),
+          ]),
         ),
       ),
       Expanded(
@@ -102,6 +114,72 @@ class BourseScreenState extends State<BourseScreen> with SingleTickerProviderSta
         ]),
       ),
     ]);
+  }
+}
+
+/// Onglet de la Bourse : carré de couleur avec son icône ; [on] de 0 à 1 (suit le glissement)
+class _TabTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final int badge;
+  final double on;
+  final VoidCallback onTap;
+  const _TabTile({required this.icon, required this.label, required this.color, required this.badge, required this.on, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Color.lerp(color, Colors.black, 0.45)!;
+    final edge = Color.lerp(color, Colors.black, 0.65)!;
+    return GestureDetector(
+      onTap: onTap,
+      child: Transform.translate(
+        offset: Offset(0, -2 * on),
+        child: SizedBox(
+          height: 76, // carré sur téléphone, sans devenir énorme sur tablette
+          child: Stack(clipBehavior: Clip.none, children: [
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.72 + 0.28 * on,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [color, dark]),
+                    border: Border.all(color: Colors.white.withOpacity(0.8 * on), width: 2),
+                    boxShadow: [
+                      BoxShadow(color: edge, offset: Offset(0, 4 + 2 * on)),
+                      if (on > 0) BoxShadow(color: color.withOpacity(0.55 * on), blurRadius: 18),
+                    ],
+                  ),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(icon, color: Colors.white, size: 26, shadows: const [Shadow(color: Colors.black38, offset: Offset(0, 1), blurRadius: 2)]),
+                    const SizedBox(height: 4),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(label,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12, shadows: [Shadow(color: Colors.black45, offset: Offset(0, 1), blurRadius: 2)])),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+            if (badge > 0)
+              Positioned(
+                top: -6,
+                right: -6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(color: const Color(0xFFFF4757), borderRadius: BorderRadius.circular(9), border: Border.all(color: kBg, width: 2)),
+                  child: Text('$badge', style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w900)),
+                ),
+              ),
+          ]),
+        ),
+      ),
+    );
   }
 }
 

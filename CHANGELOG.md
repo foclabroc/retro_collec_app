@@ -9,6 +9,12 @@
   attente du défi avec compte à rebours. En partie : chronos autour des avatars, pion qui vise la colonne,
   dernier coup entouré, **réactions** 👍😮😂🔥👏 vues par l'adversaire, sons (coupables), règles, et écran de fin
   avec trophée, pièces qui défilent et confettis.
+- **Écran titre revu** : trois cartes en éventail (halos épique et rare qui pulsent, carte dorée qui flotte),
+  logo avec reflet, ciel étoilé et sol néon. Le panneau du joueur affiche aussi les pixels et les nouvelles
+  (paquet gratuit prêt ou dans combien de temps, 4 en ligne à toi de jouer, cadeaux reçus).
+- La **musique démarre dès l'écran titre** (sur le web, à la première touche), avec un bouton son en haut à droite.
+- **Bourse** : les 4 onglets deviennent des carrés de couleur avec leur icône (Acheter vert, Vendre orange,
+  Échanges bleu, Historique violet).
 - **Version web** : les bruitages marchent enfin (quiz, roue, 4 en ligne…), les mêmes que sur Android.
 - Voisinage : plaque des joueurs plus large (toutes les infos visibles) ; la fenêtre de gauche laisse la place au balcon.
 - Voisinage : titre lisible, raccourcis « Mon étage », « Mon thème » et « Profil » sous le titre.
