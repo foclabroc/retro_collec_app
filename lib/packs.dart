@@ -221,6 +221,51 @@ class _PacksScreenState extends State<PacksScreen> {
     if (sys != null) _open(kind, sys);
   }
 
+  /// Sous-menu Pixels : jauge et boosters spéciaux
+  Future<void> _openPixels() => showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.9),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              child: ListenableBuilder(
+                listenable: Game.i,
+                builder: (_, __) => _PixelsGauge(Game.i.pixels, offers: _pixelOffers(Game.i)),
+              ),
+            ),
+          ),
+        ),
+      );
+
+  List<Widget> _pixelOffers(Game g) => [
+        for (final (kind, title, sub, color) in [
+          ('star', t('Booster Étoile', 'Star booster'), t('5 cartes dont une épique ou mieux', '5 cards, one epic or better'), const Color(0xFF8A3DFF)),
+          ('sconsole', t('Booster Console+', 'Console+ booster'),
+              t('Console au choix : une rare ou mieux et une brillante garanties', 'System of your choice: one rare or better and one holo guaranteed'), const Color(0xFF2F6BFF)),
+          ('gold', t('Booster Rétro d\'or', 'Retro Gold booster'), t('Une légendaire… ou une carte dorée garantie', 'A legendary… or a gold card guaranteed'), const Color(0xFFF0A419)),
+        ])
+          _PackOffer(
+            kind: kind,
+            packLabel: t('Spécial', 'Special'),
+            title: title,
+            subtitle: g.pixels >= kSpecialPrice[kind]!
+                ? sub
+                : '$sub\n${t('Encore ${kSpecialPrice[kind]! - g.pixels} pixels', '${kSpecialPrice[kind]! - g.pixels} more pixels')}',
+            price: 0,
+            pixels: kSpecialPrice[kind],
+            color: color,
+            highlight: g.pixels >= kSpecialPrice[kind]!,
+            enabled: !busy && g.pixels >= kSpecialPrice[kind]!,
+            onTap: () {
+              Navigator.pop(context); // ferme le sous-menu
+              kind == 'sconsole' ? _pickConsole('sconsole') : _open(kind);
+            },
+          ),
+      ];
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -231,29 +276,8 @@ class _PacksScreenState extends State<PacksScreen> {
           TabHeader(t('Paquets', 'Packs')),
           Expanded(
             child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: [
-              // catégorie Pixels : la jauge et les boosters spéciaux ensemble
-              _PixelsGauge(g.pixels, offers: [
-              for (final (kind, title, sub, color) in [
-                ('star', t('Booster Étoile', 'Star booster'), t('5 cartes dont une épique ou mieux', '5 cards, one epic or better'), const Color(0xFF8A3DFF)),
-                ('sconsole', t('Booster Console+', 'Console+ booster'),
-                    t('Console au choix : une rare ou mieux et une brillante garanties', 'System of your choice: one rare or better and one holo guaranteed'), const Color(0xFF2F6BFF)),
-                ('gold', t('Booster Rétro d\'or', 'Retro Gold booster'), t('Une légendaire… ou une carte dorée garantie', 'A legendary… or a gold card guaranteed'), const Color(0xFFF0A419)),
-              ])
-                _PackOffer(
-                  kind: kind,
-                  packLabel: t('Spécial', 'Special'),
-                  title: title,
-                  subtitle: g.pixels >= kSpecialPrice[kind]!
-                      ? sub
-                      : '$sub\n${t('Encore ${kSpecialPrice[kind]! - g.pixels} pixels', '${kSpecialPrice[kind]! - g.pixels} more pixels')}',
-                  price: 0,
-                  pixels: kSpecialPrice[kind],
-                  color: color,
-                  highlight: g.pixels >= kSpecialPrice[kind]!,
-                  enabled: !busy && g.pixels >= kSpecialPrice[kind]!,
-                  onTap: () => kind == 'sconsole' ? _pickConsole('sconsole') : _open(kind),
-                ),
-              ]),
+              // catégorie Pixels : une ligne compacte, les boosters spéciaux dans un sous-menu
+              _PixelsRow(g.pixels, onTap: _openPixels),
               const SizedBox(height: 14),
               if (Notifs.i.gifts > 0)
                 _PackOffer(
@@ -1961,6 +1985,15 @@ class _PixelsGauge extends StatelessWidget {
         border: Border.all(color: kGold, width: 1.5),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (offers.isNotEmpty)
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
         Row(children: [
           const PixelIcon(size: 30),
           const SizedBox(width: 12),
@@ -2013,6 +2046,62 @@ class _PixelsGauge extends StatelessWidget {
           ...offers,
         ],
       ]),
+    );
+  }
+}
+
+
+/// Ligne compacte « Boosters Pixels » de la boutique (ouvre le sous-menu)
+class _PixelsRow extends StatelessWidget {
+  final int pixels;
+  final VoidCallback onTap;
+  const _PixelsRow(this.pixels, {required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final top = kSpecialPrice.values.reduce(max);
+    final ready = kSpecialPrice.values.where((p) => p <= pixels).length;
+    final next = kSpecialPrice.values.where((p) => p > pixels).fold<int>(top, min);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFF2A1F6B), Color(0xFF1B2358)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: kGold, width: 1.5),
+          ),
+          child: Row(children: [
+            const PixelIcon(size: 26),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  Text(t('Boosters Pixels', 'Pixel boosters'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                  const SizedBox(width: 8),
+                  Text('$pixels', style: pixelStyle(size: 10, color: const Color(0xFFFFD166), shadow: false)),
+                ]),
+                const SizedBox(height: 5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(value: (pixels / top).clamp(0.0, 1.0), minHeight: 6, color: const Color(0xFFFFD166), backgroundColor: Colors.white10),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  ready > 0
+                      ? t('$ready booster${ready > 1 ? 's' : ''} spécial disponible !', '$ready special booster${ready > 1 ? 's' : ''} available!')
+                      : t('Plus que ${next - pixels} booster${next - pixels > 1 ? 's' : ''} pour le prochain', '${next - pixels} more booster${next - pixels > 1 ? 's' : ''} for the next one'),
+                  style: TextStyle(color: ready > 0 ? const Color(0xFFFFD166) : Colors.white60, fontSize: 11.5, fontWeight: ready > 0 ? FontWeight.w800 : FontWeight.w500),
+                ),
+              ]),
+            ),
+            const Icon(Icons.chevron_right, color: Color(0xFFFFD166), size: 28),
+          ]),
+        ),
+      ),
     );
   }
 }
