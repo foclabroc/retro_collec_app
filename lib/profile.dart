@@ -709,6 +709,11 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                         Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                         Text(t('Score ${p!['score']} · ${p!['cards']} cartes · ${p!['packs']} paquets', 'Score ${p!['score']} · ${p!['cards']} cards · ${p!['packs']} packs'),
                             style: const TextStyle(color: kGold, fontSize: 13)),
+                        const SizedBox(height: 2),
+                        p!['online'] == true
+                            ? Text(t('● En ligne', '● Online'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 12, fontWeight: FontWeight.w800))
+                            : Text(t('🕒 Dernière connexion : ', '🕒 Last seen: ') + lastSeenLong(DateTime.tryParse(p!['seen_at']?.toString() ?? '')?.toLocal()),
+                                style: const TextStyle(color: Colors.white60, fontSize: 12)),
                       ]),
                     ),
                   ]),

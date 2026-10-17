@@ -201,7 +201,9 @@ class FloorData {
   final int avatar, score, cards, coins, theme;
   final int? rank;
   final bool online, me;
+  final DateTime? seenAt; // dernière connexion
   const FloorData({
+    this.seenAt,
     required this.pid,
     required this.name,
     required this.avatar,
@@ -227,9 +229,45 @@ class FloorData {
       theme: floorThemeOf(me ? Game.i.house : p['house'] as String?, pid),
       online: me || p['online'] == true,
       me: me,
+      seenAt: DateTime.tryParse(p['seen_at']?.toString() ?? '')?.toLocal(),
       rank: rank ?? (p['rank'] as num?)?.toInt(),
     );
   }
+}
+
+String _hm(DateTime d) => '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+
+/// Dernière connexion, version courte (plaque) : « vu à 14:32 », « vu hier », « vu le 12/10 »
+String lastSeenShort(DateTime? d) {
+  if (d == null) return '';
+  final now = DateTime.now();
+  final day = DateTime(d.year, d.month, d.day), today = DateTime(now.year, now.month, now.day);
+  final diff = today.difference(day).inDays;
+  if (diff <= 0) return t('vu à ${_hm(d)}', 'seen at ${_hm(d)}');
+  if (diff == 1) return t('vu hier', 'seen yesterday');
+  return t('vu le ${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}', 'seen ${d.month}/${d.day}');
+}
+
+/// Dernière connexion, version longue (profil) : « aujourd'hui à 14:32 (il y a 3 h) »
+String lastSeenLong(DateTime? d) {
+  if (d == null) return t('inconnue', 'unknown');
+  final now = DateTime.now();
+  final day = DateTime(d.year, d.month, d.day), today = DateTime(now.year, now.month, now.day);
+  final diff = today.difference(day).inDays;
+  final m = now.difference(d).inMinutes;
+  final ago = m < 1
+      ? t('à l\'instant', 'just now')
+      : m < 60
+          ? t('il y a $m min', '$m min ago')
+          : m < 48 * 60
+              ? t('il y a ${m ~/ 60} h', '${m ~/ 60} h ago')
+              : t('il y a ${m ~/ 1440} jours', '${m ~/ 1440} days ago');
+  final when = diff <= 0
+      ? t('aujourd\'hui à ${_hm(d)}', 'today at ${_hm(d)}')
+      : diff == 1
+          ? t('hier à ${_hm(d)}', 'yesterday at ${_hm(d)}')
+          : t('le ${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')} à ${_hm(d)}', 'on ${d.month}/${d.day} at ${_hm(d)}');
+  return '$when ($ago)';
 }
 
 String pctOf(int cards) => '${Catalog.cards.isEmpty ? 0 : (cards * 100 ~/ Catalog.cards.length)} %';
@@ -361,6 +399,11 @@ class TowerFloor extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(left: 6),
                   child: Text(t('en ligne', 'online'), style: const TextStyle(fontSize: 10, color: Color(0xFF5DCAA5), fontWeight: FontWeight.w800)),
+                )
+              else if (!d.me && d.seenAt != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: Text(lastSeenShort(d.seenAt), style: const TextStyle(fontSize: 10, color: Color(0xFFB8A98C), fontWeight: FontWeight.w700)),
                 ),
               if (d.me)
                 Container(

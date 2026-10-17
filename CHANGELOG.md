@@ -1,5 +1,9 @@
 # Pixel Trade — Changelog
 
+## v1.0.8
+- **Dernière connexion des joueurs** : sur la plaque de chaque étage du Voisinage (« vu à 14:32 », « vu hier », « vu le 12/10 », ou « en ligne »)
+  et sur le profil (« Dernière connexion : aujourd'hui à 14:32 (il y a 3 h) »).
+
 ## v1.0.7
 - **4 en ligne** (onglet renommé « Bonus / Jeux ») : défie un autre joueur, 50 pièces de mise chacun,
   le gagnant remporte 100 pièces + 1 pixel (match nul : mises rendues). Section **En direct** (joueurs en ligne, 1 minute par coup)
