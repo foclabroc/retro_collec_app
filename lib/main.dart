@@ -443,6 +443,9 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       await Future.delayed(const Duration(milliseconds: 600));
       if (mounted) await maybeShowWhatsNew(context);
       await Game.i.claimRewards();
+      // booster payé mais pas encore choisi (appli fermée pendant le choix) : on reprend
+      final p = await Game.i.pendingChoice();
+      if (p != null && mounted) await showPackOpening(context, p, (p['kind'] as String?) ?? 'mixte');
     });
   }
 

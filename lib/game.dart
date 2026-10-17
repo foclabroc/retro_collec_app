@@ -260,10 +260,52 @@ class Game extends ChangeNotifier {
 
   Future<Map<String, dynamic>> openPack(String kind, [String? sys]) async {
     final r = await RcServer.open(kind, sys);
+    if (kind == 'free') free = false;
+    _applyPack(r);
+    return r;
+  }
+
+  bool _choiceOk = true; // faux si le serveur n'a pas encore patch_choix_booster.sql
+
+  /// Achat avec choix parmi 6 boosters : renvoie {choose: 6, kind, sys, resumed…},
+  /// ou directement les cartes (comme [openPack]) si le serveur n'est pas à jour.
+  Future<Map<String, dynamic>> openChoice(String kind, [String? sys]) async {
+    if (_choiceOk) {
+      try {
+        final r = await RcServer.openChoice(kind, sys);
+        coins = (r['coins'] as num? ?? coins).toInt();
+        if (kind == 'free' && r['resumed'] != true) free = false;
+        notifyListeners();
+        return r;
+      } on RcError catch (e) {
+        if (!'$e'.contains('Could not find the function')) rethrow;
+        _choiceOk = false;
+      }
+    }
+    return openPack(kind, sys);
+  }
+
+  /// Booster choisi (0 à 5) : ses cartes arrivent dans la collection.
+  Future<Map<String, dynamic>> pickPack(int choice) async {
+    final r = await RcServer.pick(choice);
+    _applyPack(r);
+    return r;
+  }
+
+  /// Achat payé mais booster pas encore choisi (appli fermée entre les deux), ou null.
+  Future<Map<String, dynamic>?> pendingChoice() async {
+    if (!_choiceOk) return null;
+    try {
+      return await RcServer.pending();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _applyPack(Map<String, dynamic> r) {
     coins = (r['coins'] as num? ?? coins).toInt();
     pity = (r['pity'] as num? ?? pity).toInt();
     score = (r['score'] as num? ?? score).toInt();
-    if (kind == 'free') free = false;
     packs++;
     for (final c in (r['cards'] as List? ?? const [])) {
       final q = owned[c['c'] as String] ??= [0, 0, 0];
@@ -276,7 +318,6 @@ class Game extends ChangeNotifier {
       addRecent(c, f);
     }
     notifyListeners();
-    return r;
   }
 
   Future<int> recycle(String card, int finish, int n) async {

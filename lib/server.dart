@@ -183,6 +183,31 @@ class RcServer {
     }));
   }
 
+  /// Achat avec choix du booster : le serveur tire 6 paquets et attend le choix (rc_pick).
+  /// Renvoie {choose: 6, kind, sys, resumed, coins, lots, gifts} ; resumed = achat précédent pas encore choisi.
+  static Future<Map<String, dynamic>> openChoice(String kind, [String? sys]) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_open_choice', {
+      'p_device': d,
+      'p_kind': kind,
+      'p_sys': sys,
+      'p_sig': _sig('$d|open6|$kind|${sys ?? ''}'),
+    }));
+  }
+
+  /// Choix du booster (0 à 5). Renvoie comme [open] + choice, missed {c,f,r,n,b}.
+  static Future<Map<String, dynamic>> pick(int choice) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_pick', {'p_device': d, 'p_choice': choice, 'p_sig': _sig('$d|pick|$choice')}));
+  }
+
+  /// Achat en attente de choix (appli fermée avant de choisir), ou null.
+  static Future<Map<String, dynamic>?> pending() async {
+    final d = await deviceId();
+    final r = await _rpc('rc_pending_get', {'p_device': d, 'p_sig': _sig('$d|pending')});
+    return r == null ? null : _map(r);
+  }
+
   // ── Recyclage / fabrication ─────────────────────────────────────────────
   static Future<Map<String, dynamic>> recycle(String card, int finish, int qty) async {
     final d = await deviceId();

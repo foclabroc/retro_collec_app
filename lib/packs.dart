@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import 'audio.dart';
+import 'booster_choice.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
@@ -18,13 +19,21 @@ import 'server.dart';
 // Boutique de paquets + ouverture animée (déchirer, révéler, effets par rareté)
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Ouvre un paquet (serveur + animation). [sys] : console, ou numéro du cadeau.
+/// Ouvre un paquet (serveur + choix du booster + animation). [sys] : console, ou numéro du cadeau.
 Future<void> openPackFlow(BuildContext context, String kind, [String? sys]) async {
-  final r = await Game.i.openPack(kind, sys);
+  final r = await Game.i.openChoice(kind, sys);
   if (!context.mounted) return;
+  await showPackOpening(context, r, kind, sys);
+}
+
+/// Écran d'ouverture pour un résultat de [Game.openChoice] (ou un achat resté sans choix).
+Future<void> showPackOpening(BuildContext context, Map<String, dynamic> r, String kind, [String? sys]) async {
+  final k = (r['kind'] as String?) ?? kind;
+  final s = r.containsKey('kind') ? r['sys'] as String? : sys;
+  if (r['resumed'] == true) toast(t('Tu n\'avais pas encore choisi ton booster', 'You hadn\'t picked your booster yet'));
   await Navigator.of(context).push(PageRouteBuilder(
     opaque: true,
-    pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: kind, sys: kind == 'console' ? sys : null),
+    pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: k, sys: k == 'console' ? s : null),
     transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
   ));
   Game.i.sync();
@@ -542,11 +551,14 @@ class PackOpeningPage extends StatefulWidget {
   State<PackOpeningPage> createState() => _PackOpeningPageState();
 }
 
-enum _Phase { pack, reveal, summary }
+enum _Phase { choose, pack, reveal, summary }
 
 class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderStateMixin {
-  late List<_Pulled> pulled;
+  List<_Pulled> pulled = [];
   _Phase phase = _Phase.pack;
+  late Map<String, dynamic> res; // résultat du serveur (cartes du booster choisi)
+  int? booster; // couleur du booster choisi (kBoosters)
+  Map? missed; // meilleure carte des autres boosters {c,f,r,n,b}
 
   // déchirure
   double tear = 0;
@@ -598,8 +610,19 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   void initState() {
     super.initState();
     rcEdgeMenuBlocked++;
+    res = widget.result;
+    if (res['cards'] == null && res['choose'] != null) {
+      phase = _Phase.choose; // 6 boosters tirés : le joueur en choisit un
+    } else {
+      _load(res);
+    }
+    _ticker = createTicker(_tick)..start();
+    RcAudio.sfx('logo');
+  }
+
+  void _load(Map<String, dynamic> r) {
     final list = <_Pulled>[];
-    for (final c in (widget.result['cards'] as List? ?? const [])) {
+    for (final c in (r['cards'] as List? ?? const [])) {
       final card = Catalog.cards[c['c'] as String];
       if (card == null) continue;
       list.add(_Pulled(card, (c['f'] as num).toInt(), (c['r'] as num).toInt(), c['n'] == true));
@@ -607,8 +630,25 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     // du plus commun au plus rare : le meilleur pour la fin
     list.sort((a, b) => (a.r * 3 + a.f).compareTo(b.r * 3 + b.f));
     pulled = list;
-    _ticker = createTicker(_tick)..start();
-    RcAudio.sfx('logo');
+    booster = (r['choice'] as num?)?.toInt();
+    missed = r['missed'] is Map && Catalog.cards[(r['missed'] as Map)['c']] != null ? r['missed'] as Map : null;
+  }
+
+  /// Booster choisi : le serveur donne ses cartes, puis on passe au paquet à déchirer.
+  Future<void> _choose(int i) async {
+    try {
+      final r = await Game.i.pickPack(i);
+      if (!mounted) return;
+      RcAudio.sfx('coin');
+      setState(() {
+        res = r;
+        _load(r);
+        booster = i;
+        phase = _Phase.pack;
+      });
+    } catch (e) {
+      toast(errText(e));
+    }
   }
 
   @override
@@ -835,7 +875,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   /// Retour / croix avant la fin : les cartes sont déjà dans la collection,
   /// on saute directement au récapitulatif pour les montrer.
   void _skipToSummary() {
-    if (phase == _Phase.summary) {
+    if (phase == _Phase.summary || phase == _Phase.choose) {
       Navigator.pop(context);
       return;
     }
@@ -858,7 +898,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: phase == _Phase.summary,
+      canPop: phase == _Phase.summary || phase == _Phase.choose,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _skipToSummary();
       },
@@ -910,6 +950,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                         ),
                       ),
                     ),
+                  if (phase == _Phase.choose) _chooseStage(),
                   if (phase == _Phase.pack) _packStage(),
                   if (phase == _Phase.reveal) _revealStage(),
                   if (phase == _Phase.summary) _summary(),
@@ -964,6 +1005,9 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
 
   String _hint() {
     switch (phase) {
+      case _Phase.choose:
+        return t('Fais tourner les boosters avec ton doigt · touche celui du milieu pour le choisir',
+            'Spin the boosters with your finger · tap the middle one to pick it');
       case _Phase.pack:
         return t('Fais tourner le paquet avec ton doigt · glisse le long du pointillé en haut pour l\'ouvrir\nOuvert de face, les cartes sortent de face · ouvert de dos, elles sortent de dos',
             'Spin the pack with your finger · swipe along the dotted line at the top to open it\nOpened face up, the cards come out face up · opened from the back, face down');
@@ -1005,10 +1049,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
               final tc = sheenCtl.value;
               final sweep = tc < 0.4 ? -0.9 + tc / 0.4 * 1.8 : 9.0;
               final turn = sin(rotY) * 0.9 + rotX * 0.5;
-              Widget img(String a) => ColorFiltered(
-                    colorFilter: _kVivid,
-                    child: Image.asset(a, width: w, height: h, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
-                  );
+              Widget img(String a) => _boosterImg(a, w, h, booster);
               Widget shiny(String a) => ShaderMask(
                     blendMode: BlendMode.srcATop,
                     shaderCallback: (r) {
@@ -1172,7 +1213,24 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     );
   }
 
-  Color _packColor() => switch (widget.kind) {
+  /// Image du paquet, aux couleurs du booster [b] (null : couleurs d'origine)
+  Widget _boosterImg(String a, double w, double h, int? b) {
+    final Widget im = ColorFiltered(
+      colorFilter: _kVivid,
+      child: Image.asset(a, width: w, height: h, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
+    );
+    return b == null ? im : ColorFiltered(colorFilter: boosterFilter(b), child: im);
+  }
+
+  Widget _chooseStage() => Positioned.fill(
+        child: BoosterRing(
+          pack: (i, w, h) => _boosterImg('assets/booster_front.webp', w, h, i),
+          label: widget.kind == 'console' && widget.sys != null ? ConsoleLogo(widget.sys!, height: 14) : null,
+          onChoose: _choose,
+        ),
+      );
+
+  Color _packColor() => booster != null ? kBoosters[booster!].glow : switch (widget.kind) {
         'free' => const Color(0xFF0F6E56),
         'console' => const Color(0xFF185FA5),
         'premium' => const Color(0xFF854F0B),
@@ -1334,8 +1392,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   Widget _summary() {
     final nw = pulled.where((p) => p.isNew).length;
     final dup = pulled.length - nw;
-    final lotsLeft = (widget.result['lots'] as num? ?? 0).toInt();
-    final giftsLeft = (widget.result['gifts'] as num? ?? 0).toInt();
+    final lotsLeft = (res['lots'] as num? ?? 0).toInt();
+    final giftsLeft = (res['gifts'] as num? ?? 0).toInt();
     final again = widget.kind == 'lot' && lotsLeft > 0
         ? 'lot'
         : widget.kind == 'gift' && giftsLeft > 0
@@ -1369,6 +1427,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                 ]),
               ),
           ]),
+          if (missed != null) ...[const SizedBox(height: 22), _missedLine(missed!)],
           const SizedBox(height: 24),
           if (dup > 0)
             Text(t('Les doublons se recyclent (Collection → ♻) ou s\'échangent', 'Duplicates can be recycled (Collection → ♻) or traded'),
@@ -1396,14 +1455,52 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     );
   }
 
+  /// « Tu as raté : … dans le booster rouge » (meilleure carte des 5 autres boosters)
+  Widget _missedLine(Map m) {
+    final card = Catalog.cards[m['c'] as String]!;
+    final f = (m['f'] as num? ?? 0).toInt(), r = (m['r'] as num? ?? 0).toInt();
+    final b = kBoosters[(m['b'] as num? ?? 0).toInt() % kBoosters.length];
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => _BigCard(card, f))),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: b.glow.withOpacity(0.8)),
+        ),
+        child: Row(children: [
+          SizedBox(width: 44, child: CardView(card: card, finish: f)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text.rich(
+              TextSpan(children: [
+                TextSpan(text: t('Tu as raté : ', 'You missed: '), style: const TextStyle(color: Colors.white60)),
+                TextSpan(text: card.title, style: const TextStyle(fontWeight: FontWeight.w800)),
+                TextSpan(
+                  text: ' (${rarityName(r).toLowerCase()}${f > 0 ? ', ${finishName(f).toLowerCase()}' : ''})',
+                  style: TextStyle(color: kRarityLight[r], fontWeight: FontWeight.w700),
+                ),
+                TextSpan(text: t(' dans le booster ', ' in the '), style: const TextStyle(color: Colors.white60)),
+                TextSpan(text: t(b.fr, '${b.en} booster'), style: TextStyle(color: b.glow, fontWeight: FontWeight.w800)),
+              ]),
+              style: const TextStyle(fontSize: 13, height: 1.35),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+
   Future<void> _again(String kind) async {
     try {
       final sys = kind == 'console' ? widget.sys : null; // cadeau suivant : le plus ancien
-      final r = await Game.i.openPack(kind, sys);
+      final r = await Game.i.openChoice(kind, sys);
       Notifs.i.refresh();
       if (!mounted) return;
+      final k = (r['kind'] as String?) ?? kind;
       Navigator.of(context).pushReplacement(PageRouteBuilder(
-        pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: kind, sys: sys),
+        pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: k, sys: k == 'console' ? (r.containsKey('kind') ? r['sys'] as String? : sys) : null),
         transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
       ));
     } catch (e) {
