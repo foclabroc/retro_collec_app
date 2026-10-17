@@ -12,17 +12,14 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('🎨', 'Choisis ton booster parmi 6 couleurs… et découvre ce que tu as raté dans les autres',
-      'Pick your booster among 6 colors… and see what you missed in the others'),
-  ('⏱️', 'Paquet gratuit toutes les 6 heures, avec compte à rebours', 'Free pack every 6 hours, with a countdown'),
-  ('🃏', 'Ouvre le paquet de face (cartes de face) ou de dos (cartes de dos)',
-      'Open the pack face up (cards face up) or from the back (cards face down)'),
-  ('👉', 'Fiche d\'une carte : flèches ou glisser pour passer à la suivante',
-      'Card details: arrows or swipe to go to the next one'),
-  ('🌌', '10 nouveaux thèmes animés, choix « Aléatoire » et nouveau dos des cartes',
-      '10 new animated themes, a « Random » option and a new card back'),
-  ('💰', 'Bourse : le nom du vendeur dans la liste · titres longs en entier',
-      'Market: seller name in the list · long titles shown in full'),
+  ('🏢', 'Voisinage en immeuble : chaque joueur a son étage, le n°1 au penthouse',
+      'Neighbors become a building: every player has a floor, #1 gets the penthouse'),
+  ('🎨', 'Thème de ton étage : 16 styles à débloquer avec tes cartes', 'Your floor theme: 16 styles to unlock with your cards'),
+  ('🟨', 'Pixels : 1 par booster ouvert, à échanger contre des boosters spéciaux',
+      'Pixels: 1 per booster opened, to trade for special boosters'),
+  ('⭐', 'Boosters Étoile, Console+ et Rétro d\'or avec cartes garanties', 'Star, Console+ and Retro Gold boosters with guaranteed cards'),
+  ('✦', 'Fusions toujours visibles dans la fiche d\'une carte', 'Fusions always visible on the card page'),
+  ('📊', 'Collection : touche une rareté pour voir tes cartes', 'Collection: tap a rarity to see your cards'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';

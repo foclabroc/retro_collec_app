@@ -12,7 +12,7 @@
 - Compteur de pixels à côté des pièces, en haut de chaque onglet et dans le menu.
 - Récap d'ouverture : « +1 pixel » et ton total.
 - **Voisinage en immeuble** : la « Pixel Tower », un immeuble en pierre où chaque joueur a son étage selon le classement
-  (le n°1 au penthouse). Fenêtres allumées pour les joueurs en ligne, balcons fleuris, ascenseur à grille,
+  (le n°1 au penthouse). Fenêtres allumées et mention « en ligne » pour les joueurs connectés, balcons fleuris, ascenseur à grille,
   plaque avec score, % de collection, cartes et pièces. Le hall donne accès aux cadeaux et à la recherche.
 - **Thème de mon étage** (à la place de la maison) : 16 thèmes (pierre, brique, bois, lierre, néon, art déco, verre,
   château, japonais, arcade, spatial, sous-marin, plage, neige, Halloween, or), débloqués au nombre de cartes.
