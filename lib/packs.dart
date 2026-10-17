@@ -1273,9 +1273,20 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
           ..rotateZ(rot + dx * 0.0016 + 0.45 * o)
           ..scale(1 + 0.12 * lift)
           ..rotateY(angle);
-        final Widget face = showFront
+        Widget face = showFront
             ? CardView(card: p.card, finish: p.f, manualTilt: fingerTilt)
             : CardBack(aura: p.r >= 2 ? kRarityColor[p.r] : null, glow: auraCtl.value);
+        // ouvert de face : le halo de rareté pulse autour de la carte, comme sur le dos
+        if (showFront && faceUp && p.r >= 2) {
+          final g = auraCtl.value, a = kRarityColor[p.r];
+          face = DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(cw * 0.07),
+              boxShadow: [BoxShadow(color: a.withOpacity(0.35 + 0.5 * g), blurRadius: cw * (0.08 + 0.14 * g), spreadRadius: cw * 0.015)],
+            ),
+            child: face,
+          );
+        }
         // Face visible : la carte a tourné de 180°, on la remet à l'endroit (carte + étiquette)
         Widget content = Stack(clipBehavior: Clip.none, children: [
                 face,
