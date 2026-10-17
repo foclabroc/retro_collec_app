@@ -791,7 +791,14 @@ class TabHeader extends StatelessWidget {
                 ),
               ),
             ),
-          Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: pixelStyle(size: 15))),
+          // titre entier : la police se réduit si la place manque (pièces, pixels, boutons)
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(title, maxLines: 1, style: pixelStyle(size: 15)),
+            ),
+          ),
           ...actions,
           const SizedBox(width: 6),
           // pixels (boosters spéciaux) et pièces
