@@ -231,8 +231,8 @@ class _PacksScreenState extends State<PacksScreen> {
           TabHeader(t('Paquets', 'Packs')),
           Expanded(
             child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: [
-              _PixelsGauge(g.pixels),
-              const SizedBox(height: 10),
+              // catégorie Pixels : la jauge et les boosters spéciaux ensemble
+              _PixelsGauge(g.pixels, offers: [
               for (final (kind, title, sub, color) in [
                 ('star', t('Booster Étoile', 'Star booster'), t('5 cartes dont une épique ou mieux', '5 cards, one epic or better'), const Color(0xFF8A3DFF)),
                 ('sconsole', t('Booster Console+', 'Console+ booster'),
@@ -253,7 +253,8 @@ class _PacksScreenState extends State<PacksScreen> {
                   enabled: !busy && g.pixels >= kSpecialPrice[kind]!,
                   onTap: () => kind == 'sconsole' ? _pickConsole('sconsole') : _open(kind),
                 ),
-              const SizedBox(height: 8),
+              ]),
+              const SizedBox(height: 14),
               if (Notifs.i.gifts > 0)
                 _PackOffer(
                   kind: 'gift',
@@ -1940,7 +1941,8 @@ class PixelChip extends StatelessWidget {
 /// Jauge des pixels (en haut de la boutique), repères aux prix des boosters spéciaux
 class _PixelsGauge extends StatelessWidget {
   final int pixels;
-  const _PixelsGauge(this.pixels);
+  final List<Widget> offers; // boosters spéciaux, sous la jauge
+  const _PixelsGauge(this.pixels, {this.offers = const []});
 
   @override
   Widget build(BuildContext context) {
@@ -1952,7 +1954,7 @@ class _PixelsGauge extends StatelessWidget {
       _ => t('Booster Rétro d\'or', 'Retro Gold booster'),
     };
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 2),
       decoration: BoxDecoration(
         gradient: const LinearGradient(colors: [Color(0xFF2A1F6B), Color(0xFF1B2358)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(16),
@@ -2006,6 +2008,10 @@ class _PixelsGauge extends StatelessWidget {
                   '${next.value - pixels} more booster${next.value - pixels > 1 ? 's' : ''} for the $nextName'),
           style: const TextStyle(color: Colors.white60, fontSize: 12),
         ),
+        if (offers.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          ...offers,
+        ],
       ]),
     );
   }
