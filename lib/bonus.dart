@@ -8,6 +8,7 @@ import 'cards.dart';
 import 'catalog.dart';
 import 'gamedle.dart';
 import 'game.dart';
+import 'layout.dart';
 import 'main.dart';
 import 'notifs.dart';
 import 'quiz.dart';
@@ -63,8 +64,8 @@ class BonusScreen extends StatelessWidget {
       TabHeader(t('Bonus', 'Bonus')),
       Expanded(
         child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: const [
-          WheelPanel(),
-          SizedBox(height: 18),
+          WheelTile(),
+          SizedBox(height: 12),
           GamedleTile(),
           SizedBox(height: 12),
           QuizTile(),
@@ -72,6 +73,89 @@ class BonusScreen extends StatelessWidget {
       ),
     ]);
   }
+}
+
+/// Case « Roue de la fortune » (comme Gamedle et Quiz) : ouvre la roue en plein écran
+class WheelTile extends StatelessWidget {
+  const WheelTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Notifs.i,
+      builder: (context, _) {
+        final can = Notifs.i.wheel;
+        final gold = _goldDay;
+        final accent = gold ? const Color(0xFFFFD54F) : kGold;
+        final now = DateTime.now();
+        final left = DateTime(now.year, now.month, now.day + 1).difference(now);
+        final toGold = 7 - Game.i.streak % 7;
+        final status = can
+            ? (gold ? t('Tour en or disponible : gains doublés !', 'Golden spin ready: double prizes!') : t('Ton tour gratuit est disponible !', 'Your free spin is ready!'))
+            : t('Prochain tour dans ${left.inHours} h ${left.inMinutes % 60} min', 'Next spin in ${left.inHours} h ${left.inMinutes % 60} min');
+        return Material(
+          color: kPanel,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WheelPage())),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: accent.withOpacity(gold ? 1 : 0.7), width: gold ? 2 : 1.5),
+                gradient: LinearGradient(colors: [accent.withOpacity(0.16), Colors.transparent]),
+                boxShadow: gold ? [BoxShadow(color: accent.withOpacity(0.35), blurRadius: 14)] : null,
+              ),
+              child: Row(children: [
+                Container(
+                  width: 58,
+                  height: 58,
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: kBg,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: accent, width: 2),
+                    boxShadow: [BoxShadow(color: accent.withOpacity(can ? 0.6 : 0.2), blurRadius: 12)],
+                  ),
+                  child: CustomPaint(painter: _WheelPainter(_wheelSegs, gold, mini: true)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(gold ? t('Roue en or ✨', 'Golden wheel ✨') : t('Roue de la fortune', 'Wheel of fortune'),
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                    const SizedBox(height: 3),
+                    Text(
+                        gold
+                            ? t('${Game.i.streak} jours d\'affilée : JACKPOT possible', '${Game.i.streak}-day streak: JACKPOT possible')
+                            : t('Un tour gratuit par jour · roue en or dans $toGold j', 'One free spin a day · golden wheel in $toGold d'),
+                        style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                    const SizedBox(height: 4),
+                    Text(status, style: TextStyle(color: can ? accent : Colors.white38, fontSize: 12, fontWeight: FontWeight.w700)),
+                  ]),
+                ),
+                Icon(can ? Icons.play_arrow_rounded : Icons.check_circle, color: can ? accent : Colors.white38, size: 32),
+              ]),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// La roue en plein écran
+class WheelPage extends StatelessWidget {
+  const WheelPage({super.key});
+  @override
+  Widget build(BuildContext context) => MaxWidth(
+        max: 820,
+        child: Scaffold(
+          appBar: AppBar(title: Text(t('Roue de la fortune', 'Wheel of fortune'))),
+          body: ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 24), children: const [WheelPanel()]),
+        ),
+      );
 }
 
 class WheelPanel extends StatefulWidget {
@@ -375,13 +459,15 @@ class _ConfettiPainter extends CustomPainter {
 class _WheelPainter extends CustomPainter {
   final List<_Seg> segs;
   final bool gold;
-  _WheelPainter(this.segs, this.gold);
+  final bool mini; // petite roue de la case Bonus : sans texte, ampoules plus fines
+  _WheelPainter(this.segs, this.gold, {this.mini = false});
 
   @override
   void paint(Canvas canvas, Size size) {
     final c = size.center(Offset.zero);
     final r = size.shortestSide / 2;
-    final rect = Rect.fromCircle(center: c, radius: r - 6);
+    final e = mini ? r * 0.1 : 6.0; // épaisseur du bord
+    final rect = Rect.fromCircle(center: c, radius: r - e);
     final n = segs.length;
     final sweep = 2 * pi / n;
     // contour
@@ -398,9 +484,10 @@ class _WheelPainter extends CustomPainter {
           ..shader = RadialGradient(colors: [Color.lerp(s.color, Colors.white, 0.25)!, s.color, Color.lerp(s.color, Colors.black, 0.25)!], stops: const [0, 0.6, 1])
               .createShader(rect),
       );
-      canvas.drawLine(c, c + Offset(cos(start), sin(start)) * (r - 6), Paint()
+      canvas.drawLine(c, c + Offset(cos(start), sin(start)) * (r - e), Paint()
         ..color = Colors.white.withOpacity(0.7)
-        ..strokeWidth = 2);
+        ..strokeWidth = mini ? 1 : 2);
+      if (mini) continue;
       // texte (orienté vers l'extérieur)
       canvas.save();
       canvas.translate(c.dx, c.dy);
@@ -429,18 +516,19 @@ class _WheelPainter extends CustomPainter {
       canvas.restore();
     }
     // cercle doré + ampoules
-    canvas.drawCircle(c, r - 6, Paint()
+    canvas.drawCircle(c, r - e, Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = gold ? 8 : 6
+      ..strokeWidth = mini ? e : (gold ? 8 : 6)
       ..color = gold ? const Color(0xFFFFE082) : kGold);
     for (var i = 0; i < 24; i++) {
       final a = i * 2 * pi / 24;
-      canvas.drawCircle(c + Offset(cos(a), sin(a)) * (r - 6), 3.2, Paint()..color = i.isEven ? const Color(0xFFFFF6D5) : const Color(0xFFFFC94D));
+      if (mini && i.isOdd) continue;
+      canvas.drawCircle(c + Offset(cos(a), sin(a)) * (r - e), mini ? r * 0.045 : 3.2, Paint()..color = i.isEven ? const Color(0xFFFFF6D5) : const Color(0xFFFFC94D));
     }
   }
 
   @override
-  bool shouldRepaint(_WheelPainter old) => old.gold != gold;
+  bool shouldRepaint(_WheelPainter old) => old.gold != gold || old.mini != mini;
 }
 
 class _PointerPainter extends CustomPainter {

@@ -2,6 +2,7 @@
 
 ## v1.0.5
 - **Nouveau dos des cartes** : une salle d'arcade aux couleurs de Pixel Trade, et l'icône de l'appli assortie.
+- Bonus : la roue de la fortune passe dans une case, comme Gamedle et le quiz (elle s'ouvre en plein écran).
 - Correction : « Cadeau suivant » ouvre bien le cadeau suivant (on retombait sur la liste vide des cadeaux).
 
 ## v1.0.4
