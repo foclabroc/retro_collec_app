@@ -4,6 +4,11 @@
 - **4 en ligne** (onglet renommé « Bonus / Jeux ») : défie un autre joueur, 50 pièces de mise chacun,
   le gagnant remporte 100 pièces + 1 pixel (match nul : mises rendues). Section **En direct** (joueurs en ligne, 1 minute par coup)
   et **Tour par tour** (24 h par coup) ; délai dépassé = abandon. Coups vérifiés par le serveur.
+  Salon façon borne d'arcade : tes stats (victoires, défaites, série, gain), joueurs en ligne avec leur bilan,
+  miniatures des parties tour par tour, meilleurs joueurs de la semaine, résultats avec **Revanche**,
+  attente du défi avec compte à rebours. En partie : chronos autour des avatars, pion qui vise la colonne,
+  dernier coup entouré, **réactions** 👍😮😂🔥👏 vues par l'adversaire, sons (coupables), règles, et écran de fin
+  avec trophée, pièces qui défilent et confettis.
 - Voisinage : plaque des joueurs plus large (toutes les infos visibles) ; la fenêtre de gauche laisse la place au balcon.
 - Voisinage : titre lisible, raccourcis « Mon étage », « Mon thème » et « Profil » sous le titre.
 

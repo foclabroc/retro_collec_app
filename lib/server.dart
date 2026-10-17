@@ -243,6 +243,21 @@ class RcServer {
     return _map(await _rpc('rc_c4_play', {'p_device': d, 'p_id': id, 'p_col': col, 'p_sig': _sig('$d|c4play|$id|$col')}));
   }
 
+  /// Réaction pendant une partie : 👍 😮 😂 🔥 👏
+  static Future<void> c4Emote(int id, String emo) async {
+    final d = await deviceId();
+    await _rpc('rc_c4_emote', {'p_device': d, 'p_id': id, 'p_emo': emo, 'p_sig': _sig('$d|c4emo|$id|$emo')});
+  }
+
+  /// Mes statistiques : {wins, losses, draws, streak, net}
+  static Future<Map<String, dynamic>> c4Stats() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_c4_stats', {'p_device': d}));
+  }
+
+  /// Meilleurs joueurs de la semaine : [{pid, name, avatar, wins, online}]
+  static Future<List<Map<String, dynamic>>> c4Top() async => _list(await _rpc('rc_c4_top', {}));
+
   static Future<Map<String, dynamic>> c4Resign(int id) async {
     final d = await deviceId();
     return _map(await _rpc('rc_c4_resign', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|c4resign|$id')}));
