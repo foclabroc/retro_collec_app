@@ -270,14 +270,12 @@ class TowerFloor extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(small ? 12 : 16)),
             border: Border.all(color: penthouse ? const Color(0xFFFFE7A3) : th.frame, width: 3),
-            gradient: lit && !small || (small && lit && index.isOdd)
-                ? LinearGradient(colors: litColors, begin: Alignment.topCenter, end: Alignment.bottomCenter)
-                : null,
-            color: lit && !small || (small && lit && index.isOdd) ? null : const Color(0xFF1B2752),
+            gradient: lit ? LinearGradient(colors: litColors, begin: Alignment.topCenter, end: Alignment.bottomCenter) : null,
+            color: lit ? null : const Color(0xFF1B2752),
             boxShadow: [
               BoxShadow(color: penthouse ? kGold : _kMold, spreadRadius: 3),
               if (neon) BoxShadow(color: th.frame.withOpacity(0.7), blurRadius: 12, spreadRadius: 3),
-              if (lit && !small) BoxShadow(color: _kLit.withOpacity(0.35), blurRadius: 14),
+              if (lit) BoxShadow(color: _kLit.withOpacity(0.35), blurRadius: 14),
             ],
           ),
           child: small
@@ -305,14 +303,11 @@ class TowerFloor extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: ColorFiltered(
-                  colorFilter: lit ? const ColorFilter.mode(Colors.transparent, BlendMode.dst) : const ColorFilter.matrix(_kDim),
-                  child: Image.asset(
-                    'assets/avatars/avatar_${(d.avatar.abs() % kAvatars.length).toString().padLeft(2, '0')}.webp',
-                    filterQuality: FilterQuality.none,
-                    fit: BoxFit.fitWidth,
-                    errorBuilder: (_, __, ___) => const SizedBox(),
-                  ),
+                child: Image.asset(
+                  'assets/avatars/avatar_${(d.avatar.abs() % kAvatars.length).toString().padLeft(2, '0')}.webp',
+                  filterQuality: FilterQuality.none,
+                  fit: BoxFit.fitWidth,
+                  errorBuilder: (_, __, ___) => const SizedBox(),
                 ),
               ),
             ),
@@ -362,6 +357,11 @@ class TowerFloor extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontWeight: FontWeight.w900, fontSize: penthouse ? 15 : 14, color: penthouse ? const Color(0xFFFFD166) : const Color(0xFFFFF3D6))),
               ),
+              if (d.online && !d.me)
+                Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: Text(t('en ligne', 'online'), style: const TextStyle(fontSize: 10, color: Color(0xFF5DCAA5), fontWeight: FontWeight.w800)),
+                ),
               if (d.me)
                 Container(
                   margin: const EdgeInsets.only(left: 4),
@@ -484,12 +484,6 @@ class TowerFloor extends StatelessWidget {
       );
 }
 
-const _kDim = <double>[
-  0.4, 0, 0, 0, 0,
-  0, 0.4, 0, 0, 0,
-  0, 0, 0.45, 0, 0,
-  0, 0, 0, 1, 0,
-];
 
 class _CrossPainter extends CustomPainter {
   final Color c;
