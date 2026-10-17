@@ -1,8 +1,8 @@
 # Pixel Trade — Changelog
 
 ## v1.0.7
-- **4 en ligne** (onglet renommé « Bonus / Jeux ») : défie un autre joueur, 25 pièces de mise chacun,
-  le gagnant remporte 50 (match nul : mises rendues). Section **En direct** (joueurs en ligne, 1 minute par coup)
+- **4 en ligne** (onglet renommé « Bonus / Jeux ») : défie un autre joueur, 50 pièces de mise chacun,
+  le gagnant remporte 100 pièces + 1 pixel (match nul : mises rendues). Section **En direct** (joueurs en ligne, 1 minute par coup)
   et **Tour par tour** (24 h par coup) ; délai dépassé = abandon. Coups vérifiés par le serveur.
 - Voisinage : plaque des joueurs plus large (toutes les infos visibles) ; la fenêtre de gauche laisse la place au balcon.
 - Voisinage : titre lisible, raccourcis « Mon étage », « Mon thème » et « Profil » sous le titre.

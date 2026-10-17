@@ -11,14 +11,14 @@ import 'retro_theme.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 4 en ligne à 2 joueurs (onglet « Bonus / Jeux ») : 25 pièces chacun, le
-// gagnant prend 50. « En direct » : 1 min par coup, contre un joueur en ligne.
+// 4 en ligne à 2 joueurs (onglet « Bonus / Jeux ») : 50 pièces chacun, le
+// gagnant prend 100 + 1 pixel. « En direct » : 1 min par coup, contre un joueur en ligne.
 // « Tour par tour » : 24 h par coup. Tout est vérifié par le serveur (rc_c4_*).
 // Plateau : 42 caractères, case (ligne r de 0 en haut, colonne c) = r*7 + c.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kRed = Color(0xFFE8434A), _kYellow = Color(0xFFFFCF33), _kBoard = Color(0xFF2457C5);
-const kC4Stake = 25;
+const kC4Stake = 50; // mise de chaque joueur ; le gagnant reçoit les deux mises + 1 pixel
 
 Widget _avatar(int a, {double size = 38}) => avatarWidget(a, size: size);
 
@@ -85,7 +85,7 @@ class _Connect4TileState extends State<Connect4Tile> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(t('4 en ligne', 'Connect 4'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 3),
-                Text(t('Défie un joueur : $kC4Stake pièces chacun, le gagnant prend tout', 'Challenge a player: $kC4Stake coins each, winner takes all'),
+                Text(t('Défie un joueur : $kC4Stake pièces chacun, le gagnant prend tout + 1 pixel', 'Challenge a player: $kC4Stake coins each, winner takes all + 1 pixel'),
                     style: const TextStyle(color: Colors.white60, fontSize: 12)),
                 if (status.isNotEmpty) ...[
                   const SizedBox(height: 4),
@@ -320,8 +320,8 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(color: Colors.black.withOpacity(0.25), borderRadius: BorderRadius.circular(12)),
                     child: Text(
-                      t('Chaque joueur mise $kC4Stake pièces, le gagnant remporte ${kC4Stake * 2}. Match nul : mises rendues. Délai dépassé = abandon.',
-                          'Each player bets $kC4Stake coins, the winner gets ${kC4Stake * 2}. Draw: bets returned. Time out = forfeit.'),
+                      t('Chaque joueur mise $kC4Stake pièces, le gagnant remporte ${kC4Stake * 2} pièces + 1 pixel. Match nul : mises rendues. Délai dépassé = abandon.',
+                          'Each player bets $kC4Stake coins, the winner gets ${kC4Stake * 2} coins + 1 pixel. Draw: bets returned. Time out = forfeit.'),
                       style: const TextStyle(color: Colors.white70, fontSize: 12.5, height: 1.4),
                     ),
                   ),
@@ -394,7 +394,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
   }
 }
 
-/// « Gagné · +50 pièces », « Perdu (temps écoulé) · −25 », « Match nul · mise rendue »
+/// « Gagné · +100 pièces +1 pixel », « Perdu (temps écoulé) · −50 », « Match nul · mise rendue »
 Widget _resultLine(Map g) {
   final w = (g['winner'] as num?)?.toInt();
   final side = (g['side'] as num? ?? 1).toInt();
@@ -405,7 +405,7 @@ Widget _resultLine(Map g) {
     _ => '',
   };
   if (w == 0) return Text(t('Match nul · mise rendue', 'Draw · bet returned'));
-  if (w == side) return Text(t('Gagné$why · +${stake * 2} pièces', 'Won$why · +${stake * 2} coins'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w800));
+  if (w == side) return Text(t('Gagné$why · +${stake * 2} pièces +1 pixel', 'Won$why · +${stake * 2} coins +1 pixel'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w800));
   return Text(t('Perdu$why · −$stake', 'Lost$why · −$stake'), style: const TextStyle(color: Color(0xFFFF8A8F), fontWeight: FontWeight.w800));
 }
 
@@ -775,7 +775,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
         ? (t('Match nul', 'Draw'), t('Chacun récupère ses $stake pièces', 'Each player gets their $stake coins back'))
         : w == side
             ? (
-                t('🏆 Victoire ! +${stake * 2} pièces', '🏆 Victory! +${stake * 2} coins'),
+                t('🏆 Victoire ! +${stake * 2} pièces +1 pixel', '🏆 Victory! +${stake * 2} coins +1 pixel'),
                 reason == 'timeout'
                     ? t('$oppName n\'a pas joué à temps', '$oppName ran out of time')
                     : reason == 'resign'
