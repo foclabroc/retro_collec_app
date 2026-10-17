@@ -261,6 +261,8 @@ class RcServer {
   static Future<Map<String, dynamic>> c4Resign(int id) async {
     final d = await deviceId();
     return _map(await _rpc('rc_c4_resign', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|c4resign|$id')}));
+  }
+
   // ── Console Wars, bataille navale (rc_bs_*) ────────────────────────────
   static Future<List<Map<String, dynamic>>> bsOnline() async {
     final d = await deviceId();
