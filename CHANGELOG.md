@@ -1,5 +1,8 @@
 # Pixel Trade — Changelog
 
+## v1.0.5
+- **Nouveau dos des cartes** : une salle d'arcade aux couleurs de Pixel Trade, et l'icône de l'appli assortie.
+
 ## v1.0.4
 - **Gamedle** (onglet Bonus) : le jeu du jour, le même pour tout le monde. 6 essais : la jaquette pixelisée
   se précise à chaque essai, et chaque proposition indique si la console, l'année (⬆️ ⬇️) et le genre
