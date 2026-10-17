@@ -226,10 +226,15 @@ class _PacksScreenState extends State<PacksScreen> {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (ctx) => SafeArea(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.9),
+        // glisser vers le bas (depuis le haut de la liste) ferme le sous-menu
+        builder: (ctx) => DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.88,
+          minChildSize: 0.35,
+          maxChildSize: 0.95,
+          builder: (ctx, scroll) => SafeArea(
             child: SingleChildScrollView(
+              controller: scroll,
               padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
               child: ListenableBuilder(
                 listenable: Game.i,
