@@ -63,6 +63,8 @@ String finishName(int f) => [t('Normale', 'Normal'), t('Brillante', 'Holo'), t('
 // Mêmes valeurs que le SQL (rc__recycle_value, rc__craft_cost, rc__pack_price)
 int recycleValue(int r, int f) => const [5, 15, 50, 150, 500][r] * const [1, 3, 10][f];
 int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
+/// Boosters spéciaux payés en pixels (1 pixel par booster ouvert)
+const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40};
 const kPackPrice = {'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0, 'lot': 0};
 const kLotPrice = 500; // lot de 5 paquets mixtes (gratuit le samedi)
 
@@ -130,6 +132,7 @@ class Game extends ChangeNotifier {
   String house = ''; // maison du Voisinage (chargée avec le Voisinage)
   int avatar = 0, coins = 0, score = 0, cards = 0, packs = 0, pity = 0, streak = 0;
   bool free = false;
+  int pixels = 0; // 1 par booster ouvert, échangeables contre des boosters spéciaux
   DateTime? freeAt; // prochain paquet gratuit (toutes les 6 h) ; null = inconnu (ancien serveur : minuit)
   Map<String, dynamic> missions = {};
   Set<String> milestones = {};
@@ -214,6 +217,7 @@ class Game extends ChangeNotifier {
     pity = (m['pity'] as num? ?? pity).toInt();
     streak = (m['streak'] as num? ?? streak).toInt();
     free = m['free'] as bool? ?? free;
+    pixels = (m['pixels'] as num? ?? pixels).toInt();
     final fi = (m['free_in'] as num?)?.toInt();
     freeAt = fi == null || free ? null : DateTime.now().add(Duration(seconds: fi));
     showcase = m['showcase'] as String? ?? showcase;
@@ -278,6 +282,7 @@ class Game extends ChangeNotifier {
       try {
         final r = await RcServer.openChoice(kind, sys);
         coins = (r['coins'] as num? ?? coins).toInt();
+        pixels = (r['pixels'] as num? ?? pixels).toInt();
         if (kind == 'free' && r['resumed'] != true) {
           free = false;
           freeAt = DateTime.now().add(const Duration(hours: 6));
@@ -317,6 +322,7 @@ class Game extends ChangeNotifier {
 
   void _applyPack(Map<String, dynamic> r) {
     coins = (r['coins'] as num? ?? coins).toInt();
+    pixels = (r['pixels'] as num? ?? pixels).toInt();
     pity = (r['pity'] as num? ?? pity).toInt();
     score = (r['score'] as num? ?? score).toInt();
     packs++;
@@ -407,6 +413,7 @@ String errText(Object e) {
     if (e.offline) return t('Pas de connexion au serveur', 'No connection to the server');
     return switch (e.message) {
       'pas assez de pièces' => t('Pas assez de pièces', 'Not enough coins'),
+      'pas assez de pixels' => t('Pas assez de pixels', 'Not enough pixels'),
       'déjà proposé' => t('Tu as déjà proposé ce jeu', 'You already guessed this game'),
       'gamedle terminé' => t('Gamedle terminé : reviens demain !', 'Gamedle over: come back tomorrow!'),
       'pas assez d\'exemplaires' => t('Pas assez d\'exemplaires pour fusionner', 'Not enough copies to fuse'),

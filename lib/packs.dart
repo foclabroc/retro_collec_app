@@ -36,7 +36,7 @@ Future<void> showPackOpening(BuildContext context, Map<String, dynamic> r, Strin
   if (r['resumed'] == true) toast(t('Tu n\'avais pas encore choisi ton booster', 'You hadn\'t picked your booster yet'));
   await Navigator.of(context).push(PageRouteBuilder(
     opaque: true,
-    pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: k, sys: k == 'console' ? s : null),
+    pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: k, sys: k == 'console' || k == 'sconsole' ? s : null),
     transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
   ));
   Game.i.sync();
@@ -54,7 +54,7 @@ class _PacksScreenState extends State<PacksScreen> {
 
   Future<void> _open(String kind, [String? sys]) async {
     if (busy) return;
-    if (kind != 'free' && kind != 'gift' && kind != 'lot' && !await _confirm(kind, sys)) return;
+    if (kind != 'free' && kind != 'gift' && kind != 'lot' && !kSpecialPrice.containsKey(kind) && !await _confirm(kind, sys)) return;
     setState(() => busy = true);
     try {
       await openPackFlow(context, kind, sys);
@@ -180,7 +180,7 @@ class _PacksScreenState extends State<PacksScreen> {
     if (mounted) setState(() => busy = false);
   }
 
-  Future<void> _pickConsole() async {
+  Future<void> _pickConsole([String kind = 'console']) async {
     final sys = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
@@ -199,7 +199,7 @@ class _PacksScreenState extends State<PacksScreen> {
                 Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                  child: Text(t('PAQUET CONSOLE', 'CONSOLE PACK'), style: pixelStyle(size: 13)),
+                  child: Text(kind == 'sconsole' ? t('BOOSTER CONSOLE+', 'CONSOLE+ BOOSTER') : t('PAQUET CONSOLE', 'CONSOLE PACK'), style: pixelStyle(size: 13)),
                 ),
                 Text(t('Choisis la série', 'Choose the set'), style: const TextStyle(color: Colors.white60)),
                 const SizedBox(height: 12),
@@ -218,7 +218,7 @@ class _PacksScreenState extends State<PacksScreen> {
         ),
       ),
     );
-    if (sys != null) _open('console', sys);
+    if (sys != null) _open(kind, sys);
   }
 
   @override
@@ -231,6 +231,29 @@ class _PacksScreenState extends State<PacksScreen> {
           TabHeader(t('Paquets', 'Packs')),
           Expanded(
             child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: [
+              _PixelsGauge(g.pixels),
+              const SizedBox(height: 10),
+              for (final (kind, title, sub, color) in [
+                ('star', t('Booster Étoile', 'Star booster'), t('5 cartes dont une épique ou mieux', '5 cards, one epic or better'), const Color(0xFF8A3DFF)),
+                ('sconsole', t('Booster Console+', 'Console+ booster'),
+                    t('Console au choix : une rare ou mieux et une brillante garanties', 'System of your choice: one rare or better and one holo guaranteed'), const Color(0xFF2F6BFF)),
+                ('gold', t('Booster Rétro d\'or', 'Retro Gold booster'), t('Une légendaire… ou une carte dorée garantie', 'A legendary… or a gold card guaranteed'), const Color(0xFFF0A419)),
+              ])
+                _PackOffer(
+                  kind: kind,
+                  packLabel: t('Spécial', 'Special'),
+                  title: title,
+                  subtitle: g.pixels >= kSpecialPrice[kind]!
+                      ? sub
+                      : '$sub\n${t('Encore ${kSpecialPrice[kind]! - g.pixels} pixels', '${kSpecialPrice[kind]! - g.pixels} more pixels')}',
+                  price: 0,
+                  pixels: kSpecialPrice[kind],
+                  color: color,
+                  highlight: g.pixels >= kSpecialPrice[kind]!,
+                  enabled: !busy && g.pixels >= kSpecialPrice[kind]!,
+                  onTap: () => kind == 'sconsole' ? _pickConsole('sconsole') : _open(kind),
+                ),
+              const SizedBox(height: 8),
               if (Notifs.i.gifts > 0)
                 _PackOffer(
                   kind: 'gift',
@@ -441,7 +464,8 @@ class _PackOffer extends StatelessWidget {
   final VoidCallback onTap;
   final String kind, packLabel;
   final Widget? art, trailing, below;
-  const _PackOffer({required this.kind, required this.packLabel, required this.title, required this.subtitle, required this.price, required this.color, required this.enabled, required this.onTap, this.highlight = false, this.art, this.trailing, this.below});
+  final int? pixels; // prix en pixels (booster spécial)
+  const _PackOffer({required this.kind, required this.packLabel, required this.title, required this.subtitle, required this.price, required this.color, required this.enabled, required this.onTap, this.highlight = false, this.art, this.trailing, this.below, this.pixels});
 
   @override
   Widget build(BuildContext context) {
@@ -472,7 +496,11 @@ class _PackOffer extends StatelessWidget {
               ),
               Opacity(
                 opacity: enabled ? 1 : 0.4,
-                child: price == 0 ? Text(t('GRATUIT', 'FREE'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w900)) : CoinChip(price),
+                child: pixels != null
+                    ? PixelChip(pixels!)
+                    : price == 0
+                        ? Text(t('GRATUIT', 'FREE'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w900))
+                        : CoinChip(price),
               ),
               if (trailing != null) trailing!,
             ]),
@@ -915,6 +943,9 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                   switch (widget.kind) {
                     'free' => t('Paquet gratuit', 'Free pack'),
                     'console' => t('Paquet ${Catalog.system(widget.sys ?? '')?.name ?? ''}', '${Catalog.system(widget.sys ?? '')?.name ?? ''} pack'),
+                    'sconsole' => t('Booster ${Catalog.system(widget.sys ?? '')?.name ?? ''}+', '${Catalog.system(widget.sys ?? '')?.name ?? ''}+ booster'),
+                    'star' => t('Booster Étoile', 'Star booster'),
+                    'gold' => t('Booster Rétro d\'or', 'Retro Gold booster'),
                     'premium' => t('Paquet premium', 'Premium pack'),
                     'mystery' => t('Paquet mystère', 'Mystery pack'),
                     'gift' => t('Paquet cadeau', 'Gift pack'),
@@ -1205,7 +1236,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: kGold, width: 1.5),
             ),
-            child: widget.kind == 'console' && widget.sys != null
+            child: (widget.kind == 'console' || widget.kind == 'sconsole') && widget.sys != null
                 ? ConsoleLogo(widget.sys!, height: 18)
                 : Text(_packLabel().toUpperCase(), style: pixelStyle(size: 9, color: Colors.white, shadow: false)),
           ),
@@ -1226,7 +1257,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   Widget _chooseStage() => Positioned.fill(
         child: BoosterRing(
           pack: (i, w, h) => _boosterImg('assets/booster_front.webp', w, h, i),
-          label: widget.kind == 'console' && widget.sys != null ? ConsoleLogo(widget.sys!, height: 14) : null,
+          label: (widget.kind == 'console' || widget.kind == 'sconsole') && widget.sys != null ? ConsoleLogo(widget.sys!, height: 14) : null,
           onChoose: _choose,
         ),
       );
@@ -1234,6 +1265,9 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   Color _packColor() => booster != null ? kBoosters[booster!].glow : switch (widget.kind) {
         'free' => const Color(0xFF0F6E56),
         'console' => const Color(0xFF185FA5),
+        'star' => const Color(0xFF8A3DFF),
+        'sconsole' => const Color(0xFF2F6BFF),
+        'gold' => const Color(0xFFF0A419),
         'premium' => const Color(0xFF854F0B),
         'mystery' => const Color(0xFF8E2D8E),
         'gift' => const Color(0xFFD8453C),
@@ -1243,6 +1277,9 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   String _packLabel() => switch (widget.kind) {
         'free' => t('Paquet gratuit', 'Free pack'),
         'console' => Catalog.system(widget.sys ?? '')?.name ?? '',
+        'sconsole' => '${Catalog.system(widget.sys ?? '')?.name ?? ''}+',
+        'star' => t('Étoile', 'Star'),
+        'gold' => t('Rétro d\'or', 'Retro Gold'),
         'premium' => t('Premium', 'Premium'),
         'mystery' => t('Mystère', 'Mystery'),
         'gift' => t('Cadeau', 'Gift'),
@@ -1399,7 +1436,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         ? 'lot'
         : widget.kind == 'gift' && giftsLeft > 0
             ? 'gift'
-            : (widget.kind == 'free' || widget.kind == 'gift' || widget.kind == 'lot' ? 'mixte' : widget.kind);
+            : (widget.kind == 'free' || widget.kind == 'gift' || widget.kind == 'lot' || kSpecialPrice.containsKey(widget.kind) ? 'mixte' : widget.kind);
     final price = kPackPrice[again]!;
     final againLabel = switch (again) {
       'lot' => t('Paquet suivant du lot ($lotsLeft)', 'Next bundle pack ($lotsLeft)'),
@@ -1429,6 +1466,15 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
               ),
           ]),
           if (missed != null) ...[const SizedBox(height: 22), _missedLine(missed!)],
+          if (res['pixel_gain'] == 1) ...[
+            const SizedBox(height: 14),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const PixelIcon(size: 16),
+              const SizedBox(width: 8),
+              Text(t('+1 pixel · ${Game.i.pixels} pixels', '+1 pixel · ${Game.i.pixels} pixels'),
+                  style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.w900)),
+            ]),
+          ],
           const SizedBox(height: 24),
           if (dup > 0)
             Text(t('Les doublons se recyclent (Collection → ♻) ou s\'échangent', 'Duplicates can be recycled (Collection → ♻) or traded'),
@@ -1853,5 +1899,114 @@ class _FreeCountdownState extends State<_FreeCountdown> {
       Text('$h:${two(m)}:${two(sec)}',
           style: const TextStyle(color: kGold, fontSize: 13, fontWeight: FontWeight.w900, fontFeatures: [FontFeature.tabularFigures()])),
     ]);
+  }
+}
+
+
+// ─── Pixels : 1 par booster ouvert, échangeables contre des boosters spéciaux ─
+/// Petit pixel doré (icône de la monnaie des boosters spéciaux)
+class PixelIcon extends StatelessWidget {
+  final double size;
+  const PixelIcon({super.key, this.size = 18});
+  @override
+  Widget build(BuildContext context) {
+    final c = size / 2;
+    Widget px(Color col) => Container(width: c, height: c, color: col);
+    return Container(
+      decoration: BoxDecoration(boxShadow: [BoxShadow(color: const Color(0xFFFFD166).withOpacity(0.5), blurRadius: size * 0.5)]),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(mainAxisSize: MainAxisSize.min, children: [px(const Color(0xFFFFF3C4)), px(const Color(0xFFFFD166))]),
+        Row(mainAxisSize: MainAxisSize.min, children: [px(const Color(0xFFFFD166)), px(const Color(0xFFEF9F27))]),
+      ]),
+    );
+  }
+}
+
+class PixelChip extends StatelessWidget {
+  final int n;
+  const PixelChip(this.n, {super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+        decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(20)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          const PixelIcon(size: 13),
+          const SizedBox(width: 6),
+          Text('$n', style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.w900)),
+        ]),
+      );
+}
+
+/// Jauge des pixels (en haut de la boutique), repères aux prix des boosters spéciaux
+class _PixelsGauge extends StatelessWidget {
+  final int pixels;
+  const _PixelsGauge(this.pixels);
+
+  @override
+  Widget build(BuildContext context) {
+    final top = kSpecialPrice.values.reduce(max);
+    final next = (kSpecialPrice.entries.toList()..sort((a, b) => a.value.compareTo(b.value))).where((e) => e.value > pixels).firstOrNull;
+    final nextName = switch (next?.key) {
+      'star' => t('Booster Étoile', 'Star booster'),
+      'sconsole' => t('Booster Console+', 'Console+ booster'),
+      _ => t('Booster Rétro d\'or', 'Retro Gold booster'),
+    };
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFF2A1F6B), Color(0xFF1B2358)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kGold, width: 1.5),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          const PixelIcon(size: 30),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(t('Pixels', 'Pixels'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+              Text(t('+1 à chaque booster ouvert', '+1 for every booster opened'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
+            ]),
+          ),
+          Text('$pixels', style: pixelStyle(size: 16, color: const Color(0xFFFFD166))),
+        ]),
+        const SizedBox(height: 12),
+        LayoutBuilder(builder: (context, box) {
+          final w = box.maxWidth;
+          return SizedBox(
+            height: 30,
+            child: Stack(clipBehavior: Clip.none, children: [
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 4,
+                height: 10,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(value: (pixels / top).clamp(0.0, 1.0), color: const Color(0xFFFFD166), backgroundColor: Colors.white10),
+                ),
+              ),
+              for (final p in kSpecialPrice.values) ...[
+                Positioned(left: w * p / top - 1.5, top: 0, width: 3, height: 18, child: Container(color: Colors.white70)),
+                Positioned(
+                  left: w * p / top - 20,
+                  width: 40,
+                  top: 18,
+                  child: Text('$p', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.w800)),
+                ),
+              ],
+            ]),
+          );
+        }),
+        const SizedBox(height: 4),
+        Text(
+          next == null
+              ? t('Tous les boosters spéciaux sont disponibles !', 'All special boosters are available!')
+              : t('Plus que ${next.value - pixels} booster${next.value - pixels > 1 ? 's' : ''} pour le $nextName',
+                  '${next.value - pixels} more booster${next.value - pixels > 1 ? 's' : ''} for the $nextName'),
+          style: const TextStyle(color: Colors.white60, fontSize: 12),
+        ),
+      ]),
+    );
   }
 }

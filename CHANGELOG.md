@@ -1,5 +1,11 @@
 # Pixel Trade — Changelog
 
+## v1.0.6
+- **Pixels** : chaque booster ouvert rapporte 1 pixel (tout le monde part de zéro). Une jauge en haut de la boutique
+  montre où tu en es, et les pixels s'échangent contre des **boosters spéciaux** :
+  Booster Étoile (15 pixels, une épique ou mieux), Booster Console+ (25 pixels, console au choix,
+  une rare ou mieux et une brillante) et Booster Rétro d'or (40 pixels, une légendaire ou une carte dorée).
+
 ## v1.0.5
 - **Nouveau dos des cartes** : une salle d'arcade aux couleurs de Pixel Trade, et l'icône de l'appli assortie.
 - **10 nouveaux thèmes animés** (Réglages > Thème) : Synthwave, Galaxie, Pixel ciel, Salle d'arcade, Terminal,
