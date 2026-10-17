@@ -2,6 +2,7 @@
 
 ## v1.0.5
 - **Nouveau dos des cartes** : une salle d'arcade aux couleurs de Pixel Trade, et l'icône de l'appli assortie.
+- Correction : « Cadeau suivant » ouvre bien le cadeau suivant (on retombait sur la liste vide des cadeaux).
 
 ## v1.0.4
 - **Gamedle** (onglet Bonus) : le jeu du jour, le même pour tout le monde. 6 essais : la jaquette pixelisée

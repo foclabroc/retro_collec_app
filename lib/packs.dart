@@ -1610,7 +1610,16 @@ class _GiftsPageState extends State<GiftsPage> {
     await load();
     if (mounted) {
       setState(() => busy = false);
-      if (rows != null && rows!.isEmpty) Navigator.pop(context);
+      // Plus de cadeau : on ferme cette liste. Si « Cadeau suivant » a ouvert un autre paquet
+      // par-dessus, on retire la liste en dessous sans toucher à l'ouverture en cours.
+      if (rows != null && rows!.isEmpty) {
+        final route = ModalRoute.of(context);
+        if (route == null || route.isCurrent) {
+          Navigator.pop(context);
+        } else {
+          Navigator.of(context).removeRoute(route);
+        }
+      }
     }
   }
 
