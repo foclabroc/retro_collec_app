@@ -12,17 +12,17 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('🧩', 'Gamedle : devine le jeu du jour (onglet Bonus), jusqu\'à 100 pièces',
-      'Gamedle: guess the game of the day (Bonus tab), up to 100 coins'),
-  ('📰', 'Actualités : les légendaires, dorées et séries complétées des joueurs',
-      'News: players\' legendaries, gold cards and completed sets'),
-  ('✨', 'Roue en or tous les 7 jours d\'affilée : gains doublés et JACKPOT',
-      'Golden wheel every 7-day streak: double prizes and JACKPOT'),
-  ('🎉', 'La roue fait la fête : confettis pour les gros lots', 'The wheel celebrates: confetti for big wins'),
-  ('📱', 'Mode tablette : menu fixe, plus de cartes à l\'écran, fiche à côté',
-      'Tablet mode: fixed menu, more cards on screen, details side by side'),
-  ('🌐', 'Version web : joue aussi sur PC et iPhone (foclabroc.github.io/retro_collec_app)',
-      'Web version: also play on PC and iPhone (foclabroc.github.io/retro_collec_app)'),
+  ('🎨', 'Choisis ton booster parmi 6 couleurs… et découvre ce que tu as raté dans les autres',
+      'Pick your booster among 6 colors… and see what you missed in the others'),
+  ('⏱️', 'Paquet gratuit toutes les 6 heures, avec compte à rebours', 'Free pack every 6 hours, with a countdown'),
+  ('🃏', 'Ouvre le paquet de face (cartes de face) ou de dos (cartes de dos)',
+      'Open the pack face up (cards face up) or from the back (cards face down)'),
+  ('👉', 'Fiche d\'une carte : flèches ou glisser pour passer à la suivante',
+      'Card details: arrows or swipe to go to the next one'),
+  ('🌌', '10 nouveaux thèmes animés, choix « Aléatoire » et nouveau dos des cartes',
+      '10 new animated themes, a « Random » option and a new card back'),
+  ('💰', 'Bourse : le nom du vendeur dans la liste · titres longs en entier',
+      'Market: seller name in the list · long titles shown in full'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';
