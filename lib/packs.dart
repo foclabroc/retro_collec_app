@@ -9,6 +9,7 @@ import 'audio.dart';
 import 'booster_choice.dart';
 import 'cards.dart';
 import 'catalog.dart';
+import 'events.dart';
 import 'game.dart';
 import 'library.dart';
 import 'main.dart';
@@ -1501,7 +1502,12 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               const PixelIcon(size: 16),
               const SizedBox(width: 8),
-              Text(t('+1 pixel · ${Game.i.pixels} pixels', '+1 pixel · ${Game.i.pixels} pixels'),
+              // événement « pixels ×2 » : le serveur multiplie le gain
+              Text(
+                  Events.i.pixelMult > 1
+                      ? t('+${Events.i.pixelMult} pixels (événement ×${Events.i.pixelMult}) · ${Game.i.pixels} pixels',
+                          '+${Events.i.pixelMult} pixels (event ×${Events.i.pixelMult}) · ${Game.i.pixels} pixels')
+                      : t('+1 pixel · ${Game.i.pixels} pixels', '+1 pixel · ${Game.i.pixels} pixels'),
                   style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.w900)),
             ]),
           ],

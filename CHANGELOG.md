@@ -16,6 +16,13 @@
 - **Bourse** : les 4 onglets deviennent des carrés de couleur avec leur icône (Acheter vert, Vendre orange,
   Échanges bleu, Historique violet).
 - **Version web** : les bruitages marchent enfin (quiz, roue, 4 en ligne…), les mêmes que sur Android.
+- **Événements** (menu) : fêtes, défis et annonces mis en ligne directement depuis le serveur, sans mise à jour
+  de l'appli, avec une pastille sur le menu quand un nouvel événement arrive. Trois sortes :
+  - **annonces** avec cadeau à récupérer (pièces, pixels) et bouton « Y aller » vers un onglet ;
+  - **événements à effet** : pixels doublés à l'ouverture des boosters, paquet gratuit plus fréquent… ;
+  - **défis** : objectif suivi par le serveur (boosters ouverts, parties de 4 en ligne gagnées, Gamedle trouvés)
+    avec des paliers de récompenses et une barre de progression.
+  Les événements à venir restent mystérieux : ni nom ni contenu, seulement le compte à rebours.
 - Voisinage : plaque des joueurs plus large (toutes les infos visibles) ; la fenêtre de gauche laisse la place au balcon.
 - Voisinage : titre lisible, raccourcis « Mon étage », « Mon thème » et « Profil » sous le titre.
 

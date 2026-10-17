@@ -261,6 +261,16 @@ class RcServer {
   static Future<Map<String, dynamic>> c4Resign(int id) async {
     final d = await deviceId();
     return _map(await _rpc('rc_c4_resign', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|c4resign|$id')}));
+  // ── Événements (table rc_events, gérée dans Supabase) ──────────────────
+  static Future<List<Map<String, dynamic>>> events() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_events_list', {'p_device': d}));
+  }
+
+  /// Récompense d'un événement : {coins, pixels, gain_coins, gain_pixels}
+  static Future<Map<String, dynamic>> eventClaim(int id) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_event_claim', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|event|$id')}));
   }
 
   // ── Recyclage / fabrication ─────────────────────────────────────────────

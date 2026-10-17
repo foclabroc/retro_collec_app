@@ -13,6 +13,7 @@ import 'catalog.dart';
 import 'game.dart';
 import 'bonus.dart';
 import 'chat.dart';
+import 'events.dart';
 import 'feed.dart';
 import 'layout.dart';
 import 'bourse.dart';
@@ -499,6 +500,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
   void goTo(int i) => _select(i);
 
+  void _openEvents() => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EventsPage()));
+
   @override
   void initState() {
     super.initState();
@@ -518,6 +521,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       await Future.delayed(const Duration(milliseconds: 600));
       if (mounted) await maybeShowWhatsNew(context);
       await Game.i.claimRewards();
+      Events.i.refresh();
       // booster payé mais pas encore choisi (appli fermée pendant le choix) : on reprend
       final p = await Game.i.pendingChoice();
       if (p != null && mounted) await showPackOpening(context, p, (p['kind'] as String?) ?? 'mixte');
@@ -539,6 +543,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       Game.i.sync();
       Notifs.i.refresh();
+      Events.i.refresh();
     }
   }
 
@@ -651,7 +656,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   /// Mode large : colonne d'icônes toujours visible (mêmes rubriques et pastilles que le menu)
   Widget _rail() {
     return ListenableBuilder(
-      listenable: Listenable.merge([Game.i, Notifs.i]),
+      listenable: Listenable.merge([Game.i, Notifs.i, Events.i]),
       builder: (context, _) {
         final g = Game.i, n = Notifs.i;
         Widget item(int i, String icon, String label, {int count = 0, bool dot = false}) {
@@ -663,7 +668,13 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               borderRadius: BorderRadius.circular(14),
               child: InkWell(
                 borderRadius: BorderRadius.circular(14),
-                onTap: () => _select(i),
+                onTap: () {
+                  if (i < 0) {
+                    _openEvents();
+                  } else {
+                    _select(i);
+                  }
+                },
                 child: SizedBox(
                   width: 84,
                   child: Padding(
@@ -720,6 +731,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   item(4, 'messages', t('Messages', 'Messages'), count: n.chat, dot: n.mention),
                   item(5, 'neighbors', t('Voisinage', 'Neighbors')),
                   item(6, 'news', t('Actualités', 'News')),
+                  item(-1, 'events', t('Événements', 'Events'), count: Events.i.unseen),
                 ]),
               ),
             ),
@@ -740,7 +752,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       width: 270,
       child: SafeArea(
         child: ListenableBuilder(
-          listenable: Listenable.merge([Game.i, Notifs.i]),
+          listenable: Listenable.merge([Game.i, Notifs.i, Events.i]),
           builder: (context, _) {
             final g = Game.i, n = Notifs.i;
             Widget item(int i, String icon, String label, {int count = 0, bool dot = false, String? hint}) {
@@ -754,7 +766,11 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     borderRadius: BorderRadius.circular(12),
                     onTap: () {
                       Navigator.of(context).pop();
-                      _select(i);
+                      if (i < 0) {
+                        _openEvents();
+                      } else {
+                        _select(i);
+                      }
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
@@ -829,6 +845,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       count: n.chat, dot: n.mention, hint: n.mention ? t('On t\'a mentionné', 'You were mentioned') : null),
                   item(5, 'neighbors', t('Voisinage', 'Neighbors'), hint: n.canGift ? t('${n.giftsLeft} cadeau(x) à offrir', '${n.giftsLeft} gift(s) to give') : null),
                   item(6, 'news', t('Actualités', 'News'), hint: t('Les exploits des joueurs', 'What players are up to')),
+                  item(-1, 'events', t('Événements', 'Events'),
+                      count: Events.i.unseen, hint: Events.i.unseen > 0 ? t('Nouveau !', 'New!') : t('Fêtes, cadeaux, défis', 'Parties, gifts, challenges')),
                 ]),
               ),
               Padding(
