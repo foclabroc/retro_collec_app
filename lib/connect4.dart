@@ -35,6 +35,14 @@ String duelLoseText(int stake) => stake > 0 ? '−$stake' : '+$kDuelLose';
 /// Partie amicale : pas de gains (adversaire de moins d'un jour, ou déjà 4 parties payées aujourd'hui contre lui)
 bool duelFriendly(Map g) => g['paid'] == false;
 String get duelFriendlyText => t('Partie amicale : pas de gains', 'Friendly game: no rewards');
+
+/// Pourquoi la partie sera amicale (renvoyé par le serveur : 'new' ou 'limit')
+String duelWhyText(String? why) => why == 'new'
+    ? t('un des deux comptes a moins d\'un jour', 'one of the accounts is less than a day old')
+    : t('déjà 4 parties payées aujourd\'hui contre ce joueur', 'already 4 paid games today against this player');
+
+/// « Partie amicale (sans gains) : … » avant de jouer
+String duelWhyLine(String? why) => t('🤝 Partie amicale, sans gains : ${duelWhyText(why)}', '🤝 Friendly game, no rewards: ${duelWhyText(why)}');
 String get duelLimitsText => t(
     'Gains seulement contre un joueur inscrit depuis au moins un jour, et 4 parties payées par jour contre le même adversaire. Au-delà : parties amicales, sans gains.',
     'Rewards only against players who joined at least a day ago, and 4 paid games a day against the same opponent. After that: friendly games, no rewards.');
@@ -348,8 +356,24 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
     if (mounted) setState(() => busy = false);
   }
 
-  Future<void> _invite(String pid, String name, int avatar, String mode) async {
+  Future<void> _invite(String pid, String name, int avatar, String mode, {String? friendly}) async {
     if (busy) return;
+    // prévenir avant d'envoyer le défi : cette partie ne rapportera rien
+    if (friendly != null) {
+      final go = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(t('Partie amicale', 'Friendly game')),
+          content: Text(t('Cette partie ne rapportera ni pièces ni pixel : ${duelWhyText(friendly)}.\n\nDéfier $name quand même ?',
+              'This game won\'t give coins or pixels: ${duelWhyText(friendly)}.\n\nChallenge $name anyway?')),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(t('Défier', 'Challenge'))),
+          ],
+        ),
+      );
+      if (go != true || !mounted) return;
+    }
     setState(() => busy = true);
     try {
       final g = await k.invite(pid, mode);
@@ -361,7 +385,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
         final cancel = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
-          builder: (_) => _WaitDialog(name: name, avatar: avatar, deadline: g['deadline'] as String?, now: g['now'] as String?, state: _wait),
+          builder: (_) => _WaitDialog(name: name, avatar: avatar, deadline: g['deadline'] as String?, now: g['now'] as String?, state: _wait, friendly: g['friendly'] as String?),
         );
         if (cancel == true && _waitId != null) {
           final id = _waitId!;
@@ -588,7 +612,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
           child: _card(
             lead: _avatar(_av(g), ring: (g['opp'] as Map?)?['online'] == true ? _kTeal : null),
             title: Text(t('${_name(g)} te défie ⚔', '${_name(g)} challenges you ⚔'), maxLines: 1, overflow: TextOverflow.ellipsis),
-            lines: [Text('${g['mode'] == 'live' ? t('En direct', 'Live') : t('Tour par tour', 'Turn-based')} · ${_i(g['stake'], kC4Stake) > 0 ? '${_i(g['stake'], kC4Stake)} ${t('pièces', 'coins')}' : t('gratuit', 'free')}')],
+            lines: [Text('${g['mode'] == 'live' ? t('En direct', 'Live') : t('Tour par tour', 'Turn-based')} · ${_i(g['stake'], kC4Stake) > 0 ? '${_i(g['stake'], kC4Stake)} ${t('pièces', 'coins')}' : g['friendly'] != null ? t('amicale, sans gains', 'friendly, no rewards') : t('gratuit', 'free')}')],
             btns: [
               _Countdown(total: g['mode'] == 'live' ? 120 : 86400, left: _leftOf(g), label: _left(g)),
               _btn(t('Jouer', 'Play'), () => _run(() => k.answer(_i(g['id']), true), open: true)),
@@ -645,6 +669,9 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
                     : poor
                         ? t('Pas assez de pièces pour jouer', 'Not enough coins to play')
                         : t('Disponible · ${p['score']} pts', 'Available · ${p['score']} pts')),
+                if (p['friendly'] != null)
+                  Text(t('🤝 Amicale (sans gains) : ${duelWhyText(p['friendly'] as String?)}', '🤝 Friendly (no rewards): ${duelWhyText(p['friendly'] as String?)}'),
+                      style: const TextStyle(color: Color(0xFFFFC46B), fontSize: 11.5)),
                 Padding(
                   padding: const EdgeInsets.only(top: 5, right: 6),
                   child: ClipRRect(
@@ -655,7 +682,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
               ],
               btns: [
                 _btn(busyP ? t('Occupé', 'Busy') : (poor ? t('Sans pièces', 'No coins') : t('Défier', 'Challenge')),
-                    busyP || poor ? null : () => _invite(p['pid'] as String, p['name'] as String? ?? '?', _i(p['avatar']), 'live'))
+                    busyP || poor ? null : () => _invite(p['pid'] as String, p['name'] as String? ?? '?', _i(p['avatar']), 'live', friendly: p['friendly'] as String?))
               ],
             );
           }),
@@ -827,7 +854,8 @@ class _WaitDialog extends StatefulWidget {
   final int avatar;
   final String? deadline, now;
   final ValueNotifier<String?> state;
-  const _WaitDialog({required this.name, required this.avatar, required this.deadline, required this.now, required this.state});
+  final String? friendly; // partie amicale : raison
+  const _WaitDialog({required this.name, required this.avatar, required this.deadline, required this.now, required this.state, this.friendly});
   @override
   State<_WaitDialog> createState() => _WaitDialogState();
 }
@@ -897,8 +925,8 @@ class _WaitDialogState extends State<_WaitDialog> {
           const SizedBox(height: 12),
           Text(t('En attente de sa réponse…', 'Waiting for an answer…'), style: const TextStyle(color: Colors.white60)),
           const SizedBox(height: 4),
-          Text(t('Partie gratuite : le gagnant gagne $kDuelWin pièces + 1 pixel.', 'Free game: the winner gets $kDuelWin coins + 1 pixel.'),
-              textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+          Text(widget.friendly != null ? duelWhyLine(widget.friendly) : t('Partie gratuite : le gagnant gagne $kDuelWin pièces + 1 pixel.', 'Free game: the winner gets $kDuelWin coins + 1 pixel.'),
+              textAlign: TextAlign.center, style: TextStyle(color: widget.friendly != null ? const Color(0xFFFFC46B) : Colors.white54, fontSize: 12)),
           const SizedBox(height: 14),
           OutlinedButton(onPressed: () => Navigator.of(context).pop(true), child: Text(t('Annuler le défi', 'Cancel the challenge'))),
         ]),
@@ -1305,7 +1333,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
               Expanded(
                 child: Column(crossAxisAlignment: right ? CrossAxisAlignment.end : CrossAxisAlignment.start, children: [
                   Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                  Text(stake > 0 ? t('mise $stake', 'bet $stake') : t('gratuit', 'free'), style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                  Text(stake > 0 ? t('mise $stake', 'bet $stake') : g['friendly'] != null ? t('amicale', 'friendly') : t('gratuit', 'free'), style: const TextStyle(fontSize: 11, color: Colors.white54)),
                   if (on && playing) Text(timerText(), style: pixelStyle(size: 8, color: warn ? _kRed : _kGoldHi, shadow: false)),
                 ]),
               ),
@@ -1351,8 +1379,8 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                   height: 16,
                   child: Stack(children: [for (var k = 0; k < 3; k++) Positioned(left: k * 9.0, child: const _Coin(size: 16))]),
                 ),
-                Text('${duelPrize(stake)}', style: pixelStyle(size: 9, color: _kGoldHi, shadow: false)),
-                Text(stake > 0 ? 'POT' : 'GAIN', style: TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
+                Text(g['friendly'] != null ? '0' : '${duelPrize(stake)}', style: pixelStyle(size: 9, color: _kGoldHi, shadow: false)),
+                Text(stake > 0 ? 'POT' : g['friendly'] != null ? t('AMICAL', 'FRIENDLY') : 'GAIN', style: TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
               ]),
             ),
             player(oppName, _i(opp['avatar']), oppColor, playing && turn != side, _emoOpp, right: true),

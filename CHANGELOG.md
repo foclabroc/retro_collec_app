@@ -5,6 +5,8 @@
   de consolation (match nul au 4 en ligne : 10 chacun). On peut défier tout le monde, même sans pièces.
   Anti-triche : gains seulement contre un joueur inscrit depuis au moins un jour, et 4 parties payées par jour
   contre le même adversaire ; au-delà, partie amicale (sans gains).
+  Le joueur est prévenu avant de jouer : « 🤝 Amicale » dans la liste des joueurs avec la raison, confirmation avant
+  d'envoyer le défi, et rappel dans la fenêtre d'attente, la fenêtre de défi reçu et pendant la partie.
   SQL : patch_duels_gratuits.sql.
 - **Joueurs en ligne dans le menu** : une case « 🟢 Joueurs en ligne · N » en bas du panneau latéral ouvre la liste
   des connectés (Défier, Étage).

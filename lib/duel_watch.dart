@@ -217,7 +217,9 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
                     Text(
                         stake > 0
                             ? t('$stake pièces chacun · le gagnant rafle ${stake * 2} + 1 pixel', '$stake coins each · the winner takes ${stake * 2} + 1 pixel')
-                            : t('Gratuit · le gagnant gagne $kDuelWin pièces + 1 pixel', 'Free · the winner gets $kDuelWin coins + 1 pixel'),
+                            : widget.x['friendly'] != null
+                                ? duelWhyLine(widget.x['friendly'] as String?)
+                                : t('Gratuit · le gagnant gagne $kDuelWin pièces + 1 pixel', 'Free · the winner gets $kDuelWin coins + 1 pixel'),
                         style: const TextStyle(fontSize: 12, color: Colors.white60)),
                   ]),
                 ),

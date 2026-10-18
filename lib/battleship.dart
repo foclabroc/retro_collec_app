@@ -1130,8 +1130,8 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
             padding: const EdgeInsets.symmetric(horizontal: 5),
             child: Column(children: [
               const _Coin(size: 16),
-              Text('${duelPrize(stake)}', style: pixelStyle(size: 8.5, color: _kGoldHi, shadow: false)),
-              Text(stake > 0 ? 'POT' : 'GAIN', style: const TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
+              Text(g['friendly'] != null ? '0' : '${duelPrize(stake)}', style: pixelStyle(size: 8.5, color: _kGoldHi, shadow: false)),
+              Text(stake > 0 ? 'POT' : g['friendly'] != null ? t('AMICAL', 'FRIENDLY') : 'GAIN', style: const TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
             ]),
           ),
           _player(oppName, _i(opp['avatar']), _kNeon, !myTurn && !done && (playing || setup), _emoOpp, _hits(oppShots), right: true),
