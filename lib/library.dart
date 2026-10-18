@@ -214,14 +214,49 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
+  /// Une ligne du tableau de bord : nom, barre, x/y
+  Widget _bar(String label, int mine, int total, Color color, Color light, VoidCallback? onTap) => InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(children: [
+            SizedBox(
+              width: 74,
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: light, fontSize: 11, fontWeight: FontWeight.w700)),
+            ),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(value: total == 0 ? 0 : mine / total, minHeight: 6, color: color, backgroundColor: Colors.white10),
+              ),
+            ),
+            SizedBox(width: 52, child: Text('$mine/$total', textAlign: TextAlign.right, style: const TextStyle(fontSize: 10.5, color: Colors.white70))),
+            Icon(Icons.chevron_right, size: 14, color: onTap != null ? Colors.white38 : Colors.transparent),
+          ]),
+        ),
+      );
+
   // ── Tableau de bord : progression, raretés, raccourcis, dernières cartes ──
   Widget _dashboard(Game g) {
     final total = Catalog.cards.length;
     final pct = total == 0 ? 0.0 : g.cards / total;
     final totalByR = List<int>.filled(5, 0), ownByR = List<int>.filled(5, 0);
+    var sagaTotal = 0, sagaMine = 0, faTotal = 0, faMine = 0;
     for (final c in Catalog.cards.values) {
+      if (c.isSaga) {
+        // cartes de saga : ligne à part (pas dans les épiques)
+        sagaTotal++;
+        if (g.has(c.id)) sagaMine++;
+        continue;
+      }
       totalByR[c.rarity]++;
       if (g.has(c.id)) ownByR[c.rarity]++;
+      if (c.rarity >= 3) {
+        // full art : possible pour les épiques et légendaires
+        faTotal++;
+        if ((g.owned[c.id]?[3] ?? 0) > 0) faMine++;
+      }
     }
     final recent = [for (final (id, f) in g.recent) if (Catalog.cards[id] != null) (Catalog.cards[id]!, f)];
 
@@ -266,6 +301,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
           // cartes par rareté
           Expanded(
             child: Column(children: [
+              _bar('🌈 ${t('Sagas', 'Sagas')}', sagaMine, sagaTotal, const Color(0xFFFF8AD8), const Color(0xFFFFB3E6),
+                  sagaTotal > 0 ? () => _setSagas(true) : null),
+              _bar('★★ ${t('Full art', 'Full art')}', faMine, faTotal, const Color(0xFFFF9FE5), const Color(0xFFFFC6F0),
+                  faMine > 0 ? () => _openCards(show: 6, sort: 1) : null),
               // toucher une rareté : mes cartes de cette rareté
               for (var r = 4; r >= 0; r--)
                 InkWell(
@@ -347,7 +386,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         padding: const EdgeInsets.all(14),
         decoration: box,
         child: SizedBox(
-          height: 116,
+          height: 142,
           child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Expanded(flex: 5, child: Center(child: summary)),
             const SizedBox(width: 14),
