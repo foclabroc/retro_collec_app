@@ -25,6 +25,7 @@ class Notifs extends ChangeNotifier {
   int giftsLeft = 0; // cadeaux encore à offrir aujourd'hui (3 par jour)
   int lots = 0; // paquets du lot encore à ouvrir
   int week = 0; // défis de la semaine à récupérer
+  int reacts = 0; // réactions à mes nouvelles pas encore vues
   bool lotFree = false; // samedi : lot de 5 paquets gratuit
   int gifts = 0; // paquets cadeaux reçus à ouvrir
   String giftFrom = '';
@@ -92,6 +93,7 @@ class Notifs extends ChangeNotifier {
       giftsLeft = (r['gifts_left'] as num? ?? (canGift ? 1 : 0)).toInt().clamp(0, 3);
       lots = (r['lots'] as num? ?? 0).toInt();
       week = (r['week'] as num? ?? 0).toInt();
+      reacts = (r['reacts'] as num? ?? 0).toInt();
       lotFree = r['lot_free'] == true;
       _lastTrades = t0;
       trades = t0;

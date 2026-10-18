@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -858,6 +860,117 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
 
   int _in(String sys) => (Catalog.bySys[sys] ?? const <RcCard>[]).where((c) => (owned[c.id]?.fold<int>(0, (a, b) => a + b) ?? 0) > 0).length;
 
+  int _his(String id) => owned[id] == null ? 0 : qSum(owned[id]!);
+
+  /// Ses cartes que je n'ai pas : ses doubles d'abord, puis les plus rares
+  List<RcCard> get _theyHave {
+    final l = [
+      for (final e in owned.entries)
+        if (qSum(e.value) > 0 && !Game.i.has(e.key) && Catalog.cards[e.key] != null) Catalog.cards[e.key]!
+    ];
+    l.sort((a, b) {
+      final d = (_his(b.id) > 1 ? 1 : 0) - (_his(a.id) > 1 ? 1 : 0);
+      return d != 0 ? d : b.rarity != a.rarity ? b.rarity - a.rarity : a.title.compareTo(b.title);
+    });
+    return l;
+  }
+
+  /// Mes cartes qu'il n'a pas : mes doubles d'abord, puis les plus rares
+  List<RcCard> get _iHave {
+    final l = [
+      for (final e in Game.i.owned.entries)
+        if (qSum(e.value) > 0 && _his(e.key) == 0 && Catalog.cards[e.key] != null) Catalog.cards[e.key]!
+    ];
+    l.sort((a, b) {
+      final d = (Game.i.qty(b.id) > 1 ? 1 : 0) - (Game.i.qty(a.id) > 1 ? 1 : 0);
+      return d != 0 ? d : b.rarity != a.rarity ? b.rarity - a.rarity : a.title.compareTo(b.title);
+    });
+    return l;
+  }
+
+  void _askCard(BuildContext context, RcCard c, String name) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: kPanel,
+      builder: (ctx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: const Icon(Icons.swap_horiz, color: kGold),
+            title: Text(t('Demander cette carte en échange', 'Ask for this card in a trade')),
+            onTap: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => TradeBuilderPage(pid: widget.pid, name: name, wantCard: c.id)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(t('Voir la fiche', 'View card')),
+            onTap: () {
+              Navigator.pop(ctx);
+              openCardDetail(context, c, otherOwned: owned, otherName: name);
+            },
+          ),
+        ]),
+      ),
+    );
+  }
+
+  void _offerCard(BuildContext context, RcCard c, String name) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: kPanel,
+      builder: (ctx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: const Icon(Icons.swap_horiz, color: kGold),
+            title: Text(t('Lui proposer cette carte', 'Offer this card')),
+            onTap: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => TradeBuilderPage(pid: widget.pid, name: name, giveCard: c.id)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(t('Voir la fiche', 'View card')),
+            onTap: () {
+              Navigator.pop(ctx);
+              openCardDetail(context, c);
+            },
+          ),
+        ]),
+      ),
+    );
+  }
+
+  /// Rubrique « Il a, tu n'as pas » / « Tu as, il n'a pas » : une bande de cartes + « Tout voir »
+  Widget _diff(BuildContext context, String title, String empty, List<RcCard> cards, Map<String, List<int>> from, void Function(RcCard) onTap) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Expanded(child: Text('$title · ${cards.length}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
+        if (cards.length > 4)
+          TextButton(
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => _DiffPage(title: title, cards: cards, from: from, onTap: onTap),
+            )),
+            child: Text(t('Tout voir ›', 'See all ›')),
+          ),
+      ]),
+      const SizedBox(height: 4),
+      if (cards.isEmpty)
+        Text(empty, style: const TextStyle(color: Colors.white38, fontSize: 12.5))
+      else
+        SizedBox(
+          height: 118,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: min(cards.length, 30),
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, i) => SizedBox(width: 84, child: _DiffCard(card: cards[i], q: from[cards[i].id], onTap: () => onTap(cards[i]))),
+          ),
+        ),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final name = p?['name'] as String? ?? '';
@@ -932,6 +1045,12 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                         style: const TextStyle(color: Colors.white38, fontSize: 11)),
                   ),
                   ),
+                  const SizedBox(height: 14),
+                  _diff(context, t('🎯 Il a, tu n\'as pas', '🎯 They have, you don\'t'),
+                      t('Tu as déjà toutes ses cartes.', 'You already have all their cards.'), _theyHave, owned, (c) => _askCard(context, c, name)),
+                  const SizedBox(height: 14),
+                  _diff(context, t('🔁 Tu as, il n\'a pas', '🔁 You have, they don\'t'),
+                      t('Il a déjà toutes tes cartes.', 'They already have all your cards.'), _iHave, Game.i.owned, (c) => _offerCard(context, c, name)),
                   const SizedBox(height: 18),
                   Text(t('Vitrine', 'Showcase'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                   const SizedBox(height: 8),
@@ -946,18 +1065,99 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                     onCard: (c) => openCardDetail(context, c, otherOwned: owned, otherName: name),
                   ),
                   const SizedBox(height: 18),
-                  Text(t('Séries (touche pour voir l\'album)', 'Sets (tap to view the album)'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  Text(t('📊 Vous deux, console par console', '📊 You two, system by system'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  Text(t('Touche une console pour voir son album', 'Tap a system to see their album'), style: const TextStyle(color: Colors.white38, fontSize: 12)),
                   const SizedBox(height: 8),
+                  Row(children: [
+                    const SizedBox(width: 110),
+                    Expanded(child: Text(t('Toi', 'You'), style: const TextStyle(color: Colors.white60, fontSize: 11.5, fontWeight: FontWeight.w800))),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white60, fontSize: 11.5, fontWeight: FontWeight.w800))),
+                  ]),
                   for (final s in Catalog.systems)
                     InkWell(
                       onTap: () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => OtherAlbumPage(sys: s.id, owned: owned, name: name, pid: widget.pid),
                       )),
-                      child: _setRow(s.name, _in(s.id), s.count),
+                      child: _cmpRow(s.name, Game.i.ownedIn(s.id), _in(s.id), s.count),
                     ),
                 ]),
     ));
   }
+}
+
+/// Ligne de comparaison : ma barre et la sienne (la plus avancée en vert)
+Widget _cmpRow(String name, int mine, int his, int total) {
+  Widget bar(int n, bool lead) => Row(children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: total == 0 ? 0 : n / total,
+              minHeight: 7,
+              color: lead ? const Color(0xFF5DCAA5) : kGold,
+              backgroundColor: kPanel2,
+            ),
+          ),
+        ),
+        SizedBox(width: 34, child: Text('${total == 0 ? 0 : (n * 100 / total).floor()}%', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white54, fontSize: 11))),
+      ]);
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 5),
+    child: Row(children: [
+      SizedBox(width: 110, child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13))),
+      Expanded(child: bar(mine, mine > his)),
+      const SizedBox(width: 10),
+      Expanded(child: bar(his, his > mine)),
+    ]),
+  );
+}
+
+/// Une carte de la comparaison (×2 si elle est en double)
+class _DiffCard extends StatelessWidget {
+  final RcCard card;
+  final List<int>? q;
+  final VoidCallback onTap;
+  const _DiffCard({required this.card, required this.q, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    final n = q == null ? 0 : qSum(q!);
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(children: [
+        Positioned.fill(child: CardView(card: card, finish: q == null ? 0 : bestFinish(q!), owned: true)),
+        if (n > 1)
+          Positioned(
+            top: 3,
+            right: 3,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(color: const Color(0xFFE24B4A), borderRadius: BorderRadius.circular(8)),
+              child: Text('×$n', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+            ),
+          ),
+      ]),
+    );
+  }
+}
+
+/// Toutes les cartes d'une rubrique de comparaison
+class _DiffPage extends StatelessWidget {
+  final String title;
+  final List<RcCard> cards;
+  final Map<String, List<int>> from;
+  final void Function(RcCard) onTap;
+  const _DiffPage({required this.title, required this.cards, required this.from, required this.onTap});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: Text('$title · ${cards.length}')),
+        body: GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 130, childAspectRatio: 5 / 7, crossAxisSpacing: 8, mainAxisSpacing: 8),
+          itemCount: cards.length,
+          itemBuilder: (_, i) => _DiffCard(card: cards[i], q: from[cards[i].id], onTap: () => onTap(cards[i])),
+        ),
+      );
 }
 
 /// Album d'un autre joueur pour une console (ses cartes en couleur, les autres en silhouette).

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -6,6 +7,7 @@ import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
 import 'main.dart';
+import 'notifs.dart';
 import 'profile.dart';
 import 'retro_theme.dart';
 import 'server.dart';
@@ -46,6 +48,10 @@ class FeedScreenState extends State<FeedScreen> {
   Future<void> load() async {
     try {
       final l = await RcServer.feed();
+      // réactions à mes nouvelles : vues si l'onglet est affiché
+      if (HomeShellState.current?.tab == 6 && Notifs.i.reacts > 0) {
+        RcServer.reactsSeen().then((_) => Notifs.i.refresh()).catchError((_) {});
+      }
       if (mounted) {
         setState(() {
           items = l;
@@ -329,7 +335,10 @@ class _FeedTile extends StatelessWidget {
                   style: const TextStyle(fontSize: 14, height: 1.3, color: Colors.white70),
                 ),
                 const SizedBox(height: 4),
-                Text(_ago(e['at'] as String?), style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                Row(children: [
+                  Expanded(child: Text(_ago(e['at'] as String?), style: const TextStyle(color: Colors.white38, fontSize: 11))),
+                  _Reacts(e),
+                ]),
               ]),
             ),
             const SizedBox(width: 8),
@@ -345,5 +354,74 @@ class _FeedTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Réactions 👏 🔥 😮 sous une nouvelle (une par joueur ; toucher la même l'enlève)
+class _Reacts extends StatefulWidget {
+  final Map<String, dynamic> e;
+  const _Reacts(this.e);
+  @override
+  State<_Reacts> createState() => _ReactsState();
+}
+
+class _ReactsState extends State<_Reacts> {
+  static const _emo = ['👏', '🔥', '😮'];
+  bool busy = false;
+
+  List<int> get rx {
+    final l = widget.e['rx'];
+    return [for (var i = 0; i < 3; i++) l is List && i < l.length ? (l[i] as num).toInt() : 0];
+  }
+
+  int get me => (widget.e['me'] as num? ?? -1).toInt();
+
+  Future<void> _tap(int j) async {
+    final id = (widget.e['id'] as num?)?.toInt();
+    if (id == null || busy) return;
+    // affichage immédiat, corrigé par la réponse du serveur
+    final old = (rx, me);
+    final r = rx;
+    if (me >= 0) r[me] = max(0, r[me] - 1);
+    final next = me == j ? -1 : j;
+    if (next >= 0) r[next]++;
+    setState(() {
+      widget.e['rx'] = r;
+      widget.e['me'] = next;
+      busy = true;
+    });
+    try {
+      final res = await RcServer.feedReact(id, j);
+      widget.e['rx'] = res['rx'];
+      widget.e['me'] = res['me'];
+    } catch (_) {
+      widget.e['rx'] = old.$1;
+      widget.e['me'] = old.$2;
+      toast(t('Réaction impossible pour l\'instant', 'Could not react right now'));
+    }
+    if (mounted) setState(() => busy = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final r = rx, m = me;
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      for (var j = 0; j < 3; j++)
+        Padding(
+          padding: const EdgeInsets.only(left: 4),
+          child: Material(
+            color: m == j ? rcTheme.accent.withOpacity(0.3) : Colors.white.withOpacity(0.05),
+            shape: StadiumBorder(side: BorderSide(color: m == j ? rcTheme.accent : Colors.white24)),
+            child: InkWell(
+              customBorder: const StadiumBorder(),
+              onTap: () => _tap(j),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                child: Text(r[j] > 0 ? '${_emo[j]} ${r[j]}' : _emo[j], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+              ),
+            ),
+          ),
+        ),
+    ]);
   }
 }

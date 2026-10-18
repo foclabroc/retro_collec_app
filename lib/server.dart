@@ -395,9 +395,37 @@ class RcServer {
   }
 
   // ── Fil d'actualité ─────────────────────────────────────────────────────
-  /// 60 dernières nouvelles (plus récentes d'abord) : {id, at, kind, card, f, sys, n, pid, name, avatar}
-  static Future<List<Map<String, dynamic>>> feed([int after = 0]) async =>
-      _list(await _rpc('rc_feed_list2', {'p_after': after}));
+  /// 100 dernières nouvelles (plus récentes d'abord) : {id, at, kind, card, f, sys, n, pid, name, avatar,
+  /// rx: [👏, 🔥, 😮], me: ma réaction ou -1}
+  static Future<List<Map<String, dynamic>>> feed([int after = 0]) async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_feed_list3', {'p_device': d, 'p_after': after}));
+  }
+
+  /// Réagir à une nouvelle (0 👏, 1 🔥, 2 😮 ; la même réaction l'enlève) : {rx, me}
+  static Future<Map<String, dynamic>> feedReact(int id, int emo) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_feed_react', {'p_device': d, 'p_id': id, 'p_emo': emo, 'p_sig': _sig('$d|react|$id|$emo')}));
+  }
+
+  /// Les réactions à mes nouvelles ont été vues
+  static Future<void> reactsSeen() async {
+    final d = await deviceId();
+    await _rpc('rc_reacts_seen', {'p_device': d, 'p_sig': _sig('$d|rseen')});
+  }
+
+  // ── Parrainage ──────────────────────────────────────────────────────────
+  /// {code, can_enter, sponsor {name, pid, avatar}, paid, packs, days, max, kids [{name, pid, avatar, packs, days, paid}]}
+  static Future<Map<String, dynamic>> refInfo() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_ref_info', {'p_device': d, 'p_sig': _sig('$d|ref')}));
+  }
+
+  /// Entrer le code de son parrain : l'état + {res: ok | late | already | self | unknown | full}
+  static Future<Map<String, dynamic>> refSet(String code) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_ref_set', {'p_device': d, 'p_code': code, 'p_sig': _sig('$d|refset|$code')}));
+  }
 
   // ── Défis de la semaine ─────────────────────────────────────────────────
   /// {goals, rewards, prog, claim (bits : défis 0..5, coffre 6), chest, ends, coins, pixels, gifts}

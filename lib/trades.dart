@@ -336,7 +336,8 @@ class _PlayerPickerPageState extends State<PlayerPickerPage> {
 class TradeBuilderPage extends StatefulWidget {
   final String pid, name;
   final String? wantCard; // carte demandée d'avance (depuis le profil)
-  const TradeBuilderPage({super.key, required this.pid, required this.name, this.wantCard});
+  final String? giveCard; // carte proposée d'avance (depuis le profil)
+  const TradeBuilderPage({super.key, required this.pid, required this.name, this.wantCard, this.giveCard});
   @override
   State<TradeBuilderPage> createState() => _TradeBuilderPageState();
 }
@@ -360,6 +361,15 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
         if (wc != null) {
           final q = theirs![wc];
           if (q != null) want.add((wc, q[0] > 0 ? 0 : q[1] > 0 ? 1 : 2));
+        }
+        final gc = widget.giveCard;
+        if (gc != null) {
+          for (var f = 0; f < kFinishes; f++) {
+            if (Game.i.qty(gc, f) > 0) {
+              give.add((gc, f));
+              break;
+            }
+          }
         }
       });
     }).catchError((e) {

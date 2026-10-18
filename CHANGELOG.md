@@ -1,6 +1,14 @@
 # Pixel Trade — Changelog
 
 ## v1.0.11
+- **Profil d'un voisin** : rubriques « 🎯 Il a, tu n'as pas » (ses doubles d'abord, toucher = demander en échange) et
+  « 🔁 Tu as, il n'a pas » (toucher = lui proposer la carte), avec « Tout voir » ; les séries deviennent « Vous deux,
+  console par console » (ta barre et la sienne, la plus avancée en vert).
+- **Actualités : réactions** 👏 🔥 😮 sous chaque nouvelle (une par joueur, toucher la même l'enlève). Pastille sur
+  Actualités quand d'autres joueurs réagissent à tes exploits. SQL : patch_social.sql.
+- **Parrainage** (case sous « Partager ») : ton code PT-XXXXXX, ajouté au message de partage ; le filleul l'entre à
+  l'inscription ou pendant sa première semaine ; quand il a ouvert 5 paquets et joué 2 jours différents, vous recevez
+  chacun un paquet premium dans le stock. 10 filleuls au plus. SQL : patch_social.sql.
 - **Défis de la semaine** (nouvel onglet « Défis » dans le menu, sous Paquets) : 6 défis du lundi au dimanche (ouvrir
   10 paquets, recycler 30 doublons, 3 échanges/achats/ventes, gagner 2 duels qui rapportent, réussir 3 Gamedle,
   obtenir une carte épique ou mieux). Bouton « Récupérer 150 🪙 » quand un défi est fini, pastille dans le menu.

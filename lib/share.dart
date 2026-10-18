@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import 'game.dart';
 import 'main.dart';
+import 'parrainage.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // « Partager ce jeu à tes amis » (panneau latéral) : le lien du dernier APK
@@ -17,11 +18,16 @@ const _sys = MethodChannel('com.foclabroc.retro_collec/system');
 
 String shareGameText() {
   final me = Game.i.name.isEmpty ? '' : t('\nMon pseudo : ${Game.i.name}', '\nMy name: ${Game.i.name}');
+  final code = myRefCode();
+  final ref = code.isEmpty
+      ? ''
+      : t('\n🤝 Mon code parrain : $code (entre-le en créant ton compte : on gagne chacun un paquet premium)',
+          '\n🤝 My referral code: $code (enter it when you sign up: we both get a premium pack)');
   return t(
-    '🎮 Viens jouer à Pixel Trade, le jeu de collection de cartes de jeux rétro !$me\n\n'
+    '🎮 Viens jouer à Pixel Trade, le jeu de collection de cartes de jeux rétro !$me$ref\n\n'
         '📱 Android (APK, dernière version) : $kApkLatestUrl\n'
         '🌐 Version web (test, sans installer) : $kWebUrl',
-    '🎮 Come play Pixel Trade, the retro game card collecting game!$me\n\n'
+    '🎮 Come play Pixel Trade, the retro game card collecting game!$me$ref\n\n'
         '📱 Android (APK, latest version): $kApkLatestUrl\n'
         '🌐 Web version (test, no install): $kWebUrl',
   );

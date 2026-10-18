@@ -24,6 +24,7 @@ import 'share.dart';
 import 'notifs.dart';
 import 'push.dart';
 import 'packs.dart';
+import 'parrainage.dart';
 import 'retro_theme.dart';
 import 'server.dart';
 import 'title_screen.dart';
@@ -604,7 +605,10 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     if (i == 3) BourseScreenState.current?.opened();
     if (i == 4) MessagesScreenState.current?.active(true);
     if (i == 5) NeighborsScreenState.current?.load();
-    if (i == 6) FeedScreenState.current?.load();
+    if (i == 6) {
+      FeedScreenState.current?.load();
+      if (Notifs.i.reacts > 0) RcServer.reactsSeen().then((_) => Notifs.i.refresh()).catchError((_) {});
+    }
     if (i == 7) DefisScreenState.current?.load();
     if (i == 2 || i == 5) Notifs.i.refresh();
   }
@@ -733,13 +737,14 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   item(3, 'market', t('Bourse', 'Exchange'), count: n.trades + n.sales.length),
                   item(4, 'messages', t('Messages', 'Messages'), count: n.chat, dot: n.mention),
                   item(5, 'neighbors', t('Voisinage', 'Neighbors')),
-                  item(6, 'news', t('Actualités', 'News')),
+                  item(6, 'news', t('Actualités', 'News'), count: n.reacts),
                   item(-1, 'events', t('Événements', 'Events'), count: Events.i.unseen),
                 ]),
               ),
             ),
             const OnlineMenuTile(compact: true),
             const ShareMenuTile(compact: true),
+            const ReferralMenuTile(compact: true),
             Padding(
               padding: const EdgeInsets.all(8),
               child: Text('v$kRetroCollecVersion', style: const TextStyle(color: Colors.white30, fontSize: 10)),
@@ -858,13 +863,18 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   item(4, 'messages', t('Messages', 'Messages'),
                       count: n.chat, dot: n.mention, hint: n.mention ? t('On t\'a mentionné', 'You were mentioned') : null),
                   item(5, 'neighbors', t('Voisinage', 'Neighbors'), hint: n.canGift ? t('${n.giftsLeft} cadeau(x) à offrir', '${n.giftsLeft} gift(s) to give') : null),
-                  item(6, 'news', t('Actualités', 'News'), hint: t('Les exploits des joueurs', 'What players are up to')),
+                  item(6, 'news', t('Actualités', 'News'),
+                      count: n.reacts,
+                      hint: n.reacts > 0
+                          ? t('${n.reacts} réaction(s) à tes exploits', '${n.reacts} reaction(s) to your feats')
+                          : t('Les exploits des joueurs', 'What players are up to')),
                   item(-1, 'events', t('Événements', 'Events'),
                       count: Events.i.unseen, hint: Events.i.unseen > 0 ? t('Nouveau !', 'New!') : t('Fêtes, cadeaux, défis', 'Parties, gifts, challenges')),
                 ]),
               ),
               OnlineMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
               ShareMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
+              ReferralMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
               Padding(
                 padding: const EdgeInsets.all(14),
                 child: Text('Pixel Trade v$kRetroCollecVersion', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30, fontSize: 11)),

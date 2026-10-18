@@ -6,6 +6,7 @@ import 'audio.dart';
 import 'cards.dart';
 import 'game.dart';
 import 'retro_theme.dart';
+import 'parrainage.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -21,7 +22,7 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> {
-  final ctl = TextEditingController(), pass = TextEditingController();
+  final ctl = TextEditingController(), pass = TextEditingController(), ref = TextEditingController();
   final loginName = TextEditingController(), loginPass = TextEditingController();
   int avatar = 0;
   bool busy = false, creating = false, hide = true;
@@ -31,6 +32,7 @@ class _WelcomePageState extends State<WelcomePage> {
   void dispose() {
     ctl.dispose();
     pass.dispose();
+    ref.dispose();
     loginName.dispose();
     loginPass.dispose();
     super.dispose();
@@ -60,6 +62,12 @@ class _WelcomePageState extends State<WelcomePage> {
           try {
             await RcServer.setPassword(pass.text);
           } catch (_) {} // pourra être fait plus tard dans Profil
+        }
+        if (ref.text.trim().isNotEmpty) {
+          try {
+            final r = await RcServer.refSet(ref.text.trim());
+            refToast(r['res'] as String?, r);
+          } catch (_) {} // pourra être fait plus tard dans Parrainage
         }
         RcAudio.sfx('powerup');
         if (mounted) Navigator.of(context).pop(true);
@@ -283,6 +291,21 @@ class _WelcomePageState extends State<WelcomePage> {
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       ),
                       onSubmitted: (_) => _create(),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: ref,
+                      enabled: !busy,
+                      textAlign: TextAlign.center,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: InputDecoration(
+                        hintText: t('Code parrain (facultatif)', 'Referral code (optional)'),
+                        helperText: t('Un ami t\'a invité ? Vous gagnez chacun un paquet premium', 'Invited by a friend? You both get a premium pack'),
+                        helperStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                        filled: true,
+                        fillColor: const Color(0x33000000),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Wrap(spacing: 10, runSpacing: 10, alignment: WrapAlignment.center, children: [
