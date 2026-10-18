@@ -27,6 +27,7 @@ class TradesScreenState extends State<TradesScreen> {
   List<Map<String, dynamic>>? rows;
   String? error;
   final busy = <int>{};
+  int tab = -1; // 0 reçus, 1 envoyés, 2 terminés (-1 : choisi automatiquement)
 
   @override
   void initState() {
@@ -112,30 +113,51 @@ class TradesScreenState extends State<TradesScreen> {
     if (rows == null) return const Center(child: CircularProgressIndicator(color: kGold));
     final incoming = rows!.where((r) => r['status'] == 'pending' && r['incoming'] == true).toList();
     final outgoing = rows!.where((r) => r['status'] == 'pending' && r['incoming'] != true).toList();
+    final done = rows!.where((r) => r['status'] != 'pending').toList();
+    // par défaut : les reçus s'il y en a, sinon les envoyés, sinon les terminés
+    final cur = tab >= 0 ? tab : (incoming.isNotEmpty ? 0 : outgoing.isNotEmpty ? 1 : 2);
+    Widget pill(int i, String label) {
+      final on = cur == i;
+      const blue = Color(0xFF3EC7FF);
+      return Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: ChoiceChip(
+          label: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: on ? const Color(0xFF06222B) : const Color(0xFFCFD3FF))),
+          selected: on,
+          showCheckmark: false,
+          visualDensity: VisualDensity.compact,
+          selectedColor: blue,
+          backgroundColor: kPanel,
+          onSelected: (_) => setState(() => tab = i),
+        ),
+      );
+    }
+
+    final list = [incoming, outgoing, done][cur];
     return RefreshIndicator(
       onRefresh: load,
-      child: ListView(padding: const EdgeInsets.all(12), children: [
-        _section(t('Reçus', 'Received'), incoming.length),
-        if (incoming.isEmpty) _empty(t('Aucune proposition reçue', 'No offers received')),
-        for (final r in incoming) _tradeTile(r, incoming: true),
-        _section(t('Envoyés', 'Sent'), outgoing.length),
-        if (outgoing.isEmpty) _empty(t('Aucune proposition en attente', 'No pending offers')),
-        for (final r in outgoing) _tradeTile(r, incoming: false),
-        Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: Text(t('Les échanges terminés sont dans l\'onglet Historique', 'Finished trades are in the History tab'),
-              textAlign: TextAlign.center, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+      child: ListView(padding: const EdgeInsets.fromLTRB(12, 8, 12, 16), children: [
+        SizedBox(
+          height: 38,
+          child: ListView(scrollDirection: Axis.horizontal, children: [
+            pill(0, t('Reçus · ${incoming.length}', 'Received · ${incoming.length}')),
+            pill(1, t('Envoyés · ${outgoing.length}', 'Sent · ${outgoing.length}')),
+            pill(2, t('Terminés', 'Finished')),
+          ]),
         ),
+        const SizedBox(height: 6),
+        if (list.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+                [t('Aucune proposition reçue', 'No offers received'), t('Aucune proposition en attente', 'No pending offers'), t('Aucun échange terminé', 'No finished trades')][cur],
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white38)),
+          ),
+        for (final r in list) _tradeTile(r, incoming: r['incoming'] == true, finished: cur == 2),
       ]),
     );
   }
-
-  Widget _section(String title, int n) => Padding(
-        padding: const EdgeInsets.fromLTRB(4, 14, 4, 8),
-        child: Text('$title ($n)', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-      );
-
-  Widget _empty(String s) => Padding(padding: const EdgeInsets.all(8), child: Text(s, style: const TextStyle(color: Colors.white38)));
 
   /// Détail d'un échange : grandes cartes, nouvelles pour moi ou non, valeur, et la décision
   Future<void> _detail(Map<String, dynamic> r, {required bool incoming, required bool finished}) async {
@@ -157,78 +179,94 @@ class TradesScreenState extends State<TradesScreen> {
     // Du point de vue du joueur : ce que je reçois / ce que je donne
     final iGet = incoming ? give : want;
     final iGive = incoming ? want : give;
-    final status = switch (r['status']) {
-      'accepted' => t('Accepté', 'Accepted'),
-      'refused' => t('Refusé', 'Declined'),
-      'cancelled' => t('Annulé', 'Cancelled'),
-      'failed' => t('Échoué', 'Failed'),
-      _ => '',
+    int value(List<(String, int)> l) => l.fold(0, (a, x) => a + (Catalog.cards[x.$1] == null ? 0 : recycleValue(Catalog.cards[x.$1]!.rarity, x.$2)));
+    final diff = value(iGet) - value(iGive);
+    final (status, stColor) = switch (r['status']) {
+      'accepted' => (t('Accepté', 'Accepted'), const Color(0xFF5DCAA5)),
+      'refused' => (t('Refusé', 'Declined'), const Color(0xFFF09595)),
+      'cancelled' => (t('Annulé', 'Cancelled'), Colors.white38),
+      'failed' => (t('Échoué', 'Failed'), Colors.white38),
+      _ => ('', Colors.white38),
     };
+    final when = DateTime.tryParse((r['done_at'] ?? r['created_at']) as String? ?? '')?.toLocal();
+    String ago() {
+      if (when == null) return '';
+      final d = DateTime.now().difference(when);
+      if (d.inMinutes < 1) return t('à l\'instant', 'just now');
+      if (d.inMinutes < 60) return t('il y a ${d.inMinutes} min', '${d.inMinutes} min ago');
+      if (d.inHours < 24) return t('il y a ${d.inHours} h', '${d.inHours} h ago');
+      return t('il y a ${d.inDays} j', '${d.inDays} d ago');
+    }
+
+    final name = r['other_name'] as String? ?? '?';
+    Widget btn(String label, Color bg, Color fg, VoidCallback? onTap, {bool outline = false}) => Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: outline
+                ? OutlinedButton(
+                    style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(vertical: 8)),
+                    onPressed: onTap,
+                    child: Text(label, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5)))
+                : FilledButton(
+                    style: FilledButton.styleFrom(backgroundColor: bg, foregroundColor: fg, visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(vertical: 8)),
+                    onPressed: onTap,
+                    child: Text(label, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5))),
+          ),
+        );
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: kPanel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: incoming && !finished ? kGold : Colors.transparent),
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: incoming && !finished ? kGold.withOpacity(0.7) : Colors.white12),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(
-            child: Text(
-              incoming ? t('De ${r['other_name']}', 'From ${r['other_name']}') : t('À ${r['other_name']}', 'To ${r['other_name']}'),
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: r['other_pid'] as String))),
+            child: Text.rich(TextSpan(children: [
+              TextSpan(text: name, style: const TextStyle(fontWeight: FontWeight.w900)),
+              TextSpan(
+                  text: finished ? '' : (incoming ? t(' te propose', ' offers you') : t(' · en attente', ' · waiting')),
+                  style: const TextStyle(color: Colors.white60)),
+            ])),
           ),
-          if (finished) Text(status, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.person_search, size: 20),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: r['other_pid'] as String))),
-          ),
+          const Spacer(),
+          if (finished)
+            Text(status, style: TextStyle(color: stColor, fontSize: 12, fontWeight: FontWeight.w800))
+          else
+            Text(ago(), style: const TextStyle(color: Colors.white38, fontSize: 11)),
         ]),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         // toucher les cartes : le détail de l'échange
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => _detail(r, incoming: incoming, finished: finished),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(t('Tu reçois', 'You get'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 12)),
-            const SizedBox(height: 4),
-            IgnorePointer(child: MiniCards(iGet)),
-            const SizedBox(height: 8),
-            Text(t('Tu donnes', 'You give'), style: const TextStyle(color: Color(0xFFF09595), fontSize: 12)),
-            const SizedBox(height: 4),
-            IgnorePointer(child: MiniCards(iGive)),
+          child: Row(children: [
+            Flexible(child: IgnorePointer(child: MiniCards(iGive, width: 34))),
+            const Padding(padding: EdgeInsets.symmetric(horizontal: 6), child: Text('⇄', style: TextStyle(fontSize: 18, color: Colors.white54, fontWeight: FontWeight.w900))),
+            Flexible(child: IgnorePointer(child: MiniCards(iGet, width: 34))),
+            const SizedBox(width: 8),
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Text(t('tu donnes ${iGive.length} · tu reçois ${iGet.length}', 'you give ${iGive.length} · get ${iGet.length}'),
+                  style: const TextStyle(color: Colors.white54, fontSize: 10.5)),
+              Text(
+                diff == 0 ? t('valeur égale', 'even value') : t('${diff > 0 ? '+' : ''}$diff pièces de valeur', '${diff > 0 ? '+' : ''}$diff coins of value'),
+                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: diff > 0 ? const Color(0xFF5DCAA5) : diff < 0 ? const Color(0xFFFF8A95) : Colors.white70),
+              ),
+            ]),
           ]),
         ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton.icon(
-            style: TextButton.styleFrom(visualDensity: VisualDensity.compact, padding: EdgeInsets.zero),
-            onPressed: () => _detail(r, incoming: incoming, finished: finished),
-            icon: const Icon(Icons.zoom_in, size: 18),
-            label: Text(t('Voir le détail', 'See details')),
-          ),
-        ),
-        if (!finished) ...[
-          const SizedBox(height: 10),
-          if (incoming)
-            Row(children: [
-              Expanded(
-                child: OutlinedButton(onPressed: busy.contains(id) ? null : () => _answer(id, false), child: Text(t('Refuser', 'Decline'))),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton(onPressed: busy.contains(id) ? null : () => _answer(id, true), child: Text(t('Accepter', 'Accept'))),
-              ),
-            ])
-          else
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(onPressed: () => _cancel(id), child: Text(t('Annuler la proposition', 'Cancel offer'))),
-            ),
-        ],
+        const SizedBox(height: 8),
+        Row(children: [
+          btn(t('Détail', 'Details'), kPanel2, Colors.white, () => _detail(r, incoming: incoming, finished: finished), outline: true),
+          if (!finished && incoming) ...[
+            btn(t('Refuser', 'Decline'), const Color(0xFF4A1D2A), const Color(0xFFFFC4CF), busy.contains(id) ? null : () => _answer(id, false)),
+            btn(t('Accepter', 'Accept'), const Color(0xFF2FBF8A), const Color(0xFF06281B), busy.contains(id) ? null : () => _answer(id, true)),
+          ],
+          if (!finished && !incoming) btn(t('Annuler', 'Cancel'), const Color(0xFF4A1D2A), const Color(0xFFFFC4CF), () => _cancel(id)),
+        ]),
       ]),
     );
   }

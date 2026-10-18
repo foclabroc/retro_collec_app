@@ -669,8 +669,20 @@ class MyListingsState extends State<MyListings> {
   }
 
   Future<void> _cancel(int id) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t('Retirer de la vente ?', 'Remove from sale?')),
+        content: Text(t('La carte revient dans ta collection.', 'The card goes back to your collection.')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(t('Retirer', 'Remove'))),
+        ],
+      ),
+    );
+    if (ok != true) return;
     try {
-      if (await RcServer.marketCancel(id)) toast(t('Carte reprise', 'Card taken back'));
+      if (await RcServer.marketCancel(id)) toast(t('Carte retirée de la vente', 'Card removed from sale'));
       await Game.i.sync();
     } catch (e) {
       toast(errText(e));
@@ -683,7 +695,10 @@ class MyListingsState extends State<MyListings> {
     if (error != null) return _Retry(error!, load);
     if (rows == null) return const Center(child: CircularProgressIndicator(color: kGold));
     final list = rows!.where((r) => Catalog.cards.containsKey(r['card'])).toList();
-    final open = list.where((r) => r['sold'] != true).length;
+    final forSale = list.where((r) => r['sold'] != true).toList();
+    final sold = list.where((r) => r['sold'] == true).toList();
+    final soldTotal = sold.fold<int>(0, (a, r) => a + (r['price'] as num).toInt());
+    final open = forSale.length;
     return RefreshIndicator(
       onRefresh: load,
       child: ListView(padding: const EdgeInsets.all(12), children: [
@@ -716,43 +731,110 @@ class MyListingsState extends State<MyListings> {
           const SizedBox(width: 10),
           Text(t('$open / $kMaxListings lots', '$open / $kMaxListings listings'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
         ]),
-        const SizedBox(height: 12),
         if (list.isEmpty)
           Padding(
             padding: const EdgeInsets.all(24),
             child: Text(t('Rien en vente', 'Nothing for sale'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54)),
           ),
-        for (final r in list)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(12)),
-              child: Row(children: [
-                SizedBox(width: 56, child: CardView(card: Catalog.cards[r['card']]!, finish: (r['finish'] as num).toInt())),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(Catalog.cards[r['card']]!.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 4),
-                    if (r['sold'] == true)
-                      Text(t('Vendue à ${r['buyer'] ?? '?'}', 'Sold to ${r['buyer'] ?? '?'}'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 12))
-                    else
-                      Text(t('En vente', 'For sale'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                  ]),
-                ),
-                CoinChip((r['price'] as num).toInt()),
-                if (r['sold'] != true)
-                  IconButton(
-                    tooltip: t('Reprendre', 'Take back'),
-                    icon: const Icon(Icons.undo),
-                    onPressed: () => _cancel((r['id'] as num).toInt()),
-                  ),
-              ]),
-            ),
-          ),
+        if (forSale.isNotEmpty) ...[
+          _head(t('En vente', 'For sale'), '${forSale.length}'),
+          _grid([for (final r in forSale) _listing(r)]),
+        ],
+        if (sold.isNotEmpty) ...[
+          _head(t('Vendues récemment', 'Recently sold'), t('+$soldTotal 🪙 sur 7 jours', '+$soldTotal 🪙 in 7 days')),
+          _grid([for (final r in sold) _listing(r)]),
+        ],
       ]),
     );
+  }
+
+  Widget _head(String title, String sub) => Padding(
+        padding: const EdgeInsets.fromLTRB(4, 14, 4, 4),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5)),
+          const SizedBox(width: 6),
+          Text(sub, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        ]),
+      );
+
+  Widget _grid(List<Widget> children) => LayoutBuilder(
+        builder: (context, box) => GridView.count(
+          crossAxisCount: adaptiveCols(context, box.maxWidth, phone: 3, minTile: 130, max: 7),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio: 0.52,
+          crossAxisSpacing: 6,
+          mainAxisSpacing: 6,
+          children: children,
+        ),
+      );
+
+  /// Une carte en vente (prix, bouton « Retirer de la vente ») ou vendue (tampon VENDUE, acheteur)
+  Widget _listing(Map<String, dynamic> r) {
+    final c = Catalog.cards[r['card']]!;
+    final f = (r['finish'] as num).toInt();
+    final isSold = r['sold'] == true;
+    return Column(children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 7, left: 3, right: 3),
+        child: Stack(clipBehavior: Clip.none, children: [
+          isSold
+              ? ColorFiltered(
+                  colorFilter: const ColorFilter.matrix(<double>[
+                    0.45, 0.25, 0.08, 0, 0, //
+                    0.2, 0.5, 0.08, 0, 0, //
+                    0.2, 0.25, 0.3, 0, 0, //
+                    0, 0, 0, 1, 0,
+                  ]),
+                  child: CardView(card: c, finish: f))
+              : GestureDetector(onTap: () => showCardOffers(context, c.id, finish: f), child: CardView(card: c, finish: f)),
+          Positioned(
+            right: -3,
+            top: -7,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(color: const Color(0xFF2A1800), borderRadius: BorderRadius.circular(10), border: Border.all(color: kGold, width: 1.5)),
+              child: Text('🪙 ${(r['price'] as num).toInt()}', style: const TextStyle(color: Color(0xFFFFD166), fontSize: 11, fontWeight: FontWeight.w900)),
+            ),
+          ),
+          if (isSold)
+            Positioned.fill(
+              child: Center(
+                child: Transform.rotate(
+                  angle: -0.2,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(color: const Color(0xFF1F6B52), borderRadius: BorderRadius.circular(5), border: Border.all(color: const Color(0xFF5DCAA5), width: 1.5)),
+                    child: Text(t('VENDUE', 'SOLD'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+                  ),
+                ),
+              ),
+            ),
+        ]),
+      ),
+      const SizedBox(height: 4),
+      if (isSold)
+        Text(t('à ${r['buyer'] ?? '?'}', 'to ${r['buyer'] ?? '?'}'),
+            maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 11.5, fontWeight: FontWeight.w700))
+      else
+        // bouton bien visible pour reprendre la carte
+        SizedBox(
+          width: double.infinity,
+          height: 30,
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.zero,
+              side: const BorderSide(color: Color(0xFFFF8A95), width: 1.5),
+              foregroundColor: const Color(0xFFFFC4CF),
+              backgroundColor: const Color(0xFF4A1D2A),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => _cancel((r['id'] as num).toInt()),
+            icon: const Icon(Icons.undo, size: 15),
+            label: Text(t('Retirer', 'Remove'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+          ),
+        ),
+    ]);
   }
 }
 
@@ -806,6 +888,7 @@ class SellPickerPage extends StatefulWidget {
 
 class _SellPickerPageState extends State<SellPickerPage> {
   String sys = '';
+  String q = ''; // recherche par nom
   late bool onlyDupes = widget.multi || Game.i.dupes > 0;
   final selected = <(String, int)>[];
   bool busy = false;
@@ -815,6 +898,7 @@ class _SellPickerPageState extends State<SellPickerPage> {
     Game.i.owned.forEach((id, q) {
       final c = Catalog.cards[id];
       if (c == null || (sys.isNotEmpty && c.sys != sys)) return;
+      if (this.q.isNotEmpty && !c.title.toLowerCase().contains(this.q.toLowerCase())) return;
       final total = qSum(q);
       if (onlyDupes && total < 2) return;
       for (var f = 0; f < kFinishes; f++) {
@@ -951,6 +1035,20 @@ class _SellPickerPageState extends State<SellPickerPage> {
         title: Text(widget.multi ? t('Vendre mes doublons', 'Sell my duplicates') : t('Vendre une carte', 'Sell a card')),
       ),
       body: Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+          child: TextField(
+            onChanged: (v) => setState(() => q = v.trim()),
+            decoration: InputDecoration(
+              hintText: t('Chercher un jeu…', 'Search a game…'),
+              prefixIcon: const Icon(Icons.search, color: Colors.white54),
+              isDense: true,
+              filled: true,
+              fillColor: const Color(0x33000000),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            ),
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
           child: Row(children: [

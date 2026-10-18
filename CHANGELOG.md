@@ -1,6 +1,13 @@
 # Pixel Trade — Changelog
 
 ## v1.0.11
+- **Bourse, autres onglets revus** dans le style du magasin :
+  - Vendre : « En vente » en grille (prix sur la carte, bouton rouge « Retirer » sous chaque carte, avec confirmation)
+    et « Vendues récemment » à part (tampon VENDUE, acheteur, total sur 7 jours) ; recherche dans le choix des cartes.
+  - Échanges : pastilles Reçus / Envoyés / Terminés, échanges en cartes compactes (tu donnes ⇄ tu reçois, écart de
+    valeur, Détail / Refuser / Accepter).
+  - Historique : bilan total (gagné, dépensé, échanges), pastilles Tout / Ventes / Achats / Échanges, regroupé par
+    jour, « Voir plus » par pages de 50 (SQL : rc_history_page dans patch_bourse_magasin.sql).
 - **Bourse, nouveau magasin** : recherche par nom, filtres en pastilles (Manquantes d'un toucher ; console, rareté,
   finition et tri dans une fenêtre), rubriques « 🎯 Il te manque », « 💰 Bonnes affaires » (au moins 20 % sous le prix
   moyen payé sur 30 jours) et « 🔥 Nouveautés » (du jour), puis la grille de toutes les cartes en vente avec le prix

@@ -8,6 +8,7 @@ import 'main.dart';
 import 'market.dart';
 import 'notifs.dart';
 import 'profile.dart';
+import 'retro_theme.dart';
 import 'server.dart';
 import 'trades.dart';
 
@@ -193,6 +194,9 @@ class _HistoryList extends StatefulWidget {
 class _HistoryListState extends State<_HistoryList> {
   List<Map<String, dynamic>>? rows;
   String? error;
+  bool more = false, loadingMore = false;
+  int earned = 0, spent = 0, trades = 0;
+  int filter = 0; // 0 tout, 1 ventes, 2 achats, 3 échanges
 
   @override
   void initState() {
@@ -202,10 +206,14 @@ class _HistoryListState extends State<_HistoryList> {
 
   Future<void> load() async {
     try {
-      final r = await RcServer.history();
+      final r = await RcServer.historyPage(0);
       if (mounted) {
         setState(() {
-          rows = r;
+          rows = [for (final x in (r['rows'] as List? ?? const [])) Map<String, dynamic>.from(x as Map)];
+          more = r['more'] == true;
+          earned = (r['earned'] as num? ?? 0).toInt();
+          spent = (r['spent'] as num? ?? 0).toInt();
+          trades = (r['trades'] as num? ?? 0).toInt();
           error = null;
         });
       }
@@ -214,15 +222,62 @@ class _HistoryListState extends State<_HistoryList> {
     }
   }
 
+  Future<void> _more() async {
+    if (loadingMore || rows == null) return;
+    setState(() => loadingMore = true);
+    try {
+      final r = await RcServer.historyPage(rows!.length);
+      if (mounted) {
+        setState(() {
+          rows!.addAll([for (final x in (r['rows'] as List? ?? const [])) Map<String, dynamic>.from(x as Map)]);
+          more = r['more'] == true;
+        });
+      }
+    } catch (e) {
+      toast(errText(e));
+    }
+    if (mounted) setState(() => loadingMore = false);
+  }
+
   String _when(String? s) {
+    final d = DateTime.tryParse(s ?? '')?.toLocal();
+    if (d == null) return '';
+    return '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+  }
+
+  /// « AUJOURD'HUI », « HIER » ou la date
+  String _day(String? s) {
     final d = DateTime.tryParse(s ?? '')?.toLocal();
     if (d == null) return '';
     final now = DateTime.now();
     final days = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
-    final hm = '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-    if (days == 0) return hm;
-    if (days == 1) return t('hier', 'yesterday');
+    if (days <= 0) return t('AUJOURD\'HUI', 'TODAY');
+    if (days == 1) return t('HIER', 'YESTERDAY');
     return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
+  }
+
+  bool _keep(Map r) => switch (filter) {
+        1 => r['kind'] == 'sold',
+        2 => r['kind'] == 'bought',
+        3 => (r['kind'] as String? ?? '').startsWith('trade'),
+        _ => true,
+      };
+
+  Widget _pill(int i, String label) {
+    final on = filter == i;
+    const purple = Color(0xFFB48CFF);
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: ChoiceChip(
+        label: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: on ? const Color(0xFF1F0B33) : const Color(0xFFCFD3FF))),
+        selected: on,
+        showCheckmark: false,
+        visualDensity: VisualDensity.compact,
+        selectedColor: purple,
+        backgroundColor: kPanel,
+        onSelected: (_) => setState(() => filter = i),
+      ),
+    );
   }
 
   @override
@@ -240,23 +295,55 @@ class _HistoryListState extends State<_HistoryList> {
         ),
       );
     }
-    // bilan des pièces sur la période affichée
-    var earned = 0, spent = 0;
-    for (final r in rows!) {
-      final p = (r['price'] as num? ?? 0).toInt();
-      if (r['kind'] == 'sold') earned += p;
-      if (r['kind'] == 'bought') spent += p;
+    // lignes filtrées, avec un intertitre à chaque nouveau jour
+    final items = <Widget>[];
+    String? last;
+    for (final r in rows!.where(_keep)) {
+      final d = _day(r['at'] as String?);
+      if (d != last) {
+        items.add(Padding(
+          padding: const EdgeInsets.fromLTRB(4, 12, 4, 6),
+          child: Text(d, style: pixelStyle(size: 7.5, color: Colors.white54, shadow: false)),
+        ));
+        last = d;
+      }
+      items.add(_row(r));
     }
     return RefreshIndicator(
       onRefresh: load,
-      child: ListView(padding: const EdgeInsets.all(12), children: [
+      child: ListView(padding: const EdgeInsets.fromLTRB(12, 4, 12, 16), children: [
         Row(children: [
-          _total(t('Gagné en ventes', 'Earned from sales'), '+$earned', const Color(0xFF5DCAA5)),
-          const SizedBox(width: 8),
-          _total(t('Dépensé en achats', 'Spent on purchases'), '-$spent', const Color(0xFFF09595)),
+          _total(t('gagné', 'earned'), '+$earned', const Color(0xFF5DCAA5)),
+          const SizedBox(width: 6),
+          _total(t('dépensé', 'spent'), '-$spent', const Color(0xFFF09595)),
+          const SizedBox(width: 6),
+          _total(t('échanges', 'trades'), '$trades', const Color(0xFF8FD3FF)),
         ]),
-        const SizedBox(height: 10),
-        for (final r in rows!) _row(r),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 38,
+          child: ListView(scrollDirection: Axis.horizontal, children: [
+            _pill(0, t('Tout', 'All')),
+            _pill(1, t('Ventes', 'Sales')),
+            _pill(2, t('Achats', 'Purchases')),
+            _pill(3, t('Échanges', 'Trades')),
+          ]),
+        ),
+        if (items.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(t('Rien dans cette rubrique', 'Nothing here'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54)),
+          ),
+        ...items,
+        if (more)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Center(
+              child: loadingMore
+                  ? const CircularProgressIndicator(color: kGold)
+                  : OutlinedButton(onPressed: _more, child: Text(t('Voir plus', 'Show more'))),
+            ),
+          ),
       ]),
     );
   }

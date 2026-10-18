@@ -481,6 +481,13 @@ class RcServer {
   }
 
   /// Historique : [{kind: sold|bought|trade_in|trade_out, card, finish, price, other_name, other_pid, give, want, status, at}]
+  /// Historique par pages : {rows, more, earned, spent, trades}
+  static Future<Map<String, dynamic>> historyPage(int offset) async {
+    final d = await deviceId();
+    final r = await _rpc('rc_history_page', {'p_device': d, 'p_offset': offset});
+    return r is Map ? Map<String, dynamic>.from(r) : <String, dynamic>{};
+  }
+
   static Future<List<Map<String, dynamic>>> history() async {
     final d = await deviceId();
     return _list(await _rpc('rc_history', {'p_device': d}));
