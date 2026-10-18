@@ -397,7 +397,7 @@ class RcServer {
   // ── Fil d'actualité ─────────────────────────────────────────────────────
   /// 60 dernières nouvelles (plus récentes d'abord) : {id, at, kind, card, f, sys, n, pid, name, avatar}
   static Future<List<Map<String, dynamic>>> feed([int after = 0]) async =>
-      _list(await _rpc('rc_feed_list', {'p_after': after}));
+      _list(await _rpc('rc_feed_list2', {'p_after': after}));
 
   // ── Gamedle (jeu du jour) ───────────────────────────────────────────────
   /// {day, card, guesses, won, solvers, players, coins}
