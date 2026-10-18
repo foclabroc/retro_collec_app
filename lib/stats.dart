@@ -27,16 +27,16 @@ class StatsPanel extends StatelessWidget {
     owned.forEach((id, q) {
       final c = Catalog.cards[id];
       if (c == null) return;
-      final n = q[0] + q[1] + q[2];
+      final n = qSum(q);
       if (n <= 0) return;
       ownByR[c.rarity]++;
       copies += n;
       holo += q[1];
       gold += q[2];
-      for (var f = 0; f < 3; f++) {
+      for (var f = 0; f < kFinishes; f++) {
         value += recycleValue(c.rarity, f) * q[f];
       }
-      best.add((c, q[2] > 0 ? 2 : q[1] > 0 ? 1 : 0));
+      best.add((c, bestFinish(q)));
     });
     best.sort((a, b) {
       final va = recycleValue(a.$1.rarity, a.$2), vb = recycleValue(b.$1.rarity, b.$2);

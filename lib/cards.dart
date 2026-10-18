@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -150,6 +151,10 @@ class CardView extends StatelessWidget {
     final img = Catalog.image(card);
     final cacheW = (w * dpr).round().clamp(64, 900);
     final small3 = ResizeImage.resizeIfNeeded((cacheW / 3).round().clamp(32, 300), null, img);
+    // full art (épiques et légendaires) : un tout autre modèle de carte
+    if (owned && finish == 3) {
+      return FullArtFace(card: card, width: w, cover: ResizeImage.resizeIfNeeded(cacheW, null, img), manualTilt: manualTilt);
+    }
 
     Widget picture = Image(
         image: ResizeImage.resizeIfNeeded(cacheW, null, img),
@@ -483,6 +488,236 @@ class HoloSheen extends StatelessWidget {
       },
     );
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Full art (finition 3) : l'écran du jeu en décor, la jaquette dans un cadre
+// doré à sa forme (large, carrée ou haute), plaque gravée avec le titre.
+// Fixe : seul le brillant (prisme sur la jaquette et le décor, or du cadre)
+// suit l'inclinaison du téléphone ou du doigt.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const _kGold = [Color(0xFF8A6420), Color(0xFFFFE08A), Color(0xFFB8862E), Color(0xFFFFF3C4), Color(0xFF7A5518)];
+
+class FullArtFace extends StatefulWidget {
+  final RcCard card;
+  final double width;
+  final ImageProvider cover;
+  final Offset? manualTilt;
+  const FullArtFace({super.key, required this.card, required this.width, required this.cover, this.manualTilt});
+  @override
+  State<FullArtFace> createState() => _FullArtFaceState();
+}
+
+class _FullArtFaceState extends State<FullArtFace> {
+  double? _ratio; // largeur / hauteur de la jaquette
+  ImageStream? _stream;
+  ImageStreamListener? _listener;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resolve();
+  }
+
+  @override
+  void didUpdateWidget(FullArtFace old) {
+    super.didUpdateWidget(old);
+    if (old.cover != widget.cover) _resolve();
+  }
+
+  void _resolve() {
+    final st = widget.cover.resolve(createLocalImageConfiguration(context));
+    if (_stream?.key == st.key) return;
+    if (_listener != null) _stream?.removeListener(_listener!);
+    _listener = ImageStreamListener((info, _) {
+      final r = info.image.width / max(1, info.image.height);
+      info.dispose();
+      if (mounted && r != _ratio) setState(() => _ratio = r);
+    }, onError: (_, __) {});
+    _stream = st..addListener(_listener!);
+  }
+
+  @override
+  void dispose() {
+    if (_listener != null) _stream?.removeListener(_listener!);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.card;
+    final w = widget.width, h = w * 7 / 5;
+    final small = w < 140;
+    final rad = w * 0.075;
+    final shot = Catalog.shot(c);
+    final sys = Catalog.system(c.sys);
+
+    // cadre à la forme de la jaquette, cadre + plaque centrés en hauteur
+    final ratio = _ratio ?? 0.75;
+    final pad = w * 0.035;
+    final maxW = w * (ratio > 1.1 ? 0.80 : ratio > 0.9 ? 0.70 : 0.66), maxH = h * 0.56;
+    var fw = maxW, fh = (fw - 2 * pad) / ratio + 2 * pad;
+    if (fh > maxH) {
+      fh = maxH;
+      fw = (fh - 2 * pad) * ratio + 2 * pad;
+    }
+    final plaqueH = small ? 0.0 : w * 0.17, gap = small ? 0.0 : w * 0.045;
+    final top = h * 0.08 + (h * 0.82 - (fh + gap + plaqueH)) / 2;
+
+    Widget tilted(Widget Function(Offset o) b) => ValueListenableBuilder<Offset>(
+          valueListenable: Tilt.value,
+          builder: (_, tl, __) => b(widget.manualTilt ?? tl),
+        );
+    LinearGradient gold(Offset o, {double turn = 0.75}) => LinearGradient(
+          colors: _kGold,
+          stops: const [0, 0.25, 0.5, 0.7, 1],
+          transform: GradientRotation(turn + o.dx * 1.0),
+        );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(rad),
+      child: Stack(fit: StackFit.expand, children: [
+        // décor : l'écran du jeu (gros pixels), sinon la jaquette floutée
+        if (shot != null)
+          Image(image: shot, fit: BoxFit.cover, filterQuality: FilterQuality.none, errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF14183A)))
+        else
+          ImageFiltered(
+            imageFilter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Image(image: widget.cover, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF14183A))),
+          ),
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(center: Alignment(0, -0.2), radius: 0.9, colors: [Color(0x1A000000), Color(0x80000000)], stops: [0.45, 1]),
+          ),
+        ),
+        tilted((o) => CustomPaint(painter: _PrismPainter(o, stripe: w * 0.022, alpha: 0.28))),
+        // cadre doré + jaquette gravée en prisme
+        Positioned(
+          left: (w - fw) / 2,
+          top: top,
+          width: fw,
+          height: fh,
+          child: tilted((o) => Container(
+                padding: EdgeInsets.all(pad),
+                decoration: BoxDecoration(
+                  gradient: gold(o),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.65), blurRadius: w * 0.06, offset: Offset(0, w * 0.03))],
+                ),
+                child: DecoratedBox(
+                  position: DecorationPosition.foreground,
+                  decoration: BoxDecoration(border: Border.all(color: const Color(0xFF3A2A0A), width: max(1.0, w * 0.008))),
+                  child: Stack(fit: StackFit.expand, children: [
+                    Image(image: widget.cover, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF111111))),
+                    CustomPaint(painter: _PrismPainter(o, stripe: w * 0.014, alpha: 0.5)),
+                  ]),
+                ),
+              )),
+        ),
+        if (!small)
+          Positioned(
+            left: w * 0.16,
+            right: w * 0.16,
+            top: top + fh + gap,
+            height: plaqueH,
+            child: tilted((o) => Container(
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.symmetric(horizontal: w * 0.03),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: const [Color(0xFFA07A2C), Color(0xFFFFE08A), Color(0xFFFFF6D0), Color(0xFFFFE08A), Color(0xFFA07A2C)],
+                      stops: const [0, 0.4, 0.5, 0.6, 1],
+                      transform: GradientRotation(o.dx * 1.4),
+                    ),
+                    borderRadius: BorderRadius.circular(w * 0.015),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: w * 0.04, offset: Offset(0, w * 0.02))],
+                  ),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(c.title,
+                          maxLines: 1,
+                          style: GoogleFonts.playfairDisplay(fontSize: w * 0.06, fontWeight: FontWeight.w700, color: const Color(0xFF3A2408), height: 1.1)),
+                    ),
+                    Text('${(sys?.name ?? c.sys).toLowerCase()}${c.year != null ? ', ${c.year}' : ''}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.playfairDisplay(fontSize: w * 0.042, fontStyle: FontStyle.italic, color: const Color(0xFF3A2408))),
+                  ]),
+                )),
+          ),
+        // étiquette « FULL ART » et rareté
+        Positioned(
+          top: w * 0.035,
+          right: w * 0.035,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: w * 0.025, vertical: w * 0.012),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(w * 0.02),
+              gradient: const LinearGradient(colors: [Color(0xFFFF4FD8), Color(0xFFFFD166), Color(0xFF3EE6FF)]),
+            ),
+            child: Text(small ? '★★' : '★★ FULL ART', style: TextStyle(fontSize: max(7.0, w * 0.034), fontWeight: FontWeight.w900, color: const Color(0xFF14062B))),
+          ),
+        ),
+        if (!small)
+          Positioned(
+            bottom: w * 0.035,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: w * 0.03, vertical: w * 0.012),
+                decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(w * 0.02)),
+                child: Text('${rarityName(c.rarity).toUpperCase()} ★★',
+                    style: TextStyle(fontSize: w * 0.032, fontWeight: FontWeight.w900, color: const Color(0xFFFFD98A), letterSpacing: 0.5)),
+              ),
+            ),
+          ),
+        // bord doré fin et reflet qui suit l'inclinaison
+        IgnorePointer(
+          child: Padding(
+            padding: EdgeInsets.all(w * 0.018),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xB3FFE08A), width: max(1.0, w * 0.009)),
+                borderRadius: BorderRadius.circular(rad * 0.8),
+              ),
+            ),
+          ),
+        ),
+        IgnorePointer(child: HoloSheen(manualTilt: widget.manualTilt)),
+      ]),
+    );
+  }
+}
+
+/// Fines rayures arc-en-ciel (effet prisme) dont l'angle suit l'inclinaison.
+class _PrismPainter extends CustomPainter {
+  final Offset tilt;
+  final double stripe, alpha;
+  _PrismPainter(this.tilt, {required this.stripe, required this.alpha});
+
+  static const _colors = [Color(0xFFFF4FD8), Color(0xFFFFD166), Color(0xFF3EE6FF), Color(0xFF78FFA0)];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = max(1.0, stripe);
+    final p = Paint()..blendMode = BlendMode.softLight;
+    final diag = sqrt(size.width * size.width + size.height * size.height);
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.rotate(pi / 6 + tilt.dx * 0.7 + tilt.dy * 0.3);
+    var k = 0;
+    for (var x = -diag / 2; x < diag / 2; x += s) {
+      p.color = _colors[k++ % _colors.length].withOpacity(alpha);
+      canvas.drawRect(Rect.fromLTWH(x, -diag / 2, s, diag), p);
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _PrismPainter old) => old.tilt != tilt || old.stripe != stripe || old.alpha != alpha;
 }
 
 /// Dos de carte (ouverture des paquets).

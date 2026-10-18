@@ -803,8 +803,8 @@ class OtherAlbumPage extends StatelessWidget {
         itemBuilder: (_, i) {
           final c = list[i];
           final q = owned[c.id];
-          final has = q != null && q[0] + q[1] + q[2] > 0;
-          final best = q == null ? 0 : (q[2] > 0 ? 2 : q[1] > 0 ? 1 : 0);
+          final has = q != null && qSum(q) > 0;
+          final best = q == null ? 0 : bestFinish(q);
           return GestureDetector(
             onTap: () {
               if (has && !Game.i.has(c.id)) {

@@ -239,6 +239,7 @@ class _FeedTile extends StatelessWidget {
     final (List<(String, bool)> what, Color accent, String icon, String? prize) = switch (kind) {
       'legend' => (s('$a a obtenu la légendaire **$title**', '$a got the legendary **$title**'), kRarityColor[4], '🌟', null),
       'gold' => (s('$a a obtenu **$title** en version dorée', '$a got a gold **$title**'), const Color(0xFFFFD54F), '★', null),
+      'fullart' => (s('$a a obtenu **$title** en **full art** ★★', '$a got **$title** in **full art** ★★'), const Color(0xFFFF9FE5), '★★', null),
       'set' => (s('$a a complété la série **$sysName** à 100 % !', '$a completed the **$sysName** set!'), const Color(0xFF5DCAA5), '🏆', null),
       'half' => (s('$a a atteint **50 %** de la série **$sysName**', '$a reached **50%** of the **$sysName** set'), const Color(0xFF77AADD), '📈', null),
       'gamedle' => (

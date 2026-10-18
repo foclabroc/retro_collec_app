@@ -405,7 +405,7 @@ class _PacksScreenState extends State<PacksScreen> {
                   ),
               ]),
               const SizedBox(height: 6),
-              Text(t('Finition brillante : 5 % · dorée : 0,5 %', 'Holo finish: 5% · gold: 0.5%'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              Text(t('Finition brillante : 5 % · dorée : 0,5 % · full art (épiques et légendaires) : 0,2 %', 'Holo finish: 5% · gold: 0.5% · full art (epic and legendary): 0.2%'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
             ]),
           ),
         ]);
@@ -693,7 +693,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       list.add(_Pulled(card, (c['f'] as num).toInt(), (c['r'] as num).toInt(), c['n'] == true));
     }
     // du plus commun au plus rare : le meilleur pour la fin
-    list.sort((a, b) => (a.r * 3 + a.f).compareTo(b.r * 3 + b.f));
+    list.sort((a, b) => (a.r * 4 + a.f).compareTo(b.r * 4 + b.f));
     pulled = list;
     booster = (r['choice'] as num?)?.toInt();
     // cadeau : pas de choix, donc pas de « tu as raté »

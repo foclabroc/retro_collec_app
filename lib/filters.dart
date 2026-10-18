@@ -35,14 +35,15 @@ class CardFilter {
     final g = Game.i;
     final q = query.trim().toLowerCase();
     final out = cards.where((c) {
-      final own = g.owned[c.id] ?? const [0, 0, 0];
-      final n = own[0] + own[1] + own[2];
+      final own = g.owned[c.id] ?? const [0, 0, 0, 0];
+      final n = qSum(own);
       final ok = switch (show) {
         1 => n > 0,
         2 => n == 0,
         3 => n > 1,
-        4 => own[1] + own[2] > 0,
+        4 => own[1] + own[2] + own[3] > 0,
         5 => own[2] > 0,
+        6 => own[3] > 0,
         _ => true,
       };
       if (!ok) return false;
@@ -88,6 +89,7 @@ List<String> get _showLabels => [
       t('Doublons', 'Duplicates'),
       t('Brillantes ✦', 'Holo ✦'),
       t('Dorées ★', 'Gold ★'),
+      t('Full art ★★', 'Full art ★★'),
     ];
 
 List<String> get _sortLabels => [
@@ -250,7 +252,7 @@ class CardGrid extends StatelessWidget {
       itemBuilder: (_, i) {
         final c = cards[i];
         final q = g.owned[c.id];
-        final best = q == null ? 0 : (q[2] > 0 ? 2 : q[1] > 0 ? 1 : 0);
+        final best = q == null ? 0 : bestFinish(q);
         final n = g.qty(c.id);
         return GestureDetector(
           onTap: () => openCardDetail(context, c, list: cards),

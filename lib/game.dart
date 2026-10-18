@@ -57,11 +57,24 @@ String rarityName(int r) => [
       t('Légendaire', 'Legendary'),
     ][r.clamp(0, 4)];
 
-// Finitions : 0 normale, 1 brillante, 2 dorée
-String finishName(int f) => [t('Normale', 'Normal'), t('Brillante', 'Holo'), t('Dorée', 'Gold')][f.clamp(0, 2)];
+// Finitions : 0 normale, 1 brillante, 2 dorée, 3 full art (épiques et légendaires)
+const kFinishes = 4;
+String finishName(int f) => [t('Normale', 'Normal'), t('Brillante', 'Holo'), t('Dorée', 'Gold'), t('Full art', 'Full art')][f.clamp(0, 3)];
+
+/// Nombre total d'exemplaires (toutes finitions)
+int qSum(List<int> q) => q.fold(0, (a, b) => a + b);
+
+/// Meilleure finition possédée (full art > dorée > brillante > normale)
+int bestFinish(List<int>? q) {
+  if (q == null) return 0;
+  for (var f = q.length - 1; f > 0; f--) {
+    if (q[f] > 0) return f;
+  }
+  return 0;
+}
 
 // Mêmes valeurs que le SQL (rc__recycle_value, rc__craft_cost, rc__pack_price)
-int recycleValue(int r, int f) => const [5, 15, 50, 150, 500][r] * const [1, 3, 10][f];
+int recycleValue(int r, int f) => const [5, 15, 50, 150, 500][r] * const [1, 3, 10, 30][f];
 int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
 /// Boosters spéciaux payés en pixels (1 pixel par booster ouvert)
 const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40};
@@ -111,14 +124,14 @@ class Owned {
   const Owned(this.card, this.finish, this.qty);
 }
 
-/// Liste [[carte, finition, qté], …] → map carte → [qté normale, brillante, dorée]
+/// Liste [[carte, finition, qté], …] → map carte → [qté normale, brillante, dorée, full art]
 Map<String, List<int>> parseOwned(dynamic raw) {
   final out = <String, List<int>>{};
   if (raw is! List) return out;
   for (final e in raw) {
     if (e is! List || e.length < 3) continue;
-    final q = out[e[0] as String] ??= [0, 0, 0];
-    q[(e[1] as num).toInt().clamp(0, 2)] = (e[2] as num).toInt();
+    final q = out[e[0] as String] ??= [0, 0, 0, 0];
+    q[(e[1] as num).toInt().clamp(0, 3)] = (e[2] as num).toInt();
   }
   return out;
 }
@@ -144,7 +157,7 @@ class Game extends ChangeNotifier {
   int qty(String card, [int? finish]) {
     final q = owned[card];
     if (q == null) return 0;
-    return finish == null ? q[0] + q[1] + q[2] : q[finish];
+    return finish == null ? qSum(q) : q[finish];
   }
 
   bool has(String card) => qty(card) > 0;
@@ -167,6 +180,7 @@ class Game extends ChangeNotifier {
   /// Exemplaires brillants et dorés
   int get holoCount => owned.values.fold(0, (a, q) => a + q[1]);
   int get goldCount => owned.values.fold(0, (a, q) => a + q[2]);
+  int get fullArtCount => owned.values.fold(0, (a, q) => a + q[3]);
 
   // ── Dernières cartes obtenues (mémorisées sur le téléphone) ──
   final recent = <(String, int)>[];
@@ -197,7 +211,7 @@ class Game extends ChangeNotifier {
     owned.forEach((id, q) {
       final c = Catalog.cards[id];
       if (c == null) return;
-      for (var f = 0; f < 3; f++) {
+      for (var f = 0; f < kFinishes; f++) {
         if (q[f] > 1) v += recycleValue(c.rarity, f) * (q[f] - 1);
       }
     });
@@ -327,12 +341,12 @@ class Game extends ChangeNotifier {
     score = (r['score'] as num? ?? score).toInt();
     packs++;
     for (final c in (r['cards'] as List? ?? const [])) {
-      final q = owned[c['c'] as String] ??= [0, 0, 0];
+      final q = owned[c['c'] as String] ??= [0, 0, 0, 0];
       q[(c['f'] as num).toInt()]++;
     }
     // les meilleures cartes du paquet en tête des « dernières cartes »
     final got = [for (final c in (r['cards'] as List? ?? const [])) (c['c'] as String, (c['f'] as num).toInt(), (c['r'] as num? ?? 0).toInt())]
-      ..sort((a, b) => (a.$3 * 3 + a.$2).compareTo(b.$3 * 3 + b.$2));
+      ..sort((a, b) => (a.$3 * 4 + a.$2).compareTo(b.$3 * 4 + b.$2));
     for (final (c, f, _) in got) {
       addRecent(c, f);
     }

@@ -310,13 +310,13 @@ class _CardDetailPageState extends State<CardDetailPage> {
     (dx < 0 ? nav.next : nav.prev)?.call();
   }
 
-  List<int> get q => widget.otherOwned != null ? (widget.otherOwned![widget.card.id] ?? const [0, 0, 0]) : (Game.i.owned[widget.card.id] ?? const [0, 0, 0]);
+  List<int> get q => widget.otherOwned != null ? (widget.otherOwned![widget.card.id] ?? const [0, 0, 0, 0]) : (Game.i.owned[widget.card.id] ?? const [0, 0, 0, 0]);
 
   @override
   void initState() {
     super.initState();
     final x = q;
-    finish = x[2] > 0 ? 2 : x[1] > 0 ? 1 : 0;
+    finish = bestFinish(x);
   }
 
   @override
@@ -328,7 +328,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
         listenable: Game.i,
         builder: (context, _) {
           final x = q;
-          final total = x[0] + x[1] + x[2];
+          final total = qSum(x);
           final owned = total > 0;
           final myTotal = Game.i.qty(c.id);
           final shot = owned || myTotal > 0 ? Catalog.shot(c) : null;
@@ -388,12 +388,12 @@ class _CardDetailPageState extends State<CardDetailPage> {
               if (owned) ...[
                 const SizedBox(height: 12),
                 Wrap(alignment: WrapAlignment.center, spacing: 8, children: [
-                  for (var f = 0; f < 3; f++)
+                  for (var f = 0; f < kFinishes; f++)
                     if (x[f] > 0)
                       ChoiceChip(
                         label: Text('${finishName(f)} ×${x[f]}'),
                         selected: finish == f,
-                        selectedColor: f == 2 ? const Color(0xFF633806) : f == 1 ? const Color(0xFF26215C) : kPanel2,
+                        selectedColor: f == 3 ? const Color(0xFF6B4A12) : f == 2 ? const Color(0xFF633806) : f == 1 ? const Color(0xFF26215C) : kPanel2,
                         onSelected: (_) => setState(() => finish = f),
                       ),
                 ]),
@@ -549,7 +549,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
         RcAudio.sfx('coin');
         toast(t('+$gain pièces', '+$gain coins'));
         final x = q;
-        if (x[finish] == 0) setState(() => finish = x[2] > 0 ? 2 : x[1] > 0 ? 1 : 0);
+        if (x[finish] == 0) setState(() => finish = bestFinish(x));
       });
 
   void _fuse(RcCard c, int from) => _run(() async {
@@ -660,7 +660,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
         if (price == null) return;
         await sellCard(c.id, finish, price);
         final x = q;
-        if (x[finish] == 0 && x[0] + x[1] + x[2] > 0) setState(() => finish = x[2] > 0 ? 2 : x[1] > 0 ? 1 : 0);
+        if (x[finish] == 0 && qSum(x) > 0) setState(() => finish = bestFinish(x));
       });
 }
 

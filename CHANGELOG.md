@@ -1,6 +1,11 @@
 # Pixel Trade — Changelog
 
 ## v1.0.10
+- **Cartes Full Art** (nouvelle finition, épiques et légendaires seulement) : 0,2 % de chance sur chaque épique
+  ou légendaire tirée. L'écran du jeu en décor, la jaquette dans un cadre doré à sa forme (large, carrée, haute),
+  plaque gravée avec le titre ; fixe, seul le brillant (prisme, or) suit l'inclinaison. Compte 6× au classement
+  (le double d'une dorée), recyclage 30×. Filtre « Full art ★★ » dans les cartes, actu « X a obtenu Y en full art ».
+  SQL : patch_fullart.sql (à lancer après la sortie de l'APK).
 - **Actualités enrichies** : victoires et matchs nuls au 4 en ligne et à Console Wars (avec la mise et l'abandon),
   échanges conclus (avec la plus belle carte), ventes de la Bourse (épique ou mieux), paquets offerts, nouveaux joueurs,
   séries de connexion (7, 30, 100, 365 jours), paquets ouverts (100e, 250e, 500e…), séries à 50 %.

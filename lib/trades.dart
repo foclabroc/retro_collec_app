@@ -455,9 +455,9 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
       final c = Catalog.cards[id];
       if (c == null || (sys.isNotEmpty && c.sys != sys)) return;
       if (!mine && onlyMissing && Game.i.has(id)) return;
-      for (var f = 0; f < 3; f++) {
+      for (var f = 0; f < kFinishes; f++) {
         if (q[f] <= 0) continue;
-        if (mine && onlyDupes && q[0] + q[1] + q[2] < 2) continue;
+        if (mine && onlyDupes && qSum(q) < 2) continue;
         items.add((c, f, q[f]));
       }
     });
@@ -550,7 +550,7 @@ class TradeDetailPage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Wrap(spacing: 6, runSpacing: 4, children: [
                   _pill(rarityName(c.rarity), kRarityColor[c.rarity]),
-                  if (it.$2 > 0) _pill(finishName(it.$2), it.$2 == 2 ? const Color(0xFFFFD54F) : const Color(0xFF9C8CFF)),
+                  if (it.$2 > 0) _pill(finishName(it.$2), it.$2 == 3 ? const Color(0xFFFF9FE5) : it.$2 == 2 ? const Color(0xFFFFD54F) : const Color(0xFF9C8CFF)),
                 ]),
                 const SizedBox(height: 4),
                 Text(note, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: noteColor)),

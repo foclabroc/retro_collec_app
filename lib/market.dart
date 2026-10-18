@@ -588,9 +588,9 @@ class _SellPickerPageState extends State<SellPickerPage> {
     Game.i.owned.forEach((id, q) {
       final c = Catalog.cards[id];
       if (c == null || (sys.isNotEmpty && c.sys != sys)) return;
-      final total = q[0] + q[1] + q[2];
+      final total = qSum(q);
       if (onlyDupes && total < 2) return;
-      for (var f = 0; f < 3; f++) {
+      for (var f = 0; f < kFinishes; f++) {
         if (q[f] > 0) out.add((c, f, q[f]));
       }
     });
