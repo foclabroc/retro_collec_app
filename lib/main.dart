@@ -839,7 +839,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                           : g.free
                               ? t('Paquet gratuit dispo !', 'Free pack ready!')
                               : null),
-                  item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'), dot: n.wheel, hint: t('Roue, Gamedle, quiz, 4 en ligne', 'Wheel, Gamedle, quiz, Connect 4')),
+                  item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'), dot: n.wheel, hint: t('Roue, Gamedle, quiz, 4 en ligne, Console Wars', 'Wheel, Gamedle, quiz, Connect 4, Console Wars')),
                   item(3, 'market', t('Bourse', 'Exchange'),
                       count: n.trades + n.sales.length, hint: t('Acheter, vendre, échanger', 'Buy, sell, trade')),
                   item(4, 'messages', t('Messages', 'Messages'),
