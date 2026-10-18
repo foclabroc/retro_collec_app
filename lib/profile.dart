@@ -126,16 +126,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Column(children: [
           TabHeader(widget.embedded ? '' : t('Profil', 'Profile'), actions: [
             IconButton(
-              tooltip: t('Son', 'Sound'),
-              icon: Icon(RcAudio.enabled ? Icons.volume_up : Icons.volume_off),
-              onPressed: () => setState(() => RcAudio.enabled = !RcAudio.enabled),
-            ),
-            IconButton(
-              tooltip: t('Musique', 'Music'),
-              icon: Icon(RcAudio.musicEnabled ? Icons.music_note : Icons.music_off),
+              tooltip: t('Son (musique et bruitages)', 'Sound (music and effects)'),
+              icon: Icon(RcAudio.soundOn ? Icons.volume_up : Icons.volume_off),
               onPressed: () async {
-                await RcAudio.setMusicEnabled(!RcAudio.musicEnabled);
-                if (RcAudio.musicEnabled) RcAudio.musicStart(RcAudio.homeTrack);
+                await RcAudio.setSound(!RcAudio.soundOn);
                 setState(() {});
               },
             ),

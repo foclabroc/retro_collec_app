@@ -13,17 +13,14 @@ class RcAudio {
 
   static const _ch = MethodChannel('com.foclabroc.retro_collec/audio');
 
+  /// Bruitages activés (réglage mémorisé, indépendant de la musique)
   static bool _enabled = true;
+  static const _kSfxKey = 'rc_sfx';
 
   static bool get enabled => _enabled;
   static set enabled(bool v) {
     _enabled = v;
-    // Son coupé : musique arrêtée ; son remis : la musique du jeu ouvert reprend
-    if (!v) {
-      _invoke('musicStop');
-    } else if (_track != null) {
-      musicStart(_track!);
-    }
+    SharedPreferences.getInstance().then((p) => p.setBool(_kSfxKey, v)).catchError((_) => false);
   }
 
   /// Bonne réponse ✅
@@ -75,7 +72,7 @@ class RcAudio {
   static Future<void> setHomeTrack(int i) async {
     homeTrackRandom = i < 0;
     homeTrack = homeTrackRandom ? _randomTrack(homeTrack) : i;
-    if (_music && _enabled) musicStart(homeTrack);
+    if (_music) musicStart(homeTrack);
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(_kTrackKey, i < 0 ? -1 : i);
@@ -86,11 +83,20 @@ class RcAudio {
   /// Musique des mini-jeux activée (réglage mémorisé).
   static bool get musicEnabled => _music;
 
+  /// Un seul bouton pour tout le son : musique et bruitages ensemble (mémorisé)
+  static bool get soundOn => _music || _enabled;
+  static Future<void> setSound(bool v) async {
+    enabled = v;
+    await setMusicEnabled(v);
+    if (v && _track == null) musicStart(homeTrack);
+  }
+
   static Future<void> loadPrefs() async {
     if (_musicLoaded) return;
     try {
       final prefs = await SharedPreferences.getInstance();
       _music = prefs.getBool(_kMusicKey) ?? true;
+      _enabled = prefs.getBool(_kSfxKey) ?? true;
       final v = prefs.getInt(_kTrackKey) ?? -1;
       homeTrackRandom = v < 0;
       if (homeTrackRandom) {
@@ -120,7 +126,7 @@ class RcAudio {
   /// Lance la musique [track] en boucle (0 = Rétro Jump, 1 = Breakout).
   static Future<void> musicStart(int track) async {
     _track = track;
-    if (!_enabled || !_music) return;
+    if (!_music) return;
     await _invoke('musicStart', {'track': track});
   }
 
@@ -130,7 +136,7 @@ class RcAudio {
   }
   static Future<void> musicPause() => _invoke('musicPause');
   static Future<void> musicResume() async {
-    if (!_enabled || !_music) return;
+    if (!_music) return;
     await _invoke('musicResume');
   }
 

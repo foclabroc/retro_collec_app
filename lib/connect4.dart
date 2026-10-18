@@ -1442,8 +1442,11 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                   const Spacer(),
                   IconButton(
                     tooltip: t('Son', 'Sound'),
-                    onPressed: () => setState(() => RcAudio.enabled = !RcAudio.enabled),
-                    icon: Icon(RcAudio.enabled ? Icons.volume_up : Icons.volume_off, color: Colors.white70),
+                    onPressed: () async {
+                      await RcAudio.setSound(!RcAudio.soundOn);
+                      setState(() {});
+                    },
+                    icon: Icon(RcAudio.soundOn ? Icons.volume_up : Icons.volume_off, color: Colors.white70),
                     style: IconButton.styleFrom(backgroundColor: Colors.white10),
                   ),
                 ]),

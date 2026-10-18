@@ -1,5 +1,9 @@
 # Pixel Trade — Changelog
 
+## v1.0.10
+- **Son** : un seul bouton 🔊 (écran titre, profil, 4 en ligne) coupe ou remet la musique et les bruitages ensemble,
+  et le réglage est gardé au redémarrage de l'appli (avant, les bruitages se rallumaient).
+
 ## v1.0.9
 - **Étages de la Pixel Tower revus** : le rang à gauche (médailles or, argent, bronze pour le podium) au lieu du numéro
   d'étage, plus d'ascenseur ni de fenêtre de droite : la plaque prend toute la largeur et le pseudo s'affiche en entier

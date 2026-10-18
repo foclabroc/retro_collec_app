@@ -237,13 +237,11 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
   void _toggleSound() {
     HapticFeedback.selectionClick();
     if (!_soundOn) {
-      if (!RcAudio.musicEnabled) RcAudio.setMusicEnabled(true);
+      if (!RcAudio.soundOn) RcAudio.setSound(true);
       _unlockSound();
       return;
     }
-    final v = !RcAudio.musicEnabled;
-    RcAudio.setMusicEnabled(v);
-    if (v) RcAudio.musicStart(RcAudio.homeTrack);
+    RcAudio.setSound(!RcAudio.soundOn);
     setState(() {});
   }
 
