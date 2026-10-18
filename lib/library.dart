@@ -355,8 +355,35 @@ class _ConsoleTile extends StatefulWidget {
   State<_ConsoleTile> createState() => _ConsoleTileState();
 }
 
-class _ConsoleTileState extends State<_ConsoleTile> {
+class _ConsoleTileState extends State<_ConsoleTile> with SingleTickerProviderStateMixin {
   bool pressed = false;
+  // une seule horloge de 40 s ; chaque animation a une période qui divise 40 s
+  late final AnimationController _clock = AnimationController(vsync: this, duration: const Duration(seconds: 40));
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final still = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (still) {
+      _clock.stop();
+      _started = false;
+    } else if (!_started) {
+      _started = true;
+      // décalage propre à chaque console pour qu'elles ne bougent pas en même temps
+      _clock.value = (widget.sys.id.hashCode % 1000) / 1000;
+      _clock.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _clock.dispose();
+    super.dispose();
+  }
+
+  /// phase 0..1 d'une animation de [sec] secondes
+  double _ph(double sec) => (_clock.value * 40 / sec) % 1;
 
   static const _grey = ColorFilter.matrix(<double>[
     0.25, 0.55, 0.12, 0, -10, //
@@ -405,25 +432,77 @@ class _ConsoleTileState extends State<_ConsoleTile> {
           // affiche : rayons + console + bandeau
           Expanded(
             child: Stack(fit: StackFit.expand, children: [
-              CustomPaint(painter: _RaysPainter(brand)),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 6, 8, 30),
-                  child: Image.asset(
-                    'assets/consoles/${s.id}.png',
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.medium,
-                    errorBuilder: (_, __, ___) => Icon(Icons.videogame_asset, size: 56, color: Colors.white.withOpacity(0.6)),
+              // rayons qui tournent lentement
+              RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _clock,
+                  builder: (_, __) => CustomPaint(painter: _RaysPainter(brand, _clock.value * 2 * pi)),
+                ),
+              ),
+              // lueur qui respire derrière la console
+              AnimatedBuilder(
+                animation: _clock,
+                builder: (_, __) => Opacity(
+                  opacity: 0.675 + 0.325 * cos(_ph(4) * 2 * pi),
+                  child: const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(radius: 0.6, colors: [Color(0x59FFFFFF), Color(0x00FFFFFF)]),
+                    ),
                   ),
                 ),
               ),
+              // console qui flotte
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 6, 8, 30),
+                  child: AnimatedBuilder(
+                    animation: _clock,
+                    builder: (_, child) {
+                      final w = sin(_ph(4) * 2 * pi);
+                      return Transform.translate(
+                        offset: Offset(0, -3 - 3 * w),
+                        child: Transform.rotate(angle: -0.013 * w, child: child),
+                      );
+                    },
+                    child: Image.asset(
+                      'assets/consoles/${s.id}.png',
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.medium,
+                      errorBuilder: (_, __, ___) => Icon(Icons.videogame_asset, size: 56, color: Colors.white.withOpacity(0.6)),
+                    ),
+                  ),
+                ),
+              ),
+              // étoiles qui scintillent (séries complètes)
+              if (complete)
+                for (final st in const [[0.12, 0.18, 0.0], [0.82, 0.30, 0.3], [0.70, 0.62, 0.6], [0.18, 0.56, 0.8]])
+                  Align(
+                    alignment: Alignment(st[0] * 2 - 1, st[1] * 2 - 1),
+                    child: AnimatedBuilder(
+                      animation: _clock,
+                      builder: (_, __) {
+                        final k = 0.5 - 0.5 * cos(((_ph(2.5) + st[2]) % 1) * 2 * pi);
+                        return Opacity(
+                          opacity: k,
+                          child: Transform.scale(scale: 0.3 + 0.7 * k, child: const CustomPaint(size: Size(11, 11), painter: _SparkPainter())),
+                        );
+                      },
+                    ),
+                  ),
               // bandeau promo penché
               Positioned(
                 left: -8,
                 right: -8,
                 bottom: 6,
-                child: Transform.rotate(
-                  angle: -0.05,
+                child: AnimatedBuilder(
+                  animation: _clock,
+                  builder: (_, child) {
+                    final w = 0.5 - 0.5 * cos(_ph(4) * 2 * pi);
+                    return Transform.translate(
+                      offset: Offset(0, -w),
+                      child: Transform.rotate(angle: -0.05 - 0.025 * w, child: child),
+                    );
+                  },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
@@ -447,6 +526,30 @@ class _ConsoleTileState extends State<_ConsoleTile> {
                       ),
                     ),
                   ),
+                ),
+              ),
+              // reflet qui passe de temps en temps
+              IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _clock,
+                  builder: (_, __) {
+                    final v = _ph(5);
+                    if (v < 0.6) return const SizedBox.shrink();
+                    final x = -1.2 + 2.4 * ((v - 0.6) / 0.25).clamp(0.0, 1.0);
+                    return FractionalTranslation(
+                      translation: Offset(x, 0),
+                      child: const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment(-1, -0.4),
+                            end: Alignment(1, 0.4),
+                            colors: [Color(0x00FFFFFF), Color(0x8CFFFFFF), Color(0x00FFFFFF)],
+                            stops: [0.35, 0.48, 0.6],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
               // tampon « 100% »
@@ -478,10 +581,16 @@ class _ConsoleTileState extends State<_ConsoleTile> {
                 child: Container(
                   height: 8,
                   decoration: BoxDecoration(color: _kInk.withOpacity(0.2), border: Border.all(color: _kInk, width: 1.5)),
-                  child: FractionallySizedBox(
-                    alignment: Alignment.centerLeft,
-                    widthFactor: (owned / total).clamp(0.0, 1.0),
-                    child: Container(color: complete ? kGold : brand),
+                  // barre qui se remplit à l'ouverture
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: (owned / total).clamp(0.0, 1.0)),
+                    duration: const Duration(milliseconds: 1400),
+                    curve: const Cubic(0.2, 0.8, 0.2, 1),
+                    builder: (_, f, __) => FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: f,
+                      child: Container(color: complete ? kGold : brand),
+                    ),
                   ),
                 ),
               ),
@@ -507,7 +616,8 @@ class _ConsoleTileState extends State<_ConsoleTile> {
 /// Rayons de soleil façon publicité rétro
 class _RaysPainter extends CustomPainter {
   final Color color;
-  _RaysPainter(this.color);
+  final double angle;
+  _RaysPainter(this.color, [this.angle = 0]);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -518,7 +628,7 @@ class _RaysPainter extends CustomPainter {
     const n = 22; // rayons
     final p = Paint()..color = color;
     for (var i = 0; i < n; i++) {
-      final a0 = i * 2 * pi / n, a1 = a0 + pi / n;
+      final a0 = angle + i * 2 * pi / n, a1 = a0 + pi / n;
       final path = Path()
         ..moveTo(c.dx, c.dy)
         ..lineTo(c.dx + r * cos(a0), c.dy + r * sin(a0))
@@ -529,5 +639,28 @@ class _RaysPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RaysPainter old) => old.color != color;
+  bool shouldRepaint(covariant _RaysPainter old) => old.color != color || old.angle != angle;
+}
+
+/// Petite étoile à 4 branches
+class _SparkPainter extends CustomPainter {
+  const _SparkPainter();
+  @override
+  void paint(Canvas canvas, Size z) {
+    final w = z.width, h = z.height;
+    final path = Path()
+      ..moveTo(w * .5, 0)
+      ..lineTo(w * .61, h * .39)
+      ..lineTo(w, h * .5)
+      ..lineTo(w * .61, h * .61)
+      ..lineTo(w * .5, h)
+      ..lineTo(w * .39, h * .61)
+      ..lineTo(0, h * .5)
+      ..lineTo(w * .39, h * .39)
+      ..close();
+    canvas.drawPath(path, Paint()..color = Colors.white);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SparkPainter old) => false;
 }
