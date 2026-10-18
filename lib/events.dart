@@ -205,7 +205,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       max: 760,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(t('ÉVÉNEMENTS', 'EVENTS'), style: pixelStyle(size: 13)),
+          title: Text(px(t('ÉVÉNEMENTS', 'EVENTS')), style: pixelStyle(size: 13)),
           actions: [
             ListenableBuilder(
               listenable: Game.i,
@@ -325,7 +325,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             const SizedBox(height: 10),
             FractionallySizedBox(
               widthFactor: 0.72,
-              child: Text(_title(e).toUpperCase(), style: pixelStyle(size: 14, color: Colors.white).copyWith(height: 1.5)),
+              child: Text(px(_title(e).toUpperCase()), style: pixelStyle(size: 14, color: Colors.white).copyWith(height: 1.5)),
             ),
             const SizedBox(height: 6),
             FractionallySizedBox(
@@ -541,7 +541,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
               decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(5)),
-              child: Text(upcoming ? t('BIENTÔT', 'SOON') : tag, style: pixelStyle(size: 6.5, color: Colors.white, shadow: false)),
+              child: Text(px(upcoming ? t('BIENTÔT', 'SOON') : tag), style: pixelStyle(size: 6.5, color: Colors.white, shadow: false)),
             ),
           ]),
         ),

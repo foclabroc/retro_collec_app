@@ -740,6 +740,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 ]),
               ),
             ),
+            const OnlineMenuTile(compact: true),
             Padding(
               padding: const EdgeInsets.all(8),
               child: Text('v$kRetroCollecVersion', style: const TextStyle(color: Colors.white30, fontSize: 10)),
@@ -861,6 +862,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       count: Events.i.unseen, hint: Events.i.unseen > 0 ? t('Nouveau !', 'New!') : t('Fêtes, cadeaux, défis', 'Parties, gifts, challenges')),
                 ]),
               ),
+              OnlineMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
               Padding(
                 padding: const EdgeInsets.all(14),
                 child: Text('Pixel Trade v$kRetroCollecVersion', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30, fontSize: 11)),
@@ -901,7 +903,7 @@ class TabHeader extends StatelessWidget {
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text(title, maxLines: 1, style: pixelStyle(size: 15, color: rcTheme.accent).copyWith(shadows: const [Shadow(color: Color(0x99000000), offset: Offset(2, 2))])),
+              child: Text(px(title), maxLines: 1, style: pixelStyle(size: 15, color: rcTheme.accent).copyWith(shadows: const [Shadow(color: Color(0x99000000), offset: Offset(2, 2))])),
             ),
           ),
           ...actions,

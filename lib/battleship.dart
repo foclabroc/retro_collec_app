@@ -1291,7 +1291,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
                 ),
               ),
               const SizedBox(width: 7),
-              Expanded(child: Text(t('RADAR · ${oppName.toUpperCase()}', 'RADAR · ${oppName.toUpperCase()}'), maxLines: 1, overflow: TextOverflow.ellipsis, style: pixelStyle(size: 7, color: _kRadar, shadow: false))),
+              Expanded(child: Text(px('RADAR · ${oppName.toUpperCase()}'), maxLines: 1, overflow: TextOverflow.ellipsis, style: pixelStyle(size: 7, color: _kRadar, shadow: false))),
               Text(t('TIR ${myShots.replaceAll('0', '').length + 1}', 'SHOT ${myShots.replaceAll('0', '').length + 1}'), style: pixelStyle(size: 7, color: const Color(0xFF9FB4D8), shadow: false)),
             ]),
             const SizedBox(height: 7),
@@ -1562,7 +1562,7 @@ class _BsResultDialogState extends State<_BsResultDialog> with SingleTickerProvi
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Text(win ? '🏆' : '💥', style: const TextStyle(fontSize: 46)),
                 const SizedBox(height: 6),
-                Text(win ? t('VICTOIRE !', 'VICTORY!') : t('DÉFAITE', 'DEFEAT'), style: pixelStyle(size: 15, color: win ? _kGoldHi : const Color(0xFFFF8A95), shadow: false)),
+                Text(px(win ? t('VICTOIRE !', 'VICTORY!') : t('DÉFAITE', 'DEFEAT')), style: pixelStyle(size: 15, color: win ? _kGoldHi : const Color(0xFFFF8A95), shadow: false)),
                 const SizedBox(height: 6),
                 Text(sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
                 const SizedBox(height: 10),

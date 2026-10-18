@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'album.dart';
 import 'cards.dart';
@@ -36,11 +37,61 @@ class LibraryScreen extends StatefulWidget {
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
 
+// Ordre des consoles (menu déroulant à côté de « Mes consoles », mémorisé)
+const _kSysSortKey = 'rc_sys_sort';
+List<String> get _sysSortLabels => [
+      t('Les plus complètes', 'Most complete'),
+      t('Les moins complètes', 'Least complete'),
+      t('Les plus anciennes', 'Oldest first'),
+      t('Les plus récentes', 'Newest first'),
+      t('Nom (A → Z)', 'Name (A → Z)'),
+      t('Ordre habituel', 'Default order'),
+    ];
+
 class _LibraryScreenState extends State<LibraryScreen> {
+  int sysSort = 0;
+
   @override
   void initState() {
     super.initState();
     Game.i.loadRecent();
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getInt(_kSysSortKey);
+      if (v != null && mounted) setState(() => sysSort = v.clamp(0, 5));
+    }).catchError((_) {});
+  }
+
+  void _setSysSort(int v) {
+    setState(() => sysSort = v);
+    SharedPreferences.getInstance().then((p) => p.setInt(_kSysSortKey, v)).catchError((_) => false);
+  }
+
+  List<RcSystem> _sortedSystems(Game g) {
+    final base = Catalog.systems;
+    final rank = {for (var i = 0; i < base.length; i++) base[i].id: i};
+    double pctOf(RcSystem s) => g.ownedIn(s.id) / max(1, s.count);
+    int byRank(RcSystem a, RcSystem b) => rank[a.id]!.compareTo(rank[b.id]!);
+    int year(RcSystem s) => kConsoleYear[s.id] ?? 9999;
+    final list = [...base];
+    switch (sysSort) {
+      case 0 || 1: // complétion (à égalité : le plus de cartes, puis l'ordre habituel)
+        list.sort((a, b) {
+          var c = pctOf(b).compareTo(pctOf(a));
+          if (c == 0) c = g.ownedIn(b.id).compareTo(g.ownedIn(a.id));
+          if (sysSort == 1) c = -c;
+          return c != 0 ? c : byRank(a, b);
+        });
+      case 2 || 3:
+        list.sort((a, b) {
+          final c = sysSort == 2 ? year(a).compareTo(year(b)) : year(b).compareTo(year(a));
+          return c != 0 ? c : byRank(a, b);
+        });
+      case 4:
+        list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      default:
+        break;
+    }
+    return list;
   }
 
   void _openCards({int show = 1, int sort = 0, int? rarity}) {
@@ -58,16 +109,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       listenable: Game.i,
       builder: (context, _) {
         final g = Game.i;
-        // de la console la plus complétée à la moins complétée (à égalité : le plus de cartes, puis l'ordre habituel)
-        final base = Catalog.systems;
-        final rank = {for (var i = 0; i < base.length; i++) base[i].id: i};
-        double pctOf(RcSystem s) => g.ownedIn(s.id) / max(1, s.count);
-        final systems = [...base]..sort((a, b) {
-            final c = pctOf(b).compareTo(pctOf(a));
-            if (c != 0) return c;
-            final o = g.ownedIn(b.id).compareTo(g.ownedIn(a.id));
-            return o != 0 ? o : rank[a.id]!.compareTo(rank[b.id]!);
-          });
+        final systems = _sortedSystems(g);
         return Column(children: [
           TabHeader(t('Collection', 'Collection'), actions: [
             IconButton(
@@ -81,8 +123,28 @@ class _LibraryScreenState extends State<LibraryScreen> {
               SliverToBoxAdapter(child: _dashboard(g)),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
-                  child: Text(t('Mes consoles', 'My systems'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                  padding: const EdgeInsets.fromLTRB(18, 8, 10, 4),
+                  child: Row(children: [
+                    Text(t('Mes consoles', 'My systems'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                    const Spacer(),
+                    // menu déroulant : ordre des consoles
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: sysSort,
+                        isDense: true,
+                        borderRadius: BorderRadius.circular(12),
+                        dropdownColor: kBg,
+                        icon: const Icon(Icons.sort, size: 18, color: Colors.white70),
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.white70),
+                        items: [
+                          for (var i = 0; i < _sysSortLabels.length; i++) DropdownMenuItem(value: i, child: Text(_sysSortLabels[i])),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) _setSysSort(v);
+                        },
+                      ),
+                    ),
+                  ]),
                 ),
               ),
               SliverPadding(

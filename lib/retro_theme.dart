@@ -114,6 +114,19 @@ Future<void> setTheme(int i) async {
   } catch (_) {}
 }
 
+/// La police pixel n'a pas de majuscules accentuées (« ÉVÉNEMENTS » s'affichait « éVéNEMENTS ») :
+/// on les remplace par la lettre simple dans les textes en police pixel.
+String px(String s) {
+  const from = 'ÉÈÊËÀÂÄÎÏÔÖÙÛÜÇ', to = 'EEEEAAAIIOOUUUC';
+  final b = StringBuffer();
+  for (final r in s.runes) {
+    final ch = String.fromCharCode(r);
+    final i = from.indexOf(ch);
+    b.write(i >= 0 ? to[i] : (ch == 'Œ' ? 'OE' : ch));
+  }
+  return b.toString();
+}
+
 /// Police pixel des titres (Press Start 2P, téléchargée une fois puis gardée en cache).
 TextStyle pixelStyle({double size = 14, Color color = kGold, bool shadow = true}) => GoogleFonts.pressStart2p(
       fontSize: size,

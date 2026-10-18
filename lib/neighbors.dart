@@ -63,6 +63,7 @@ class NeighborsScreen extends StatefulWidget {
 /// Voisinage en immeuble : un étage par joueur (classement), le n°1 au penthouse.
 class NeighborsScreenState extends State<NeighborsScreen> {
   static NeighborsScreenState? current;
+  static String? pendingPid; // étage à montrer dès que l'immeuble est chargé (liste « En ligne » du menu)
   List<Map<String, dynamic>>? rows;
   Map<String, dynamic>? mine; // mon étage si je ne suis pas dans les 100 premiers
   String query = '';
@@ -104,7 +105,11 @@ class NeighborsScreenState extends State<NeighborsScreen> {
         });
         if (!_jumped && q.isEmpty) {
           _jumped = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) => goMe(animate: false));
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final p = pendingPid;
+            pendingPid = null;
+            p != null ? goTo(p) : goMe(animate: false);
+          });
         }
       }
     } catch (e) {
@@ -253,41 +258,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
     );
   }
 
-  void _showOnline(List<FloorData> on) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: const Color(0xFF12173F),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 10),
-            Text(t('🟢 En ligne maintenant', '🟢 Online now'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-            const SizedBox(height: 8),
-            if (on.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(t('Personne d\'autre en ligne pour l\'instant', 'Nobody else online right now'), style: const TextStyle(color: Colors.white54)),
-              ),
-            Flexible(
-              child: ListView(shrinkWrap: true, children: [
-                for (final f in on) _OnlineRow(f: f, onFloor: () {
-                  Navigator.pop(ctx);
-                  goTo(f.pid);
-                }),
-              ]),
-            ),
-            const SizedBox(height: 6),
-            Text(t('Connectés il y a moins de 10 min · « Défier » lance un défi en direct (50 pièces chacun)',
-                    'Seen less than 10 min ago · « Challenge » sends a live challenge (50 coins each)'),
-                style: const TextStyle(color: Colors.white54, fontSize: 11.5)),
-          ]),
-        ),
-      ),
-    );
-  }
+  void _showOnline(List<FloorData> on) => _onlineSheet(context, on, goTo);
 
   Widget _tower() {
     if (error != null) {
@@ -445,3 +416,153 @@ class _OnlineRowState extends State<_OnlineRow> {
     );
   }
 }
+
+/// Joueurs en ligne (gardés 60 s pour ne pas recharger l'immeuble à chaque ouverture du menu)
+class OnlineNow {
+  static DateTime? _at;
+  static List<FloorData>? _list;
+  static List<FloorData>? get cached => _list;
+
+  static Future<List<FloorData>> get({bool force = false}) async {
+    if (!force && _list != null && _at != null && DateTime.now().difference(_at!) < const Duration(seconds: 60)) return _list!;
+    final r = await RcServer.board();
+    _list = [for (var i = 0; i < r.length; i++) FloorData.of(r[i], rank: i + 1)].where((f) => f.online && !f.me).toList();
+    _at = DateTime.now();
+    return _list!;
+  }
+}
+
+/// Liste « En ligne » ouverte depuis le panneau latéral ; « Étage » ouvre le Voisinage à son étage
+Future<void> showOnlinePlayers(BuildContext context) async {
+  List<FloorData> on;
+  try {
+    on = await OnlineNow.get(force: true);
+  } catch (e) {
+    toast(errText(e));
+    return;
+  }
+  if (!context.mounted) return;
+  _onlineSheet(context, on, (pid) {
+    final n = NeighborsScreenState.current;
+    HomeShellState.current?.goTo(5);
+    if (n != null && n.rows != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => n.goTo(pid));
+    } else {
+      NeighborsScreenState.pendingPid = pid;
+    }
+  });
+}
+
+/// Case « Joueurs en ligne » du panneau latéral (nombre de connectés, liste au toucher)
+class OnlineMenuTile extends StatefulWidget {
+  final bool compact; // barre latérale étroite (tablette)
+  final VoidCallback? beforeOpen; // fermer le menu avant d'ouvrir la liste
+  const OnlineMenuTile({super.key, this.compact = false, this.beforeOpen});
+  @override
+  State<OnlineMenuTile> createState() => _OnlineMenuTileState();
+}
+
+class _OnlineMenuTileState extends State<OnlineMenuTile> {
+  int? n = OnlineNow.cached?.length;
+
+  @override
+  void initState() {
+    super.initState();
+    OnlineNow.get().then((l) {
+      if (mounted) setState(() => n = l.length);
+    }).catchError((_) {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const teal = Color(0xFF5DCAA5);
+    final dot = Container(
+        width: 10, height: 10, decoration: const BoxDecoration(shape: BoxShape.circle, color: teal, boxShadow: [BoxShadow(color: teal, blurRadius: 6)]));
+    void open() {
+      final ctx = HomeShellState.current?.context ?? context;
+      widget.beforeOpen?.call();
+      showOnlinePlayers(ctx);
+    }
+
+    if (widget.compact) {
+      return Tooltip(
+        message: t('Joueurs en ligne', 'Online players'),
+        child: InkWell(
+          onTap: open,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(children: [
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                dot,
+                const SizedBox(width: 5),
+                Text(n == null ? '…' : '$n', style: const TextStyle(fontWeight: FontWeight.w900, color: teal)),
+              ]),
+              const SizedBox(height: 2),
+              Text(t('En ligne', 'Online'), style: const TextStyle(fontSize: 10.5, color: Colors.white60)),
+            ]),
+          ),
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+      child: Material(
+        color: teal.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: open,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: teal.withOpacity(0.6))),
+            child: Row(children: [
+              dot,
+              const SizedBox(width: 10),
+              Expanded(child: Text(t('Joueurs en ligne', 'Online players'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5))),
+              Text(n == null ? '…' : '$n', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: teal)),
+              const SizedBox(width: 4),
+              const Icon(Icons.chevron_right, color: Colors.white38),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void _onlineSheet(BuildContext context, List<FloorData> on, void Function(String pid) goTo) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF12173F),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 10),
+            Text(t('🟢 En ligne maintenant', '🟢 Online now'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            const SizedBox(height: 8),
+            if (on.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(t('Personne d\'autre en ligne pour l\'instant', 'Nobody else online right now'), style: const TextStyle(color: Colors.white54)),
+              ),
+            Flexible(
+              child: ListView(shrinkWrap: true, children: [
+                for (final f in on) _OnlineRow(f: f, onFloor: () {
+                  Navigator.pop(ctx);
+                  goTo(f.pid);
+                }),
+              ]),
+            ),
+            const SizedBox(height: 6),
+            Text(t('Connectés il y a moins de 10 min · « Défier » lance un défi en direct (50 pièces chacun)',
+                    'Seen less than 10 min ago · « Challenge » sends a live challenge (50 coins each)'),
+                style: const TextStyle(color: Colors.white54, fontSize: 11.5)),
+          ]),
+        ),
+      ),
+    );
+  }

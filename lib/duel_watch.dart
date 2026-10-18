@@ -187,7 +187,7 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(color: col, borderRadius: BorderRadius.circular(8), boxShadow: [BoxShadow(color: col, blurRadius: 14)]),
-              child: Text(t('DÉFI EN DIRECT', 'LIVE CHALLENGE'), style: pixelStyle(size: 8, color: const Color(0xFF14062B), shadow: false)),
+              child: Text(px(t('DÉFI EN DIRECT', 'LIVE CHALLENGE')), style: pixelStyle(size: 8, color: const Color(0xFF14062B), shadow: false)),
             ),
             const SizedBox(height: 10),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [

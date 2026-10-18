@@ -71,7 +71,7 @@ class _WhatsNewDialogState extends State<_WhatsNewDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: kGold, width: 1.5)),
       titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 6),
       title: Column(children: [
-        Text(t('NOUVEAUTÉS', 'WHAT\'S NEW'), style: pixelStyle(size: 15), textAlign: TextAlign.center),
+        Text(px(t('NOUVEAUTÉS', 'WHAT\'S NEW')), style: pixelStyle(size: 15), textAlign: TextAlign.center),
         const SizedBox(height: 6),
         Text('Pixel Trade v$kRetroCollecVersion',
             style: const TextStyle(color: Colors.white60, fontSize: 12), textAlign: TextAlign.center),
@@ -88,7 +88,7 @@ class _WhatsNewDialogState extends State<_WhatsNewDialog> {
                     // intertitre (nouveautés d'une version précédente)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
-                      child: Text(t(n.$2, n.$3).toUpperCase(), style: pixelStyle(size: 8, color: Colors.white54, shadow: false)),
+                      child: Text(px(t(n.$2, n.$3).toUpperCase()), style: pixelStyle(size: 8, color: Colors.white54, shadow: false)),
                     )
                   else
                   Container(

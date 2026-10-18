@@ -253,7 +253,7 @@ class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Text(t('QUIZ RÉTRO', 'RETRO QUIZ'), style: pixelStyle(size: 13)),
+        title: Text(px(t('QUIZ RÉTRO', 'RETRO QUIZ')), style: pixelStyle(size: 13)),
         actions: [
           ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)),
           const SizedBox(width: 12),
@@ -382,7 +382,7 @@ class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(children: [
-          Text(perfect ? t('PARFAIT !', 'PERFECT!') : t('TERMINÉ', 'FINISHED'), style: pixelStyle(size: 20)),
+          Text(px(perfect ? t('PARFAIT !', 'PERFECT!') : t('TERMINÉ', 'FINISHED')), style: pixelStyle(size: 20)),
           const SizedBox(height: 24),
           Text('$correct / ${questions.length}', style: pixelStyle(size: 34, color: Colors.white)),
           const SizedBox(height: 8),

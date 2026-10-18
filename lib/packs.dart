@@ -1275,7 +1275,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
             ),
             child: (widget.kind == 'console' || widget.kind == 'sconsole') && widget.sys != null
                 ? ConsoleLogo(widget.sys!, height: 18)
-                : Text(_packLabel().toUpperCase(), style: pixelStyle(size: 9, color: Colors.white, shadow: false)),
+                : Text(px(_packLabel().toUpperCase()), style: pixelStyle(size: 9, color: Colors.white, shadow: false)),
           ),
         ),
       ]),

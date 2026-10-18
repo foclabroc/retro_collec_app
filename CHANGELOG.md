@@ -1,6 +1,12 @@
 # Pixel Trade — Changelog
 
 ## v1.0.10
+- **Joueurs en ligne dans le menu** : une case « 🟢 Joueurs en ligne · N » en bas du panneau latéral ouvre la liste
+  des connectés (Défier, Étage).
+- **Ordre des consoles** : menu déroulant à côté de « Mes consoles » (les plus complètes, les moins complètes,
+  les plus anciennes, les plus récentes, nom, ordre habituel), mémorisé.
+- **Accents dans les titres en police pixel** : « ÉVÉNEMENTS » s'affichait « éVéNEMENTS » (la police n'a pas de
+  majuscules accentuées) ; les titres pixel passent sans accent sur les majuscules.
 - **Écran de connexion** : au premier lancement, « CONNEXION » (pseudo + mot de passe, ou code de sauvegarde),
   et en dessous « NOUVEAU JOUEUR » pour créer son profil (pseudo, mot de passe, avatar).
 - **Nouvelle icône**, plus visible : trois boosters (rouge, or, vert) en éventail et le logo PIXEL TRADE de l'écran titre, sur fond bleu vif.

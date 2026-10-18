@@ -226,7 +226,7 @@ class _BoosterRingState extends State<BoosterRing> with SingleTickerProviderStat
                         border: Border.all(color: kGold, width: 1.5),
                       ),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Text('BOOSTER ${col.name.toUpperCase()}', style: pixelStyle(size: 9, color: Colors.white, shadow: false)),
+                        Text(px('BOOSTER ${col.name.toUpperCase()}'), style: pixelStyle(size: 9, color: Colors.white, shadow: false)),
                         if (widget.label != null) ...[const SizedBox(width: 8), widget.label!],
                       ]),
                     ),
