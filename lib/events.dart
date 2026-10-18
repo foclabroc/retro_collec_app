@@ -287,8 +287,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     final icon = e['icon'] as String? ?? '🎉';
     final end = _date(e, 'ends_at');
     final left = end?.difference(DateTime.now().add(_skew));
-    // décor qui traverse l'affiche, selon l'émoji de l'événement
-    final decor = switch (icon) {
+    // décor qui traverse l'affiche : colonne « decor » de l'événement, sinon d'après son émoji
+    final custom = (e['decor'] as String?)?.trim() ?? '';
+    final decor = custom.isNotEmpty ? custom : switch (icon) {
       '🎃' || '👻' || '🦇' => '🦇',
       '🎄' || '❄️' || '⛄' || '🎅' => '❄️',
       '💘' || '❤️' || '💝' => '💗',
