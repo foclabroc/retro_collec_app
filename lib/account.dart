@@ -9,19 +9,20 @@ import 'server.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Fenêtre de connexion à un compte existant. Renvoie le pseudo si réussi.
-Future<String?> showAccountLogin(BuildContext context, {bool replacing = false}) =>
-    showDialog<String>(context: context, builder: (_) => _LoginDialog(replacing: replacing));
+Future<String?> showAccountLogin(BuildContext context, {bool replacing = false, bool withCode = false}) =>
+    showDialog<String>(context: context, builder: (_) => _LoginDialog(replacing: replacing, withCode: withCode));
 
 class _LoginDialog extends StatefulWidget {
-  final bool replacing;
-  const _LoginDialog({required this.replacing});
+  final bool replacing, withCode;
+  const _LoginDialog({required this.replacing, this.withCode = false});
   @override
   State<_LoginDialog> createState() => _LoginDialogState();
 }
 
 class _LoginDialogState extends State<_LoginDialog> {
   final name = TextEditingController(), pass = TextEditingController(), code = TextEditingController();
-  bool withCode = false, busy = false, hide = true;
+  late bool withCode = widget.withCode;
+  bool busy = false, hide = true;
   String? error;
 
   @override

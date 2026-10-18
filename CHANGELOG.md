@@ -1,6 +1,9 @@
 # Pixel Trade — Changelog
 
 ## v1.0.10
+- **Écran de connexion** : au premier lancement, « CONNEXION » (pseudo + mot de passe, ou code de sauvegarde),
+  et en dessous « NOUVEAU JOUEUR » pour créer son profil (pseudo, mot de passe, avatar).
+- **Nouvelle icône**, plus visible : trois boosters (rouge, or, vert) en éventail et le logo PIXEL TRADE de l'écran titre, sur fond bleu vif.
 - **Game Boy Color** : la carte de la console montrait une Game Boy classique, c'est maintenant une vraie Game Boy Color.
 - **Cartes Full Art** (nouvelle finition, épiques et légendaires seulement) : 0,2 % de chance sur chaque épique
   ou légendaire tirée. L'écran du jeu en décor, la jaquette dans un cadre doré à sa forme (large, carrée, haute),

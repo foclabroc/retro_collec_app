@@ -42,6 +42,7 @@ flutter:
     - assets/booster_front.webp
     - assets/booster_back.webp
 
+# Icônes déjà générées dans android/res (premier plan pleine taille : inset 0 % dans mipmap-anydpi-v26/ic_launcher.xml)
 flutter_launcher_icons:
   android: true
   ios: false
