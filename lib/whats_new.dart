@@ -18,6 +18,18 @@ const _kNews = <(String, String, String)>[
       'Badge on "Bonus / Games" for turn-based invitations and when it\'s your turn'),
   ('🕒', 'Dernière connexion des joueurs sur leur étage et leur profil', 'Players\' last login on their floor and profile'),
   ('🪙', 'On ne peut défier qu\'un joueur qui a au moins 50 pièces', 'You can only challenge players with at least 50 coins'),
+  // pour ceux qui arrivent d'une version plus ancienne
+  ('#', 'Aussi depuis la 1.0.7', 'Also since 1.0.7'),
+  ('🚢', 'Console Wars : bataille navale à 2 avec une flotte de consoles, en direct ou tour par tour',
+      'Console Wars: 2-player battleship with a fleet of consoles, live or turn-based'),
+  ('🔴', '4 en ligne : défie un joueur, 50 pièces chacun, le gagnant rafle 100 + 1 pixel',
+      'Connect 4: challenge a player, 50 coins each, the winner takes 100 + 1 pixel'),
+  ('🎉', 'Événements : cadeaux, pixels ×2, défis à paliers… et des surprises à venir',
+      'Events: gifts, double pixels, step challenges… and surprises to come'),
+  ('🃏', 'Nouvel écran titre, musique dès l\'accueil et bouton son', 'New title screen, music from the start and a sound button'),
+  ('💱', 'Bourse : onglets en carrés de couleur', 'Exchange: colored square tabs'),
+  ('🔔', 'Notifications appli fermée plus fiables (réglage batterie)', 'More reliable notifications when the app is closed (battery setting)'),
+  ('🔊', 'Version web : les bruitages marchent enfin', 'Web version: sound effects finally work'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';
@@ -62,6 +74,13 @@ class _WhatsNewDialogState extends State<_WhatsNewDialog> {
             child: SingleChildScrollView(
               child: Column(children: [
                 for (final (i, n) in _kNews.indexed)
+                  if (n.$1 == '#')
+                    // intertitre (nouveautés d'une version précédente)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+                      child: Text(t(n.$2, n.$3).toUpperCase(), style: pixelStyle(size: 8, color: Colors.white54, shadow: false)),
+                    )
+                  else
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 3),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
