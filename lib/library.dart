@@ -347,7 +347,7 @@ const Map<String, Color> kConsoleAccent = {
 const _kPaper = Color(0xFFF3E6C8); // papier d'affiche
 const _kInk = Color(0xFF2A1B0E); // encre foncée
 
-/// Console en « poster rétro » : rayons, trame de points, année, bandeau promo
+/// Console en « poster rétro » : rayons, année, bandeau promo
 class _ConsoleTile extends StatefulWidget {
   final RcSystem sys;
   const _ConsoleTile({required this.sys});
@@ -402,7 +402,7 @@ class _ConsoleTileState extends State<_ConsoleTile> {
               Expanded(child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: ConsoleLogo(s.id, height: 18)))),
             ]),
           ),
-          // affiche : rayons + trame + console + bandeau
+          // affiche : rayons + console + bandeau
           Expanded(
             child: Stack(fit: StackFit.expand, children: [
               CustomPaint(painter: _RaysPainter(brand)),
@@ -504,7 +504,7 @@ class _ConsoleTileState extends State<_ConsoleTile> {
   }
 }
 
-/// Rayons de soleil façon publicité rétro + trame de points d'imprimerie
+/// Rayons de soleil façon publicité rétro
 class _RaysPainter extends CustomPainter {
   final Color color;
   _RaysPainter(this.color);
@@ -525,13 +525,6 @@ class _RaysPainter extends CustomPainter {
         ..lineTo(c.dx + r * cos(a1), c.dy + r * sin(a1))
         ..close();
       canvas.drawPath(path, p);
-    }
-    // trame de points
-    final dot = Paint()..color = const Color(0x26000000);
-    for (double y = 2; y < size.height; y += 6) {
-      for (double x = (y ~/ 6).isEven ? 2 : 5; x < size.width; x += 6) {
-        canvas.drawCircle(Offset(x, y), 1.1, dot);
-      }
     }
   }
 
