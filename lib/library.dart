@@ -260,6 +260,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final a2 = action('⚡', '${g.fusable}', t('fusions', 'fusions'), g.fusable > 0 ? kGold : Colors.white54, () => _openCards(show: 3, sort: 5));
     final a3 = action('✦', '${g.holoCount}', t('brillantes', 'holo'), const Color(0xFFB4A9FF), () => _openCards(show: 4, sort: 1));
     final a4 = action('★', '${g.goldCount}', t('dorées', 'gold'), const Color(0xFFFFD54F), () => _openCards(show: 5, sort: 1));
+    final a5 = action('★★', '${g.fullArtCount}', t('full art', 'full art'), const Color(0xFFFF9FE5), () => _openCards(show: 6, sort: 1));
     // dernières cartes
     final latest = recent.isEmpty
         ? const SizedBox()
@@ -306,11 +307,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
             Expanded(flex: 5, child: Center(child: summary)),
             const SizedBox(width: 14),
             SizedBox(
-              width: 210,
+              width: 250,
               child: Column(children: [
                 Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [a1, const SizedBox(width: 6), a2])),
                 const SizedBox(height: 6),
-                Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [a3, const SizedBox(width: 6), a4])),
+                Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [a3, const SizedBox(width: 6), a4, const SizedBox(width: 6), a5])),
               ]),
             ),
             const SizedBox(width: 14),
@@ -326,7 +327,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         summary,
         const SizedBox(height: 12),
-        Row(children: [a1, const SizedBox(width: 6), a2, const SizedBox(width: 6), a3, const SizedBox(width: 6), a4]),
+        Row(children: [a1, const SizedBox(width: 6), a2, const SizedBox(width: 6), a3, const SizedBox(width: 6), a4, const SizedBox(width: 6), a5]),
         if (recent.isNotEmpty) ...[const SizedBox(height: 12), latest],
       ]),
     );

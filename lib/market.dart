@@ -133,9 +133,21 @@ class _CardOffersState extends State<_CardOffers> {
       const SizedBox(height: 12),
       Row(children: [
         // carte en vente : toujours montrée en entier (même si on ne l'a pas), dans la finition de l'offre la moins chère
-        SizedBox(
-            width: 70,
-            child: CardView(card: c, finish: widget.finish ?? (rows != null && rows!.isNotEmpty ? (rows!.first['finish'] as num).toInt() : 0))),
+        // toucher la carte : la voir en grand (on peut la faire tourner au doigt)
+        Builder(builder: (context) {
+          final f = widget.finish ?? (rows != null && rows!.isNotEmpty ? (rows!.first['finish'] as num).toInt() : 0);
+          return GestureDetector(
+            onTap: () => showDialog<void>(
+              context: context,
+              barrierColor: Colors.black.withOpacity(0.8),
+              builder: (ctx) => GestureDetector(
+                onTap: () => Navigator.pop(ctx),
+                child: Center(child: SizedBox(width: 280, child: SpinCard(card: c, finish: f))),
+              ),
+            ),
+            child: SizedBox(width: 70, child: CardView(card: c, finish: f)),
+          );
+        }),
         const SizedBox(width: 14),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

@@ -22,7 +22,7 @@ class StatsPanel extends StatelessWidget {
     for (final c in Catalog.cards.values) {
       totalByR[c.rarity]++;
     }
-    var copies = 0, holo = 0, gold = 0, value = 0;
+    var copies = 0, holo = 0, gold = 0, full = 0, value = 0;
     final best = <(RcCard, int)>[];
     owned.forEach((id, q) {
       final c = Catalog.cards[id];
@@ -33,6 +33,7 @@ class StatsPanel extends StatelessWidget {
       copies += n;
       holo += q[1];
       gold += q[2];
+      full += q[3];
       for (var f = 0; f < kFinishes; f++) {
         value += recycleValue(c.rarity, f) * q[f];
       }
@@ -81,6 +82,7 @@ class StatsPanel extends StatelessWidget {
       Row(children: [
         tile('$holo ✦', t('brillantes', 'holo')),
         tile('$gold ★', t('dorées', 'gold'), color: const Color(0xFFFFD54F)),
+        tile('$full ★★', t('full art', 'full art'), color: const Color(0xFFFF9FE5)),
         tile('$value', t('valeur (pièces)', 'value (coins)'), color: kGold),
       ]),
       if (packs != null || bestSys != null) ...[
