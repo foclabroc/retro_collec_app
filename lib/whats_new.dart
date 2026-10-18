@@ -12,15 +12,12 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('🚢', 'Console Wars : bataille navale à 2 avec une flotte de consoles, en direct ou tour par tour',
-      'Console Wars: 2-player battleship with a fleet of consoles, live or turn-based'),
-  ('🔴', '4 en ligne : défie un joueur, 50 pièces chacun, le gagnant rafle 100 + 1 pixel',
-      'Connect 4: challenge a player, 50 coins each, the winner takes 100 + 1 pixel'),
-  ('🎉', 'Événements : cadeaux, pixels ×2, défis à paliers… et des surprises à venir',
-      'Events: gifts, double pixels, step challenges… and surprises to come'),
-  ('🃏', 'Nouvel écran titre, musique dès l\'accueil et bouton son', 'New title screen, music from the start and a sound button'),
-  ('💱', 'Bourse : onglets en carrés de couleur', 'Exchange: colored square tabs'),
-  ('🔊', 'Version web : les bruitages marchent enfin', 'Web version: sound effects finally work'),
+  ('⚔', 'Défis reçus : une fenêtre s\'affiche quand on te défie en direct (Accepter, Refuser, Plus tard)',
+      'Challenges: a window pops up when someone challenges you live (Accept, Decline, Later)'),
+  ('🔴', 'Pastille sur « Bonus / Jeux » pour les invitations tour par tour et quand c\'est ton tour',
+      'Badge on "Bonus / Games" for turn-based invitations and when it\'s your turn'),
+  ('🕒', 'Dernière connexion des joueurs sur leur étage et leur profil', 'Players\' last login on their floor and profile'),
+  ('🪙', 'On ne peut défier qu\'un joueur qui a au moins 50 pièces', 'You can only challenge players with at least 50 coins'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';
