@@ -431,7 +431,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     ),
                   ]),
                 ),
-                const Icon(Icons.expand_more, color: Colors.white54),
+                // bouton bien visible pour déplier
+                Container(
+                  width: 32,
+                  height: 32,
+                  margin: const EdgeInsets.only(right: 4),
+                  decoration: BoxDecoration(
+                    color: kGold,
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: kGold.withOpacity(0.45), blurRadius: 8)],
+                  ),
+                  child: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF2A1800), size: 26),
+                ),
               ]),
             ),
           ),
@@ -447,8 +458,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(t('Réduire', 'Collapse'), style: const TextStyle(color: Colors.white54, fontSize: 11.5, fontWeight: FontWeight.w700)),
-            const Icon(Icons.expand_less, color: Colors.white54, size: 18),
+            Text(t('Réduire', 'Collapse'), style: const TextStyle(color: Colors.white60, fontSize: 11.5, fontWeight: FontWeight.w700)),
+            const SizedBox(width: 5),
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(color: kGold.withOpacity(0.9), shape: BoxShape.circle),
+              child: const Icon(Icons.keyboard_arrow_up_rounded, color: Color(0xFF2A1800), size: 22),
+            ),
           ]),
         ),
       ),
