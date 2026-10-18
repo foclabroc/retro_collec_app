@@ -1,6 +1,8 @@
 # Pixel Trade — Changelog
 
 ## v1.0.11
+- **Vitrine** : un « + » dans chaque case vide ouvre mes cartes, de la plus rare à la moins rare (dans leur meilleure
+  finition) pour en ajouter une ; maintenir une carte puis la faire glisser sur une autre case change l'ordre.
 - **Bourse, autres onglets revus** dans le style du magasin :
   - Vendre : « En vente » en grille (prix sur la carte, bouton rouge « Retirer » sous chaque carte, avec confirmation)
     et « Vendues récemment » à part (tampon VENDUE, acheteur, total sur 7 jours) ; recherche dans le choix des cartes.

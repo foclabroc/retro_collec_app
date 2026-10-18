@@ -173,10 +173,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 18),
                 Text(t('Ma vitrine', 'My showcase'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 4),
-                Text(t('Ajoute une carte depuis sa fiche (Collection → console → carte → Mettre en vitrine)', 'Add a card from its page (Collection → system → card → Add to showcase)'),
+                Text(t('Touche un « + » pour ajouter une carte · maintiens une carte puis fais-la glisser pour changer l\'ordre',
+                        'Tap a « + » to add a card · hold a card and drag it to reorder'),
                     style: const TextStyle(color: Colors.white38, fontSize: 12)),
                 const SizedBox(height: 8),
-                _Showcase(g.showcaseItems),
+                const _MyShowcase(),
                 const SizedBox(height: 18),
                 Text(t('Mes séries', 'My sets'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 8),
@@ -649,6 +650,156 @@ class _Showcase extends StatelessWidget {
               child: const Icon(Icons.star_border, color: Colors.white12),
             ),
       ],
+    );
+  }
+}
+
+/// Ma vitrine : « + » dans les cases vides (choix parmi mes cartes, de la plus rare à la moins rare),
+/// et les cartes se déplacent au doigt (appui long puis glisser sur une autre case).
+class _MyShowcase extends StatefulWidget {
+  const _MyShowcase();
+  @override
+  State<_MyShowcase> createState() => _MyShowcaseState();
+}
+
+class _MyShowcaseState extends State<_MyShowcase> {
+  bool busy = false;
+
+  Future<void> _save(List<(String, int)> items) async {
+    if (busy) return;
+    setState(() => busy = true);
+    try {
+      await Game.i.setProfile(newShowcase: itemsToString(items));
+    } catch (e) {
+      toast(errText(e));
+    }
+    if (mounted) setState(() => busy = false);
+  }
+
+  /// Déplace la carte de la case [from] vers la case [to] (les autres se décalent)
+  void _move(List<(String, int)> items, int from, int to) {
+    if (from == to || from >= items.length) return;
+    final l = [...items];
+    final x = l.removeAt(from);
+    l.insert(to.clamp(0, l.length), x);
+    RcAudio.sfx('jump');
+    _save(l);
+  }
+
+  Future<void> _add(List<(String, int)> items) async {
+    final g = Game.i;
+    final inShow = items.map((e) => e.$1).toSet();
+    // mes cartes, une par jeu dans sa meilleure finition, de la plus rare à la moins rare
+    final cards = <(RcCard, int)>[
+      for (final e in g.owned.entries)
+        if (Catalog.cards[e.key] != null && qSum(e.value) > 0 && !inShow.contains(e.key)) (Catalog.cards[e.key]!, bestFinish(e.value)),
+    ]..sort((a, b) {
+        if (a.$1.rarity != b.$1.rarity) return b.$1.rarity.compareTo(a.$1.rarity);
+        if (a.$2 != b.$2) return b.$2.compareTo(a.$2);
+        return a.$1.title.toLowerCase().compareTo(b.$1.title.toLowerCase());
+      });
+    final pick = await showModalBottomSheet<(String, int)>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: kBg,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.8,
+        maxChildSize: 0.95,
+        minChildSize: 0.4,
+        builder: (ctx, scroll) => Column(children: [
+          const SizedBox(height: 10),
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(t('Ajouter à ma vitrine', 'Add to my showcase'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+          ),
+          Expanded(
+            child: cards.isEmpty
+                ? Center(child: Text(t('Aucune carte à ajouter', 'No cards to add'), style: const TextStyle(color: Colors.white54)))
+                : GridView.builder(
+                    controller: scroll,
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 5 / 7, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                    itemCount: cards.length,
+                    itemBuilder: (_, i) => GestureDetector(
+                      onTap: () => Navigator.pop(ctx, (cards[i].$1.id, cards[i].$2)),
+                      child: CardView(card: cards[i].$1, finish: cards[i].$2),
+                    ),
+                  ),
+          ),
+        ]),
+      ),
+    );
+    if (pick == null) return;
+    RcAudio.sfx('coin');
+    await _save([...items, pick]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Game.i,
+      builder: (context, _) {
+        final items = [for (final e in Game.i.showcaseItems) if (Catalog.cards[e.$1] != null) e];
+        return LayoutBuilder(builder: (context, box) {
+          final w = (box.maxWidth - 16) / 3;
+          Widget slot(int i) {
+            if (i >= items.length) {
+              // case vide : « + »
+              return DragTarget<int>(
+                onWillAcceptWithDetails: (_) => true,
+                onAcceptWithDetails: (d) => _move(items, d.data, items.length - 1),
+                builder: (_, cand, __) => GestureDetector(
+                  onTap: busy || items.length >= 6 ? null : () => _add(items),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white.withOpacity(cand.isEmpty ? 0.03 : 0.1),
+                      border: Border.all(color: rcTheme.accent.withOpacity(0.45), width: 2),
+                    ),
+                    child: Center(child: Icon(Icons.add_circle_outline, color: rcTheme.accent.withOpacity(0.8), size: w * 0.32)),
+                  ),
+                ),
+              );
+            }
+            final (id, f) = items[i];
+            final card = CardView(card: Catalog.cards[id]!, finish: f);
+            return DragTarget<int>(
+              onWillAcceptWithDetails: (d) => d.data != i,
+              onAcceptWithDetails: (d) => _move(items, d.data, i),
+              builder: (_, cand, __) => LongPressDraggable<int>(
+                data: i,
+                hapticFeedbackOnStart: true,
+                feedback: Material(
+                  color: Colors.transparent,
+                  child: Transform.scale(scale: 1.08, child: SizedBox(width: w, child: card)),
+                ),
+                childWhenDragging: Opacity(opacity: 0.25, child: card),
+                child: AnimatedScale(
+                  duration: const Duration(milliseconds: 120),
+                  scale: cand.isEmpty ? 1 : 0.92,
+                  child: GestureDetector(
+                    onTap: () => openCardDetail(context, Catalog.cards[id]!),
+                    child: card,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return GridView.count(
+            crossAxisCount: 3,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            childAspectRatio: 5 / 7,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            children: [for (var i = 0; i < 6; i++) slot(i)],
+          );
+        });
+      },
     );
   }
 }
