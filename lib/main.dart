@@ -903,7 +903,7 @@ class TabHeader extends StatelessWidget {
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text(title, maxLines: 1, style: pixelStyle(size: 15)),
+              child: Text(title, maxLines: 1, style: pixelStyle(size: 15, color: rcTheme.accent).copyWith(shadows: const [Shadow(color: Color(0x99000000), offset: Offset(2, 2))])),
             ),
           ),
           ...actions,

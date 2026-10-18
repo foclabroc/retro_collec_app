@@ -6,98 +6,71 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'game.dart';
-import 'theme_scenes.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Thème « consoles rétro » : fond bleu animé (pixels qui flottent, traînées
-// de vitesse, petits envahisseurs pixelisés, lignes de balayage CRT) et
-// police pixel pour les titres.
+// Thème de l'appli : fond animé épuré (dégradé, lueurs, motif discret),
+// couleur d'accent par thème et police pixel pour les titres.
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ─── Thèmes d'interface ─────────────────────────────────────────────────────
-class RcThemeData {
-  final String fr, en;
-  final List<Color> bgGrad; // dégradé du fond animé (haut, milieu, bas)
-  final List<Color> pixels; // pixels qui flottent
-  final Color streak; // traînées de vitesse
-  final List<Color> sprites; // envahisseurs et fantôme
-  final Color bg, panel, panel2, surface, line;
-  final int scene; // 0 : fond rétro classique, sinon une scène animée (theme_scenes.dart)
-  const RcThemeData(this.fr, this.en,
-      {required this.bgGrad, required this.pixels, required this.streak, required this.sprites, required this.bg, required this.panel, required this.panel2, required this.surface, required this.line, this.scene = 0});
+// Thèmes épurés : un dégradé sombre, deux lueurs de la couleur du thème qui
+// dérivent lentement et un motif discret qui défile (étoiles, grille, vagues…).
 
-  /// Thème « scène » : seuls le fond et les couleurs des panneaux changent
-  const RcThemeData.anim(this.fr, this.en, this.scene,
-      {required this.bgGrad, required this.pixels, required this.bg, required this.panel, required this.panel2, required this.surface, required this.line})
-      : streak = const Color(0xFFFFFFFF),
-        sprites = const [];
+enum RcMotif { stars, grid, pix, waves, diamonds, lines, fire, hex, bubbles, cross }
+
+class RcThemeData {
+  final String fr, en, motifFr, motifEn;
+  final RcMotif motif;
+  final Color top, bottom; // dégradé du fond
+  final Color accent, accent2, onAccent; // couleur du thème, seconde lueur, texte sur bouton
+  final Color bg, panel, panel2, surface, line;
+  const RcThemeData(this.fr, this.en, this.motif, this.motifFr, this.motifEn,
+      {required this.top,
+      required this.bottom,
+      required this.accent,
+      required this.accent2,
+      required this.onAccent,
+      required this.panel,
+      required this.panel2,
+      required this.surface,
+      required this.line})
+      : bg = top;
   String get name => t(fr, en);
+  String get motifName => t(motifFr, motifEn);
 }
 
 const kThemes = <RcThemeData>[
-  RcThemeData('Rétro bleu', 'Retro blue',
-      bgGrad: [Color(0xFF0A1033), Color(0xFF122171), Color(0xFF0B1442)],
-      pixels: [Color(0xFF6FA8FF), Color(0xFF3DD9FF), Color(0xFF9FC5FF), Color(0xFFFFFFFF), Color(0xFF5B7CFF)],
-      streak: Color(0xFF78B4FF),
-      sprites: [Color(0x2E7CFF6B), Color(0x26FF5DA2), Color(0x223DD9FF)],
-      bg: Color(0xFF0A1033), panel: Color(0xD9141B45), panel2: Color(0xFF26306B), surface: Color(0xFF141B45), line: Color(0xFF3550B8)),
-  RcThemeData('Game Boy', 'Game Boy',
-      bgGrad: [Color(0xFF0F2A0F), Color(0xFF2E5A1E), Color(0xFF0F2A0F)],
-      pixels: [Color(0xFF8BAC0F), Color(0xFF9BBC0F), Color(0xFFC4E37A), Color(0xFFE0F8D0), Color(0xFF5A8F29)],
-      streak: Color(0xFF9BBC0F),
-      sprites: [Color(0x339BBC0F), Color(0x26C4E37A), Color(0x228BAC0F)],
-      bg: Color(0xFF0F2A0F), panel: Color(0xD9142E14), panel2: Color(0xFF2E5A2E), surface: Color(0xFF173617), line: Color(0xFF5A8F29)),
-  RcThemeData('Néon', 'Neon',
-      bgGrad: [Color(0xFF12002A), Color(0xFF3A0A6B), Color(0xFF14002E)],
-      pixels: [Color(0xFFFF3DF5), Color(0xFF3DF5FF), Color(0xFFB26BFF), Color(0xFFFFFFFF), Color(0xFFFF6BD5)],
-      streak: Color(0xFFFF50F0),
-      sprites: [Color(0x333DF5FF), Color(0x33FF3DF5), Color(0x26B26BFF)],
-      bg: Color(0xFF12002A), panel: Color(0xD9200A40), panel2: Color(0xFF4A1A80), surface: Color(0xFF22083F), line: Color(0xFFB026FF)),
-  RcThemeData('Coucher de soleil', 'Sunset',
-      bgGrad: [Color(0xFF1A0B2E), Color(0xFF5B1A4A), Color(0xFF8A3442)],
-      pixels: [Color(0xFFFFB86B), Color(0xFFFF6B9A), Color(0xFFFFD86B), Color(0xFFFFFFFF), Color(0xFFFF8A5B)],
-      streak: Color(0xFFFF9664),
-      sprites: [Color(0x33FFD86B), Color(0x33FF6B9A), Color(0x26FFB86B)],
-      bg: Color(0xFF1A0B2E), panel: Color(0xD92A1030), panel2: Color(0xFF5A2450), surface: Color(0xFF2A1030), line: Color(0xFFE0607A)),
-  RcThemeData('Arcade noir', 'Black arcade',
-      bgGrad: [Color(0xFF050505), Color(0xFF161616), Color(0xFF050505)],
-      pixels: [Color(0xFFFF3B3B), Color(0xFFFFD23B), Color(0xFF3BA0FF), Color(0xFFFFFFFF), Color(0xFF3BFF7A)],
-      streak: Color(0xFFFFFFFF),
-      sprites: [Color(0x26FF3B3B), Color(0x26FFD23B), Color(0x263BA0FF)],
-      bg: Color(0xFF0A0A0A), panel: Color(0xD91A1A1A), panel2: Color(0xFF333333), surface: Color(0xFF151515), line: Color(0xFF555555)),
-  // ── Thèmes scènes : fonds animés bien visibles, panneaux plus transparents ──
-  RcThemeData.anim('Synthwave', 'Synthwave', RcScene.synth,
-      bgGrad: [Color(0xFF12002A), Color(0xFFFF5FA2), Color(0xFF07000F)], pixels: [Color(0xFFFF4FD8), Color(0xFFFFE66B), Color(0xFFFF3D8B)],
-      bg: Color(0xFF14002A), panel: Color(0xB81E0832), panel2: Color(0xFF4A1A6E), surface: Color(0xFF1E0832), line: Color(0xFFFF4FD8)),
-  RcThemeData.anim('Galaxie', 'Galaxy', RcScene.space,
-      bgGrad: [Color(0xFF3A1D6E), Color(0xFF0D1440), Color(0xFF03040F)], pixels: [Color(0xFFFFFFFF), Color(0xFFFFB86B), Color(0xFF3DD9FF)],
-      bg: Color(0xFF070A24), panel: Color(0xB3080C28), panel2: Color(0xFF26306B), surface: Color(0xFF0D1440), line: Color(0xFF7AA8FF)),
-  RcThemeData.anim('Pixel ciel', 'Pixel sky', RcScene.sky,
-      bgGrad: [Color(0xFF3A8CFF), Color(0xFF9FD8FF), Color(0xFF5FBF5F)], pixels: [Color(0xFFFFFFFF), Color(0xFF5FBF5F), Color(0xFFFFD23B)],
-      bg: Color(0xFF14285A), panel: Color(0xAD142A5A), panel2: Color(0xFF2A4A8A), surface: Color(0xFF14285A), line: Color(0xFFFFD23B)),
-  RcThemeData.anim('Salle d\'arcade', 'Arcade hall', RcScene.arcade,
-      bgGrad: [Color(0xFF050A2A), Color(0xFF0C1A5C), Color(0xFF050A2A)], pixels: [Color(0xFF3DD9FF), Color(0xFFFF8C1A), Color(0xFF7DFF3D)],
-      bg: Color(0xFF060C30), panel: Color(0xAD0A0E32), panel2: Color(0xFF1E2A6B), surface: Color(0xFF0A0E32), line: Color(0xFF3DD9FF)),
-  RcThemeData.anim('Terminal', 'Terminal', RcScene.terminal,
-      bgGrad: [Color(0xFF010D05), Color(0xFF033015), Color(0xFF010D05)], pixels: [Color(0xFF33FF66), Color(0xFFD8FFE0), Color(0xFF1A8A3A)],
-      bg: Color(0xFF021208), panel: Color(0xBF001408), panel2: Color(0xFF0E3A1C), surface: Color(0xFF021A0A), line: Color(0xFF33FF66)),
-  RcThemeData.anim('Océan', 'Ocean', RcScene.ocean,
-      bgGrad: [Color(0xFF1AA0D8), Color(0xFF0B4F8A), Color(0xFF041A3A)], pixels: [Color(0xFFFFB347), Color(0xFF7DFFB0), Color(0xFFDCF5FF)],
-      bg: Color(0xFF04223F), panel: Color(0xAD001E3C), panel2: Color(0xFF0B4F8A), surface: Color(0xFF042A4A), line: Color(0xFF3DD9FF)),
-  RcThemeData.anim('Donjon', 'Dungeon', RcScene.dungeon,
-      bgGrad: [Color(0xFF1A1214), Color(0xFF33252A), Color(0xFF1A1214)], pixels: [Color(0xFFFFB347), Color(0xFFFF781E), Color(0xFFFFF3B0)],
-      bg: Color(0xFF1A1012), panel: Color(0xB81E0F0A), panel2: Color(0xFF4A2A22), surface: Color(0xFF22161A), line: Color(0xFFFF8C3A)),
-  RcThemeData.anim('Blocs', 'Blocks', RcScene.blocks,
-      bgGrad: [Color(0xFF0B0B24), Color(0xFF1A1A40), Color(0xFF0B0B24)], pixels: [Color(0xFFFF4F4F), Color(0xFFFFE14F), Color(0xFF3DD9FF)],
-      bg: Color(0xFF0B0B24), panel: Color(0xB30A0A1E), panel2: Color(0xFF2A2A5A), surface: Color(0xFF12122E), line: Color(0xFF9C8CFF)),
-  RcThemeData.anim('Aurore', 'Aurora', RcScene.aurora,
-      bgGrad: [Color(0xFF020617), Color(0xFF0D2A4A), Color(0xFFE8F4FF)], pixels: [Color(0xFF7DFFB0), Color(0xFF3DD9FF), Color(0xFFC878FF)],
-      bg: Color(0xFF061428), panel: Color(0xAD081428), panel2: Color(0xFF1A3A5A), surface: Color(0xFF0A1A30), line: Color(0xFF7DFFB0)),
-  RcThemeData.anim('Circuit', 'Circuit', RcScene.circuit,
-      bgGrad: [Color(0xFF04201A), Color(0xFF0D5A46), Color(0xFF04201A)], pixels: [Color(0xFF3DFFD0), Color(0xFFBFFFEF), Color(0xFF1D8A6A)],
-      bg: Color(0xFF041A14), panel: Color(0xB3051914), panel2: Color(0xFF0D4A3A), surface: Color(0xFF06241C), line: Color(0xFF3DFFD0)),
+  RcThemeData('Minuit', 'Midnight', RcMotif.stars, 'Étoiles', 'Stars',
+      top: Color(0xFF0B1030), bottom: Color(0xFF141A44), accent: Color(0xFF6EA8FF), accent2: Color(0xFF9A7DFF), onAccent: Color(0xFF08142E),
+      panel: Color(0xD1161C40), panel2: Color(0xFF26306B), surface: Color(0xFF161C40), line: Color(0xFF2C3770)),
+  RcThemeData('Arcade', 'Arcade', RcMotif.grid, 'Grille pixel', 'Pixel grid',
+      top: Color(0xFF120A24), bottom: Color(0xFF1E0F3A), accent: Color(0xFFFF5EC4), accent2: Color(0xFF3EE6FF), onAccent: Color(0xFF2B0420),
+      panel: Color(0xD11E123A), panel2: Color(0xFF3A2560), surface: Color(0xFF1E123A), line: Color(0xFF3E2A70)),
+  RcThemeData('Game Boy', 'Game Boy', RcMotif.pix, 'Petits pixels', 'Little pixels',
+      top: Color(0xFF0E1F12), bottom: Color(0xFF173020), accent: Color(0xFF9BDC5A), accent2: Color(0xFF5AC48A), onAccent: Color(0xFF0E2208),
+      panel: Color(0xD6142818), panel2: Color(0xFF2A4A30), surface: Color(0xFF142818), line: Color(0xFF2E5A3A)),
+  RcThemeData('Océan', 'Ocean', RcMotif.waves, 'Vagues', 'Waves',
+      top: Color(0xFF06202E), bottom: Color(0xFF0B3448), accent: Color(0xFF3EC7E6), accent2: Color(0xFF2F8FD6), onAccent: Color(0xFF05222B),
+      panel: Color(0xD10A2838), panel2: Color(0xFF1D4A60), surface: Color(0xFF0A2838), line: Color(0xFF1D5068)),
+  RcThemeData('Or', 'Gold', RcMotif.diamonds, 'Losanges', 'Diamonds',
+      top: Color(0xFF17120A), bottom: Color(0xFF271D10), accent: Color(0xFFEFB54A), accent2: Color(0xFFD27A2A), onAccent: Color(0xFF2A1800),
+      panel: Color(0xD6261E12), panel2: Color(0xFF4A3A22), surface: Color(0xFF261E12), line: Color(0xFF4A3A20)),
+  RcThemeData('Couchant', 'Sunset', RcMotif.lines, 'Lignes rétro', 'Retro lines',
+      top: Color(0xFF1E0C2A), bottom: Color(0xFF3A1430), accent: Color(0xFFFF8A5B), accent2: Color(0xFFFF5EA8), onAccent: Color(0xFF2B0B06),
+      panel: Color(0xD12C122C), panel2: Color(0xFF52244A), surface: Color(0xFF2C122C), line: Color(0xFF5A2A50)),
+  RcThemeData('Forêt', 'Forest', RcMotif.fire, 'Lucioles', 'Fireflies',
+      top: Color(0xFF0A1A12), bottom: Color(0xFF10281C), accent: Color(0xFF5FD39A), accent2: Color(0xFFD8FF7A), onAccent: Color(0xFF06281B),
+      panel: Color(0xD610241A), panel2: Color(0xFF24452F), surface: Color(0xFF10241A), line: Color(0xFF24452F)),
+  RcThemeData('Ardoise', 'Slate', RcMotif.hex, 'Hexagones', 'Hexagons',
+      top: Color(0xFF14171D), bottom: Color(0xFF1E222B), accent: Color(0xFFE6E9EF), accent2: Color(0xFF8A93A3), onAccent: Color(0xFF14171C),
+      panel: Color(0xDB1E222A), panel2: Color(0xFF3A404D), surface: Color(0xFF1E222A), line: Color(0xFF3A404D)),
+  RcThemeData('Prune', 'Plum', RcMotif.bubbles, 'Bulles', 'Bubbles',
+      top: Color(0xFF1A0F24), bottom: Color(0xFF2A1838), accent: Color(0xFFC08BFF), accent2: Color(0xFFFF7AB8), onAccent: Color(0xFF1F0B33),
+      panel: Color(0xD1281834), panel2: Color(0xFF4A3060), surface: Color(0xFF281834), line: Color(0xFF4A3060)),
+  RcThemeData('Néon', 'Neon', RcMotif.cross, 'Croix', 'Crosses',
+      top: Color(0xFF05060A), bottom: Color(0xFF0E1016), accent: Color(0xFF3EF5C0), accent2: Color(0xFFFF4FD8), onAccent: Color(0xFF032018),
+      panel: Color(0xDB12141C), panel2: Color(0xFF2A2E3A), surface: Color(0xFF12141C), line: Color(0xFF2A2E3A)),
 ];
-
 /// Thème choisi (réglages, mémorisé)
 final rcThemeIndex = ValueNotifier<int>(0);
 RcThemeData get rcTheme => kThemes[rcThemeIndex.value.clamp(0, kThemes.length - 1)];
@@ -155,7 +128,7 @@ ThemeData retroTheme() {
   final line = th.line;
   final base = ThemeData(brightness: Brightness.dark);
   return base.copyWith(
-    colorScheme: ColorScheme.dark(primary: kGold, secondary: const Color(0xFF3DD9FF), surface: navy, onSurface: Colors.white),
+    colorScheme: ColorScheme.dark(primary: th.accent, secondary: th.accent2, surface: navy, onSurface: Colors.white),
     scaffoldBackgroundColor: Colors.transparent,
     canvasColor: navy,
     appBarTheme: AppBarTheme(
@@ -167,14 +140,14 @@ ThemeData retroTheme() {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: kGold,
-        foregroundColor: const Color(0xFF412402),
+        backgroundColor: th.accent,
+        foregroundColor: th.onAccent,
         disabledBackgroundColor: const Color(0xFF3A3F66),
         textStyle: const TextStyle(fontWeight: FontWeight.w800),
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
-          side: const BorderSide(color: Color(0xFF7A3E0E), width: 2),
+          side: BorderSide(color: Color.lerp(th.accent, Colors.black, 0.45)!, width: 2),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       ),
@@ -191,7 +164,7 @@ ThemeData retroTheme() {
     textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(foregroundColor: const Color(0xFF8FD3FF))),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: th.bg.withOpacity(0.94),
-      indicatorColor: const Color(0x55EF9F27),
+      indicatorColor: th.accent.withOpacity(0.33),
       surfaceTintColor: Colors.transparent,
       labelTextStyle: WidgetStateProperty.all(const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
     ),
@@ -211,8 +184,8 @@ ThemeData retroTheme() {
       backgroundColor: th.panel2,
       contentTextStyle: TextStyle(color: Colors.white),
     ),
-    progressIndicatorTheme: const ProgressIndicatorThemeData(color: kGold),
-    tabBarTheme: const TabBarThemeData(labelColor: kGold, indicatorColor: kGold, unselectedLabelColor: Colors.white70),
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: th.accent),
+    tabBarTheme: TabBarThemeData(labelColor: th.accent, indicatorColor: th.accent, unselectedLabelColor: Colors.white70),
   );
 }
 
@@ -287,124 +260,160 @@ class _ThemePreviewState extends State<ThemePreview> with SingleTickerProviderSt
       );
 }
 
-class _Pix {
-  final double x, y, size, vx, vy, alpha;
-  final int color; // index dans les couleurs du thème
-  const _Pix(this.x, this.y, this.size, this.vx, this.vy, this.alpha, this.color);
-}
-
-// Envahisseur 11×8 et fantôme 14×14 (1 = pixel allumé)
-const _invader = [
-  '00100000100',
-  '00010001000',
-  '00111111100',
-  '01101110110',
-  '11111111111',
-  '10111111101',
-  '10100000101',
-  '00011011000',
-];
-const _ghost = [
-  '00000111100000',
-  '00011111111000',
-  '00111111111100',
-  '01111111111110',
-  '01100111100110',
-  '11000011000011',
-  '11000011000011',
-  '11100111100111',
-  '11111111111111',
-  '11111111111111',
-  '11111111111111',
-  '11111111111111',
-  '11011100111011',
-  '10001100110001',
-];
-
 class _BgPainter extends CustomPainter {
   final ValueNotifier<double> time;
   final int? themeIndex; // aperçu d'un thème précis (réglages)
   _BgPainter(this.time, {this.themeIndex}) : super(repaint: Listenable.merge([time, rcThemeIndex]));
 
-  static final List<_Pix> _pixels = () {
-    final r = Random(42);
-    return List.generate(46, (_) {
-      final s = [3.0, 4.0, 5.0, 6.0, 8.0, 10.0][r.nextInt(6)];
-      return _Pix(r.nextDouble(), r.nextDouble(), s, 4 + r.nextDouble() * 10, -(8 + r.nextDouble() * 22), 0.12 + r.nextDouble() * 0.35,
-          r.nextInt(5));
-    });
-  }();
+  static double _hash(double v) {
+    final q = sin(v) * 43758.5453;
+    return q - q.floorToDouble();
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
     final t = time.value;
-    final w = size.width, h = size.height;
+    final w = size.width, h = size.height, s = w / 340;
+    final th = themeIndex == null ? rcTheme : kThemes[themeIndex!.clamp(0, kThemes.length - 1)];
+    final acc = th.accent, acc2 = th.accent2;
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
     final p = Paint();
-    final th = themeIndex == null ? rcTheme : kThemes[themeIndex!];
-    if (th.scene != 0) {
-      canvas.save();
-      canvas.clipRect(Offset.zero & size);
-      paintScene(canvas, size, t, th.scene);
-      canvas.restore();
-      return;
+
+    // dégradé
+    p.shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [th.top, th.bottom]).createShader(Offset.zero & size);
+    canvas.drawRect(Offset.zero & size, p);
+
+    // deux lueurs qui dérivent lentement
+    void glow(Color c, double x, double y) {
+      final o = Offset(w * x, h * y);
+      p.shader = RadialGradient(colors: [c.withOpacity(0.22), c.withOpacity(0)]).createShader(Rect.fromCircle(center: o, radius: w * 0.8));
+      canvas.drawRect(Offset.zero & size, p);
     }
 
-    // dégradé de fond (bleu des pochettes rétro)
-    p.shader = LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: th.bgGrad,
-      stops: const [0, 0.55, 1],
-    ).createShader(Offset.zero & size);
-    canvas.drawRect(Offset.zero & size, p);
+    glow(acc, 0.25 + 0.15 * sin(t * 0.15), 0.15 + 0.1 * cos(t * 0.12));
+    glow(acc2, 0.8 + 0.1 * cos(t * 0.1), 0.85 + 0.08 * sin(t * 0.13));
     p.shader = null;
 
-    // traînées de vitesse en diagonale
-    for (var i = 0; i < 7; i++) {
-      final speed = 40.0 + i * 9;
-      final len = 140.0 + (i % 3) * 90;
-      final off = ((t * speed + i * 263) % (w + h + len)) - len;
-      final y0 = h - off + (i * 37 % 120);
-      final x0 = off - (i * 53 % 150);
-      p
-        ..color = th.streak.withOpacity(0.05 + (i % 3) * 0.025)
-        ..strokeWidth = 2.0 + (i % 3) * 2;
-      canvas.drawLine(Offset(x0, y0), Offset(x0 + len, y0 - len * 0.55), p);
+    // motif
+    Color a([double k = 1]) => acc.withOpacity((0.13 * k).clamp(0.0, 1.0));
+    final st = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = max(1.0, s)
+      ..color = a();
+    final off = t * 8 * s;
+    switch (th.motif) {
+      case RcMotif.stars:
+        for (var k = 0; k < 70; k++) {
+          final x = _hash(k * 12.9898) * w;
+          final y = ((_hash(k * 78.233) + t * 0.004 * (1 + k % 3)) % 1) * h;
+          final al = 0.25 + 0.75 * sin(t * 0.8 + k * 2.7).abs();
+          p.color = (k % 7 != 0 ? Colors.white : acc).withOpacity(al);
+          final z = (k % 3 == 0 ? 2 : 1) * s * 1.3;
+          canvas.drawRect(Rect.fromLTWH(x, y, z, z), p);
+        }
+      case RcMotif.grid:
+        final g = 26 * s, o = off % g;
+        for (var x = o - g; x < w; x += g) {
+          canvas.drawLine(Offset(x, 0), Offset(x, h), st);
+        }
+        for (var y = o - g; y < h; y += g) {
+          canvas.drawLine(Offset(0, y), Offset(w, y), st);
+        }
+        p.color = acc.withOpacity(0.22);
+        final f = (t * 0.7).floor();
+        for (var k = 0; k < 6; k++) {
+          final i = ((k * 7 + f) * 13) % 12, j = ((k * 5 + f) * 7) % 26;
+          canvas.drawRect(Rect.fromLTWH(i * g + o + 1, j * g + o + 1, g - 2, g - 2), p);
+        }
+      case RcMotif.pix:
+        final g = 22 * s, o = (off * 0.6) % g;
+        for (var i = 0; i < w / g + 1; i++) {
+          for (var j = -1; j < h / g + 1; j++) {
+            final v = sin(i * 1.7 + j * 2.3 + t * 0.6);
+            if (v <= 0.6) continue;
+            p.color = a((v - 0.6) * 1.6);
+            canvas.drawRect(Rect.fromLTWH(i * g, j * g + o, g * 0.42, g * 0.42), p);
+          }
+        }
+      case RcMotif.waves:
+        for (var k = 0; k < 12; k++) {
+          final y0 = k * h / 11;
+          final path = Path()..moveTo(0, y0 + 7 * s * sin(t * 0.6 + k));
+          for (double x = 4 * s; x <= w + 4 * s; x += 4 * s) {
+            path.lineTo(x, y0 + 7 * s * sin(x / (40 * s) + t * 0.6 + k));
+          }
+          canvas.drawPath(path, st);
+        }
+      case RcMotif.diamonds:
+        final g = 34 * s, o = (off * 0.5) % g, d = 6 * s;
+        for (var i = -1; i < w / g + 1; i++) {
+          for (var j = -1; j < h / g + 1; j++) {
+            final x = i * g + (j.isOdd ? g / 2 : 0), y = j * g + o;
+            st.color = a(0.5 + 0.5 * sin(t * 0.8 + i + j * 1.3));
+            canvas.drawPath(
+                Path()
+                  ..moveTo(x, y - d)
+                  ..lineTo(x + d, y)
+                  ..lineTo(x, y + d)
+                  ..lineTo(x - d, y)
+                  ..close(),
+                st);
+          }
+        }
+      case RcMotif.lines:
+        final g = 18 * s;
+        for (var y = (off * 0.7) % g; y < h; y += g) {
+          p.color = a(y / h * 0.9 + 0.1);
+          canvas.drawRect(Rect.fromLTWH(0, y, w, max(1.0, 2 * s)), p);
+        }
+      case RcMotif.fire:
+        for (var k = 0; k < 26; k++) {
+          final c = Offset((sin(t * 0.25 + k * 2.1) * 0.5 + 0.5) * w, (cos(t * 0.2 + k * 1.7) * 0.5 + 0.5) * h);
+          final al = 0.25 + 0.75 * sin(t * 1.4 + k).abs();
+          p.shader = RadialGradient(colors: [acc2.withOpacity(0.9 * al), acc2.withOpacity(0)]).createShader(Rect.fromCircle(center: c, radius: 6 * s));
+          canvas.drawCircle(c, 6 * s, p);
+        }
+        p.shader = null;
+      case RcMotif.hex:
+        final r = 16 * s, hh = r * sqrt(3), o = (off * 0.4) % hh;
+        for (var i = -1; i < w / (r * 1.5) + 1; i++) {
+          for (var j = -1; j < h / hh + 1; j++) {
+            final x = i * r * 1.5, y = j * hh + (i.isOdd ? hh / 2 : 0) + o;
+            st.color = a(0.45 + 0.55 * max(0.0, sin(t * 0.5 - i * 0.4 - j * 0.3)));
+            final path = Path();
+            for (var q = 0; q < 6; q++) {
+              final an = q * pi / 3;
+              final pt = Offset(x + r * 0.85 * cos(an), y + r * 0.85 * sin(an));
+              if (q == 0) {
+                path.moveTo(pt.dx, pt.dy);
+              } else {
+                path.lineTo(pt.dx, pt.dy);
+              }
+            }
+            canvas.drawPath(path..close(), st);
+          }
+        }
+      case RcMotif.bubbles:
+        for (var k = 0; k < 20; k++) {
+          final r = (4 + k % 5 * 4) * s;
+          final x = ((k * 0.618) % 1) * w + sin(t * 0.5 + k) * 8 * s;
+          final y = h + r - ((t * (6 + k % 4 * 3) * s + k * 61 * s) % (h + 2 * r));
+          canvas.drawCircle(Offset(x, y), r, st);
+        }
+      case RcMotif.cross:
+        final g = 30 * s, o = (off * 0.5) % g, d = 4 * s;
+        for (var i = 0; i < w / g + 1; i++) {
+          for (var j = -1; j < h / g + 1; j++) {
+            final x = i * g, y = j * g + o;
+            final on = sin(t * 0.9 + i * 1.9 + j * 1.1) > 0.75;
+            st.color = on ? (j.isOdd ? acc2 : acc).withOpacity(0.55) : a();
+            canvas.drawLine(Offset(x - d, y), Offset(x + d, y), st);
+            canvas.drawLine(Offset(x, y - d), Offset(x, y + d), st);
+          }
+        }
     }
-
-    // pixels qui flottent vers le haut
-    for (final px in _pixels) {
-      final x = ((px.x * w + px.vx * t) % (w + 20)) - 10;
-      final y = ((px.y * h + px.vy * t) % (h + 20) + (h + 20)) % (h + 20) - 10;
-      final twinkle = 0.65 + 0.35 * sin(t * 1.7 + px.x * 20);
-      p.color = th.pixels[px.color % th.pixels.length].withOpacity((px.alpha * twinkle).clamp(0.0, 1.0));
-      canvas.drawRect(Rect.fromLTWH(x.roundToDouble(), y.roundToDouble(), px.size, px.size), p);
-    }
-
-    // envahisseurs et fantômes qui traversent lentement
-    _sprite(canvas, _invader, Offset(((t * 14) % (w + 120)) - 60, h * 0.18 + sin(t * 0.8) * 10), 4, th.sprites[0]);
-    _sprite(canvas, _ghost, Offset(w - ((t * 10 + 200) % (w + 120)) + 30, h * 0.62 + sin(t * 0.6 + 1) * 14), 3.5, th.sprites[1]);
-    _sprite(canvas, _invader, Offset(((t * 8 + w * 0.6) % (w + 120)) - 60, h * 0.86), 3, th.sprites[2]);
-
-    // lignes de balayage CRT
-    p.color = const Color(0x0D000000);
-    for (double y = 0; y < h; y += 3) {
-      canvas.drawRect(Rect.fromLTWH(0, y, w, 1), p);
-    }
-    // vignette
-    p.shader = RadialGradient(colors: const [Color(0x00000000), Color(0x66000000)], stops: const [0.6, 1])
-        .createShader(Rect.fromCircle(center: Offset(w / 2, h / 2), radius: max(w, h) * 0.75));
-    canvas.drawRect(Offset.zero & size, p);
-    p.shader = null;
-  }
-
-  void _sprite(Canvas canvas, List<String> rows, Offset o, double px, Color c) {
-    final p = Paint()..color = c;
-    for (var y = 0; y < rows.length; y++) {
-      for (var x = 0; x < rows[y].length; x++) {
-        if (rows[y].codeUnitAt(x) == 49) canvas.drawRect(Rect.fromLTWH(o.dx + x * px, o.dy + y * px, px, px), p);
-      }
-    }
+    canvas.restore();
   }
 
   @override

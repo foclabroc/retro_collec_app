@@ -12,6 +12,10 @@
   et son mouvement (traverse, chute, montée, pluie, feu d'artifice).
   Les 5 prochains événements sont toujours visibles en entier (titre, texte, récompense) avec leur compte à rebours
   à la seconde, mais verrouillés (« 🔒 Disponible le 24/10 à 00:00 ») jusqu'à leur début.
+- **Nouveaux thèmes** : 10 thèmes plus épurés remplacent les 15 anciens (Minuit, Arcade, Game Boy, Océan, Or, Couchant,
+  Forêt, Ardoise, Prune, Néon). Fond en dégradé, lueur de la couleur du thème et motif discret qui défile lentement
+  (étoiles, grille, vagues, lucioles…). Les boutons, barres et titres prennent la couleur du thème.
+  Le titre de l'onglet devient « Collection ».
 - **Bourse, échanges en détail** : toucher un échange (ou « Voir le détail ») ouvre une page avec les cartes en grand,
   leur rareté et finition, « ✨ Nouvelle pour toi » ou « Tu en as déjà 2 », « ⚠ Ta dernière » pour celles que tu donnes,
   la valeur de chaque côté, et les boutons Accepter / Refuser. Toucher une carte ouvre sa fiche.

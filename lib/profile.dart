@@ -342,8 +342,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                                     const SizedBox(width: 14),
                                     Expanded(
-                                      child: Text(kThemes[k].name,
-                                          style: TextStyle(fontWeight: FontWeight.w700, color: !rcThemeRandom && rcThemeIndex.value == k ? kGold : Colors.white)),
+                                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                        Text(kThemes[k].name,
+                                            style: TextStyle(fontWeight: FontWeight.w700, color: !rcThemeRandom && rcThemeIndex.value == k ? kThemes[k].accent : Colors.white)),
+                                        Text(kThemes[k].motifName, style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                                      ]),
                                     ),
                                     if (!rcThemeRandom && rcThemeIndex.value == k) const Icon(Icons.check, color: kGold),
                                   ]),
