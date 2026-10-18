@@ -74,7 +74,7 @@ class Events extends ChangeNotifier {
 
   Future<void> markSeen() async {
     // seulement les événements commencés : un mystère à venir redeviendra « nouveau » à son lancement
-    final top = list.where((e) => e['hidden'] != true).fold<int>(_seen, (m, e) => _id(e) > m ? _id(e) : m);
+    final top = list.where((e) => e['hidden'] != true && e['upcoming'] != true).fold<int>(_seen, (m, e) => _id(e) > m ? _id(e) : m);
     if (top == _seen) return;
     _seen = top;
     notifyListeners();
@@ -241,15 +241,8 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                 ],
                 if (soon.isNotEmpty) ...[
                   sec(t('BIENTÔT', 'COMING SOON')),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 1.15,
-                    children: [for (final e in soon) _mystery(e)],
-                  ),
+                  // visibles en entier, mais rien n'est utilisable avant leur début
+                  for (final e in soon) Padding(padding: const EdgeInsets.only(bottom: 12), child: e['hidden'] == true ? _mystery(e) : _card(e)),
                 ],
                 if (ended.isNotEmpty) ...[
                   sec(t('TERMINÉS', 'ENDED')),
@@ -509,10 +502,15 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   Widget _card(Map<String, dynamic> e) {
     final c = _color(e['color'] as String?);
     final kind = e['kind'] as String? ?? 'info';
-    final action = _kTabs[e['action']];
+    final upcoming = e['live'] != true && e['ended'] != true;
+    final action = upcoming ? null : _kTabs[e['action']];
     final body = _body(e);
     final tag = switch (kind) { 'effect' => t('EFFET', 'EFFECT'), 'goal' => t('DÉFI', 'CHALLENGE'), _ => _hasGift(e) ? t('CADEAU', 'GIFT') : t('INFO', 'INFO') };
-    return Container(
+    final start = _date(e, 'starts_at')?.toLocal();
+    String two(int v) => v.toString().padLeft(2, '0');
+    return Opacity(
+      opacity: upcoming ? 0.92 : 1,
+      child: Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: kPanel,
@@ -536,13 +534,19 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(_title(e), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-                Text(_when(e), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xD9FFFFFF))),
+                if (upcoming)
+                  Text.rich(TextSpan(children: [
+                    TextSpan(text: t('Commence dans ', 'Starts in ')),
+                    TextSpan(text: _chrono(e), style: pixelStyle(size: 8, color: const Color(0xFFFFD166), shadow: false)),
+                  ]), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xD9FFFFFF)))
+                else
+                  Text(_when(e), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xD9FFFFFF))),
               ]),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
               decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(5)),
-              child: Text(tag, style: pixelStyle(size: 6.5, color: Colors.white, shadow: false)),
+              child: Text(upcoming ? t('BIENTÔT', 'SOON') : tag, style: pixelStyle(size: 6.5, color: Colors.white, shadow: false)),
             ),
           ]),
         ),
@@ -552,15 +556,29 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             if (body.isNotEmpty) ...[Text(body, style: const TextStyle(fontSize: 13, height: 1.45, color: Color(0xC7FFFFFF))), const SizedBox(height: 10)],
             if (kind == 'effect') ...[_effectBox(e, c), const SizedBox(height: 10)],
             if (kind == 'goal') ...[_goalBox(e, c), const SizedBox(height: 10)],
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              if (_hasGift(e)) _claimButton(e),
-              if (kind == 'goal' && Events._reachable(e) > 0) _claimButton(e),
-              if (action != null)
-                OutlinedButton(onPressed: () => _go(action), child: Text(t('Y aller ›', 'Go ›'), style: const TextStyle(fontWeight: FontWeight.w900))),
-            ]),
+            if (upcoming)
+              // pas encore utilisable : récompense visible, verrouillée jusqu'au début
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.06), borderRadius: BorderRadius.circular(11), border: Border.all(color: Colors.white24)),
+                child: Text(
+                    [
+                      '🔒 ${start == null ? '' : t('Disponible le ${two(start.day)}/${two(start.month)} à ${two(start.hour)}:${two(start.minute)}', 'Available on ${start.month}/${start.day} at ${two(start.hour)}:${two(start.minute)}')}',
+                      if (_hasGift(e)) '· ${_reward(_n(e, 'coins'), _n(e, 'pixels'))}',
+                    ].join(' '),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: Colors.white70)),
+              )
+            else
+              Wrap(spacing: 8, runSpacing: 8, children: [
+                if (_hasGift(e)) _claimButton(e),
+                if (kind == 'goal' && Events._reachable(e) > 0) _claimButton(e),
+                if (action != null)
+                  OutlinedButton(onPressed: () => _go(action), child: Text(t('Y aller ›', 'Go ›'), style: const TextStyle(fontWeight: FontWeight.w900))),
+              ]),
           ]),
         ),
       ]),
+      ),
     );
   }
 
@@ -623,7 +641,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             for (var i = 0; i < steps.length; i++)
               Builder(builder: (_) {
                 final n = _n(steps[i], 'n');
-                final got = i < claimed, ready = !got && prog >= n;
+                final got = i < claimed, ready = !got && prog >= n && e['live'] == true;
                 final x = 15 + w * (n / target).clamp(0.0, 1.0);
                 return Positioned(
                   left: x - 15,

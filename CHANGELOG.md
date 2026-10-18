@@ -9,7 +9,8 @@
   « Récupérer » qui brille), frise des 14 prochains jours, une carte par événement avec son étiquette (cadeau, effet, défi),
   défis en piste avec des coffres à ouvrir, événements à venir en boîtes mystère, terminés réduits à une ligne.
   Chaque événement a son décor animé (chauves-souris, flocons, confettis, éclairs…), réglable depuis le serveur.
-  Les 5 prochains événements sont toujours affichés en boîtes mystère, avec leur compte à rebours à la seconde.
+  Les 5 prochains événements sont toujours visibles en entier (titre, texte, récompense) avec leur compte à rebours
+  à la seconde, mais verrouillés (« 🔒 Disponible le 24/10 à 00:00 ») jusqu'à leur début.
 - **Joueurs en ligne** : bouton 🟢 en haut du Voisinage avec la liste des connectés, « Défier » (4 en ligne ou
   Console Wars, grisé sous 50 pièces) et « Étage » pour descendre jusqu'à eux.
 
