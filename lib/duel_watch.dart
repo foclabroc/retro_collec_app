@@ -153,7 +153,7 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
     final col = bs ? const Color(0xFF3EC7FF) : const Color(0xFFFF4757);
     final opp = widget.x['opp'] as Map? ?? const {};
     final name = opp['name'] as String? ?? '?';
-    final stake = (widget.x['stake'] as num? ?? 50).toInt();
+    final stake = (widget.x['stake'] as num? ?? 0).toInt();
     final left = _end.difference(DateTime.now()).inSeconds.clamp(0, 120);
     Widget av(int a, {bool ring = false}) => SizedBox(
           width: 82,
@@ -214,7 +214,10 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(bs ? 'Console Wars' : t('4 en ligne', 'Connect 4'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                    Text(t('$stake pièces chacun · le gagnant rafle ${stake * 2} + 1 pixel', '$stake coins each · the winner takes ${stake * 2} + 1 pixel'),
+                    Text(
+                        stake > 0
+                            ? t('$stake pièces chacun · le gagnant rafle ${stake * 2} + 1 pixel', '$stake coins each · the winner takes ${stake * 2} + 1 pixel')
+                            : t('Gratuit · le gagnant gagne $kDuelWin pièces + 1 pixel', 'Free · the winner gets $kDuelWin coins + 1 pixel'),
                         style: const TextStyle(fontSize: 12, color: Colors.white60)),
                   ]),
                 ),

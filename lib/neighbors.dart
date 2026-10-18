@@ -356,7 +356,7 @@ class _OnlineRowState extends State<_OnlineRow> {
   @override
   Widget build(BuildContext context) {
     final f = widget.f;
-    final rich = f.coins >= kC4Stake;
+    const rich = true; // parties gratuites : tout le monde peut être défié
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.all(8),
@@ -558,8 +558,8 @@ void _onlineSheet(BuildContext context, List<FloorData> on, void Function(String
               ]),
             ),
             const SizedBox(height: 6),
-            Text(t('Connectés il y a moins de 10 min · « Défier » lance un défi en direct (50 pièces chacun)',
-                    'Seen less than 10 min ago · « Challenge » sends a live challenge (50 coins each)'),
+            Text(t('Connectés il y a moins de 10 min · « Défier » lance un défi en direct (gratuit, le gagnant gagne 150 pièces)',
+                    'Seen less than 10 min ago · « Challenge » sends a live challenge (free, the winner gets 150 coins)'),
                 style: const TextStyle(color: Colors.white54, fontSize: 11.5)),
           ]),
         ),

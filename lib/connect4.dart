@@ -15,15 +15,22 @@ import 'server.dart';
 part 'battleship.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 4 en ligne à 2 joueurs (onglet « Bonus / Jeux ») : 50 pièces chacun, le
-// gagnant prend 100 + 1 pixel. « En direct » : 1 min par coup, contre un joueur
+// 4 en ligne à 2 joueurs (onglet « Bonus / Jeux ») : gratuit, le gagnant
+// gagne 150 pièces + 1 pixel, le perdant 10 pièces de consolation. « En direct » : 1 min par coup, contre un joueur
 // en ligne. « Tour par tour » : 24 h par coup. Tout est vérifié par le serveur
 // (rc_c4_*). Plateau : 42 caractères, case (ligne r de 0 en haut, colonne c) = r*7 + c.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kRed = Color(0xFFFF4757), _kYellow = Color(0xFFFFD23F), _kNeon = Color(0xFFFF4FD8), _kCyan = Color(0xFF3EE6FF);
 const _kTeal = Color(0xFF5DCAA5), _kGoldHi = Color(0xFFFFD166);
-const kC4Stake = 50; // mise de chaque joueur ; le gagnant reçoit les deux mises + 1 pixel
+const kC4Stake = 50; // ancienne mise (parties commencées avant les parties gratuites)
+const kDuelWin = 150, kDuelLose = 10; // parties gratuites : gain du gagnant (+1 pixel), consolation du perdant
+
+/// Gain du gagnant : les deux mises pour une ancienne partie, sinon 150
+int duelPrize(int stake) => stake > 0 ? stake * 2 : kDuelWin;
+
+/// Ce que gagne le perdant (ou chacun sur un match nul) : sa mise est perdue (ancienne partie) ou 10 pièces
+String duelLoseText(int stake) => stake > 0 ? '−$stake' : '+$kDuelLose';
 const _kEmotes = ['👍', '😮', '😂', '🔥', '👏'];
 
 Widget _avatar(int a, {double size = 40, Color? ring}) => Container(
@@ -159,8 +166,8 @@ class _Connect4TileState extends State<Connect4Tile> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                     Text(t('4 en ligne', 'Connect 4'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                     const SizedBox(height: 3),
-                    Text(t('Défie un joueur : $kC4Stake pièces chacun, le gagnant rafle ${kC4Stake * 2} + 1 pixel',
-                            'Challenge a player: $kC4Stake coins each, the winner takes ${kC4Stake * 2} + 1 pixel'),
+                    Text(t('Défie un joueur, c\'est gratuit : le gagnant gagne $kDuelWin pièces + 1 pixel, le perdant $kDuelLose',
+                            'Challenge a player, it\'s free: the winner gets $kDuelWin coins + 1 pixel, the loser $kDuelLose'),
                         style: const TextStyle(color: Colors.white60, fontSize: 12)),
                     if (status.isNotEmpty) ...[
                       const SizedBox(height: 4),
@@ -335,11 +342,6 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
   }
 
   Future<void> _invite(String pid, String name, int avatar, String mode) async {
-    if (Game.i.coins < kC4Stake) {
-      RcAudio.wrong();
-      toast(t('Il te faut $kC4Stake pièces pour jouer', 'You need $kC4Stake coins to play'));
-      return;
-    }
     if (busy) return;
     setState(() => busy = true);
     try {
@@ -479,11 +481,11 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
               const SizedBox(height: 6),
               Text.rich(
                 TextSpan(children: [
-                  TextSpan(text: t('Chacun mise ', 'Each player bets ')),
-                  TextSpan(text: t('$kC4Stake pièces', '$kC4Stake coins'), style: const TextStyle(color: _kGoldHi, fontWeight: FontWeight.w900)),
-                  TextSpan(text: t(', le gagnant rafle ', ', the winner takes ')),
-                  TextSpan(text: '${kC4Stake * 2} + 1 pixel', style: const TextStyle(color: _kGoldHi, fontWeight: FontWeight.w900)),
-                  TextSpan(text: t('. Match nul : mises rendues. Délai dépassé = abandon.', '. Draw: bets returned. Time out = forfeit.')),
+                  TextSpan(text: t('Parties gratuites ! Le gagnant gagne ', 'Free games! The winner gets ')),
+                  TextSpan(text: t('$kDuelWin pièces + 1 pixel', '$kDuelWin coins + 1 pixel'), style: const TextStyle(color: _kGoldHi, fontWeight: FontWeight.w900)),
+                  TextSpan(text: t(', le perdant ', ', the loser ')),
+                  TextSpan(text: t('$kDuelLose pièces', '$kDuelLose coins'), style: const TextStyle(color: _kGoldHi, fontWeight: FontWeight.w900)),
+                  TextSpan(text: t('. Match nul : $kDuelLose chacun. Délai dépassé = abandon.', '. Draw: $kDuelLose each. Time out = forfeit.')),
                 ]),
                 style: const TextStyle(color: Color(0xFFCFD3FF), fontSize: 12.5, height: 1.4),
               ),
@@ -496,7 +498,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
               height: 40,
               child: Stack(children: [for (var k = 0; k < 4; k++) Positioned(left: 4, bottom: k * 7.0, child: Container(width: 38, height: 11, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), gradient: const RadialGradient(colors: [Color(0xFFFFF3C4), _kGoldHi, Color(0xFFC98A12)], stops: [0, 0.45, 1]), boxShadow: const [BoxShadow(color: Color(0xFF8A5A08), offset: Offset(0, 2))])))]),
             ),
-            Text('POT ${kC4Stake * 2}', style: pixelStyle(size: 8, color: _kGoldHi, shadow: false)),
+            Text('GAIN $kDuelWin', style: pixelStyle(size: 8, color: _kGoldHi, shadow: false)),
           ]),
         ]),
         const SizedBox(height: 12),
@@ -579,7 +581,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
           child: _card(
             lead: _avatar(_av(g), ring: (g['opp'] as Map?)?['online'] == true ? _kTeal : null),
             title: Text(t('${_name(g)} te défie ⚔', '${_name(g)} challenges you ⚔'), maxLines: 1, overflow: TextOverflow.ellipsis),
-            lines: [Text('${g['mode'] == 'live' ? t('En direct', 'Live') : t('Tour par tour', 'Turn-based')} · ${_i(g['stake'], kC4Stake)} ${t('pièces', 'coins')}')],
+            lines: [Text('${g['mode'] == 'live' ? t('En direct', 'Live') : t('Tour par tour', 'Turn-based')} · ${_i(g['stake'], kC4Stake) > 0 ? '${_i(g['stake'], kC4Stake)} ${t('pièces', 'coins')}' : t('gratuit', 'free')}')],
             btns: [
               _Countdown(total: g['mode'] == 'live' ? 120 : 86400, left: _leftOf(g), label: _left(g)),
               _btn(t('Jouer', 'Play'), () => _run(() => k.answer(_i(g['id']), true), open: true)),
@@ -888,7 +890,7 @@ class _WaitDialogState extends State<_WaitDialog> {
           const SizedBox(height: 12),
           Text(t('En attente de sa réponse…', 'Waiting for an answer…'), style: const TextStyle(color: Colors.white60)),
           const SizedBox(height: 4),
-          Text(t('$kC4Stake pièces seront prélevées quand le défi sera accepté.', '$kC4Stake coins will be taken when the challenge is accepted.'),
+          Text(t('Partie gratuite : le gagnant gagne $kDuelWin pièces + 1 pixel.', 'Free game: the winner gets $kDuelWin coins + 1 pixel.'),
               textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 12)),
           const SizedBox(height: 14),
           OutlinedButton(onPressed: () => Navigator.of(context).pop(true), child: Text(t('Annuler le défi', 'Cancel the challenge'))),
@@ -898,7 +900,7 @@ class _WaitDialogState extends State<_WaitDialog> {
   }
 }
 
-/// « Gagné · +100 pièces +1 pixel », « Perdu (temps écoulé) · −50 », « Match nul · mise rendue »
+/// « Gagné · +150 pièces +1 pixel », « Perdu (temps écoulé) · +10 », « Match nul · +10 »
 Widget _resultLine(Map g) {
   final w = (g['winner'] as num?)?.toInt();
   final side = _i(g['side'], 1);
@@ -908,9 +910,14 @@ Widget _resultLine(Map g) {
     'resign' => t(' (abandon)', ' (resigned)'),
     _ => '',
   };
-  if (w == 0) return Text(t('Match nul · mise rendue', 'Draw · bet returned'), style: const TextStyle(fontWeight: FontWeight.w800));
-  if (w == side) return Text(t('Gagné$why · +${stake * 2} pièces +1 pixel', 'Won$why · +${stake * 2} coins +1 pixel'), style: const TextStyle(color: _kTeal, fontWeight: FontWeight.w900));
-  return Text(t('Perdu$why · −$stake', 'Lost$why · −$stake'), style: const TextStyle(color: Color(0xFFFF8A95), fontWeight: FontWeight.w900));
+  if (w == 0) {
+    return Text(stake > 0 ? t('Match nul · mise rendue', 'Draw · bet returned') : t('Match nul · +$kDuelLose pièces', 'Draw · +$kDuelLose coins'),
+        style: const TextStyle(fontWeight: FontWeight.w800));
+  }
+  if (w == side) {
+    return Text(t('Gagné$why · +${duelPrize(stake)} pièces +1 pixel', 'Won$why · +${duelPrize(stake)} coins +1 pixel'), style: const TextStyle(color: _kTeal, fontWeight: FontWeight.w900));
+  }
+  return Text(t('Perdu$why · ${duelLoseText(stake)}', 'Lost$why · ${duelLoseText(stake)}'), style: const TextStyle(color: Color(0xFFFF8A95), fontWeight: FontWeight.w900));
 }
 
 /// Choix d'un adversaire pour une partie tour par tour (classement + recherche)
@@ -979,7 +986,7 @@ class _PlayerPickerState extends State<_PlayerPicker> {
                     itemCount: rows!.length,
                     itemBuilder: (_, i) {
                       final p = rows![i];
-                      final poor = (p['coins'] as num? ?? kC4Stake) < kC4Stake; // moins que la mise : ne peut pas être défié
+                      const poor = false; // parties gratuites : tout le monde peut être défié
                       return ListTile(
                         enabled: !poor,
                         leading: _avatar(_i(p['avatar']), ring: p['online'] == true ? _kTeal : null),
@@ -1148,7 +1155,9 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(t('Abandonner ?', 'Resign?')),
-        content: Text(t('Ta mise de $stake pièces est perdue, ton adversaire gagne.', 'You lose your $stake coins bet, your opponent wins.')),
+        content: Text(stake > 0
+            ? t('Ta mise de $stake pièces est perdue, ton adversaire gagne.', 'You lose your $stake coins bet, your opponent wins.')
+            : t('Ton adversaire gagne. Tu reçois quand même $kDuelLose pièces.', 'Your opponent wins. You still get $kDuelLose coins.')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Continuer', 'Keep playing'))),
           FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(t('Abandonner', 'Resign'))),
@@ -1169,11 +1178,11 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
           title: Text(t('Règles', 'Rules')),
           content: Text(t(
             'Aligne 4 pions de ta couleur : en ligne, en colonne ou en diagonale.\n\n'
-                'Chacun mise $kC4Stake pièces, le gagnant remporte ${kC4Stake * 2} pièces + 1 pixel. Match nul (plateau plein) : mises rendues.\n\n'
-                'En direct : 1 minute par coup. Tour par tour : 24 heures par coup. Délai dépassé = abandon, la mise est perdue.',
+                'Partie gratuite : le gagnant remporte $kDuelWin pièces + 1 pixel, le perdant $kDuelLose pièces. Match nul (plateau plein) : $kDuelLose pièces chacun.\n\n'
+                'En direct : 1 minute par coup. Tour par tour : 24 heures par coup. Délai dépassé = abandon.',
             'Line up 4 discs of your color: in a row, a column or a diagonal.\n\n'
-                'Each player bets $kC4Stake coins, the winner gets ${kC4Stake * 2} coins + 1 pixel. Draw (full board): bets returned.\n\n'
-                'Live: 1 minute per move. Turn-based: 24 hours per move. Time out = forfeit, you lose your bet.',
+                'Free game: the winner gets $kDuelWin coins + 1 pixel, the loser $kDuelLose coins. Draw (full board): $kDuelLose coins each.\n\n'
+                'Live: 1 minute per move. Turn-based: 24 hours per move. Time out = forfeit.',
           )),
           actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
         ),
@@ -1283,7 +1292,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
               Expanded(
                 child: Column(crossAxisAlignment: right ? CrossAxisAlignment.end : CrossAxisAlignment.start, children: [
                   Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                  Text(t('mise $stake', 'bet $stake'), style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                  Text(stake > 0 ? t('mise $stake', 'bet $stake') : t('gratuit', 'free'), style: const TextStyle(fontSize: 11, color: Colors.white54)),
                   if (on && playing) Text(timerText(), style: pixelStyle(size: 8, color: warn ? _kRed : _kGoldHi, shadow: false)),
                 ]),
               ),
@@ -1329,8 +1338,8 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                   height: 16,
                   child: Stack(children: [for (var k = 0; k < 3; k++) Positioned(left: k * 9.0, child: const _Coin(size: 16))]),
                 ),
-                Text('${stake * 2}', style: pixelStyle(size: 9, color: _kGoldHi, shadow: false)),
-                const Text('POT', style: TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
+                Text('${duelPrize(stake)}', style: pixelStyle(size: 9, color: _kGoldHi, shadow: false)),
+                Text(stake > 0 ? 'POT' : 'GAIN', style: TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
               ]),
             ),
             player(oppName, _i(opp['avatar']), oppColor, playing && turn != side, _emoOpp, right: true),
@@ -1578,9 +1587,9 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
       c.forward();
       _count = Timer.periodic(const Duration(milliseconds: 30), (tm) {
         if (!mounted) return tm.cancel();
-        setState(() => shown = min(shown + 2, stake * 2));
+        setState(() => shown = min(shown + 2, duelPrize(stake)));
         if (shown % 10 == 0) RcAudio.sfx('coin');
-        if (shown >= stake * 2) {
+        if (shown >= duelPrize(stake)) {
           tm.cancel();
           setState(() => pixel = true);
           RcAudio.sfx('powerup');
@@ -1605,7 +1614,7 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
     final icon = win ? '🏆' : draw ? '🤝' : '💥';
     final title = win ? t('VICTOIRE !', 'VICTORY!') : draw ? t('MATCH NUL', 'DRAW') : t('DÉFAITE', 'DEFEAT');
     final sub = draw
-        ? t('Chacun récupère sa mise', 'Both players get their bet back')
+        ? (stake > 0 ? t('Chacun récupère sa mise', 'Both players get their bet back') : t('$kDuelLose pièces chacun', '$kDuelLose coins each'))
         : win
             ? (reason == 'timeout'
                 ? t('$opp n\'a pas joué à temps', '$opp ran out of time')
@@ -1613,11 +1622,11 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                     ? t('$opp a abandonné', '$opp resigned')
                     : t('Quatre pions alignés', 'Four in a row'))
             : (reason == 'timeout'
-                ? t('Temps écoulé : ta mise est perdue', 'Time out: you lose your bet')
+                ? t('Temps écoulé', 'Time out')
                 : reason == 'resign'
-                    ? t('Tu as abandonné : ta mise est perdue', 'You resigned: you lose your bet')
+                    ? t('Tu as abandonné', 'You resigned')
                     : t('$opp a aligné quatre pions', '$opp got four in a row'));
-    final gain = win ? '+$shown' : draw ? '+$stake' : '−$stake';
+    final gain = win ? '+$shown' : draw ? (stake > 0 ? '+$stake' : '+$kDuelLose') : duelLoseText(stake);
     return Stack(children: [
       // confettis
       Positioned.fill(

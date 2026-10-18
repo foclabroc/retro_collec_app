@@ -337,7 +337,7 @@ class PushWatch {
       if (notify && !first) {
         if (inv > oldInv) {
           msgs.add((7, t('⚔ ${d['last_from'] ?? 'Un joueur'} te défie !', '⚔ ${d['last_from'] ?? 'A player'} challenges you!'),
-              t('Une partie tour par tour t\'attend dans Bonus / Jeux (50 pièces chacun)', 'A turn-based game is waiting in Bonus / Games (50 coins each)')));
+              t('Une partie tour par tour t\'attend dans Bonus / Jeux (gratuit)', 'A turn-based game is waiting in Bonus / Games (free)')));
         }
         if (trn > oldTrn) {
           msgs.add((8, t('🎮 À toi de jouer', '🎮 Your turn'),

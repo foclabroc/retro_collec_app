@@ -1,6 +1,9 @@
 # Pixel Trade — Changelog
 
 ## v1.0.10
+- **4 en ligne et Console Wars gratuits** : plus de mise. Le gagnant gagne 150 pièces + 1 pixel, le perdant 10 pièces
+  de consolation (match nul au 4 en ligne : 10 chacun). On peut défier tout le monde, même sans pièces.
+  SQL : patch_duels_gratuits.sql.
 - **Joueurs en ligne dans le menu** : une case « 🟢 Joueurs en ligne · N » en bas du panneau latéral ouvre la liste
   des connectés (Défier, Étage).
 - **Ordre des consoles** : menu déroulant à côté de « Mes consoles » (les plus complètes, les moins complètes,

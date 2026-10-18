@@ -227,8 +227,8 @@ class _BattleTileState extends State<BattleTile> {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                       const Text('Console Wars', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                       const SizedBox(height: 3),
-                      Text(t('Bataille navale : coule la flotte de consoles adverse. $kC4Stake pièces chacun, le gagnant rafle ${kC4Stake * 2} + 1 pixel',
-                              'Battleship: sink your opponent\'s console fleet. $kC4Stake coins each, the winner takes ${kC4Stake * 2} + 1 pixel'),
+                      Text(t('Bataille navale gratuite : coule la flotte adverse. Le gagnant gagne $kDuelWin pièces + 1 pixel, le perdant $kDuelLose',
+                              'Free battleship: sink the enemy fleet. The winner gets $kDuelWin coins + 1 pixel, the loser $kDuelLose'),
                           style: const TextStyle(color: Colors.white60, fontSize: 12)),
                       if (status.isNotEmpty) ...[
                         const SizedBox(height: 4),
@@ -868,7 +868,9 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(t('Abandonner ?', 'Resign?')),
-        content: Text(t('Ta mise de $stake pièces est perdue, ton adversaire gagne.', 'You lose your $stake coins bet, your opponent wins.')),
+        content: Text(stake > 0
+            ? t('Ta mise de $stake pièces est perdue, ton adversaire gagne.', 'You lose your $stake coins bet, your opponent wins.')
+            : t('Ton adversaire gagne. Tu reçois quand même $kDuelLose pièces.', 'Your opponent wins. You still get $kDuelLose coins.')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Continuer', 'Keep playing'))),
           FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(t('Abandonner', 'Resign'))),
@@ -889,10 +891,10 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
           title: Text(t('Règles', 'Rules')),
           content: Text(t(
             'Chacun place 5 consoles (Neo Geo 5 cases, PlayStation 4, Mega Drive 3, NES 3, Game Boy 2), côte à côte si tu veux, mais sans chevauchement.\n\n'
-                'Tire sur le radar : touché, tu rejoues ; à l\'eau, c\'est à l\'autre. Coule toute la flotte adverse pour gagner ${kC4Stake * 2} pièces + 1 pixel.\n\n'
+                'Tire sur le radar : touché, tu rejoues ; à l\'eau, c\'est à l\'autre. Coule toute la flotte adverse pour gagner $kDuelWin pièces + 1 pixel (le perdant reçoit $kDuelLose pièces). Partie gratuite.\n\n'
                 'En direct : 2 minutes pour placer, 30 secondes par tir. Tour par tour : 24 heures. Placement pas fini à temps = flotte au hasard ; tir pas joué = tir au hasard, 3 fois de suite = abandon.',
             'Each player places 5 consoles (Neo Geo 5 cells, PlayStation 4, Mega Drive 3, NES 3, Game Boy 2), side by side if you like, but not overlapping.\n\n'
-                'Shoot on the radar: hit, you shoot again; miss, it\'s the other player\'s turn. Sink the whole enemy fleet to win ${kC4Stake * 2} coins + 1 pixel.\n\n'
+                'Shoot on the radar: hit, you shoot again; miss, it\'s the other player\'s turn. Sink the whole enemy fleet to win $kDuelWin coins + 1 pixel (the loser gets $kDuelLose coins). Free game.\n\n'
                 'Live: 2 minutes to place, 30 seconds per shot. Turn-based: 24 hours. Not placed in time = random fleet; no shot = random shot, 3 in a row = forfeit.',
           )),
           actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
@@ -1128,8 +1130,8 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
             padding: const EdgeInsets.symmetric(horizontal: 5),
             child: Column(children: [
               const _Coin(size: 16),
-              Text('${stake * 2}', style: pixelStyle(size: 8.5, color: _kGoldHi, shadow: false)),
-              const Text('POT', style: TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
+              Text('${duelPrize(stake)}', style: pixelStyle(size: 8.5, color: _kGoldHi, shadow: false)),
+              Text(stake > 0 ? 'POT' : 'GAIN', style: const TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
             ]),
           ),
           _player(oppName, _i(opp['avatar']), _kNeon, !myTurn && !done && (playing || setup), _emoOpp, _hits(oppShots), right: true),
@@ -1505,9 +1507,9 @@ class _BsResultDialogState extends State<_BsResultDialog> with SingleTickerProvi
       c.forward();
       _count = Timer.periodic(const Duration(milliseconds: 30), (tm) {
         if (!mounted) return tm.cancel();
-        setState(() => shown = min(shown + 2, stake * 2));
+        setState(() => shown = min(shown + 2, duelPrize(stake)));
         if (shown % 10 == 0) RcAudio.sfx('coin');
-        if (shown >= stake * 2) {
+        if (shown >= duelPrize(stake)) {
           tm.cancel();
           setState(() => pixel = true);
           RcAudio.sfx('powerup');
@@ -1534,9 +1536,9 @@ class _BsResultDialogState extends State<_BsResultDialog> with SingleTickerProvi
                 ? t('$opp a abandonné', '$opp resigned')
                 : t('Toute la flotte de $opp est par le fond', '$opp\'s whole fleet is sunk'))
         : (reason == 'timeout'
-            ? t('Temps écoulé : ta mise est perdue', 'Time out: you lose your bet')
+            ? (stake > 0 ? t('Temps écoulé : ta mise est perdue', 'Time out: you lose your bet') : t('Temps écoulé', 'Time out'))
             : reason == 'resign'
-                ? t('Tu as abandonné : ta mise est perdue', 'You resigned: you lose your bet')
+                ? (stake > 0 ? t('Tu as abandonné : ta mise est perdue', 'You resigned: you lose your bet') : t('Tu as abandonné', 'You resigned'))
                 : t('$opp a coulé ta flotte', '$opp sank your fleet'));
     final acc = widget.shots == 0 ? 0 : (widget.hits * 100 / widget.shots).round();
     return Stack(children: [
@@ -1569,7 +1571,7 @@ class _BsResultDialogState extends State<_BsResultDialog> with SingleTickerProvi
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   const _Coin(size: 22),
                   const SizedBox(width: 8),
-                  Text(win ? '+$shown' : '−$stake', style: pixelStyle(size: 18, color: _kGoldHi, shadow: false)),
+                  Text(win ? '+$shown' : duelLoseText(stake), style: pixelStyle(size: 18, color: _kGoldHi, shadow: false)),
                   if (win && pixel) ...[const SizedBox(width: 10), Text('+1 ▦', style: pixelStyle(size: 11, color: _kGoldHi, shadow: false))],
                 ]),
                 const SizedBox(height: 8),
