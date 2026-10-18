@@ -1,5 +1,13 @@
 # Pixel Trade — Changelog
 
+## v1.0.9
+- **Étages de la Pixel Tower revus** : le rang à gauche (médailles or, argent, bronze pour le podium) au lieu du numéro
+  d'étage, plus d'ascenseur ni de fenêtre de droite : la plaque prend toute la largeur et le pseudo s'affiche en entier
+  (il rétrécit s'il est très long). « En ligne » ou « vu 02:19 » sur le balcon, sous l'avatar. Plaque sur 3 lignes :
+  pseudo · points, % de collection et sa barre · cartes et pièces. Bouton « 🎁 Offrir » (« Offert ✓ » après).
+- **Joueurs en ligne** : bouton 🟢 en haut du Voisinage avec la liste des connectés, « Défier » (4 en ligne ou
+  Console Wars, grisé sous 50 pièces) et « Étage » pour descendre jusqu'à eux.
+
 ## v1.0.8
 - **Dernière connexion des joueurs** : sur la plaque de chaque étage du Voisinage (« vu à 14:32 », « vu hier », « vu le 12/10 », ou « en ligne »)
   et sur le profil (« Dernière connexion : aujourd'hui à 14:32 (il y a 3 h) »).

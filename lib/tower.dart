@@ -272,7 +272,10 @@ String lastSeenLong(DateTime? d) {
 
 String pctOf(int cards) => '${Catalog.cards.isEmpty ? 0 : (cards * 100 ~/ Catalog.cards.length)} %';
 
-const kFloorH = 92.0, kPentH = 112.0, kCorniceH = 8.0;
+const kFloorH = 104.0, kPentH = 122.0, kCorniceH = 8.0;
+
+/// Joueurs à qui j'ai offert un paquet aujourd'hui (bouton « Offert ✓ »)
+final kGiftedToday = <String>{};
 
 class TowerFloor extends StatelessWidget {
   final FloorData d;
@@ -364,79 +367,127 @@ class TowerFloor extends StatelessWidget {
       ]),
     );
 
+    // statut sous la fenêtre, sur le balcon : en ligne (vert) ou dernière connexion
+    final status = d.me
+        ? t('toi', 'you')
+        : d.online
+            ? t('● en ligne', '● online')
+            : (d.seenAt == null ? '' : lastSeenShort(d.seenAt).replaceFirst(t('vu à ', 'seen at '), t('vu ', 'seen ')));
+    final pct = Catalog.cards.isEmpty ? 0.0 : (d.cards / Catalog.cards.length).clamp(0.0, 1.0);
+    final gifted = kGiftedToday.contains(d.pid);
+    final showGift = onGift != null && (Notifs.i.canGift || gifted);
+
     final plaque = Container(
-      padding: const EdgeInsets.fromLTRB(8, 4, 6, 4),
+      padding: const EdgeInsets.fromLTRB(9, 5, 7, 5),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF2A2420), Color(0xFF1A1612)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
-        borderRadius: BorderRadius.circular(6),
+        gradient: LinearGradient(
+            colors: penthouse ? const [Color(0xFF3A2C12), Color(0xFF1F170A)] : const [Color(0xFF2A2420), Color(0xFF1A1612)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: d.me ? const Color(0xFF5DCAA5) : penthouse || th.fx == 'gold' ? const Color(0xFFFFD166) : neon ? th.frame : _kBrass,
           width: 2,
         ),
         boxShadow: [
+          const BoxShadow(color: Color(0x59000000), offset: Offset(0, 3)),
           if (d.me) const BoxShadow(color: Color(0x885DCAA5), blurRadius: 10),
           if (neon && !d.me) BoxShadow(color: th.frame.withOpacity(0.6), blurRadius: 8),
         ],
       ),
-      child: Row(children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Row(children: [
-              if (d.online)
-                Container(
-                  width: 7,
-                  height: 7,
-                  margin: const EdgeInsets.only(right: 4),
-                  decoration: const BoxDecoration(color: Color(0xFF5DCAA5), shape: BoxShape.circle, boxShadow: [BoxShadow(color: Color(0xFF5DCAA5), blurRadius: 5)]),
-                ),
-              Flexible(
+      child: Stack(clipBehavior: Clip.none, children: [
+        Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+          // pseudo en entier : il rétrécit au lieu d'être coupé
+          Row(children: [
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
                 child: Text(d.name,
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: penthouse ? 15 : 14, color: penthouse ? const Color(0xFFFFD166) : const Color(0xFFFFF3D6))),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: penthouse ? 18 : 17, height: 1.15, color: penthouse ? const Color(0xFFFFD166) : const Color(0xFFFFF3D6))),
               ),
-              if (d.online && !d.me)
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Text(t('en ligne', 'online'), style: const TextStyle(fontSize: 10, color: Color(0xFF5DCAA5), fontWeight: FontWeight.w800)),
-                )
-              else if (!d.me && d.seenAt != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Text(lastSeenShort(d.seenAt), style: const TextStyle(fontSize: 10, color: Color(0xFFB8A98C), fontWeight: FontWeight.w700)),
-                ),
-              if (d.me)
-                Container(
-                  margin: const EdgeInsets.only(left: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  decoration: BoxDecoration(color: kGold, borderRadius: BorderRadius.circular(4)),
-                  child: Text(t('TOI', 'YOU'), style: pixelStyle(size: 7, color: const Color(0xFF2A1800), shadow: false)),
-                ),
-            ]),
-            Text.rich(
-              TextSpan(children: [
-                if (d.rank != null) TextSpan(text: '#${d.rank} · '),
-                TextSpan(text: t('${d.score} pts · ', '${d.score} pts · ')),
-                TextSpan(text: pctOf(d.cards), style: const TextStyle(color: Color(0xFF9FE0C4), fontWeight: FontWeight.w900)),
-              ]),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11, color: Color(0xFFD8C8A0), height: 1.3),
             ),
-            Text(t('${d.cards} cartes · 🪙 ${d.coins}', '${d.cards} cards · 🪙 ${d.coins}'),
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: Color(0xFFFFD166), fontWeight: FontWeight.w800, height: 1.3)),
+            if (d.me)
+              Container(
+                margin: const EdgeInsets.only(left: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(color: kGold, borderRadius: BorderRadius.circular(4)),
+                child: Text(t('TOI', 'YOU'), style: pixelStyle(size: 7, color: const Color(0xFF2A1800), shadow: false)),
+              ),
           ]),
-        ),
-        if (onGift != null)
-          GestureDetector(
-            onTap: onGift,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 4),
-              child: Opacity(opacity: Notifs.i.canGift ? 1 : 0.35, child: const Text('🎁', style: TextStyle(fontSize: 18))),
+          const SizedBox(height: 3),
+          Row(children: [
+            Text(t('${d.score} pts', '${d.score} pts'), style: const TextStyle(fontSize: 12, color: Color(0xFFD8C8A0), fontWeight: FontWeight.w700)),
+            const SizedBox(width: 7),
+            Text(pctOf(d.cards), style: const TextStyle(fontSize: 12, color: Color(0xFF9FE0C4), fontWeight: FontWeight.w900)),
+            const SizedBox(width: 7),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(value: pct, minHeight: 5, color: const Color(0xFF5DCAA5), backgroundColor: Colors.white12),
+              ),
             ),
-          ),
+            if (showGift) ...[
+              const SizedBox(width: 7),
+              GestureDetector(
+                onTap: gifted ? null : onGift,
+                child: Opacity(
+                  opacity: gifted ? 0.45 : 1,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(color: const Color(0xFF3A2A10), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFFFD166), width: 1.5)),
+                    child: Text(gifted ? t('Offert ✓', 'Given ✓') : t('🎁 Offrir', '🎁 Give'),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFFFFD166))),
+                  ),
+                ),
+              ),
+            ],
+          ]),
+          const SizedBox(height: 3),
+          Row(children: [
+            Text(t('${d.cards} cartes', '${d.cards} cards'), style: const TextStyle(fontSize: 12, color: Color(0xFFE8DCC2), fontWeight: FontWeight.w800)),
+            const SizedBox(width: 10),
+            Text('🪙 ${d.coins}', style: const TextStyle(fontSize: 12, color: Color(0xFFFFD166), fontWeight: FontWeight.w800)),
+          ]),
+        ]),
+        if (penthouse) const Positioned(top: -16, right: 0, left: 0, child: Center(child: Text('👑', style: TextStyle(fontSize: 15)))),
       ]),
     );
+
+    // rang à gauche (médaille pour le podium)
+    final r = d.rank;
+    Widget rankCol() {
+      Widget medal(int n, List<Color> c) => Container(
+            width: 28,
+            height: 28,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(center: const Alignment(-0.3, -0.4), colors: c),
+              boxShadow: [BoxShadow(color: c[1].withOpacity(0.7), blurRadius: 9)],
+            ),
+            child: Text('$n', style: pixelStyle(size: 9, color: const Color(0xFF2A1800), shadow: false)),
+          );
+      return Container(
+        width: 42,
+        color: Colors.black.withOpacity(0.28),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          if (r == 1)
+            medal(1, const [Color(0xFFFFF6C9), Color(0xFFFFD166), Color(0xFFC98A12)])
+          else if (r == 2)
+            medal(2, const [Color(0xFFFFFFFF), Color(0xFFD8DFEE), Color(0xFF8D96A8)])
+          else if (r == 3)
+            medal(3, const [Color(0xFFFFE2C4), Color(0xFFE6A26A), Color(0xFF9A5A2A)])
+          else if (r != null)
+            FittedBox(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: Text('$r', style: pixelStyle(size: 10, color: Colors.white)))),
+          if (r != null) ...[
+            const SizedBox(height: 3),
+            Text(r == 1 ? t('1er', '1st') : t('${r}e', '#$r'), style: const TextStyle(fontSize: 9.5, color: Colors.white54, fontWeight: FontWeight.w800)),
+          ],
+        ]),
+      );
+    }
 
     return GestureDetector(
       onTap: onTap,
@@ -449,38 +500,33 @@ class TowerFloor extends StatelessWidget {
             child: Stack(children: [
               Positioned.fill(child: CustomPaint(painter: _FacadePainter(th))),
               if (penthouse) Positioned.fill(child: Container(decoration: BoxDecoration(gradient: LinearGradient(colors: [const Color(0x30FFD166), Colors.transparent], begin: Alignment.topCenter, end: Alignment.bottomCenter)))),
-              if (d.me) Positioned(left: shaft ? 46 : 0, top: 0, bottom: 0, width: 5, child: Container(color: const Color(0xFF5DCAA5))),
+              if (d.me) Positioned(left: shaft ? 42 : 0, top: 0, bottom: 0, width: 5, child: Container(color: const Color(0xFF5DCAA5))),
               Row(children: [
-                if (shaft)
-                  SizedBox(
-                    width: 46,
-                    child: Stack(alignment: Alignment.center, children: [
-                      Positioned.fill(child: CustomPaint(painter: _GrillePainter())),
-                      if (elevator) _cabin(d.avatar),
-                      Positioned(
-                        top: h * 0.42 - 11,
-                        child: Container(
-                          width: 32,
-                          padding: const EdgeInsets.symmetric(vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1F3A73),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: Text(penthouse ? 'PH' : '$level', textAlign: TextAlign.center, style: pixelStyle(size: 8, color: Colors.white, shadow: false)),
-                        ),
+                if (shaft) rankCol(),
+                const SizedBox(width: 6),
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  main,
+                  const SizedBox(height: 3),
+                  // statut sur le balcon
+                  if (status.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: d.online && !d.me ? const Color(0xFF5DCAA5) : Colors.black.withOpacity(0.55),
+                        borderRadius: BorderRadius.circular(7),
+                        boxShadow: [if (d.online && !d.me) const BoxShadow(color: Color(0xFF5DCAA5), blurRadius: 8)],
                       ),
-                    ]),
-                  ),
-                const SizedBox(width: 8),
-                Padding(padding: const EdgeInsets.only(top: 6), child: main),
+                      child: Text(status,
+                          style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              color: d.online && !d.me ? const Color(0xFF062B1E) : (d.me ? const Color(0xFF9FE0C4) : const Color(0xFFB8A98C)))),
+                    ),
+                ]),
                 const SizedBox(width: 6),
-                Expanded(child: Padding(padding: const EdgeInsets.only(bottom: 8), child: plaque)),
-                const SizedBox(width: 6),
-                if (!penthouse) Padding(padding: const EdgeInsets.only(bottom: 8), child: window(w: 24, hh: 58, small: true)),
+                Expanded(child: Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: plaque)),
                 const SizedBox(width: 8),
               ]),
-              if (penthouse) const Positioned(right: 10, top: 4, child: Text('👑', style: TextStyle(fontSize: 20))),
             ]),
           ),
           // corniche

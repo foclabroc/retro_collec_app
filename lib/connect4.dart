@@ -228,7 +228,8 @@ final kC4Duel = DuelKind(
 
 class Connect4Lobby extends StatefulWidget {
   final DuelKind? kind;
-  const Connect4Lobby({super.key, this.kind});
+  final (String, String, int)? inviteOnOpen; // défier tout de suite ce joueur en direct (pid, pseudo, avatar)
+  const Connect4Lobby({super.key, this.kind, this.inviteOnOpen});
   @override
   State<Connect4Lobby> createState() => _Connect4LobbyState();
 }
@@ -247,7 +248,10 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
   @override
   void initState() {
     super.initState();
-    _load(full: true);
+    _load(full: true).then((_) {
+      final p = widget.inviteOnOpen;
+      if (p != null && mounted) _invite(p.$1, p.$2, p.$3, 'live');
+    });
     _poll = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!inGame) _load();
     });
