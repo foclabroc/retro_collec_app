@@ -1,6 +1,10 @@
 # Pixel Trade — Changelog
 
 ## v1.0.11
+- **Bourse, nouveau magasin** : recherche par nom, filtres en pastilles (Manquantes d'un toucher ; console, rareté,
+  finition et tri dans une fenêtre), rubriques « 🎯 Il te manque », « 💰 Bonnes affaires » (au moins 20 % sous le prix
+  moyen payé sur 30 jours) et « 🔥 Nouveautés » (du jour), puis la grille de toutes les cartes en vente avec le prix
+  sur chaque carte et le nombre d'offres. SQL : patch_bourse_magasin.sql.
 - **Bourse** : dans la liste des offres d'une carte, la carte s'affiche en entier (image et titre) même quand on ne l'a pas,
   dans la finition de l'offre la moins chère (avant : silhouette grise et « #023 »).
 - **Bourse** : toucher la carte dans la liste des offres l'ouvre en grand (on peut la faire tourner au doigt).

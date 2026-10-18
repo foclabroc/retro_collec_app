@@ -9,6 +9,7 @@ import 'layout.dart';
 import 'game.dart';
 import 'main.dart';
 import 'notifs.dart';
+import 'retro_theme.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -215,6 +216,9 @@ class _CardOffersState extends State<_CardOffers> {
 
 /// Marché groupé : une ligne par carte (et finition) avec le prix le plus bas
 /// et le nombre de lots. Toucher une ligne ouvre les offres triées par prix.
+/// Acheter : recherche, filtres en pastilles, rubriques (Il te manque, Bonnes affaires,
+/// Nouveautés) puis la grille de toutes les cartes en vente (chargée au fil du défilement).
+/// Une seule requête (rc_market_browse) ; filtres et tri dans l'appli.
 class MarketGroups extends StatefulWidget {
   const MarketGroups({super.key});
   @override
@@ -224,15 +228,20 @@ class MarketGroups extends StatefulWidget {
 class MarketGroupsState extends State<MarketGroups> {
   List<Map<String, dynamic>>? rows;
   String? error;
+  final search = TextEditingController();
+  String query = '';
   String sys = '';
   bool missing = false;
-  int sort = 0; // 0 récents, 1 moins chers, 2 plus rares
+  final rarities = <int>{};
+  int? finish; // null : toutes
+  int sort = 0; // 0 récents, 1 moins chers, 2 plus rares, 3 bonnes affaires
   (String, int)? sel; // mode large : carte dont les offres sont affichées à droite
   final _offersScroll = ScrollController();
 
   @override
   void dispose() {
     _offersScroll.dispose();
+    search.dispose();
     super.dispose();
   }
 
@@ -245,11 +254,66 @@ class MarketGroupsState extends State<MarketGroups> {
   Future<void> load() async {
     if (error != null) setState(() => error = null);
     try {
-      final r = await RcServer.marketGroups(sys: sys.isEmpty ? null : sys, missing: missing);
+      final r = await RcServer.marketBrowse();
       if (mounted) setState(() => rows = r);
     } catch (e) {
       if (mounted) setState(() => error = errText(e));
     }
+  }
+
+  bool get _filtered => query.isNotEmpty || sys.isNotEmpty || missing || rarities.isNotEmpty || finish != null || sort != 0;
+
+  static int _price(Map r) => (r['min_price'] as num).toInt();
+  static int? _avg(Map r) => (r['avg'] as num?)?.toInt();
+  /// Réduction par rapport au prix moyen payé sur 30 jours (≥ 20 % : bonne affaire)
+  static int _discount(Map r) {
+    final a = _avg(r);
+    if (a == null || a <= 0) return 0;
+    return ((1 - _price(r) / a) * 100).round();
+  }
+
+  static bool _isNew(Map r) {
+    final d = DateTime.tryParse(r['last_at'] as String? ?? '');
+    return d != null && DateTime.now().difference(d.toLocal()) < const Duration(hours: 24);
+  }
+
+  List<Map<String, dynamic>> _apply(List<Map<String, dynamic>> all) {
+    final q = query.trim().toLowerCase();
+    final out = all.where((r) {
+      final c = Catalog.cards[r['card']];
+      if (c == null) return false;
+      if (sys.isNotEmpty && c.sys != sys) return false;
+      if (missing && Game.i.has(c.id)) return false;
+      if (rarities.isNotEmpty && !rarities.contains(c.rarity)) return false;
+      if (finish != null && (r['finish'] as num).toInt() != finish) return false;
+      if (q.isNotEmpty && !c.title.toLowerCase().contains(q)) return false;
+      if (sort == 3 && _discount(r) < 20) return false;
+      return true;
+    }).toList();
+    switch (sort) {
+      case 1:
+        out.sort((a, b) => _price(a).compareTo(_price(b)));
+      case 2:
+        out.sort((a, b) {
+          final ra = Catalog.cards[a['card']]!.rarity, rb = Catalog.cards[b['card']]!.rarity;
+          return ra != rb ? rb.compareTo(ra) : (b['finish'] as num).compareTo(a['finish'] as num);
+        });
+      case 3:
+        out.sort((a, b) => _discount(b).compareTo(_discount(a)));
+      default:
+        break; // récents : ordre du serveur
+    }
+    return out;
+  }
+
+  Future<void> _open(Map r) async {
+    final c = r['card'] as String, f = (r['finish'] as num).toInt();
+    if (isWide(context)) {
+      setState(() => sel = (c, f));
+      return;
+    }
+    await showCardOffers(context, c, finish: f);
+    load();
   }
 
   @override
@@ -279,69 +343,244 @@ class MarketGroupsState extends State<MarketGroups> {
     ]);
   }
 
+  // ── Filtres ────────────────────────────────────────────────────────────────
+  List<String> get _sortLabels => [t('Récents', 'Recent'), t('Moins chers', 'Cheapest'), t('Plus rares', 'Rarest'), t('Bonnes affaires', 'Good deals')];
+
+  Widget _pill(String label, bool on, VoidCallback onTap) => Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: ChoiceChip(
+          label: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: on ? const Color(0xFF06281B) : const Color(0xFFCFD3FF))),
+          selected: on,
+          showCheckmark: false,
+          visualDensity: VisualDensity.compact,
+          selectedColor: const Color(0xFF5DCAA5),
+          backgroundColor: kPanel,
+          onSelected: (_) => onTap(),
+        ),
+      );
+
+  Future<void> _filters() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: kBg,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setS) {
+        void upd(VoidCallback f) {
+          setS(f);
+          setState(() {});
+        }
+
+        Widget opt(String label, bool on, VoidCallback onTap) => ChoiceChip(
+              label: Text(label, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: on ? rcTheme.onAccent : Colors.white70)),
+              selected: on,
+              showCheckmark: false,
+              selectedColor: rcTheme.accent,
+              backgroundColor: kPanel,
+              onSelected: (_) => upd(onTap),
+            );
+        Widget title(String s) => Padding(padding: const EdgeInsets.only(top: 12, bottom: 6), child: Text(s, style: const TextStyle(color: Colors.white54, fontSize: 12.5)));
+        final n = rows == null ? 0 : _apply(rows!).length;
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
+              const SizedBox(height: 8),
+              Row(children: [
+                Text(t('Filtres', 'Filters'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => upd(() {
+                    sys = '';
+                    missing = false;
+                    rarities.clear();
+                    finish = null;
+                    sort = 0;
+                  }),
+                  child: Text(t('Tout effacer', 'Clear all')),
+                ),
+              ]),
+              title(t('Console', 'System')),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                opt(t('Toutes', 'All'), sys.isEmpty, () => sys = ''),
+                for (final s in Catalog.systems) opt(s.name, sys == s.id, () => sys = s.id),
+              ]),
+              title(t('Rareté', 'Rarity')),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                for (var r = 0; r < 5; r++) opt(rarityName(r), rarities.contains(r), () => rarities.contains(r) ? rarities.remove(r) : rarities.add(r)),
+              ]),
+              title(t('Finition', 'Finish')),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                opt(t('Toutes', 'All'), finish == null, () => finish = null),
+                for (var f = 0; f < kFinishes; f++) opt(finishName(f), finish == f, () => finish = f),
+              ]),
+              title(t('Trier par', 'Sort by')),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                for (var i = 0; i < 4; i++) opt(_sortLabels[i], sort == i, () => sort = i),
+              ]),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(t('Voir $n carte${n > 1 ? 's' : ''}', 'See $n card${n > 1 ? 's' : ''}'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                ),
+              ),
+            ]),
+          ),
+        );
+      }),
+    );
+  }
+
   Widget _list(BuildContext context) {
+    final sysName = sys.isEmpty ? null : Catalog.system(sys)?.name;
     return Column(children: [
       Padding(
         padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
-        child: Row(children: [
-          Expanded(
-            child: DropdownButton<String>(
-              value: sys,
-              isExpanded: true,
-              underline: const SizedBox(),
-              items: [
-                DropdownMenuItem(value: '', child: Text(t('Toutes les consoles', 'All systems'))),
-                for (final s in Catalog.systems) DropdownMenuItem(value: s.id, child: Text(s.name)),
-              ],
-              onChanged: (v) {
-                setState(() => sys = v ?? '');
-                load();
-              },
-            ),
+        child: TextField(
+          controller: search,
+          onChanged: (v) => setState(() => query = v),
+          textInputAction: TextInputAction.search,
+          decoration: InputDecoration(
+            hintText: t('Chercher un jeu…', 'Search a game…'),
+            prefixIcon: const Icon(Icons.search, color: Colors.white54),
+            suffixIcon: query.isEmpty
+                ? null
+                : IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white54),
+                    onPressed: () => setState(() {
+                      search.clear();
+                      query = '';
+                    }),
+                  ),
+            isDense: true,
+            filled: true,
+            fillColor: const Color(0x33000000),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
           ),
-          FilterChip(
-            label: Text(t('Mes manquantes', 'Missing only')),
-            selected: missing,
-            selectedColor: const Color(0xFF412402),
-            onSelected: (v) {
-              setState(() => missing = v);
-              load();
-            },
-          ),
-        ]),
+        ),
       ),
       SizedBox(
-        height: 40,
-        child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12), children: [
-          for (final (i, label) in [(0, t('Récents', 'Recent')), (1, t('Moins chers', 'Cheapest')), (2, t('Plus rares', 'Rarest'))])
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: ChoiceChip(
-                label: Text(label, style: const TextStyle(fontSize: 12)),
-                selected: sort == i,
-                visualDensity: VisualDensity.compact,
-                selectedColor: kPanel2,
-                onSelected: (_) => setState(() => sort = i),
-              ),
-            ),
+        height: 44,
+        child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.fromLTRB(12, 6, 12, 2), children: [
+          _pill(t('🎯 Manquantes', '🎯 Missing'), missing, () => setState(() => missing = !missing)),
+          _pill('🎮 ${sysName ?? t('Console', 'System')} ▾', sys.isNotEmpty, _filters),
+          _pill('💎 ${rarities.isEmpty ? t('Rareté', 'Rarity') : rarities.map(rarityName).join(', ')} ▾', rarities.isNotEmpty, _filters),
+          _pill('✦ ${finish == null ? t('Finition', 'Finish') : finishName(finish!)} ▾', finish != null, _filters),
+          _pill('↕ ${_sortLabels[sort]} ▾', sort != 0, _filters),
         ]),
       ),
       Expanded(child: _body()),
     ]);
   }
 
+  // ── Contenu ────────────────────────────────────────────────────────────────
+  Widget _tile(Map<String, dynamic> r, {String? tag, Color tagColor = const Color(0xFF5DCAA5)}) {
+    final c = Catalog.cards[r['card']]!;
+    final f = (r['finish'] as num).toInt();
+    final lots = (r['lots'] as num).toInt();
+    final selected = sel == (c.id, f);
+    return GestureDetector(
+      onTap: () => _open(r),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 7, right: 3, left: 3),
+        child: Stack(clipBehavior: Clip.none, children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: selected ? [BoxShadow(color: kGold.withOpacity(0.8), blurRadius: 10, spreadRadius: 1)] : null,
+            ),
+            child: CardView(card: c, finish: f),
+          ),
+          if (lots > 1)
+            Positioned(
+              left: 5,
+              bottom: 30,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(color: Colors.black.withOpacity(0.75), borderRadius: BorderRadius.circular(6)),
+                child: Text('×$lots', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+              ),
+            ),
+          Positioned(
+            right: -3,
+            top: -7,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2A1800),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: kGold, width: 1.5),
+                boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 4, offset: Offset(0, 2))],
+              ),
+              child: Text('🪙 ${_price(r)}', style: const TextStyle(color: Color(0xFFFFD166), fontSize: 11, fontWeight: FontWeight.w900)),
+            ),
+          ),
+          if (tag != null)
+            Positioned(
+              left: -3,
+              top: -7,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(color: tagColor, borderRadius: BorderRadius.circular(8)),
+                child: Text(tag, style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: tagColor == const Color(0xFF5DCAA5) ? const Color(0xFF06281B) : Colors.white)),
+              ),
+            ),
+        ]),
+      ),
+    );
+  }
+
+  Widget _row(String title, String sub, List<Map<String, dynamic>> items, {String? Function(Map<String, dynamic>)? tag, Color tagColor = const Color(0xFF5DCAA5), VoidCallback? all}) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 10, 2),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5)),
+          const SizedBox(width: 6),
+          Expanded(child: Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54, fontSize: 12))),
+          if (all != null)
+            GestureDetector(
+              onTap: all,
+              child: Text(t('Tout voir', 'See all'), style: const TextStyle(color: Color(0xFF8FD3FF), fontSize: 12, fontWeight: FontWeight.w800)),
+            ),
+        ]),
+      ),
+      SizedBox(
+        height: 152,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 4),
+          itemBuilder: (_, i) => SizedBox(width: 98, child: _tile(items[i], tag: tag?.call(items[i]), tagColor: tagColor)),
+        ),
+      ),
+    ]);
+  }
+
   Widget _body() {
     if (error != null) return _Retry(error!, load);
     if (rows == null) return const Center(child: CircularProgressIndicator(color: kGold));
-    final list = rows!.where((r) => Catalog.cards.containsKey(r['card'])).toList();
-    if (sort == 1) list.sort((a, b) => (a['min_price'] as num).compareTo(b['min_price'] as num));
-    if (sort == 2) {
-      list.sort((a, b) {
-        final ra = Catalog.cards[a['card']]!.rarity, rb = Catalog.cards[b['card']]!.rarity;
-        return ra != rb ? rb.compareTo(ra) : (b['finish'] as num).compareTo(a['finish'] as num);
-      });
+    final all = rows!.where((r) => Catalog.cards.containsKey(r['card'])).toList();
+    final list = _apply(all);
+    final sections = <Widget>[];
+    if (!_filtered) {
+      final miss = all.where((r) => !Game.i.has(r['card'] as String)).toList();
+      final deals = all.where((r) => _discount(r) >= 20).toList()..sort((a, b) => _discount(b).compareTo(_discount(a)));
+      final fresh = all.where(_isNew).toList();
+      sections.addAll([
+        _row(t('🎯 Il te manque', '🎯 You\'re missing'), '${miss.length}', miss.take(12).toList(),
+            tag: (_) => t('Manque', 'Missing'), all: miss.length > 12 ? () => setState(() => missing = true) : null),
+        _row(t('💰 Bonnes affaires', '💰 Good deals'), t('moins chères que d\'habitude', 'cheaper than usual'), deals.take(12).toList(),
+            tag: (r) => '-${_discount(r)}%', tagColor: const Color(0xFFFF5A5F), all: deals.length > 12 ? () => setState(() => sort = 3) : null),
+        _row(t('🔥 Nouveautés', '🔥 New'), t('mises en vente aujourd\'hui', 'listed today'), fresh.take(12).toList()),
+      ]);
     }
-    if (list.isEmpty) {
+    if (all.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -351,70 +590,43 @@ class MarketGroupsState extends State<MarketGroups> {
     }
     return RefreshIndicator(
       onRefresh: load,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-        itemCount: list.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 6),
-        itemBuilder: (_, i) {
-          final r = list[i];
-          final c = Catalog.cards[r['card']]!;
-          final f = (r['finish'] as num).toInt();
-          final lots = (r['lots'] as num).toInt();
-          final known = Game.i.has(c.id);
-          final seller = (r['seller'] as String?) ?? '';
-          return Material(
-            color: sel == (c.id, f) ? kGold.withOpacity(0.18) : kPanel,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () async {
-                if (isWide(context)) {
-                  setState(() => sel = (c.id, f));
-                  return;
-                }
-                await showCardOffers(context, c.id, finish: f);
-                load();
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(children: [
-                  SizedBox(width: 54, child: CardView(card: c, finish: f)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(c.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 2),
-                      Text('${Catalog.system(c.sys)?.short ?? c.sys} · ${rarityName(c.rarity)}${f > 0 ? ' · ${finishName(f)}' : ''}',
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: kRarityLight[c.rarity], fontSize: 12)),
-                      const SizedBox(height: 2),
-                      Text.rich(
-                        TextSpan(children: [
-                          TextSpan(text: t('$lots en vente', '$lots for sale')),
-                          // vendeur (le moins cher s'il y en a plusieurs)
-                          if (seller.isNotEmpty) ...[
-                            TextSpan(text: lots == 1 ? t(' · par ', ' · by ') : t(' · moins cher : ', ' · cheapest: ')),
-                            TextSpan(text: seller, style: const TextStyle(color: Color(0xFF8FD3FF), fontWeight: FontWeight.w700)),
-                          ],
-                          if (!known)
-                            TextSpan(text: t('  · manquante', '  · missing'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w700)),
-                        ]),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white54, fontSize: 12),
-                      ),
-                    ]),
-                  ),
-                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Text(t('dès', 'from'), style: const TextStyle(color: Colors.white38, fontSize: 10)),
-                    CoinChip((r['min_price'] as num).toInt()),
-                  ]),
-                  const Icon(Icons.chevron_right, color: Colors.white38),
-                ]),
+      child: CustomScrollView(slivers: [
+        SliverToBoxAdapter(child: Column(children: sections)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 2),
+            child: Text.rich(
+              TextSpan(children: [
+                TextSpan(text: _filtered ? t('Résultats', 'Results') : t('Toutes les offres', 'All offers'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5)),
+                TextSpan(text: '  ${list.length} ${t('carte', 'card')}${list.length > 1 ? 's' : ''}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              ]),
+            ),
+          ),
+        ),
+        if (list.isEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(t('Aucune carte ne correspond', 'No card matches'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54)),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(10, 2, 10, 20),
+            // grille : construite au fil du défilement (seules les cartes visibles sont dessinées)
+            sliver: SliverLayoutBuilder(
+              builder: (context, box) => SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: adaptiveCols(context, box.crossAxisExtent, phone: 3, minTile: 120, max: 7),
+                  childAspectRatio: 0.66,
+                  crossAxisSpacing: 4,
+                  mainAxisSpacing: 4,
+                ),
+                delegate: SliverChildBuilderDelegate((_, i) => _tile(list[i], tag: Game.i.has(list[i]['card'] as String) ? null : t('Manque', 'Missing')), childCount: list.length),
               ),
             ),
-          );
-        },
-      ),
+          ),
+      ]),
     );
   }
 }

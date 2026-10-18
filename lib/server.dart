@@ -463,6 +463,12 @@ class RcServer {
   }
 
   /// Marché groupé : [{card, finish, lots, min_price, last_at}]
+  /// Toutes les cartes en vente (une ligne par carte et finition) avec le prix moyen sur 30 jours
+  static Future<List<Map<String, dynamic>>> marketBrowse() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_market_browse', {'p_device': d}));
+  }
+
   static Future<List<Map<String, dynamic>>> marketGroups({String? sys, bool missing = false}) async {
     final d = await deviceId();
     return _list(await _rpc('rc_market_groups', {'p_device': d, 'p_sys': sys, 'p_missing': missing}));
