@@ -287,10 +287,17 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     final icon = e['icon'] as String? ?? '🎉';
     final end = _date(e, 'ends_at');
     final left = end?.difference(DateTime.now().add(_skew));
+    // décor qui traverse l'affiche, selon l'émoji de l'événement
     final decor = switch (icon) {
       '🎃' || '👻' || '🦇' => '🦇',
       '🎄' || '❄️' || '⛄' || '🎅' => '❄️',
       '💘' || '❤️' || '💝' => '💗',
+      '🎉' || '🥳' || '🎂' => '🎊',
+      '⚡' => '⚡',
+      '🏁' || '🃏' => '🃏',
+      '⚔️' || '⚔' => '🔴',
+      '🚢' => '💥',
+      '✨' => '▦',
       _ => '✨',
     };
     final action = _kTabs[e['action']];
@@ -314,7 +321,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                     Positioned(
                       left: ((anim.value + k * 0.27) % 1) * (box.maxWidth + 60) - 40,
                       top: box.maxHeight * (0.12 + 0.18 * k) - ((anim.value + k * 0.27) % 1) * 30,
-                      child: Opacity(opacity: 0.7, child: Text(decor, style: TextStyle(fontSize: k.isEven ? 16 : 12))),
+                      child: Opacity(
+                          opacity: 0.7,
+                          child: Text(decor, style: TextStyle(fontSize: k.isEven ? 16 : 12, color: decor == '▦' ? const Color(0xFFFF4FD8) : null, fontWeight: FontWeight.w900))),
                     ),
                 ]),
               ),
@@ -705,6 +714,12 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             style: const TextStyle(fontSize: 12.5, color: Colors.white54),
           ),
         ),
+        // reste 3 jours dans « Terminés », puis disparaît
+        if (_date(e, 'ends_at') != null)
+          Builder(builder: (_) {
+            final gone = _date(e, 'ends_at')!.add(const Duration(days: 3)).difference(DateTime.now());
+            return Text(t('encore ${_span(gone)}', '${_span(gone)} left'), style: const TextStyle(fontSize: 10.5, color: Colors.white38, fontWeight: FontWeight.w800));
+          }),
       ]),
     );
   }
