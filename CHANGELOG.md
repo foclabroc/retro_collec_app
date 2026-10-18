@@ -1,6 +1,8 @@
 # Pixel Trade — Changelog
 
 ## v1.0.11
+_Version 1.0.11+12._
+
 - **Sagas** (Collection : sélecteur « 🎮 Consoles | 🌈 Sagas ») : Mario, Sonic, Zelda et Pokémon, 10 cartes chacune.
   Une carte de saga est une version holographique (cadre arc-en-ciel qui tourne, halo de la couleur de la saga, logo,
   reflet holo qui suit le doigt, numéro) d'une carte existante ; elle va uniquement dans l'album de sa saga. Chaque

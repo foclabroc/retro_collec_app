@@ -12,6 +12,21 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🌈', 'Sagas Mario, Sonic, Zelda et Pokémon : cartes holo rares (3,2 % par carte), avec leurs albums dans la Collection',
+      'Mario, Sonic, Zelda and Pokémon sagas: rare holo cards (3.2% per card), with their albums in the Collection'),
+  ('🎯', 'Défis de la semaine : 6 défis et un coffre (500 pièces, 2 pixels, 1 paquet premium), à la place des missions du jour',
+      'Weekly challenges: 6 challenges and a chest (500 coins, 2 pixels, 1 premium pack), replacing daily missions'),
+  ('🤝', 'Partager & parrainage : ton code, et un paquet premium chacun quand ton filleul a ouvert 5 paquets',
+      'Share & referral: your code, and a premium pack each once your referral has opened 5 packs'),
+  ('👏', 'Actualités : réagis aux exploits des joueurs 👏 🔥 😮', 'News: react to players\' feats 👏 🔥 😮'),
+  ('🔍', 'Profil d\'un voisin : ses cartes qui te manquent, les tiennes qui lui manquent, et vos consoles comparées',
+      'Neighbor profile: their cards you lack, yours they lack, and your systems compared'),
+  ('🛒', 'Bourse : nouveau magasin (recherche, filtres, bonnes affaires), ventes, échanges et historique revus',
+      'Exchange: new shop (search, filters, good deals), sales, trades and history redesigned'),
+  ('🖼', 'Vitrine : « + » dans les cases vides, et glisse les cartes pour changer l\'ordre', 'Showcase: "+" in empty slots, and drag cards to reorder'),
+  ('🎮', 'Collection : affiches de consoles animées, lignes Sagas et Full art', 'Collection: animated system posters, Sagas and Full art rows'),
+  ('✨', 'Nouveaux titres d\'onglets, tour sans les joueurs absents depuis 7 jours', 'New tab titles, tower without players away for 7 days'),
+  ('#', 'Aussi depuis la 1.0.10', 'Also since 1.0.10'),
   ('⚔', '4 en ligne et Console Wars gratuits : le gagnant gagne 150 pièces + 1 pixel, le perdant 10',
       'Connect 4 and Console Wars are free: the winner gets 150 coins + 1 pixel, the loser 10'),
   ('🖼', 'Nouvelles cartes Full Art, ultra rares, sur les épiques et légendaires', 'New ultra-rare Full Art cards, on epics and legendaries'),
