@@ -81,16 +81,13 @@ class ShareMenuTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           onTap: go,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: pink.withOpacity(0.6))),
             child: Row(children: [
               const Icon(Icons.share, color: pink, size: 20),
               const SizedBox(width: 10),
               Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(t('Partager ce jeu à tes amis', 'Share this game with your friends'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                  Text(t('Lien de l\'APK et de la version web', 'APK and web version links'), style: const TextStyle(color: Colors.white54, fontSize: 11.5)),
-                ]),
+                child: Text(t('Partager ce jeu à tes amis', 'Share this game with your friends'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
               ),
               const Icon(Icons.chevron_right, color: Colors.white38),
             ]),
