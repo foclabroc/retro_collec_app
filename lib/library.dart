@@ -10,6 +10,7 @@ import 'filters.dart';
 import 'layout.dart';
 import 'game.dart';
 import 'main.dart';
+import 'sagas.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Collection : une vitrine par console (couleur de la marque, spot lumineux,
@@ -50,6 +51,7 @@ List<String> get _sysSortLabels => [
 
 class _LibraryScreenState extends State<LibraryScreen> {
   int sysSort = 0;
+  bool sagas = false; // onglet « Sagas » au lieu de « Consoles » (mémorisé)
 
   @override
   void initState() {
@@ -58,7 +60,35 @@ class _LibraryScreenState extends State<LibraryScreen> {
     SharedPreferences.getInstance().then((p) {
       final v = p.getInt(_kSysSortKey);
       if (v != null && mounted) setState(() => sysSort = v.clamp(0, 5));
+      if (p.getBool('rc_coll_sagas') == true && mounted) setState(() => sagas = true);
     }).catchError((_) {});
+  }
+
+  void _setSagas(bool v) {
+    setState(() => sagas = v);
+    SharedPreferences.getInstance().then((p) => p.setBool('rc_coll_sagas', v)).catchError((_) => false);
+  }
+
+  /// Sélecteur « Consoles | Sagas »
+  Widget _seg() {
+    Widget b(bool v, String label) => Expanded(
+          child: GestureDetector(
+            onTap: () => _setSagas(v),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              padding: const EdgeInsets.symmetric(vertical: 7),
+              decoration: BoxDecoration(color: sagas == v ? kGold : Colors.transparent, borderRadius: BorderRadius.circular(10)),
+              child: Text(label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: sagas == v ? const Color(0xFF2A1800) : Colors.white70)),
+            ),
+          ),
+        );
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(13)),
+      child: Row(children: [b(false, t('🎮 Consoles', '🎮 Systems')), b(true, t('🌈 Sagas', '🌈 Sagas'))]),
+    );
   }
 
   void _setSysSort(int v) {
@@ -110,6 +140,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       builder: (context, _) {
         final g = Game.i;
         final systems = _sortedSystems(g);
+        final sagaList = [for (final s in kSagas) if (Catalog.bySys[s.sys] != null) s];
         return Column(children: [
           TabHeader(t('Collection', 'Collection'), icon: 'collection', actions: [
             IconButton(
@@ -123,11 +154,22 @@ class _LibraryScreenState extends State<LibraryScreen> {
               SliverToBoxAdapter(child: _dashboard(g)),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 8, 10, 4),
-                  child: Row(children: [
-                    Text(t('Mes consoles', 'My systems'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                    const Spacer(),
+                  padding: const EdgeInsets.fromLTRB(14, 8, 10, 4),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Align(alignment: Alignment.centerLeft, child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 340), child: _seg())),
+                  const SizedBox(height: 4),
+                  Row(children: [
+                    Expanded(
+                      child: Text(
+                          sagas
+                              ? t('Cartes holo : 3,2 % de chance par carte de paquet', 'Holo cards: 3.2% chance per pack card')
+                              : t('Mes consoles', 'My systems'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: Colors.white60)),
+                    ),
                     // menu déroulant : ordre des consoles
+                    if (!sagas)
                     DropdownButtonHideUnderline(
                       child: DropdownButton<int>(
                         value: sysSort,
@@ -145,6 +187,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       ),
                     ),
                   ]),
+                  ]),
                 ),
               ),
               SliverPadding(
@@ -158,7 +201,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
-                    delegate: SliverChildBuilderDelegate((_, i) => _ConsoleTile(sys: systems[i]), childCount: systems.length),
+                    delegate: sagas
+                        ? SliverChildBuilderDelegate((_, i) => SagaPoster(sagaList[i]), childCount: sagaList.length)
+                        : SliverChildBuilderDelegate((_, i) => _ConsoleTile(sys: systems[i]), childCount: systems.length),
                   ),
                 ),
               ),

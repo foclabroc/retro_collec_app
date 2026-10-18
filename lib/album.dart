@@ -8,6 +8,7 @@ import 'game.dart';
 import 'layout.dart';
 import 'main.dart';
 import 'retro_theme.dart';
+import 'sagas.dart';
 import 'filters.dart';
 import 'market.dart';
 import 'bourse.dart';
@@ -43,7 +44,10 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
         final summary = filterSummary(f);
         final mine = g.ownedIn(sys);
         final total = all.length;
-        final next = kMilestoneSteps.firstWhere((s) => !g.milestones.contains('$sys:$s'), orElse: () => 0);
+        final saga = sagaOfSys(sys);
+        final steps = saga != null ? kSagaSteps : kMilestoneSteps;
+        final rewards = saga != null ? kSagaReward : kMilestoneReward;
+        final next = steps.firstWhere((s) => !g.milestones.contains('$sys:$s'), orElse: () => 0);
         return Scaffold(
           appBar: AppBar(
             toolbarHeight: 64,
@@ -77,8 +81,11 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
                   Expanded(
                     child: Text(
                       next == 0
-                          ? t('Série complète !', 'Set complete!')
-                          : t('Prochain palier : $next % → ${kMilestoneReward[next]} pièces', 'Next milestone: $next% → ${kMilestoneReward[next]} coins'),
+                          ? (saga != null ? t('Saga complète !', 'Saga complete!') : t('Série complète !', 'Set complete!'))
+                          : saga != null
+                              ? t('Prochain palier : ${total * next ~/ 100}/$total → ${rewards[next]} pièces${next == 100 ? ' + 2 pixels' : ''} · cartes de saga : 3,2 % de chance par carte de paquet',
+                                  'Next milestone: ${total * next ~/ 100}/$total → ${rewards[next]} coins${next == 100 ? ' + 2 pixels' : ''} · saga cards: 3.2% chance per pack card')
+                              : t('Prochain palier : $next % → ${rewards[next]} pièces', 'Next milestone: $next% → ${rewards[next]} coins'),
                       style: const TextStyle(fontSize: 11, color: Colors.white54),
                     ),
                   ),
@@ -494,7 +501,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
         const SizedBox(height: 8),
       ],
       // fusion : 5 normales → brillante, 3 brillantes → dorée (boutons toujours visibles, grisés s'il manque des cartes)
-      if (total > 0)
+      if (total > 0 && !c.isSaga)
         for (final f in [0, 1])
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -517,11 +524,16 @@ class _CardDetailPageState extends State<CardDetailPage> {
               onPressed: busy || x[f] < (f == 0 ? 5 : 3) ? null : () => _fuse(c, f),
             ),
           ),
-      ElevatedButton.icon(
-        icon: const Icon(Icons.auto_fix_high),
-        label: Text(t('Fabriquer (${fmt(cost)} pièces)', 'Craft (${fmt(cost)} coins)')),
-        onPressed: busy || g.coins < cost ? null : () => _craft(c, cost),
-      ),
+      if (!c.isSaga)
+        ElevatedButton.icon(
+          icon: const Icon(Icons.auto_fix_high),
+          label: Text(t('Fabriquer (${fmt(cost)} pièces)', 'Craft (${fmt(cost)} coins)')),
+          onPressed: busy || g.coins < cost ? null : () => _craft(c, cost),
+        )
+      else
+        Text(t('Carte de saga : on ne la trouve que dans les paquets (3,2 % de chance par carte), à la Bourse ou en échange.',
+                'Saga card: only found in packs (3.2% chance per card), on the Exchange or in trades.'),
+            textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: Colors.white54)),
       if (total > 1)
         Padding(
           padding: const EdgeInsets.only(top: 8),

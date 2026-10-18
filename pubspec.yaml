@@ -35,6 +35,7 @@ flutter:
     - assets/logos/
     - assets/consoles/
     - assets/tabs/
+    - assets/sagas/
     - assets/houses/
     - assets/avatars/
     - assets/bs/

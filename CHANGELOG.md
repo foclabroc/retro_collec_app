@@ -1,6 +1,12 @@
 # Pixel Trade — Changelog
 
 ## v1.0.11
+- **Sagas** (Collection : sélecteur « 🎮 Consoles | 🌈 Sagas ») : Mario, Sonic, Zelda et Pokémon, 10 cartes chacune.
+  Une carte de saga est une version holographique (cadre arc-en-ciel qui tourne, halo de la couleur de la saga, logo,
+  reflet holo qui suit le doigt, numéro) d'une carte existante ; elle va uniquement dans l'album de sa saga. Chaque
+  carte tirée dans un paquet a 3,2 % de chance d'être une carte de saga (aussi rare qu'une épique). Ni fabrication ni
+  fusion. Affiches animées (logo, éventail des 3 meilleures cartes). Paliers : 5/10 → 100 pièces, 10/10 → 500 pièces
+  + 2 pixels ; nouvelles « carte de saga » et « saga complète » dans les Actualités. SQL : patch_sagas.sql.
 - **Profil d'un voisin** : rubriques « 🎯 Il a, tu n'as pas » (ses doubles d'abord, toucher = demander en échange) et
   « 🔁 Tu as, il n'a pas » (toucher = lui proposer la carte), avec « Tout voir » ; les séries deviennent « Vous deux,
   console par console » (ta barre et la sienne, la plus avancée en vert).

@@ -30,7 +30,7 @@ class _Question {
 }
 
 /// Cartes utilisables pour le quiz : celles dont la capture est sur le téléphone.
-List<RcCard> quizPool() => [for (final c in Catalog.cards.values) if (Catalog.hasShot(c)) c];
+List<RcCard> quizPool() => [for (final c in Catalog.baseCards) if (Catalog.hasShot(c)) c];
 
 List<_Question> _makeQuestions(Random rnd) {
   final pool = quizPool()..shuffle(rnd);
@@ -42,7 +42,7 @@ List<_Question> _makeQuestions(Random rnd) {
     if (usedTitles.contains(key)) continue;
     // mauvaises réponses : même console de préférence (plus dur), titres différents
     final same = (Catalog.bySys[c.sys] ?? const <RcCard>[]).where((o) => o.title.toLowerCase() != key).toList()..shuffle(rnd);
-    final others = Catalog.cards.values.where((o) => o.sys != c.sys && o.title.toLowerCase() != key).toList()..shuffle(rnd);
+    final others = Catalog.baseCards.where((o) => o.sys != c.sys && o.title.toLowerCase() != key).toList()..shuffle(rnd);
     final wrong = <RcCard>[];
     final seen = {key};
     for (final o in [...same, ...others]) {

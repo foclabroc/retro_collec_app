@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'catalog.dart';
 import 'game.dart';
+import 'sagas.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Modèle de carte unique (toutes consoles) : cadre de la couleur de la rareté,
@@ -151,6 +152,10 @@ class CardView extends StatelessWidget {
     final img = Catalog.image(card);
     final cacheW = (w * dpr).round().clamp(64, 900);
     final small3 = ResizeImage.resizeIfNeeded((cacheW / 3).round().clamp(32, 300), null, img);
+    // carte de saga : cadre holographique avec halo
+    if (card.isSaga) {
+      return SagaFace(card: card, width: w, cover: ResizeImage.resizeIfNeeded(cacheW, null, img), owned: owned, manualTilt: manualTilt);
+    }
     // full art (épiques et légendaires) : un tout autre modèle de carte
     if (owned && finish == 3) {
       return FullArtFace(card: card, width: w, cover: ResizeImage.resizeIfNeeded(cacheW, null, img), manualTilt: manualTilt);
@@ -817,6 +822,8 @@ class ConsoleLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final saga = sagaOfSys(sys);
+    if (saga != null) return SagaLogo(saga, height: height);
     final dark = _kDarkBoardLogos.contains(sys);
     final img = Image.asset(
       'assets/logos/$sys.png',

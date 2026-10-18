@@ -579,7 +579,12 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         msg = t('🎁 Cadeau : +$coins pièces offertes !', '🎁 Gift: +$coins free coins!');
       case 'milestone':
         final sys = Catalog.system(e['sys'] as String? ?? '')?.name ?? e['sys'];
-        msg = t('Série $sys à ${e['step']} % : +$coins pièces !', '$sys set at ${e['step']}%: +$coins coins!');
+        final saga = sagaOfSys(e['sys'] as String?);
+        msg = saga != null
+            ? (e['step'] == 100
+                ? t('🌈 Saga ${saga.name} complète : +$coins pièces et +2 pixels !', '🌈 ${saga.name} saga complete: +$coins coins and +2 pixels!')
+                : t('Saga ${saga.name} à moitié : +$coins pièces !', '${saga.name} saga half done: +$coins coins!'))
+            : t('Série $sys à ${e['step']} % : +$coins pièces !', '$sys set at ${e['step']}%: +$coins coins!');
       default:
         msg = '';
     }

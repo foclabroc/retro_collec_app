@@ -29,6 +29,9 @@ int _int(dynamic v) => (v as num).toInt();
 class RcCard {
   final String id, sys, title, dev, pub, genre, img, desc, genreEn, descEn;
   final String? shot;
+  final String? saga; // carte de saga : 'mario', 'sonic', 'zelda' ou 'pokemon' (sinon null)
+  final String? baseSys; // carte de saga : console de la carte d'origine (images)
+  final String? base; // carte de saga : id de la carte d'origine
   final int num, rarity;
   final int? year;
   const RcCard({
@@ -46,7 +49,33 @@ class RcCard {
     required this.desc,
     this.genreEn = '',
     this.descEn = '',
+    this.saga,
+    this.baseSys,
+    this.base,
   });
+
+  bool get isSaga => saga != null;
+
+  /// Version saga d'une carte : même jeu et même jaquette, rangée dans l'album de la saga
+  RcCard sagaCopy(String sagaId, int n) => RcCard(
+        id: 'sg_${sagaId}_${n.toString().padLeft(2, '0')}',
+        sys: 'sg_$sagaId',
+        num: n,
+        title: title,
+        year: year,
+        dev: dev,
+        pub: pub,
+        genre: genre,
+        rarity: 3,
+        img: img,
+        shot: shot,
+        desc: desc,
+        genreEn: genreEn,
+        descEn: descEn,
+        saga: sagaId,
+        baseSys: sys,
+        base: id,
+      );
 
   /// Genre et description dans la langue du téléphone (français par défaut).
   String get genreL => !rcFrench && genreEn.isNotEmpty ? genreEn : genre;
@@ -104,6 +133,42 @@ class RcSystem {
       };
 }
 
+/// Une saga : 10 cartes choisies sur plusieurs consoles, en version holo (SQL : patch_sagas.sql)
+class RcSaga {
+  final String id, name;
+  final Color color, accent, dark;
+  final List<String> bases; // les 10 cartes d'origine, dans l'ordre de l'album
+  final List<String> best; // les 3 cartes de l'affiche (gauche, droite, centre)
+  const RcSaga(this.id, this.name, this.color, this.accent, this.dark, this.bases, this.best);
+  String get sys => 'sg_$id';
+  String get logo => 'assets/sagas/$id.webp';
+}
+
+const kSagas = [
+  RcSaga('mario', 'Mario', Color(0xFFD8312B), Color(0xFFFFD23B), Color(0xFF4A0A0C),
+      ['nes_081', 'nes_085', 'snes_074', 'snes_073', 'n64_078', 'n64_043', 'gamecube_089', 'gba_052', 'switch_085', 'switch_087'],
+      ['nes_085', 'snes_074', 'n64_078']),
+  RcSaga('sonic', 'Sonic', Color(0xFF1F5FD1), Color(0xFFFFD84A), Color(0xFF06164A),
+      ['megadrive_078', 'mastersystem_078', 'megadrive_079', 'megadrive_075', 'gamegear_074', 'gamegear_073', 'gba_083', 'gba_084', 'switch_073', 'switch_074'],
+      ['megadrive_079', 'megadrive_075', 'megadrive_078']),
+  RcSaga('zelda', 'Zelda', Color(0xFF2F8F4E), Color(0xFFF3D77A), Color(0xFF0B2612),
+      ['nes_093', 'nes_100', 'snes_092', 'n64_083', 'n64_082', 'gbc_088', 'gamecube_095', 'gba_096', 'switch_094', 'switch_097'],
+      ['snes_092', 'switch_094', 'n64_083']),
+  RcSaga('pokemon', 'Pokémon', Color(0xFFE0A100), Color(0xFF3DD9FF), Color(0xFF3A2400),
+      ['gbc_062', 'gbc_061', 'n64_058', 'n64_057', 'gba_073', 'gba_071', 'gba_072', 'gamecube_063', 'switch_065', 'switch_056'],
+      ['gbc_061', 'gba_071', 'gbc_062']),
+];
+
+RcSaga? sagaById(String? id) {
+  for (final s in kSagas) {
+    if (s.id == id) return s;
+  }
+  return null;
+}
+
+/// Saga d'une « console » sg_<saga> (null pour une vraie console)
+RcSaga? sagaOfSys(String? sys) => sys != null && sys.startsWith('sg_') ? sagaById(sys.substring(3)) : null;
+
 class Catalog {
   Catalog._();
 
@@ -113,26 +178,34 @@ class Catalog {
   static Map<String, List<RcCard>> bySys = {};
   static late String dir; // dossier local des images
 
+  static List<RcSystem> sagaSystems = []; // albums des sagas (pas dans « systems » : ce ne sont pas des consoles)
+
   static bool get loaded => cards.isNotEmpty;
   static RcSystem? system(String id) {
     for (final s in systems) {
       if (s.id == id) return s;
     }
+    for (final s in sagaSystems) {
+      if (s.id == id) return s;
+    }
     return null;
   }
+
+  /// Cartes des consoles seulement (sans les cartes de saga)
+  static Iterable<RcCard> get baseCards => cards.values.where((c) => !c.isSaga);
 
   /// Version web : adresse en ligne, avec l'empreinte du pack pour suivre les mises à jour
   static String _url(String path, String sys) => '$kAssetsBase$path?h=${system(sys)?.hash ?? version}';
 
   /// Jaquette de la carte (fichier local sur Android, image en ligne sur le web)
   static ImageProvider image(RcCard c) =>
-      kIsWeb ? NetworkImage(_url(c.img, c.sys)) : FileImage(File('$dir/${c.img}')) as ImageProvider;
+      kIsWeb ? NetworkImage(_url(c.img, c.baseSys ?? c.sys)) : FileImage(File('$dir/${c.img}')) as ImageProvider;
 
   /// Capture d'écran du jeu, ou null si absente (pas encore téléchargée sur Android)
   static ImageProvider? shot(RcCard c) {
     final s = c.shot;
     if (s == null) return null;
-    if (kIsWeb) return NetworkImage(_url(s, c.sys));
+    if (kIsWeb) return NetworkImage(_url(s, c.baseSys ?? c.sys));
     final f = File('$dir/$s');
     return f.existsSync() ? FileImage(f) : null;
   }
@@ -155,6 +228,21 @@ class Catalog {
     bySys = {};
     for (final c in list) {
       (bySys[c.sys] ??= []).add(c);
+    }
+    // cartes de saga : copies des cartes d'origine, rangées dans « sg_<saga> »
+    sagaSystems = [];
+    for (final sg in kSagas) {
+      final l = <RcCard>[];
+      for (var i = 0; i < sg.bases.length; i++) {
+        final b = cards[sg.bases[i]];
+        if (b != null) l.add(b.sagaCopy(sg.id, i + 1));
+      }
+      if (l.isEmpty) continue;
+      for (final c in l) {
+        cards[c.id] = c;
+      }
+      bySys[sg.sys] = l;
+      sagaSystems.add(RcSystem(sg.sys, 'Saga ${sg.name}', l.length, '', '', 0, '', '', 0));
     }
     for (final l in bySys.values) {
       l.sort((a, b) => a.num.compareTo(b.num));

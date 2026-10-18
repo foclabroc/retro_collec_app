@@ -222,6 +222,7 @@ class _FeedTile extends StatelessWidget {
     final name = me ? t('Toi', 'You') : (e['name'] as String? ?? '?');
     final name2 = me2 ? t('toi', 'you') : (e['name2'] as String? ?? '?');
     final sysName = Catalog.system(e['sys'] as String? ?? '')?.name ?? (e['sys'] ?? '');
+    final saga = sagaOfSys(e['sys'] as String?) ?? sagaById(card?.saga);
     final title = card?.title ?? '';
     final duo = pid2 != null;
 
@@ -246,8 +247,11 @@ class _FeedTile extends StatelessWidget {
       'legend' => (s('$a a obtenu la légendaire **$title**', '$a got the legendary **$title**'), kRarityColor[4], '🌟', null),
       'gold' => (s('$a a obtenu **$title** en version dorée', '$a got a gold **$title**'), const Color(0xFFFFD54F), '★', null),
       'fullart' => (s('$a a obtenu **$title** en **full art** ★★', '$a got **$title** in **full art** ★★'), const Color(0xFFFF9FE5), '★★', null),
+      'set' when saga != null => (s('$a a complété la saga **${saga!.name}** ! 🌈', '$a completed the **${saga!.name}** saga! 🌈'), saga!.accent, '🏆', null),
+      'half' when saga != null => (s('$a a la moitié de la saga **${saga!.name}**', '$a has half of the **${saga!.name}** saga'), saga!.color, '📈', null),
       'set' => (s('$a a complété la série **$sysName** à 100 % !', '$a completed the **$sysName** set!'), const Color(0xFF5DCAA5), '🏆', null),
       'half' => (s('$a a atteint **50 %** de la série **$sysName**', '$a reached **50%** of the **$sysName** set'), const Color(0xFF77AADD), '📈', null),
+      'saga' => (s('$a a obtenu la carte de saga **$title** 🌈', '$a got the **$title** saga card 🌈'), saga?.color ?? const Color(0xFFFF9FE5), '🌈', null),
       'gamedle' => (
           n == 1
               ? s('$a a trouvé le Gamedle du jour du premier coup !', '$a solved today\'s Gamedle on the first try!')
