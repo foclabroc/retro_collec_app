@@ -279,7 +279,7 @@ class _PacksScreenState extends State<PacksScreen> {
       builder: (context, _) {
         final g = Game.i;
         return Column(children: [
-          TabHeader(t('Paquets', 'Packs')),
+          TabHeader(t('Paquets', 'Packs'), icon: 'packs'),
           Expanded(
             child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: [
               // catégorie Pixels : une ligne compacte, les boosters spéciaux dans un sous-menu

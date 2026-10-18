@@ -184,7 +184,7 @@ class MessagesScreenState extends State<MessagesScreen> {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      TabHeader(t('Messages', 'Messages')),
+      TabHeader(t('Messages', 'Messages'), icon: 'messages'),
       Padding(
         padding: const EdgeInsets.fromLTRB(18, 0, 18, 4),
         child: Text(t('Sois sympa : appui long sur un message pour le signaler', 'Be nice: long-press a message to report it'),

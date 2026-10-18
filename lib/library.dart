@@ -111,7 +111,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final g = Game.i;
         final systems = _sortedSystems(g);
         return Column(children: [
-          TabHeader(t('Collection', 'Collection'), actions: [
+          TabHeader(t('Collection', 'Collection'), icon: 'collection', actions: [
             IconButton(
               tooltip: t('Toutes mes cartes : recherche, filtres, tri', 'All my cards: search, filters, sort'),
               icon: const Icon(Icons.search),

@@ -882,7 +882,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 class TabHeader extends StatelessWidget {
   final String title;
   final List<Widget> actions;
-  const TabHeader(this.title, {super.key, this.actions = const []});
+  final String? icon; // icône de l'onglet (assets/tabs/<icon>.png) dans une pastille lumineuse
+  const TabHeader(this.title, {super.key, this.actions = const [], this.icon});
   @override
   Widget build(BuildContext context) => Padding(
         padding: EdgeInsets.fromLTRB(HomeShellState.current != null && Scaffold.maybeOf(context)?.hasDrawer == true ? 4 : 16, 12, 8, 8),
@@ -901,12 +902,51 @@ class TabHeader extends StatelessWidget {
                 ),
               ),
             ),
-          // titre entier : la police se réduit si la place manque (pièces, pixels, boutons)
+          // icône de l'onglet dans une pastille de la couleur du thème
+          // (seulement si l'écran est assez large : le titre garde une taille lisible)
+          if (icon != null && title.isNotEmpty && MediaQuery.sizeOf(context).width >= 380)
+            Container(
+              width: 34,
+              height: 34,
+              margin: const EdgeInsets.only(right: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color.lerp(rcTheme.accent, Colors.black, 0.45)!, Color.lerp(rcTheme.accent, Colors.black, 0.8)!],
+                ),
+                border: Border.all(color: rcTheme.accent, width: 1.5),
+                boxShadow: [BoxShadow(color: rcTheme.accent.withOpacity(0.45), blurRadius: 12)],
+              ),
+              child: Padding(padding: const EdgeInsets.all(5), child: Image.asset('assets/tabs/$icon.png', filterQuality: FilterQuality.medium)),
+            ),
+          // titre en majuscules pixel, souligné de la couleur du thème ; il rétrécit si la place
+          // manque, les pièces et les pixels gardent toujours leur taille
           Expanded(
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text(px(title), maxLines: 1, style: pixelStyle(size: 15, color: rcTheme.accent).copyWith(shadows: const [Shadow(color: Color(0x99000000), offset: Offset(2, 2))])),
+              child: IntrinsicWidth(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+                  Text(px(title.toUpperCase()),
+                      maxLines: 1,
+                      style: pixelStyle(size: 12.5, color: Colors.white).copyWith(
+                        letterSpacing: 1,
+                        shadows: [Shadow(color: rcTheme.accent.withOpacity(0.7), blurRadius: 8), const Shadow(color: Colors.black, offset: Offset(0, 2))],
+                      )),
+                  if (title.isNotEmpty) ...[
+                    const SizedBox(height: 5),
+                    Container(
+                      height: 3,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2),
+                        gradient: LinearGradient(colors: [rcTheme.accent, rcTheme.accent.withOpacity(0)]),
+                      ),
+                    ),
+                  ],
+                ]),
+              ),
             ),
           ),
           ...actions,

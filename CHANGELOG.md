@@ -1,6 +1,9 @@
 # Pixel Trade — Changelog
 
 ## v1.0.11
+- **Titres des onglets** : majuscules pixel blanches avec un halo et un soulignement de la couleur du thème, et l'icône
+  de l'onglet dans une pastille lumineuse (sur les écrans assez larges). Le titre rétrécit si la place manque : pièces
+  et pixels gardent toujours leur taille.
 - **Partager ce jeu à tes amis** : case en bas du panneau latéral (sous Joueurs en ligne). Sur Android, ouvre la fenêtre
   de partage du téléphone (SMS, WhatsApp, Messenger…) avec le lien du dernier APK et celui de la version web de test,
   plus ton pseudo ; sur le web, le texte est copié pour le coller dans un message.
