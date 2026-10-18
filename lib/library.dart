@@ -58,7 +58,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
       listenable: Game.i,
       builder: (context, _) {
         final g = Game.i;
-        final systems = Catalog.systems;
+        // de la console la plus complétée à la moins complétée (à égalité : le plus de cartes, puis l'ordre habituel)
+        final base = Catalog.systems;
+        final rank = {for (var i = 0; i < base.length; i++) base[i].id: i};
+        double pctOf(RcSystem s) => g.ownedIn(s.id) / max(1, s.count);
+        final systems = [...base]..sort((a, b) {
+            final c = pctOf(b).compareTo(pctOf(a));
+            if (c != 0) return c;
+            final o = g.ownedIn(b.id).compareTo(g.ownedIn(a.id));
+            return o != 0 ? o : rank[a.id]!.compareTo(rank[b.id]!);
+          });
         return Column(children: [
           TabHeader(t('Collection', 'Collection'), actions: [
             IconButton(
