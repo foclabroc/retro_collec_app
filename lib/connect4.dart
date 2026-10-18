@@ -31,6 +31,13 @@ int duelPrize(int stake) => stake > 0 ? stake * 2 : kDuelWin;
 
 /// Ce que gagne le perdant (ou chacun sur un match nul) : sa mise est perdue (ancienne partie) ou 10 pièces
 String duelLoseText(int stake) => stake > 0 ? '−$stake' : '+$kDuelLose';
+
+/// Partie amicale : pas de gains (adversaire de moins d'un jour, ou déjà 4 parties payées aujourd'hui contre lui)
+bool duelFriendly(Map g) => g['paid'] == false;
+String get duelFriendlyText => t('Partie amicale : pas de gains', 'Friendly game: no rewards');
+String get duelLimitsText => t(
+    'Gains seulement contre un joueur inscrit depuis au moins un jour, et 4 parties payées par jour contre le même adversaire. Au-delà : parties amicales, sans gains.',
+    'Rewards only against players who joined at least a day ago, and 4 paid games a day against the same opponent. After that: friendly games, no rewards.');
 const _kEmotes = ['👍', '😮', '😂', '🔥', '👏'];
 
 Widget _avatar(int a, {double size = 40, Color? ring}) => Container(
@@ -910,6 +917,10 @@ Widget _resultLine(Map g) {
     'resign' => t(' (abandon)', ' (resigned)'),
     _ => '',
   };
+  if (duelFriendly(g) && w != null) {
+    return Text('${w == 0 ? t('Match nul', 'Draw') : w == side ? t('Gagné$why', 'Won$why') : t('Perdu$why', 'Lost$why')} · ${t('amicale', 'friendly')}',
+        style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w800));
+  }
   if (w == 0) {
     return Text(stake > 0 ? t('Match nul · mise rendue', 'Draw · bet returned') : t('Match nul · +$kDuelLose pièces', 'Draw · +$kDuelLose coins'),
         style: const TextStyle(fontWeight: FontWeight.w800));
@@ -1178,10 +1189,12 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
           title: Text(t('Règles', 'Rules')),
           content: Text(t(
             'Aligne 4 pions de ta couleur : en ligne, en colonne ou en diagonale.\n\n'
-                'Partie gratuite : le gagnant remporte $kDuelWin pièces + 1 pixel, le perdant $kDuelLose pièces. Match nul (plateau plein) : $kDuelLose pièces chacun.\n\n'
+                'Partie gratuite : le gagnant remporte $kDuelWin pièces + 1 pixel, le perdant $kDuelLose pièces. Match nul (plateau plein) : $kDuelLose pièces chacun. '
+                'Gains seulement contre un joueur inscrit depuis au moins un jour, 4 parties payées par jour contre le même adversaire.\n\n'
                 'En direct : 1 minute par coup. Tour par tour : 24 heures par coup. Délai dépassé = abandon.',
             'Line up 4 discs of your color: in a row, a column or a diagonal.\n\n'
-                'Free game: the winner gets $kDuelWin coins + 1 pixel, the loser $kDuelLose coins. Draw (full board): $kDuelLose coins each.\n\n'
+                'Free game: the winner gets $kDuelWin coins + 1 pixel, the loser $kDuelLose coins. Draw (full board): $kDuelLose coins each. '
+                'Rewards only against players who joined at least a day ago, 4 paid games a day against the same opponent.\n\n'
                 'Live: 1 minute per move. Turn-based: 24 hours per move. Time out = forfeit.',
           )),
           actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
@@ -1580,10 +1593,10 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
     super.initState();
     const cols = [_kRed, _kYellow, _kCyan, _kNeon, _kTeal, Colors.white];
     bits = List.generate(
-      w == widget.side ? 140 : 0,
+      w == widget.side && !duelFriendly(widget.g) ? 140 : 0,
       (_) => _Bit((_rnd.nextDouble() - 0.5) * 2.2, -_rnd.nextDouble() * 2.4 - 0.6, 3 + _rnd.nextDouble() * 4, cols[_rnd.nextInt(cols.length)], _rnd.nextDouble() * 6),
     );
-    if (w == widget.side) {
+    if (w == widget.side && !duelFriendly(widget.g)) {
       c.forward();
       _count = Timer.periodic(const Duration(milliseconds: 30), (tm) {
         if (!mounted) return tm.cancel();
@@ -1626,7 +1639,7 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                 : reason == 'resign'
                     ? t('Tu as abandonné', 'You resigned')
                     : t('$opp a aligné quatre pions', '$opp got four in a row'));
-    final gain = win ? '+$shown' : draw ? (stake > 0 ? '+$stake' : '+$kDuelLose') : duelLoseText(stake);
+    final gain = duelFriendly(g) ? '0' : win ? '+$shown' : draw ? (stake > 0 ? '+$stake' : '+$kDuelLose') : duelLoseText(stake);
     return Stack(children: [
       // confettis
       Positioned.fill(
@@ -1657,7 +1670,7 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                 const SizedBox(height: 6),
                 Text(title, style: pixelStyle(size: 15, color: win ? _kGoldHi : draw ? Colors.white : const Color(0xFFFF8A95), shadow: false)),
                 const SizedBox(height: 6),
-                Text(sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
+                Text(duelFriendly(g) ? '$sub\n$duelFriendlyText' : sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
                 const SizedBox(height: 10),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   const _Coin(size: 22),

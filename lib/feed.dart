@@ -250,9 +250,9 @@ class _FeedTile extends StatelessWidget {
           '🧩',
           null
         ),
-      'c4' => (s('$a a battu $b au 4 en ligne$how', '$a beat $b at Connect 4$how'), const Color(0xFFFF4757), '🔴', '+$n 🪙'),
+      'c4' => (s('$a a battu $b au 4 en ligne$how', '$a beat $b at Connect 4$how'), const Color(0xFFFF4757), '🔴', n > 0 ? '+$n 🪙' : null),
       'c4draw' => (s('$a et $b ont fait match nul au 4 en ligne', '$a and $b drew at Connect 4'), const Color(0xFF99AAAA), '🤝', null),
-      'bs' => (s('$a a coulé la flotte de $b à Console Wars$how', '$a sank $b\'s fleet in Console Wars$how'), const Color(0xFF3EC7FF), '🚢', '+$n 🪙'),
+      'bs' => (s('$a a coulé la flotte de $b à Console Wars$how', '$a sank $b\'s fleet in Console Wars$how'), const Color(0xFF3EC7FF), '🚢', n > 0 ? '+$n 🪙' : null),
       'bsdraw' => (s('$a et $b ont fait match nul à Console Wars', '$a and $b drew in Console Wars'), const Color(0xFF99AAAA), '🤝', null),
       'trade' => (
           card == null

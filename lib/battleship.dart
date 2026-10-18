@@ -891,10 +891,10 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
           title: Text(t('Règles', 'Rules')),
           content: Text(t(
             'Chacun place 5 consoles (Neo Geo 5 cases, PlayStation 4, Mega Drive 3, NES 3, Game Boy 2), côte à côte si tu veux, mais sans chevauchement.\n\n'
-                'Tire sur le radar : touché, tu rejoues ; à l\'eau, c\'est à l\'autre. Coule toute la flotte adverse pour gagner $kDuelWin pièces + 1 pixel (le perdant reçoit $kDuelLose pièces). Partie gratuite.\n\n'
+                'Tire sur le radar : touché, tu rejoues ; à l\'eau, c\'est à l\'autre. Coule toute la flotte adverse pour gagner $kDuelWin pièces + 1 pixel (le perdant reçoit $kDuelLose pièces). Partie gratuite ; gains seulement contre un joueur inscrit depuis au moins un jour, 4 parties payées par jour contre le même adversaire.\n\n'
                 'En direct : 2 minutes pour placer, 30 secondes par tir. Tour par tour : 24 heures. Placement pas fini à temps = flotte au hasard ; tir pas joué = tir au hasard, 3 fois de suite = abandon.',
             'Each player places 5 consoles (Neo Geo 5 cells, PlayStation 4, Mega Drive 3, NES 3, Game Boy 2), side by side if you like, but not overlapping.\n\n'
-                'Shoot on the radar: hit, you shoot again; miss, it\'s the other player\'s turn. Sink the whole enemy fleet to win $kDuelWin coins + 1 pixel (the loser gets $kDuelLose coins). Free game.\n\n'
+                'Shoot on the radar: hit, you shoot again; miss, it\'s the other player\'s turn. Sink the whole enemy fleet to win $kDuelWin coins + 1 pixel (the loser gets $kDuelLose coins). Free game; rewards only against players who joined at least a day ago, 4 paid games a day against the same opponent.\n\n'
                 'Live: 2 minutes to place, 30 seconds per shot. Turn-based: 24 hours. Not placed in time = random fleet; no shot = random shot, 3 in a row = forfeit.',
           )),
           actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
@@ -1502,8 +1502,8 @@ class _BsResultDialogState extends State<_BsResultDialog> with SingleTickerProvi
   void initState() {
     super.initState();
     const cols = [_kRed, _kYellow, _kCyan, _kNeon, _kTeal, Colors.white];
-    bits = List.generate(win ? 140 : 0, (_) => _Bit((_rnd.nextDouble() - 0.5) * 2.2, -_rnd.nextDouble() * 2.4 - 0.6, 3 + _rnd.nextDouble() * 4, cols[_rnd.nextInt(cols.length)], _rnd.nextDouble() * 6));
-    if (win) {
+    bits = List.generate(win && !duelFriendly(widget.g) ? 140 : 0, (_) => _Bit((_rnd.nextDouble() - 0.5) * 2.2, -_rnd.nextDouble() * 2.4 - 0.6, 3 + _rnd.nextDouble() * 4, cols[_rnd.nextInt(cols.length)], _rnd.nextDouble() * 6));
+    if (win && !duelFriendly(widget.g)) {
       c.forward();
       _count = Timer.periodic(const Duration(milliseconds: 30), (tm) {
         if (!mounted) return tm.cancel();
@@ -1566,12 +1566,12 @@ class _BsResultDialogState extends State<_BsResultDialog> with SingleTickerProvi
                 const SizedBox(height: 6),
                 Text(px(win ? t('VICTOIRE !', 'VICTORY!') : t('DÉFAITE', 'DEFEAT')), style: pixelStyle(size: 15, color: win ? _kGoldHi : const Color(0xFFFF8A95), shadow: false)),
                 const SizedBox(height: 6),
-                Text(sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
+                Text(duelFriendly(widget.g) ? '$sub\n$duelFriendlyText' : sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
                 const SizedBox(height: 10),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   const _Coin(size: 22),
                   const SizedBox(width: 8),
-                  Text(win ? '+$shown' : duelLoseText(stake), style: pixelStyle(size: 18, color: _kGoldHi, shadow: false)),
+                  Text(duelFriendly(widget.g) ? '0' : win ? '+$shown' : duelLoseText(stake), style: pixelStyle(size: 18, color: _kGoldHi, shadow: false)),
                   if (win && pixel) ...[const SizedBox(width: 10), Text('+1 ▦', style: pixelStyle(size: 11, color: _kGoldHi, shadow: false))],
                 ]),
                 const SizedBox(height: 8),
