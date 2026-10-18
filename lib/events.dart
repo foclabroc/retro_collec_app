@@ -1,7 +1,12 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'audio.dart';
+import 'cards.dart';
+import 'packs.dart';
 import 'game.dart';
 import 'layout.dart';
 import 'main.dart';
@@ -88,14 +93,26 @@ class EventsPage extends StatefulWidget {
   State<EventsPage> createState() => _EventsPageState();
 }
 
-class _EventsPageState extends State<EventsPage> {
+class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   bool loading = true;
   int? busy;
+  Timer? _tick;
+  late final AnimationController anim = AnimationController(vsync: this, duration: const Duration(seconds: 8))..repeat();
 
   @override
   void initState() {
     super.initState();
     _load();
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {}); // compte à rebours
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    anim.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -112,6 +129,7 @@ class _EventsPageState extends State<EventsPage> {
       final r = await RcServer.eventClaim(id);
       Game.i.sync(); // pièces et pixels à jour partout
       RcAudio.sfx('coin');
+      RcAudio.sfx('powerup');
       final c = (r['gain_coins'] as num? ?? 0).toInt(), p = (r['gain_pixels'] as num? ?? 0).toInt();
       toast(t('Récompense : ${[if (c > 0) '+$c pièces', if (p > 0) '+$p pixels'].join(' · ')}',
           'Reward: ${[if (c > 0) '+$c coins', if (p > 0) '+$p pixels'].join(' · ')}'));
@@ -122,51 +140,120 @@ class _EventsPageState extends State<EventsPage> {
     if (mounted) setState(() => busy = null);
   }
 
+  void _go(int tab) {
+    Navigator.of(context).popUntil((r) => r.isFirst);
+    HomeShellState.current?.goTo(tab);
+  }
+
+  // ── utilitaires ──
+  Color _color(String? hex) {
+    final h = (hex ?? '').replaceAll('#', '');
+    final v = int.tryParse(h.length == 6 ? 'FF$h' : h, radix: 16);
+    return v == null ? kGold : Color(v);
+  }
+
+  DateTime? _date(Map e, String k) => DateTime.tryParse(e[k] as String? ?? '');
+  // écart avec l'heure du serveur (heure du téléphone - heure du serveur), pour les comptes à rebours
+  Duration get _skew => Duration.zero;
+
+  String _span(Duration d) {
+    if (d.isNegative) d = Duration.zero;
+    if (d.inDays >= 1) return t('${d.inDays} j ${d.inHours % 24} h', '${d.inDays} d ${d.inHours % 24} h');
+    if (d.inHours >= 1) return t('${d.inHours} h ${d.inMinutes % 60} min', '${d.inHours} h ${d.inMinutes % 60} min');
+    return t('${max(1, d.inMinutes)} min', '${max(1, d.inMinutes)} min');
+  }
+
+  /// « Encore 3 j 4 h », « dans 2 j », « Terminé »
+  String _when(Map<String, dynamic> e) {
+    final now = DateTime.now().add(_skew);
+    final start = _date(e, 'starts_at'), end = _date(e, 'ends_at');
+    if (e['ended'] == true) return t('Terminé', 'Ended');
+    if (start != null && start.isAfter(now)) return t('dans ${_span(start.difference(now))}', 'in ${_span(start.difference(now))}');
+    if (end == null) return t('En cours', 'Ongoing');
+    return t('Encore ${_span(end.difference(now))}', '${_span(end.difference(now))} left');
+  }
+
+  String _title(Map e) => ((rcFrench ? e['title'] : (e['title_en'] ?? e['title'])) as String?) ?? '';
+  String _body(Map e) => ((rcFrench ? e['body'] : (e['body_en'] ?? e['body'])) as String?) ?? '';
+  int _n(Map e, String k) => (e[k] as num? ?? 0).toInt();
+
+  bool _hasGift(Map e) => (e['kind'] ?? 'info') == 'info' && (_n(e, 'coins') > 0 || _n(e, 'pixels') > 0);
+
+  /// L'événement phare : en cours, cadeau pas encore récupéré d'abord, puis celui qui se termine le plus tôt
+  Map<String, dynamic>? _hero(List<Map<String, dynamic>> live) {
+    if (live.isEmpty) return null;
+    final l = [...live];
+    int score(Map e) => Events._claimable(e) ? 0 : (_hasGift(e) ? 1 : 2);
+    l.sort((a, b) {
+      final s = score(a).compareTo(score(b));
+      if (s != 0) return s;
+      final ea = _date(a, 'ends_at') ?? DateTime(2100), eb = _date(b, 'ends_at') ?? DateTime(2100);
+      return ea.compareTo(eb);
+    });
+    return l.first;
+  }
+
+  String _reward(int coins, int pixels) => [
+        if (coins > 0) t('$coins pièces', '$coins coins'),
+        if (pixels > 0) t('$pixels pixels', '$pixels pixels'),
+      ].join(' + ');
+
+  // ── écran ──
   @override
   Widget build(BuildContext context) {
     return MaxWidth(
       max: 760,
       child: Scaffold(
-        appBar: AppBar(title: Text(t('Événements', 'Events'))),
+        appBar: AppBar(
+          title: Text(t('ÉVÉNEMENTS', 'EVENTS'), style: pixelStyle(size: 13)),
+          actions: [
+            ListenableBuilder(
+              listenable: Game.i,
+              builder: (_, __) => Row(children: [PixelChip(Game.i.pixels), const SizedBox(width: 6), CoinChip(Game.i.coins)]),
+            ),
+            const SizedBox(width: 12),
+          ],
+        ),
         body: ListenableBuilder(
           listenable: Events.i,
           builder: (context, _) {
             final list = Events.i.list;
             if (loading && list.isEmpty) return const Center(child: CircularProgressIndicator(color: kGold));
-            if (list.isEmpty) {
-              return RefreshIndicator(
-                onRefresh: Events.i.refresh,
-                child: ListView(children: [
-                  const SizedBox(height: 120),
-                  const Center(child: Text('📅', style: TextStyle(fontSize: 46))),
-                  const SizedBox(height: 12),
-                  Text(t('Pas d\'événement en ce moment.\nReviens bientôt !', 'No event right now.\nCome back soon!'),
-                      textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, height: 1.4)),
-                ]),
-              );
-            }
-            // groupes : en cours, bientôt, terminés (déjà triés par le serveur)
-            String group(Map e) => e['live'] == true ? 'live' : (e['ended'] == true ? 'ended' : 'soon');
-            final items = <Widget>[];
-            String? last;
-            for (final e in list) {
-              final gr = group(e);
-              if (gr != last) {
-                last = gr;
-                items.add(Padding(
-                  padding: EdgeInsets.fromLTRB(2, items.isEmpty ? 4 : 18, 2, 8),
-                  child: Text(
-                      switch (gr) { 'live' => t('EN COURS', 'NOW'), 'soon' => t('BIENTÔT', 'COMING SOON'), _ => t('TERMINÉS', 'ENDED') },
-                      style: pixelStyle(size: 8, color: Colors.white54, shadow: false).copyWith(letterSpacing: 1)),
-                ));
-              } else {
-                items.add(const SizedBox(height: 14));
-              }
-              items.add(e['hidden'] == true ? _mystery(e) : _card(e));
-            }
+            final live = list.where((e) => e['live'] == true).toList();
+            final soon = list.where((e) => e['live'] != true && e['ended'] != true).toList();
+            final ended = list.where((e) => e['ended'] == true).toList();
+            final hero = _hero(live);
+            final others = live.where((e) => e != hero).toList();
+            Widget sec(String s) => Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
+                  child: Text(s, style: pixelStyle(size: 8, color: Colors.white38, shadow: false).copyWith(letterSpacing: 1)),
+                );
             return RefreshIndicator(
               onRefresh: Events.i.refresh,
-              child: ListView(padding: const EdgeInsets.fromLTRB(14, 8, 14, 24), children: items),
+              child: ListView(padding: const EdgeInsets.fromLTRB(14, 6, 14, 28), children: [
+                if (hero != null) _heroCard(hero) else _emptyHero(soon),
+                if (list.isNotEmpty) ...[sec(t('CALENDRIER', 'CALENDAR')), _calendar(list)],
+                if (others.isNotEmpty) ...[
+                  sec(t('EN COURS', 'NOW')),
+                  for (final e in others) Padding(padding: const EdgeInsets.only(bottom: 12), child: _card(e)),
+                ],
+                if (soon.isNotEmpty) ...[
+                  sec(t('BIENTÔT', 'COMING SOON')),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.25,
+                    children: [for (final e in soon) _mystery(e)],
+                  ),
+                ],
+                if (ended.isNotEmpty) ...[
+                  sec(t('TERMINÉS', 'ENDED')),
+                  for (final e in ended) _ended(e),
+                ],
+              ]),
             );
           },
         ),
@@ -174,99 +261,326 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 
-  Color _color(String? hex) {
-    final h = (hex ?? '').replaceAll('#', '');
-    final v = int.tryParse(h.length == 6 ? 'FF$h' : h, radix: 16);
-    return v == null ? kGold : Color(v);
-  }
-
-  /// « Encore 3 j 4 h », « Commence dans 2 j », « Terminé »
-  String _when(Map<String, dynamic> e) {
-    final now = DateTime.tryParse(e['now'] as String? ?? '') ?? DateTime.now();
-    final start = DateTime.tryParse(e['starts_at'] as String? ?? '');
-    final end = DateTime.tryParse(e['ends_at'] as String? ?? '');
-    String span(Duration d) {
-      if (d.inDays >= 1) return t('${d.inDays} j ${d.inHours % 24} h', '${d.inDays} d ${d.inHours % 24} h');
-      if (d.inHours >= 1) return t('${d.inHours} h ${d.inMinutes % 60} min', '${d.inHours} h ${d.inMinutes % 60} min');
-      return t('${d.inMinutes.clamp(1, 59)} min', '${d.inMinutes.clamp(1, 59)} min');
-    }
-
-    String date(DateTime d) {
-      final l = d.toLocal();
-      return '${l.day.toString().padLeft(2, '0')}/${l.month.toString().padLeft(2, '0')}';
-    }
-
-    if (e['ended'] == true) return t('Terminé', 'Ended');
-    if (start != null && start.isAfter(now)) return t('Commence dans ${span(start.difference(now))}', 'Starts in ${span(start.difference(now))}');
-    if (end == null) return t('En cours', 'Ongoing');
-    return t('Jusqu\'au ${date(end)} · encore ${span(end.difference(now))}', 'Until ${date(end)} · ${span(end.difference(now))} left');
-  }
-
-  /// Événement à venir : ni nom ni contenu, seulement la couleur et le compte à rebours
-  Widget _mystery(Map<String, dynamic> e) {
-    final color = _color(e['color'] as String?);
-    return Container(
-      decoration: BoxDecoration(
-        color: kPanel,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.5)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+  Widget _emptyHero(List<Map<String, dynamic>> soon) => Container(
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [color.withOpacity(0.55), Color.lerp(color, Colors.black, 0.7)!.withOpacity(0.6)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(colors: [Color(0xFF2A1360), Color(0xFF141A4C)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          border: Border.all(color: Colors.white12),
         ),
-        child: Row(children: [
-          Container(
-            width: 46,
-            height: 46,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white24)),
-            child: Text('?', style: pixelStyle(size: 18, color: Colors.white, shadow: false)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(t('Événement mystère', 'Mystery event'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white)),
-              const SizedBox(height: 2),
-              Text(_when(e), style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700)),
-            ]),
-          ),
-          const Icon(Icons.lock_clock, color: Colors.white54),
+        child: Column(children: [
+          const Text('📅', style: TextStyle(fontSize: 44)),
+          const SizedBox(height: 8),
+          Text(t('Pas d\'événement en ce moment', 'No event right now'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+          const SizedBox(height: 4),
+          Text(
+              soon.isEmpty
+                  ? t('Reviens bientôt !', 'Come back soon!')
+                  : t('Le prochain commence ${_when(soon.first)}', 'The next one starts ${_when(soon.first)}'),
+              style: const TextStyle(color: Colors.white60)),
         ]),
+      );
+
+  /// Grande affiche de l'événement phare
+  Widget _heroCard(Map<String, dynamic> e) {
+    final c = _color(e['color'] as String?);
+    final icon = e['icon'] as String? ?? '🎉';
+    final end = _date(e, 'ends_at');
+    final left = end?.difference(DateTime.now().add(_skew));
+    final decor = switch (icon) {
+      '🎃' || '👻' || '🦇' => '🦇',
+      '🎄' || '❄️' || '⛄' || '🎅' => '❄️',
+      '💘' || '❤️' || '💝' => '💗',
+      _ => '✨',
+    };
+    final action = _kTabs[e['action']];
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(colors: [c, Color.lerp(c, const Color(0xFF2A0F45), 0.7)!], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        border: Border.all(color: Color.lerp(c, Colors.white, 0.3)!, width: 2),
+        boxShadow: [BoxShadow(color: c.withOpacity(0.45), blurRadius: 30, spreadRadius: -8)],
+      ),
+      child: Stack(children: [
+        // décor qui traverse l'affiche
+        Positioned.fill(
+          child: IgnorePointer(
+            child: AnimatedBuilder(
+              animation: anim,
+              builder: (_, __) => LayoutBuilder(
+                builder: (_, box) => Stack(children: [
+                  for (var k = 0; k < 4; k++)
+                    Positioned(
+                      left: ((anim.value + k * 0.27) % 1) * (box.maxWidth + 60) - 40,
+                      top: box.maxHeight * (0.12 + 0.18 * k) - ((anim.value + k * 0.27) % 1) * 30,
+                      child: Opacity(opacity: 0.7, child: Text(decor, style: TextStyle(fontSize: k.isEven ? 16 : 12))),
+                    ),
+                ]),
+              ),
+            ),
+          ),
+        ),
+        // grand émoji qui flotte
+        Positioned(
+          right: -6,
+          top: 18,
+          child: AnimatedBuilder(
+            animation: anim,
+            builder: (_, child) => Transform.translate(offset: Offset(0, -6 * sin(anim.value * 2 * pi * 2)), child: child),
+            child: Text(icon, style: const TextStyle(fontSize: 86, shadows: [Shadow(color: Colors.black38, blurRadius: 10, offset: Offset(0, 6))])),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _liveTag(),
+            const SizedBox(height: 10),
+            FractionallySizedBox(
+              widthFactor: 0.72,
+              child: Text(_title(e).toUpperCase(), style: pixelStyle(size: 14, color: Colors.white).copyWith(height: 1.5)),
+            ),
+            const SizedBox(height: 6),
+            FractionallySizedBox(
+              widthFactor: 0.7,
+              child: Text(_body(e), style: const TextStyle(fontSize: 13, height: 1.4, color: Color(0xE6FFFFFF))),
+            ),
+            if (left != null) ...[
+              const SizedBox(height: 12),
+              Row(children: [
+                for (final (v, l) in [
+                  (left.inDays, t('jours', 'days')),
+                  (left.inHours % 24, t('heures', 'hours')),
+                  (left.inMinutes % 60, 'min'),
+                  (left.inSeconds % 60, 's'),
+                ])
+                  Container(
+                    width: 50,
+                    margin: const EdgeInsets.only(right: 6),
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(8)),
+                    child: Column(children: [
+                      Text(l == t('jours', 'days') ? '${max(0, v)}' : max(0, v).toString().padLeft(2, '0'), style: pixelStyle(size: 11, color: Colors.white, shadow: false)),
+                      const SizedBox(height: 2),
+                      Text(l, style: const TextStyle(fontSize: 9, color: Colors.white60, fontWeight: FontWeight.w800)),
+                    ]),
+                  ),
+              ]),
+            ],
+            if (e['kind'] == 'effect') ...[const SizedBox(height: 12), _effectBox(e, c)],
+            if (e['kind'] == 'goal') ...[const SizedBox(height: 12), _goalBox(e, c)],
+            const SizedBox(height: 12),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              if (_hasGift(e)) _claimButton(e),
+              if (e['kind'] == 'goal' && Events._reachable(e) > 0) _claimButton(e),
+              if (action != null)
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(backgroundColor: Colors.black26, side: const BorderSide(color: Colors.white54)),
+                  onPressed: () => _go(action),
+                  child: Text(t('Y aller ›', 'Go ›'), style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+                ),
+            ]),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  Widget _liveTag() => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+        decoration: BoxDecoration(color: const Color(0xFFFF4757), borderRadius: BorderRadius.circular(6)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          AnimatedBuilder(
+            animation: anim,
+            builder: (_, __) => Opacity(opacity: (anim.value * 8) % 1 < 0.5 ? 1 : 0.25, child: Container(width: 6, height: 6, decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white))),
+          ),
+          const SizedBox(width: 5),
+          Text(t('EN COURS', 'LIVE'), style: pixelStyle(size: 7, color: Colors.white, shadow: false)),
+        ]),
+      );
+
+  /// Bouton « Récupérer » qui brille (cadeau ou paliers d'un défi)
+  Widget _claimButton(Map<String, dynamic> e) {
+    final goal = e['kind'] == 'goal';
+    final got = !goal && e['got'] == true;
+    final label = got
+        ? t('✓ Récupéré (${_reward(_n(e, 'coins'), _n(e, 'pixels'))})', '✓ Claimed (${_reward(_n(e, 'coins'), _n(e, 'pixels'))})')
+        : goal
+            ? (Events._reachable(e) > 1 ? t('Récupérer ${Events._reachable(e)} paliers', 'Claim ${Events._reachable(e)} steps') : t('Récupérer le palier', 'Claim the step'))
+            : t('Récupérer ${_reward(_n(e, 'coins'), _n(e, 'pixels'))}', 'Claim ${_reward(_n(e, 'coins'), _n(e, 'pixels'))}');
+    if (got) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(color: const Color(0x335DCAA5), borderRadius: BorderRadius.circular(11)),
+        child: Text(label, style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w900)),
+      );
+    }
+    return GestureDetector(
+      onTap: busy == null && e['live'] == true ? () => _claim(e) : null,
+      child: AnimatedBuilder(
+        animation: anim,
+        builder: (_, child) {
+          final p = (anim.value * 3) % 1; // reflet qui passe
+          return ShaderMask(
+            blendMode: BlendMode.srcATop,
+            shaderCallback: (r) => LinearGradient(
+              begin: Alignment(-1.5 + p * 3 - 0.3, -0.2),
+              end: Alignment(-1.5 + p * 3 + 0.3, 0.2),
+              colors: const [Color(0x00FFFFFF), Color(0x88FFFFFF), Color(0x00FFFFFF)],
+            ).createShader(r),
+            child: child,
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFFFFE08A), Color(0xFFEF9F27)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+            borderRadius: BorderRadius.circular(11),
+            boxShadow: const [BoxShadow(color: Color(0xFF8A4E00), offset: Offset(0, 4)), BoxShadow(color: Color(0x99FFD166), blurRadius: 16)],
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            if (busy == Events._id(e))
+              const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF2A1800)))
+            else
+              const Icon(Icons.card_giftcard, size: 17, color: Color(0xFF2A1800)),
+            const SizedBox(width: 6),
+            Text(label, style: const TextStyle(color: Color(0xFF2A1800), fontWeight: FontWeight.w900, fontSize: 13)),
+          ]),
+        ),
       ),
     );
   }
 
-  /// Effet en cours : « ×2 · Chaque booster ouvert rapporte 2 pixels »
-  Widget _effect(Map<String, dynamic> e, Color color) {
+  /// Frise des 14 prochains jours, un point par événement ces jours-là
+  Widget _calendar(List<Map<String, dynamic>> list) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final days = [for (var i = 0; i < 14; i++) today.add(Duration(days: i))];
+    final names = rcFrench ? const ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'] : const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return SizedBox(
+      height: 66,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: days.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        itemBuilder: (_, i) {
+          final d = days[i];
+          final next = d.add(const Duration(days: 1));
+          final dots = [
+            for (final e in list)
+              if ((_date(e, 'starts_at')?.toLocal().isBefore(next) ?? false) && ((_date(e, 'ends_at')?.toLocal().isAfter(d)) ?? true)) _color(e['color'] as String?)
+          ];
+          return Container(
+            width: 46,
+            decoration: BoxDecoration(
+              color: i == 0 ? const Color(0x26FFD166) : Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: i == 0 ? Border.all(color: const Color(0xFFFFD166), width: 1.5) : null,
+            ),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text(i == 0 ? t('auj.', 'today') : names[d.weekday - 1],
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: i == 0 ? const Color(0xFFFFD166) : Colors.white54)),
+              Text('${d.day}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 3),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                for (final c in dots.take(4))
+                  Container(width: 6, height: 6, margin: const EdgeInsets.symmetric(horizontal: 1.5), decoration: BoxDecoration(shape: BoxShape.circle, color: c)),
+              ]),
+            ]),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Carte d'un événement en cours (autre que l'affiche)
+  Widget _card(Map<String, dynamic> e) {
+    final c = _color(e['color'] as String?);
+    final kind = e['kind'] as String? ?? 'info';
+    final action = _kTabs[e['action']];
+    final body = _body(e);
+    final tag = switch (kind) { 'effect' => t('EFFET', 'EFFECT'), 'goal' => t('DÉFI', 'CHALLENGE'), _ => _hasGift(e) ? t('CADEAU', 'GIFT') : t('INFO', 'INFO') };
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: kPanel,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.withOpacity(0.6), width: 1.5),
+        boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 16, offset: Offset(0, 6))],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(gradient: LinearGradient(colors: [Color.lerp(c, Colors.black, 0.15)!, Color.lerp(c, const Color(0xFF0B1036), 0.65)!])),
+          child: Row(children: [
+            Container(
+              width: 50,
+              height: 50,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white24, width: 2)),
+              child: Text(e['icon'] as String? ?? '🎉', style: const TextStyle(fontSize: 26)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_title(e), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                Text(_when(e), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xD9FFFFFF))),
+              ]),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+              decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(5)),
+              child: Text(tag, style: pixelStyle(size: 6.5, color: Colors.white, shadow: false)),
+            ),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (body.isNotEmpty) ...[Text(body, style: const TextStyle(fontSize: 13, height: 1.45, color: Color(0xC7FFFFFF))), const SizedBox(height: 10)],
+            if (kind == 'effect') ...[_effectBox(e, c), const SizedBox(height: 10)],
+            if (kind == 'goal') ...[_goalBox(e, c), const SizedBox(height: 10)],
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              if (_hasGift(e)) _claimButton(e),
+              if (kind == 'goal' && Events._reachable(e) > 0) _claimButton(e),
+              if (action != null)
+                OutlinedButton(onPressed: () => _go(action), child: Text(t('Y aller ›', 'Go ›'), style: const TextStyle(fontWeight: FontWeight.w900))),
+            ]),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  /// Effet en cours : multiplicateur qui pulse
+  Widget _effectBox(Map<String, dynamic> e, Color c) {
     final v = (e['effect_value'] as num? ?? 2).toInt();
     final (big, text) = switch (e['effect']) {
       'pixels_x2' => ('×$v', t('Chaque booster ouvert rapporte $v pixels au lieu d\'1.', 'Every booster you open gives $v pixels instead of 1.')),
       'free_fast' => ('$v h', t('Le paquet gratuit revient toutes les $v heures au lieu de 6.', 'The free pack comes back every $v hours instead of 6.')),
       _ => ('★', ''),
     };
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.4))),
-        child: Row(children: [
-          Text(big, style: pixelStyle(size: 14, color: const Color(0xFFFFD166), shadow: false)),
-          const SizedBox(width: 12),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 13, height: 1.35))),
-        ]),
-      ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12)),
+      child: Row(children: [
+        AnimatedBuilder(
+          animation: anim,
+          builder: (_, child) => Transform.scale(scale: 1 + 0.1 * sin(anim.value * 2 * pi * 5), child: child),
+          child: Text(big, style: pixelStyle(size: 18, color: const Color(0xFFFFD166), shadow: false).copyWith(shadows: const [Shadow(color: Color(0x99FFD166), blurRadius: 12)])),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: Text(text, style: const TextStyle(fontSize: 12.5, height: 1.35))),
+      ]),
     );
   }
 
-  /// Défi : barre de progression et paliers (✓ récupéré, doré atteint, gris à faire)
-  Widget _goal(Map<String, dynamic> e, Color color) {
+  /// Défi : piste avec des coffres (✓ récupéré, 🎁 prêt, 🔒 à atteindre)
+  Widget _goalBox(Map<String, dynamic> e, Color c) {
     final steps = [for (final s in (e['steps'] as List? ?? const [])) Map<String, dynamic>.from(s as Map)];
     if (steps.isEmpty) return const SizedBox();
-    final prog = (e['progress'] as num? ?? 0).toInt(), claimed = (e['claimed'] as num? ?? 0).toInt();
-    final target = (steps.last['n'] as num? ?? 1).toInt();
+    final prog = _n(e, 'progress'), claimed = _n(e, 'claimed');
+    final target = max(1, (steps.last['n'] as num? ?? 1).toInt());
     final label = switch (e['goal']) {
       'packs' => t('Boosters ouverts', 'Boosters opened'),
       'c4_wins' => t('Parties de 4 en ligne gagnées', 'Connect 4 games won'),
@@ -274,158 +588,124 @@ class _EventsPageState extends State<EventsPage> {
       'gamedle' => t('Gamedle trouvés', 'Gamedles solved'),
       _ => t('Progression', 'Progress'),
     };
-    String reward(Map s) => [
-          if ((s['coins'] as num? ?? 0) > 0) '${s['coins']} 🪙',
-          if ((s['pixels'] as num? ?? 0) > 0) '${s['pixels']} px',
-        ].join(' + ');
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          Expanded(child: Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12.5))),
-          Text('${prog.clamp(0, target)} / $target', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-        ]),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(5),
-          child: LinearProgressIndicator(value: (prog / target).clamp(0.0, 1.0), minHeight: 9, color: color, backgroundColor: Colors.white10),
-        ),
-        const SizedBox(height: 8),
-        Row(children: [
-          for (var i = 0; i < steps.length; i++) ...[
-            if (i > 0) const SizedBox(width: 6),
-            Expanded(
-              child: Builder(builder: (_) {
-                final n = (steps[i]['n'] as num? ?? 0).toInt();
-                final got = i < claimed, reached = prog >= n;
-                return Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                  decoration: BoxDecoration(
-                    color: got ? color.withOpacity(0.3) : (reached ? kGold.withOpacity(0.22) : Colors.white.withOpacity(0.06)),
-                    borderRadius: BorderRadius.circular(9),
-                    border: Border.all(color: reached && !got ? kGold : Colors.transparent),
-                  ),
+    String reward(Map s) => [if (_n(s, 'coins') > 0) '${s['coins']} 🪙', if (_n(s, 'pixels') > 0) '${s['pixels']} ▦'].join(' + ');
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Row(children: [
+        Expanded(child: Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12, fontWeight: FontWeight.w800))),
+        Text('${min(prog, target)} / $target', style: const TextStyle(fontWeight: FontWeight.w900)),
+      ]),
+      const SizedBox(height: 6),
+      LayoutBuilder(builder: (_, box) {
+        final w = box.maxWidth - 30;
+        return SizedBox(
+          height: 56,
+          child: Stack(clipBehavior: Clip.none, children: [
+            Positioned(left: 15, right: 15, top: 12, height: 7, child: Container(decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(4)))),
+            Positioned(
+              left: 15,
+              top: 12,
+              height: 7,
+              width: w * (prog / target).clamp(0.0, 1.0),
+              child: Container(decoration: BoxDecoration(gradient: LinearGradient(colors: [c, Color.lerp(c, Colors.white, 0.4)!]), borderRadius: BorderRadius.circular(4))),
+            ),
+            for (var i = 0; i < steps.length; i++)
+              Builder(builder: (_) {
+                final n = _n(steps[i], 'n');
+                final got = i < claimed, ready = !got && prog >= n;
+                final x = 15 + w * (n / target).clamp(0.0, 1.0);
+                return Positioned(
+                  left: x - 15,
+                  top: 0,
                   child: Column(children: [
-                    Text(got ? '✓ $n' : '$n', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: reached ? Colors.white : Colors.white54)),
-                    FittedBox(child: Text(reward(steps[i]), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: reached ? Colors.white : Colors.white54))),
+                    AnimatedBuilder(
+                      animation: anim,
+                      builder: (_, child) => Transform.rotate(angle: ready ? 0.14 * sin(anim.value * 2 * pi * 6) : 0, child: child),
+                      child: GestureDetector(
+                        onTap: ready && busy == null ? () => _claim(e) : null,
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: ready ? Color.lerp(c, const Color(0xFF1B2254), 0.6) : const Color(0xFF1B2254),
+                            borderRadius: BorderRadius.circular(9),
+                            border: Border.all(color: ready ? const Color(0xFFFFD166) : Colors.white24, width: 2),
+                            boxShadow: [if (ready) const BoxShadow(color: Color(0x99FFD166), blurRadius: 12)],
+                          ),
+                          child: Opacity(opacity: got ? 0.6 : 1, child: Text(got ? '✓' : (ready ? '🎁' : '🔒'), style: const TextStyle(fontSize: 14))),
+                        ),
+                      ),
+                    ),
                   ]),
                 );
               }),
-            ),
-          ],
-        ]),
+            for (var i = 0; i < steps.length; i++)
+              Positioned(
+                left: (15 + w * (_n(steps[i], 'n') / target).clamp(0.0, 1.0)) - (i == steps.length - 1 ? 90 : 40),
+                width: 80,
+                top: 34,
+                child: Text('${_n(steps[i], 'n')} · ${reward(steps[i])}',
+                    textAlign: i == steps.length - 1 ? TextAlign.right : TextAlign.center,
+                    style: const TextStyle(fontSize: 10.5, color: Colors.white60, fontWeight: FontWeight.w800)),
+              ),
+          ]),
+        );
+      }),
+    ]);
+  }
+
+  /// À venir : boîte « ? » qui tremble, sans nom ni contenu
+  Widget _mystery(Map<String, dynamic> e) {
+    final c = _color(e['color'] as String?);
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: LinearGradient(colors: [Color.lerp(c, const Color(0xFF0B1036), 0.55)!, const Color(0xFF0E1340)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        border: Border.all(color: c.withOpacity(0.5), width: 1.5),
+      ),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        AnimatedBuilder(
+          animation: anim,
+          builder: (_, child) {
+            final p = (anim.value * 2.6) % 1;
+            return Transform.rotate(angle: p > 0.85 ? 0.18 * sin((p - 0.85) / 0.15 * pi * 4) : 0, child: child);
+          },
+          child: Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white24, width: 2)),
+            child: Text('?', style: pixelStyle(size: 16, color: Colors.white, shadow: false)),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(t('Événement mystère', 'Mystery event'), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+        Text(_when(e), style: const TextStyle(fontSize: 11, color: Colors.white60, fontWeight: FontWeight.w700)),
       ]),
     );
   }
 
-  Widget _card(Map<String, dynamic> e) {
-    final color = _color(e['color'] as String?);
-    final fr = rcFrench;
-    final title = (fr ? e['title'] : (e['title_en'] ?? e['title'])) as String? ?? '';
-    final body = (fr ? e['body'] : (e['body_en'] ?? e['body'])) as String? ?? '';
-    final image = e['image'] as String?;
-    final live = e['live'] == true, ended = e['ended'] == true, got = e['got'] == true;
-    final kind = e['kind'] as String? ?? 'info';
-    final isGoal = kind == 'goal';
-    final coins = (e['coins'] as num? ?? 0).toInt(), pixels = (e['pixels'] as num? ?? 0).toInt();
-    final hasReward = !isGoal && kind != 'effect' && (coins > 0 || pixels > 0);
-    final action = _kTabs[e['action']];
-    final id = Events._id(e);
-    final reward = [
-      if (coins > 0) t('$coins pièces', '$coins coins'),
-      if (pixels > 0) t('$pixels pixels', '$pixels pixels'),
-    ].join(' + ');
-
-    return Opacity(
-      opacity: ended ? 0.55 : 1,
-      child: Container(
-        decoration: BoxDecoration(
-          color: kPanel,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(live ? 0.9 : 0.4), width: live ? 2 : 1),
-          boxShadow: [if (live) BoxShadow(color: color.withOpacity(0.35), blurRadius: 16, spreadRadius: -4)],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          // bannière
-          Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [color, Color.lerp(color, Colors.black, 0.45)!], begin: Alignment.topLeft, end: Alignment.bottomRight),
-            ),
-            child: Row(children: [
-              Text(e['icon'] as String? ?? '🎉', style: const TextStyle(fontSize: 32)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Colors.white, shadows: [Shadow(blurRadius: 4)])),
-                  const SizedBox(height: 2),
-                  Text(_when(e), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-                ]),
-              ),
-              if (live)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                  decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(8)),
-                  child: Text(t('EN COURS', 'LIVE'), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
-                ),
+  /// Terminé : une ligne
+  Widget _ended(Map<String, dynamic> e) {
+    final got = e['got'] == true;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(color: Colors.white.withOpacity(0.04), borderRadius: BorderRadius.circular(12)),
+      child: Row(children: [
+        Text(e['icon'] as String? ?? '🎉', style: const TextStyle(fontSize: 18)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(text: _title(e), style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xBFFFFFFF))),
+              if (got && _hasGift(e)) TextSpan(text: t(' · récupéré', ' · claimed')),
             ]),
+            style: const TextStyle(fontSize: 12.5, color: Colors.white54),
           ),
-          if (image != null && image.startsWith('http'))
-            Image.network(image, height: 150, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
-          if (body.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-              child: Text(body, style: const TextStyle(color: Colors.white70, height: 1.4)),
-            ),
-          if (kind == 'effect') _effect(e, color),
-          if (isGoal) _goal(e, color),
-          if (isGoal && live && Events._reachable(e) > 0)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
-                  onPressed: busy == null ? () => _claim(e) : null,
-                  icon: const Icon(Icons.card_giftcard, size: 18),
-                  label: Text(
-                      Events._reachable(e) > 1 ? t('Récupérer ${Events._reachable(e)} paliers', 'Claim ${Events._reachable(e)} steps') : t('Récupérer le palier', 'Claim the step'),
-                      style: const TextStyle(fontWeight: FontWeight.w900)),
-                ),
-              ),
-            ),
-          if (hasReward || (action != null && live))
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-              child: Wrap(spacing: 8, runSpacing: 8, children: [
-                if (hasReward)
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
-                    onPressed: live && !got && busy == null ? () => _claim(e) : null,
-                    icon: Icon(got ? Icons.check : Icons.card_giftcard, size: 18),
-                    label: Text(
-                      got ? t('Récupéré ($reward)', 'Claimed ($reward)') : t('Récupérer $reward', 'Claim $reward'),
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                  ),
-                if (action != null && live)
-                  OutlinedButton.icon(
-                    onPressed: busy == id
-                        ? null
-                        : () {
-                            Navigator.of(context).popUntil((r) => r.isFirst);
-                            HomeShellState.current?.goTo(action);
-                          },
-                    icon: const Icon(Icons.arrow_forward, size: 18),
-                    label: Text(t('Y aller', 'Go')),
-                  ),
-              ]),
-            )
-          else
-            const SizedBox(height: 14),
-        ]),
-      ),
+        ),
+      ]),
     );
   }
 }

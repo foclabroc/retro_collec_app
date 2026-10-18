@@ -5,6 +5,9 @@
   d'étage, plus d'ascenseur ni de fenêtre de droite : la plaque prend toute la largeur et le pseudo s'affiche en entier
   (il rétrécit s'il est très long). « En ligne » ou « vu 02:19 » sur le balcon, sous l'avatar. Plaque sur 3 lignes :
   pseudo · points, % de collection et sa barre · cartes et pièces. Bouton « 🎁 Offrir » (« Offert ✓ » après).
+- **Événements, nouveau look** : l'événement phare en grande affiche (émoji animé, décor, compte à rebours, bouton
+  « Récupérer » qui brille), frise des 14 prochains jours, une carte par événement avec son étiquette (cadeau, effet, défi),
+  défis en piste avec des coffres à ouvrir, événements à venir en boîtes mystère, terminés réduits à une ligne.
 - **Joueurs en ligne** : bouton 🟢 en haut du Voisinage avec la liste des connectés, « Défier » (4 en ligne ou
   Console Wars, grisé sous 50 pièces) et « Étage » pour descendre jusqu'à eux.
 
