@@ -118,7 +118,7 @@ class _PacksScreenState extends State<PacksScreen> {
     return ok == true;
   }
 
-  /// Lot de 5 paquets mixtes : confirmation, achat, puis les 5 paquets vont « en stock » (rien ne s'ouvre tout seul)
+  /// Lot de 5 paquets mixtes : confirmation, achat, ouverture du 1er paquet ; les autres restent « en stock » si on quitte l'écran
   Future<void> _buyLot() async {
     if (busy) return;
     final free = Notifs.i.lotFree;
@@ -174,7 +174,7 @@ class _PacksScreenState extends State<PacksScreen> {
       RcAudio.sfx('powerup');
       await Game.i.sync();
       await Notifs.i.refresh();
-      toast(t('5 paquets ajoutés à ton stock 📦 Touche-en un pour le déchirer', '5 packs added to your stock 📦 Tap one to tear it open'));
+      if (mounted) await openPackFlow(context, 'lot');
     } catch (e) {
       toast(errText(e));
     }
@@ -1539,6 +1539,11 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                 ),
             ]),
           ),
+          if (again == 'lot' || again == 'gift') ...[
+            const SizedBox(height: 8),
+            Text(t('Si tu quittes, ${again == 'lot' ? lotsLeft : giftsLeft} restent dans ton stock 📦', 'If you leave, ${again == 'lot' ? lotsLeft : giftsLeft} stay in your stock 📦'),
+                textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+          ],
         ]),
       ),
     );
