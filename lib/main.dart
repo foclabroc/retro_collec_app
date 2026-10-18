@@ -743,7 +743,6 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               ),
             ),
             const OnlineMenuTile(compact: true),
-            const ShareMenuTile(compact: true),
             const ReferralMenuTile(compact: true),
             Padding(
               padding: const EdgeInsets.all(8),
@@ -873,7 +872,6 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 ]),
               ),
               OnlineMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
-              ShareMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
               ReferralMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
               Padding(
                 padding: const EdgeInsets.all(14),

@@ -98,7 +98,7 @@ class _ReferralPageState extends State<ReferralPage> {
   Widget build(BuildContext context) {
     return MaxWidth(
       child: Scaffold(
-        appBar: AppBar(title: Text(t('Parrainage', 'Referral'))),
+        appBar: AppBar(title: Text(t('Partager & parrainage', 'Share & referral'))),
         body: data == null
             ? Center(
                 child: error
@@ -261,7 +261,7 @@ class _ReferralPageState extends State<ReferralPage> {
       );
 }
 
-/// Case du panneau latéral, sous « Partager »
+/// Case du panneau latéral « Partager & parrainage » : ouvre la page avec le bouton Partager et le code
 class ReferralMenuTile extends StatelessWidget {
   final bool compact;
   final VoidCallback? beforeOpen;
@@ -269,7 +269,7 @@ class ReferralMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const violet = Color(0xFFB08CFF);
+    const violet = Color(0xFFFF8AD8);
     void go() {
       final nav = Navigator.of(context);
       beforeOpen?.call();
@@ -278,16 +278,16 @@ class ReferralMenuTile extends StatelessWidget {
 
     if (compact) {
       return Tooltip(
-        message: t('Parrainage', 'Referral'),
+        message: t('Partager le jeu & parrainage', 'Share the game & referral'),
         child: InkWell(
           onTap: go,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Column(children: [
-              const Text('🤝', style: TextStyle(fontSize: 18)),
+              const Icon(Icons.share, color: Color(0xFFFF8AD8), size: 20),
               const SizedBox(height: 2),
-              Text(t('Parrainage', 'Referral'), style: const TextStyle(fontSize: 10.5, color: Colors.white60)),
+              Text(t('Inviter', 'Invite'), style: const TextStyle(fontSize: 10.5, color: Colors.white60)),
             ]),
           ),
         ),
@@ -305,9 +305,9 @@ class ReferralMenuTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: violet.withOpacity(0.6))),
             child: Row(children: [
-              const Text('🤝', style: TextStyle(fontSize: 17)),
+              const Icon(Icons.share, color: violet, size: 20),
               const SizedBox(width: 10),
-              Expanded(child: Text(t('Parrainage', 'Referral'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14))),
+              Expanded(child: Text(t('Partager & parrainage', 'Share & referral'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14))),
               const Icon(Icons.chevron_right, color: Colors.white38),
             ]),
           ),
