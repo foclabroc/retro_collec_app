@@ -187,14 +187,14 @@ class MainActivity : FlutterActivity() {
 
     // Morceaux disponibles (index envoyé par Dart)
     private val musicFiles = listOf(
-        "assets/music/collec_music_1.ogg", // 0 : Good Morning
-        "assets/music/collec_music_2.ogg", // 1 : Shop
-        "assets/music/collec_music_3.ogg", // 2 : Mountain
-        "assets/music/collec_music_4.ogg", // 3 : Pixel Town
-        "assets/music/collec_music_5.ogg", // 4 : Night Arcade
-        "assets/music/collec_music_6.ogg", // 5 : Treasure Hunt
-        "assets/music/collec_music_7.ogg", // 6 : Chill Cartridge
-        "assets/music/collec_music_8.ogg", // 7 : Boss Rush
+        "assets/music/collec_music_1.ogg", // 0 : Pixel Quest
+        "assets/music/collec_music_2.ogg", // 1 : Block World
+        "assets/music/collec_music_3.ogg", // 2 : Level Up
+        "assets/music/collec_music_4.ogg", // 3 : Game On
+        "assets/music/collec_music_5.ogg", // 4 : Retro Wave
+        "assets/music/collec_music_6.ogg", // 5 : Lo-fi Gaming
+        "assets/music/collec_music_7.ogg", // 6 : Study Time
+        "assets/music/collec_music_8.ogg", // 7 : Game Show
     )
 
     /** Lance le morceau [index] en boucle (reprend s'il est déjà chargé). */

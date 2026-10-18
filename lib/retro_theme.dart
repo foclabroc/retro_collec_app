@@ -91,7 +91,7 @@ int _randomTheme() {
 Future<void> loadTheme() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    final v = prefs.getInt('rc_theme') ?? 0;
+    final v = prefs.getInt('rc_theme2') ?? -1; // -1 = aléatoire (par défaut, nouveaux thèmes)
     rcThemeRandom = v < 0;
     if (rcThemeRandom) {
       rcThemeIndex.value = (prefs.getInt('rc_theme_last') ?? 0).clamp(0, kThemes.length - 1);
@@ -109,7 +109,7 @@ Future<void> setTheme(int i) async {
   rcThemeIndex.value = rcThemeRandom ? _randomTheme() : i;
   try {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('rc_theme', i < 0 ? -1 : i);
+    await prefs.setInt('rc_theme2', i < 0 ? -1 : i);
     await prefs.setInt('rc_theme_last', rcThemeIndex.value);
   } catch (_) {}
 }

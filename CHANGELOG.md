@@ -16,6 +16,9 @@
   Forêt, Ardoise, Prune, Néon). Fond en dégradé, lueur de la couleur du thème et motif discret qui défile lentement
   (étoiles, grille, vagues, lucioles…). Les boutons, barres et titres prennent la couleur du thème.
   Le titre de l'onglet devient « Collection ».
+- **Nouvelles musiques** : 8 nouveaux morceaux moins chiptune (Pixel Quest, Block World, Level Up, Game On, Retro Wave,
+  Lo-fi Gaming, Study Time, Game Show), au même volume. Musique et thème sont en « Aléatoire » par défaut :
+  un morceau et un thème différents à chaque lancement (on peut toujours en choisir un fixe dans les réglages).
 - **Bourse, échanges en détail** : toucher un échange (ou « Voir le détail ») ouvre une page avec les cartes en grand,
   leur rareté et finition, « ✨ Nouvelle pour toi » ou « Tu en as déjà 2 », « ⚠ Ta dernière » pour celles que tu donnes,
   la valeur de chaque côté, et les boutons Accepter / Refuser. Toucher une carte ouvre sa fiche.

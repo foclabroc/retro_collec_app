@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,16 +56,30 @@ class RcAudio {
   static int? _track; // musique du jeu actuellement ouvert
 
   /// Morceau choisi dans les réglages (index dans kTracks, même ordre que MainActivity.kt)
-  static const kTracks = ['Good Morning', 'Shop', 'Mountain', 'Pixel Town', 'Night Arcade', 'Treasure Hunt', 'Chill Cartridge', 'Boss Rush'];
-  static const _kTrackKey = 'rc_track';
-  static int homeTrack = 2;
+  static const kTracks = ['Pixel Quest', 'Block World', 'Level Up', 'Game On', 'Retro Wave', 'Lo-fi Gaming', 'Study Time', 'Game Show'];
+  static const _kTrackKey = 'rc_track2'; // -1 = aléatoire (par défaut, nouvelles musiques)
+  static int homeTrack = 0;
 
+  /// « Aléatoire » : un morceau différent à chaque lancement
+  static bool homeTrackRandom = true;
+
+  static int _randomTrack(int not) {
+    int i;
+    do {
+      i = Random().nextInt(kTracks.length);
+    } while (i == not && kTracks.length > 1);
+    return i;
+  }
+
+  /// [i] = -1 : aléatoire
   static Future<void> setHomeTrack(int i) async {
-    homeTrack = i;
-    if (_music && _enabled) musicStart(i);
+    homeTrackRandom = i < 0;
+    homeTrack = homeTrackRandom ? _randomTrack(homeTrack) : i;
+    if (_music && _enabled) musicStart(homeTrack);
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_kTrackKey, i);
+      await prefs.setInt(_kTrackKey, i < 0 ? -1 : i);
+      await prefs.setInt('rc_track_last', homeTrack);
     } catch (_) {}
   }
 
@@ -76,7 +91,14 @@ class RcAudio {
     try {
       final prefs = await SharedPreferences.getInstance();
       _music = prefs.getBool(_kMusicKey) ?? true;
-      homeTrack = (prefs.getInt(_kTrackKey) ?? 2).clamp(0, kTracks.length - 1);
+      final v = prefs.getInt(_kTrackKey) ?? -1;
+      homeTrackRandom = v < 0;
+      if (homeTrackRandom) {
+        homeTrack = _randomTrack((prefs.getInt('rc_track_last') ?? -1));
+        await prefs.setInt('rc_track_last', homeTrack);
+      } else {
+        homeTrack = v.clamp(0, kTracks.length - 1);
+      }
       _musicLoaded = true;
     } catch (_) {}
   }
