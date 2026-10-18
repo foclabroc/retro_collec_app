@@ -52,6 +52,7 @@ List<String> get _sysSortLabels => [
 class _LibraryScreenState extends State<LibraryScreen> {
   int sysSort = 0;
   bool sagas = false; // onglet « Sagas » au lieu de « Consoles » (mémorisé)
+  bool dashOpen = false; // tableau de bord déplié (mémorisé, replié par défaut)
 
   @override
   void initState() {
@@ -61,7 +62,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final v = p.getInt(_kSysSortKey);
       if (v != null && mounted) setState(() => sysSort = v.clamp(0, 5));
       if (p.getBool('rc_coll_sagas') == true && mounted) setState(() => sagas = true);
+      if (p.getBool('rc_dash_open') == true && mounted) setState(() => dashOpen = true);
     }).catchError((_) {});
+  }
+
+  void _toggleDash() {
+    setState(() => dashOpen = !dashOpen);
+    SharedPreferences.getInstance().then((p) => p.setBool('rc_dash_open', dashOpen)).catchError((_) => false);
   }
 
   void _setSagas(bool v) {
@@ -379,6 +386,73 @@ class _LibraryScreenState extends State<LibraryScreen> {
       borderRadius: BorderRadius.circular(18),
       border: Border.all(color: kGold.withOpacity(0.45)),
     );
+    // replié : une ligne (anneau, total, petits compteurs) ; toucher pour déplier
+    if (!dashOpen) {
+      Widget mini(String icon, int v, Color c) => Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: Text('$icon $v', style: TextStyle(color: c, fontWeight: FontWeight.w900, fontSize: 12.5)),
+          );
+      return Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+        decoration: box,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: _toggleDash,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 6, 8),
+              child: Row(children: [
+                SizedBox(
+                  width: 46,
+                  height: 46,
+                  child: Stack(alignment: Alignment.center, children: [
+                    SizedBox.expand(
+                      child: CircularProgressIndicator(value: pct, strokeWidth: 5, color: kGold, backgroundColor: Colors.white12, strokeCap: StrokeCap.round),
+                    ),
+                    Text('${(pct * 100).floor()}%', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: kGold)),
+                  ]),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    Text(t('${g.cards} / $total cartes', '${g.cards} / $total cards'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5)),
+                    const SizedBox(height: 3),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(children: [
+                        mini('🌈', sagaMine, const Color(0xFFFFB3E6)),
+                        mini('★★', g.fullArtCount, const Color(0xFFFF9FE5)),
+                        mini('★', g.goldCount, const Color(0xFFFFD54F)),
+                        mini('✦', g.holoCount, const Color(0xFFB4A9FF)),
+                        mini('♻', g.dupes, Colors.white70),
+                        if (g.fusable > 0) mini('⚡', g.fusable, kGold),
+                      ]),
+                    ),
+                  ]),
+                ),
+                const Icon(Icons.expand_more, color: Colors.white54),
+              ]),
+            ),
+          ),
+        ),
+      );
+    }
+    // bouton pour replier
+    final fold = Align(
+      alignment: Alignment.centerRight,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: _toggleDash,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text(t('Réduire', 'Collapse'), style: const TextStyle(color: Colors.white54, fontSize: 11.5, fontWeight: FontWeight.w700)),
+            const Icon(Icons.expand_less, color: Colors.white54, size: 18),
+          ]),
+        ),
+      ),
+    );
     if (wide) {
       // mode large : tout sur une ligne
       return Container(
@@ -399,7 +473,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ]),
             ),
             const SizedBox(width: 14),
-            Expanded(flex: 4, child: latest),
+            Expanded(flex: 4, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [fold, Expanded(child: latest)])),
           ]),
         ),
       );
@@ -409,6 +483,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       padding: const EdgeInsets.all(12),
       decoration: box,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        fold,
         summary,
         const SizedBox(height: 12),
         Row(children: [a1, const SizedBox(width: 6), a2, const SizedBox(width: 6), a3, const SizedBox(width: 6), a4, const SizedBox(width: 6), a5]),

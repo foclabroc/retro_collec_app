@@ -772,7 +772,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             Widget item(int i, String icon, String label, {int count = 0, bool dot = false, String? hint}) {
               final sel = tab == i;
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
                 child: Material(
                   color: sel ? kGold.withOpacity(0.16) : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
@@ -787,7 +787,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: sel ? kGold.withOpacity(0.7) : Colors.transparent),
@@ -797,8 +797,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                            Text(label, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: sel ? kGold : Colors.white)),
-                            if (hint != null) Text(hint, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: sel ? kGold : Colors.white)),
+                            if (hint != null) Text(hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFFFFB86B), fontSize: 11, fontWeight: FontWeight.w700)),
                           ]),
                         ),
                         if (count > 0)
@@ -825,9 +825,9 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   nav.push(MaterialPageRoute(builder: (_) => const MyProfilePage()));
                 },
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 18, 12, 14),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 12, 10),
                   child: Row(children: [
-                    avatarWidget(g.avatar, size: 48),
+                    avatarWidget(g.avatar, size: 42),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -853,7 +853,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                               ? t('Paquet gratuit dispo !', 'Free pack ready!')
                               : null),
                   item(7, 'defis', t('Défis de la semaine', 'Weekly challenges'),
-                      count: n.week, hint: n.week > 0 ? t('Récompense à récupérer !', 'Reward to claim!') : t('6 défis et un coffre', '6 challenges and a chest')),
+                      count: n.week, hint: n.week > 0 ? t('Récompense à récupérer !', 'Reward to claim!') : null),
                   item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'),
                       dot: n.wheel,
                       count: DuelWatch.i.badge,
@@ -861,9 +861,9 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                           ? t('⚔ ${DuelWatch.i.lastFrom ?? 'Un joueur'} te défie', '⚔ ${DuelWatch.i.lastFrom ?? 'A player'} challenges you')
                           : DuelWatch.i.turns > 0
                               ? t('🎮 À toi de jouer (${DuelWatch.i.turns})', '🎮 Your turn (${DuelWatch.i.turns})')
-                              : t('Roue, Gamedle, quiz, 4 en ligne, Console Wars', 'Wheel, Gamedle, quiz, Connect 4, Console Wars')),
+                              : null),
                   item(3, 'market', t('Bourse', 'Exchange'),
-                      count: n.trades + n.sales.length, hint: t('Acheter, vendre, échanger', 'Buy, sell, trade')),
+                      count: n.trades + n.sales.length),
                   item(4, 'messages', t('Messages', 'Messages'),
                       count: n.chat, dot: n.mention, hint: n.mention ? t('On t\'a mentionné', 'You were mentioned') : null),
                   item(5, 'neighbors', t('Voisinage', 'Neighbors'), hint: n.canGift ? t('${n.giftsLeft} cadeau(x) à offrir', '${n.giftsLeft} gift(s) to give') : null),
@@ -871,16 +871,16 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       count: n.reacts,
                       hint: n.reacts > 0
                           ? t('${n.reacts} réaction(s) à tes exploits', '${n.reacts} reaction(s) to your feats')
-                          : t('Les exploits des joueurs', 'What players are up to')),
+                          : null),
                   item(-1, 'events', t('Événements', 'Events'),
-                      count: Events.i.unseen, hint: Events.i.unseen > 0 ? t('Nouveau !', 'New!') : t('Fêtes, cadeaux, défis', 'Parties, gifts, challenges')),
+                      count: Events.i.unseen, hint: Events.i.unseen > 0 ? t('Nouveau !', 'New!') : null),
                 ]),
               ),
               OnlineMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
               ReferralMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
               Padding(
-                padding: const EdgeInsets.all(14),
-                child: Text('Pixel Trade v$kRetroCollecVersion', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30, fontSize: 11)),
+                padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
+                child: Text('Pixel Trade v$kRetroCollecVersion', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30, fontSize: 10.5)),
               ),
             ]);
           },

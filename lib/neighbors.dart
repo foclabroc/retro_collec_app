@@ -514,7 +514,7 @@ class _OnlineMenuTileState extends State<OnlineMenuTile> {
           borderRadius: BorderRadius.circular(14),
           onTap: open,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: teal.withOpacity(0.6))),
             child: Row(children: [
               dot,
