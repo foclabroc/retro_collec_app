@@ -1,6 +1,9 @@
 # Pixel Trade — Changelog
 
 ## v1.0.11
+- **Partager ce jeu à tes amis** : case en bas du panneau latéral (sous Joueurs en ligne). Sur Android, ouvre la fenêtre
+  de partage du téléphone (SMS, WhatsApp, Messenger…) avec le lien du dernier APK et celui de la version web de test,
+  plus ton pseudo ; sur le web, le texte est copié pour le coller dans un message.
 - **Vitrine** : un « + » dans chaque case vide ouvre mes cartes, de la plus rare à la moins rare (dans leur meilleure
   finition) pour en ajouter une ; maintenir une carte puis la faire glisser sur une autre case change l'ordre.
 - **Bourse, autres onglets revus** dans le style du magasin :

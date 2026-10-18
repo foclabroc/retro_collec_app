@@ -19,6 +19,7 @@ import 'feed.dart';
 import 'layout.dart';
 import 'bourse.dart';
 import 'neighbors.dart';
+import 'share.dart';
 import 'notifs.dart';
 import 'push.dart';
 import 'packs.dart';
@@ -741,6 +742,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               ),
             ),
             const OnlineMenuTile(compact: true),
+            const ShareMenuTile(compact: true),
             Padding(
               padding: const EdgeInsets.all(8),
               child: Text('v$kRetroCollecVersion', style: const TextStyle(color: Colors.white30, fontSize: 10)),
@@ -863,6 +865,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 ]),
               ),
               OnlineMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
+              ShareMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
               Padding(
                 padding: const EdgeInsets.all(14),
                 child: Text('Pixel Trade v$kRetroCollecVersion', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30, fontSize: 11)),

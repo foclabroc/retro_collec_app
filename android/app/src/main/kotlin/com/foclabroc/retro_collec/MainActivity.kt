@@ -104,6 +104,19 @@ class MainActivity : FlutterActivity() {
                         result.success(openFirst(list))
                     }
                     "brand" -> result.success(Build.MANUFACTURER)
+                    // « Partager ce jeu à tes amis » : fenêtre de partage du téléphone
+                    "share" -> {
+                        val send = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, call.argument<String>("text") ?: "")
+                        }
+                        try {
+                            startActivity(Intent.createChooser(send, call.argument<String>("title") ?: "Pixel Trade"))
+                            result.success(true)
+                        } catch (e: Exception) {
+                            result.success(false)
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }
