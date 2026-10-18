@@ -132,11 +132,14 @@ class _CardOffersState extends State<_CardOffers> {
       Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
       const SizedBox(height: 12),
       Row(children: [
-        SizedBox(width: 70, child: CardView(card: c, finish: widget.finish ?? 0, owned: known)),
+        // carte en vente : toujours montrée en entier (même si on ne l'a pas), dans la finition de l'offre la moins chère
+        SizedBox(
+            width: 70,
+            child: CardView(card: c, finish: widget.finish ?? (rows != null && rows!.isNotEmpty ? (rows!.first['finish'] as num).toInt() : 0))),
         const SizedBox(width: 14),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(known ? c.title : '#${c.num.toString().padLeft(3, '0')}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            Text(c.title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
             const SizedBox(height: 2),
             Text('${Catalog.system(c.sys)?.name ?? c.sys} · ${rarityName(c.rarity)}', style: TextStyle(color: kRarityLight[c.rarity], fontSize: 12)),
             const SizedBox(height: 2),

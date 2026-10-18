@@ -1,5 +1,9 @@
 # Pixel Trade — Changelog
 
+## v1.0.11
+- **Bourse** : dans la liste des offres d'une carte, la carte s'affiche en entier (image et titre) même quand on ne l'a pas,
+  dans la finition de l'offre la moins chère (avant : silhouette grise et « #023 »).
+
 ## v1.0.10
 - **4 en ligne et Console Wars gratuits** : plus de mise. Le gagnant gagne 150 pièces + 1 pixel, le perdant 10 pièces
   de consolation (match nul au 4 en ligne : 10 chacun). On peut défier tout le monde, même sans pièces.
