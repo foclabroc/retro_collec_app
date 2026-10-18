@@ -118,7 +118,7 @@ class _PacksScreenState extends State<PacksScreen> {
     return ok == true;
   }
 
-  /// Lot de 5 paquets mixtes : confirmation, achat, puis ouverture du 1er paquet
+  /// Lot de 5 paquets mixtes : confirmation, achat, puis les 5 paquets vont « en stock » (rien ne s'ouvre tout seul)
   Future<void> _buyLot() async {
     if (busy) return;
     final free = Notifs.i.lotFree;
@@ -174,7 +174,7 @@ class _PacksScreenState extends State<PacksScreen> {
       RcAudio.sfx('powerup');
       await Game.i.sync();
       await Notifs.i.refresh();
-      if (mounted) await openPackFlow(context, 'lot');
+      toast(t('5 paquets ajoutés à ton stock 📦 Touche-en un pour le déchirer', '5 packs added to your stock 📦 Tap one to tear it open'));
     } catch (e) {
       toast(errText(e));
     }
@@ -285,6 +285,12 @@ class _PacksScreenState extends State<PacksScreen> {
               // catégorie Pixels : une ligne compacte, les boosters spéciaux dans un sous-menu
               _PixelsRow(g.pixels, onTap: _openPixels),
               const SizedBox(height: 14),
+              // paquets en stock : déjà payés ou offerts, ouverts seulement quand on les déchire
+              if (Notifs.i.gifts > 0 || Notifs.i.lots > 0)
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 8),
+                  child: Text(t('📦 EN STOCK · ${Notifs.i.gifts + Notifs.i.lots}', '📦 IN STOCK · ${Notifs.i.gifts + Notifs.i.lots}'), style: pixelStyle(size: 10)),
+                ),
               if (Notifs.i.gifts > 0)
                 _PackOffer(
                   kind: 'gift',
@@ -304,8 +310,8 @@ class _PacksScreenState extends State<PacksScreen> {
                 _PackOffer(
                   kind: 'lot',
                   packLabel: t('Lot', 'Bundle'),
-                  title: t('Paquets du lot ×${Notifs.i.lots}', 'Bundle packs ×${Notifs.i.lots}'),
-                  subtitle: t('Déjà payés : ouvre-les quand tu veux', 'Already paid: open them whenever you like'),
+                  title: t('Paquets en stock ×${Notifs.i.lots}', 'Packs in stock ×${Notifs.i.lots}'),
+                  subtitle: t('Déjà payés · touche pour en déchirer un', 'Already paid · tap to tear one open'),
                   price: 0,
                   color: const Color(0xFF534AB7),
                   highlight: true,
@@ -1470,7 +1476,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
             : (widget.kind == 'free' || widget.kind == 'gift' || widget.kind == 'lot' || kSpecialPrice.containsKey(widget.kind) ? 'mixte' : widget.kind);
     final price = kPackPrice[again]!;
     final againLabel = switch (again) {
-      'lot' => t('Paquet suivant du lot ($lotsLeft)', 'Next bundle pack ($lotsLeft)'),
+      'lot' => t('Déchirer le suivant ($lotsLeft en stock)', 'Tear the next one ($lotsLeft in stock)'),
       'gift' => t('Cadeau suivant ($giftsLeft)', 'Next gift ($giftsLeft)'),
       _ => t('Ouvrir un autre ($price)', 'Open another ($price)'),
     };

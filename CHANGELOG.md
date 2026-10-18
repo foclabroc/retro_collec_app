@@ -16,6 +16,8 @@
   Forêt, Ardoise, Prune, Néon). Fond en dégradé, lueur de la couleur du thème et motif discret qui défile lentement
   (étoiles, grille, vagues, lucioles…). Les boutons, barres et titres prennent la couleur du thème.
   Le titre de l'onglet devient « Collection ».
+- **Paquets en stock** : le lot de 5 ne s'ouvre plus tout seul après l'achat ; les paquets vont dans « 📦 En stock » en haut
+  de l'onglet Paquets (avec les cadeaux reçus) et on en déchire un quand on veut.
 - **Collection triée** : les consoles s'affichent de la plus complétée à la moins complétée.
 - **Nouvelles musiques** : 8 nouveaux morceaux moins chiptune (Pixel Quest, Block World, Level Up, Game On, Retro Wave,
   Lo-fi Gaming, Study Time, Game Show), au même volume. Musique et thème sont en « Aléatoire » par défaut :
