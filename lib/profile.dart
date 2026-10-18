@@ -718,16 +718,32 @@ class _MyShowcaseState extends State<_MyShowcase> {
           Expanded(
             child: cards.isEmpty
                 ? Center(child: Text(t('Aucune carte à ajouter', 'No cards to add'), style: const TextStyle(color: Colors.white54)))
-                : GridView.builder(
-                    controller: scroll,
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 5 / 7, crossAxisSpacing: 8, mainAxisSpacing: 8),
-                    itemCount: cards.length,
-                    itemBuilder: (_, i) => GestureDetector(
-                      onTap: () => Navigator.pop(ctx, (cards[i].$1.id, cards[i].$2)),
-                      child: CardView(card: cards[i].$1, finish: cards[i].$2),
-                    ),
-                  ),
+                : CustomScrollView(controller: scroll, slivers: [
+                    // un intertitre par rareté, de légendaire à commune
+                    for (var r = 4; r >= 0; r--)
+                      if (cards.any((c) => c.$1.rarity == r)) ...[
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+                          sliver: SliverToBoxAdapter(
+                            child: Text(px(rarityName(r).toUpperCase()), style: pixelStyle(size: 7.5, color: kRarityLight[r], shadow: false)),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          sliver: SliverGrid(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 5 / 7, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                            delegate: SliverChildListDelegate([
+                              for (final c in cards.where((c) => c.$1.rarity == r))
+                                GestureDetector(
+                                  onTap: () => Navigator.pop(ctx, (c.$1.id, c.$2)),
+                                  child: CardView(card: c.$1, finish: c.$2),
+                                ),
+                            ]),
+                          ),
+                        ),
+                      ],
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  ]),
           ),
         ]),
       ),
