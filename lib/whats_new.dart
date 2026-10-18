@@ -12,6 +12,15 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('⚔', '4 en ligne et Console Wars gratuits : le gagnant gagne 150 pièces + 1 pixel, le perdant 10',
+      'Connect 4 and Console Wars are free: the winner gets 150 coins + 1 pixel, the loser 10'),
+  ('🖼', 'Nouvelles cartes Full Art, ultra rares, sur les épiques et légendaires', 'New ultra-rare Full Art cards, on epics and legendaries'),
+  ('📰', 'Actualités : victoires, échanges, ventes, cadeaux, nouveaux joueurs… avec filtres', 'News: wins, trades, sales, gifts, new players… with filters'),
+  ('🟢', 'Joueurs en ligne en bas du menu', 'Online players at the bottom of the menu'),
+  ('🔀', 'Collection : choisis l\'ordre des consoles', 'Collection: choose the order of the systems'),
+  ('🔊', 'Un seul bouton pour la musique et les bruitages, gardé au redémarrage', 'One button for music and sound effects, kept after restart'),
+  ('🔑', 'Nouvel écran de connexion et nouvelle icône', 'New login screen and new icon'),
+  ('#', 'Aussi depuis la 1.0.9', 'Also since 1.0.9'),
   ('🎨', '10 nouveaux thèmes plus épurés, avec un motif animé discret', '10 new cleaner themes, with a subtle animated pattern'),
   ('🎵', '8 nouvelles musiques, moins chiptune', '8 new music tracks, less chiptune'),
   ('🎲', 'Thème et musique en aléatoire par défaut (réglable dans les réglages)', 'Random theme and music by default (change it in the settings)'),
