@@ -1,6 +1,7 @@
 # Pixel Trade — Changelog
 
 ## v1.0.10
+- **Game Boy Color** : la carte de la console montrait une Game Boy classique, c'est maintenant une vraie Game Boy Color.
 - **Cartes Full Art** (nouvelle finition, épiques et légendaires seulement) : 0,2 % de chance sur chaque épique
   ou légendaire tirée. L'écran du jeu en décor, la jaquette dans un cadre doré à sa forme (large, carrée, haute),
   plaque gravée avec le titre ; fixe, seul le brillant (prisme, or) suit l'inclinaison. Compte 6× au classement
