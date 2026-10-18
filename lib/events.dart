@@ -228,7 +228,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             final others = live.where((e) => e != hero).toList();
             Widget sec(String s) => Padding(
                   padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
-                  child: Text(s, style: pixelStyle(size: 8, color: Colors.white38, shadow: false).copyWith(letterSpacing: 1)),
+                  child: Text(px(s), style: pixelStyle(size: 8, color: Colors.white38, shadow: false).copyWith(letterSpacing: 1)),
                 );
             return RefreshIndicator(
               onRefresh: Events.i.refresh,
@@ -592,7 +592,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
         AnimatedBuilder(
           animation: anim,
           builder: (_, child) => Transform.scale(scale: 1 + 0.1 * sin(anim.value * 2 * pi * 5), child: child),
-          child: Text(big, style: pixelStyle(size: 18, color: const Color(0xFFFFD166), shadow: false).copyWith(shadows: const [Shadow(color: Color(0x99FFD166), blurRadius: 12)])),
+          child: Text(px(big), style: pixelStyle(size: 18, color: const Color(0xFFFFD166), shadow: false).copyWith(shadows: const [Shadow(color: Color(0x99FFD166), blurRadius: 12)])),
         ),
         const SizedBox(width: 12),
         Expanded(child: Text(text, style: const TextStyle(fontSize: 12.5, height: 1.35))),

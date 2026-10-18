@@ -1696,7 +1696,7 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Text(icon, style: const TextStyle(fontSize: 46)),
                 const SizedBox(height: 6),
-                Text(title, style: pixelStyle(size: 15, color: win ? _kGoldHi : draw ? Colors.white : const Color(0xFFFF8A95), shadow: false)),
+                Text(px(title), style: pixelStyle(size: 15, color: win ? _kGoldHi : draw ? Colors.white : const Color(0xFFFF8A95), shadow: false)),
                 const SizedBox(height: 6),
                 Text(duelFriendly(g) ? '$sub\n$duelFriendlyText' : sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
                 const SizedBox(height: 10),
