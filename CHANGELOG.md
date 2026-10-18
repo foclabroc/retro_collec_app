@@ -7,7 +7,7 @@
   pseudo · points, % de collection et sa barre · cartes et pièces. Bouton « 🎁 Offrir » (« Offert ✓ » après).
 - **Événements, nouveau look** : l'événement phare en grande affiche (émoji animé, décor, compte à rebours, bouton
   « Récupérer » qui brille), frise des 14 prochains jours, une carte par événement avec son étiquette (cadeau, effet, défi),
-  défis en piste avec des coffres à ouvrir, événements à venir en boîtes mystère, terminés réduits à une ligne.
+  défis en piste avec des coffres à ouvrir, terminés réduits à une ligne.
   Chaque événement a son décor animé, réglable depuis le serveur : l'émoji (chauves-souris, flocons, ballons, pixels…)
   et son mouvement (traverse, chute, montée, pluie, feu d'artifice).
   Les 5 prochains événements sont toujours visibles en entier (titre, texte, récompense) avec leur compte à rebours

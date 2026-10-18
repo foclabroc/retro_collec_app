@@ -12,13 +12,23 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎨', '10 nouveaux thèmes plus épurés, avec un motif animé discret', '10 new cleaner themes, with a subtle animated pattern'),
+  ('🎵', '8 nouvelles musiques, moins chiptune', '8 new music tracks, less chiptune'),
+  ('🎲', 'Thème et musique en aléatoire par défaut (réglable dans les réglages)', 'Random theme and music by default (change it in the settings)'),
+  ('🎉', 'Événements : nouveau look, les 5 prochains visibles avec leur compte à rebours', 'Events: new look, the next 5 shown with their countdown'),
+  ('🏢', 'Pixel Tower : étages revus, pseudo en entier, « en ligne » sur le balcon', 'Pixel Tower: redesigned floors, full names, "online" on the balcony'),
+  ('🟢', 'Joueurs en ligne : la liste des connectés, pour les défier ou aller à leur étage', 'Online players: list of who\'s connected, to challenge them or visit their floor'),
+  ('🔍', 'Bourse : toucher un échange pour le voir en détail', 'Exchange: tap a trade to see it in detail'),
+  ('📦', 'Lot de 5 : les paquets non ouverts restent en stock', 'Bundle of 5: unopened packs stay in stock'),
+  ('📊', 'Collection : consoles triées de la plus complétée à la moins', 'Collection: systems sorted from most to least complete'),
+  // pour ceux qui arrivent d'une version plus ancienne
+  ('#', 'Aussi depuis la 1.0.8', 'Also since 1.0.8'),
   ('⚔', 'Défis reçus : une fenêtre s\'affiche quand on te défie en direct (Accepter, Refuser, Plus tard)',
       'Challenges: a window pops up when someone challenges you live (Accept, Decline, Later)'),
   ('🔴', 'Pastille sur « Bonus / Jeux » pour les invitations tour par tour et quand c\'est ton tour',
       'Badge on "Bonus / Games" for turn-based invitations and when it\'s your turn'),
   ('🕒', 'Dernière connexion des joueurs sur leur étage et leur profil', 'Players\' last login on their floor and profile'),
   ('🪙', 'On ne peut défier qu\'un joueur qui a au moins 50 pièces', 'You can only challenge players with at least 50 coins'),
-  // pour ceux qui arrivent d'une version plus ancienne
   ('#', 'Aussi depuis la 1.0.7', 'Also since 1.0.7'),
   ('🚢', 'Console Wars : bataille navale à 2 avec une flotte de consoles, en direct ou tour par tour',
       'Console Wars: 2-player battleship with a fleet of consoles, live or turn-based'),
