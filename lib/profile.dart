@@ -712,8 +712,16 @@ class _MyShowcaseState extends State<_MyShowcase> {
           const SizedBox(height: 10),
           Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(t('Ajouter à ma vitrine', 'Add to my showcase'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            padding: const EdgeInsets.fromLTRB(16, 6, 6, 4),
+            child: Row(children: [
+              Expanded(child: Text(t('Ajouter à ma vitrine', 'Add to my showcase'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16))),
+              // fermer sans choisir
+              TextButton.icon(
+                onPressed: () => Navigator.pop(ctx),
+                icon: const Icon(Icons.close, size: 18),
+                label: Text(t('Fermer', 'Close')),
+              ),
+            ]),
           ),
           Expanded(
             child: cards.isEmpty
