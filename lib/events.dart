@@ -306,26 +306,8 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
         boxShadow: [BoxShadow(color: c.withOpacity(0.45), blurRadius: 30, spreadRadius: -8)],
       ),
       child: Stack(children: [
-        // décor qui traverse l'affiche
-        Positioned.fill(
-          child: IgnorePointer(
-            child: AnimatedBuilder(
-              animation: anim,
-              builder: (_, __) => LayoutBuilder(
-                builder: (_, box) => Stack(children: [
-                  for (var k = 0; k < 4; k++)
-                    Positioned(
-                      left: ((anim.value + k * 0.27) % 1) * (box.maxWidth + 60) - 40,
-                      top: box.maxHeight * (0.12 + 0.18 * k) - ((anim.value + k * 0.27) % 1) * 30,
-                      child: Opacity(
-                          opacity: 0.7,
-                          child: Text(decor, style: TextStyle(fontSize: k.isEven ? 16 : 12, color: decor == '▦' ? const Color(0xFFFF4FD8) : null, fontWeight: FontWeight.w900))),
-                    ),
-                ]),
-              ),
-            ),
-          ),
-        ),
+        // décor animé (mouvement : colonne « decor_fx », sinon d'après le décor)
+        Positioned.fill(child: IgnorePointer(child: _Decor(decor: decor, fx: _decorFx(e, decor), anim: anim))),
         // grand émoji qui flotte
         Positioned(
           right: -6,
@@ -389,6 +371,19 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
         ),
       ]),
     );
+  }
+
+  /// Mouvement du décor : traverse, fall (chute), rise (montée), rain (pluie), fireworks (feu d'artifice)
+  String _decorFx(Map e, String decor) {
+    final fx = (e['decor_fx'] as String?)?.trim() ?? '';
+    if (const ['traverse', 'fall', 'rise', 'rain', 'fireworks'].contains(fx)) return fx;
+    return switch (decor) {
+      '❄️' || '🌸' || '🍂' || '🎊' || '🍁' || '🌨️' => 'fall',
+      '🫧' || '🎈' || '✨' || '💗' || '🐟' => 'rise',
+      '🪙' || '▦' || '💧' || '🟩' || '🃏' => 'rain',
+      '🎇' || '🎆' || '💥' || '🔥' => 'fireworks',
+      _ => 'traverse',
+    };
   }
 
   Widget _liveTag() => Container(
@@ -754,6 +749,67 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             return Text(t('encore ${_span(gone)}', '${_span(gone)} left'), style: const TextStyle(fontSize: 10.5, color: Colors.white38, fontWeight: FontWeight.w800));
           }),
       ]),
+    );
+  }
+}
+
+/// Décor de l'affiche : petits émojis animés selon un mouvement
+class _Decor extends StatelessWidget {
+  final String decor, fx;
+  final Animation<double> anim;
+  const _Decor({required this.decor, required this.fx, required this.anim});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = decor == '▦' ? const Color(0xFFFF4FD8) : null;
+    Widget emo(double size, double op) =>
+        Opacity(opacity: op.clamp(0.0, 1.0), child: Text(decor, style: TextStyle(fontSize: size, color: color, fontWeight: FontWeight.w900)));
+    return AnimatedBuilder(
+      animation: anim,
+      builder: (_, __) => LayoutBuilder(builder: (_, box) {
+        final w = box.maxWidth, h = box.maxHeight, v = anim.value;
+        final items = <Widget>[];
+        switch (fx) {
+          case 'fall': // flocons, feuilles, confettis qui tombent en se balançant
+            for (var k = 0; k < 9; k++) {
+              final p = (v * (1.6 + (k % 3) * 0.4) + k * 0.13) % 1;
+              items.add(Positioned(
+                left: w * ((k * 0.117 + 0.04) % 1) + 10 * sin((p + k) * 2 * pi),
+                top: p * (h + 30) - 24,
+                child: emo(k.isEven ? 15 : 11, 0.75),
+              ));
+            }
+          case 'rise': // bulles, ballons, étincelles qui montent
+            for (var k = 0; k < 8; k++) {
+              final p = (v * (1.3 + (k % 3) * 0.3) + k * 0.17) % 1;
+              items.add(Positioned(
+                left: w * ((k * 0.131 + 0.06) % 1) + 8 * sin((p * 3 + k) * pi),
+                top: h - p * (h + 30),
+                child: emo(k.isEven ? 15 : 11, 0.85 - p * 0.6),
+              ));
+            }
+          case 'rain': // déluge de petits émojis
+            for (var k = 0; k < 16; k++) {
+              final p = (v * (3.0 + (k % 4) * 0.5) + k * 0.07) % 1;
+              items.add(Positioned(left: w * ((k * 0.0631 + 0.02) % 1), top: p * (h + 24) - 20, child: emo(k % 3 == 0 ? 13 : 10, 0.7)));
+            }
+          case 'fireworks': // éclats qui explosent de temps en temps
+            for (var b = 0; b < 3; b++) {
+              final p = (v * 2.2 + b * 0.33) % 1;
+              final cx = w * (0.2 + 0.3 * b), cy = h * (0.25 + 0.15 * (b % 2));
+              for (var k = 0; k < 8; k++) {
+                final a = k * pi / 4, d = 46 * Curves.easeOut.transform(p);
+                items.add(Positioned(left: cx + cos(a) * d - 7, top: cy + sin(a) * d - 7 + 14 * p * p, child: emo(12, 1 - p)));
+              }
+            }
+          default: // traverse en diagonale
+            for (var k = 0; k < 4; k++) {
+              final p = (v + k * 0.27) % 1;
+              items.add(Positioned(left: p * (w + 60) - 40, top: h * (0.12 + 0.18 * k) - p * 30, child: emo(k.isEven ? 16 : 12, 0.7)));
+            }
+        }
+        return Stack(clipBehavior: Clip.hardEdge, children: items);
+      }),
     );
   }
 }
