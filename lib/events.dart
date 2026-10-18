@@ -220,7 +220,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             final list = Events.i.list;
             if (loading && list.isEmpty) return const Center(child: CircularProgressIndicator(color: kGold));
             final live = list.where((e) => e['live'] == true).toList();
-            final soon = list.where((e) => e['live'] != true && e['ended'] != true).toList();
+            // à venir : le plus proche d'abord
+            final soon = list.where((e) => e['live'] != true && e['ended'] != true).toList()
+              ..sort((a, b) => (_date(a, 'starts_at') ?? DateTime(2100)).compareTo(_date(b, 'starts_at') ?? DateTime(2100)));
             final ended = list.where((e) => e['ended'] == true).toList();
             final hero = _hero(live);
             final others = live.where((e) => e != hero).toList();
@@ -245,7 +247,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                     physics: const NeverScrollableScrollPhysics(),
                     mainAxisSpacing: 10,
                     crossAxisSpacing: 10,
-                    childAspectRatio: 1.25,
+                    childAspectRatio: 1.15,
                     children: [for (final e in soon) _mystery(e)],
                   ),
                 ],
@@ -691,9 +693,21 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
         ),
         const SizedBox(height: 6),
         Text(t('Événement mystère', 'Mystery event'), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-        Text(_when(e), style: const TextStyle(fontSize: 11, color: Colors.white60, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 2),
+        Text(_chrono(e), style: pixelStyle(size: 7.5, color: const Color(0xFFFFD166), shadow: false)),
       ]),
     );
+  }
+
+  /// Compte à rebours jusqu'au début : « 5 j 04:12:33 »
+  String _chrono(Map<String, dynamic> e) {
+    final start = _date(e, 'starts_at');
+    if (start == null) return '';
+    var d = start.difference(DateTime.now().add(_skew));
+    if (d.isNegative) d = Duration.zero;
+    String two(int v) => v.toString().padLeft(2, '0');
+    final hms = '${two(d.inHours % 24)}:${two(d.inMinutes % 60)}:${two(d.inSeconds % 60)}';
+    return d.inDays > 0 ? t('${d.inDays} j $hms', '${d.inDays} d $hms') : hms;
   }
 
   /// Terminé : une ligne
