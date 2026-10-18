@@ -27,6 +27,8 @@ const _kTask = 'rc_push_watch';
 const _kStateKey = 'rc_push_state';
 const _kEnabledKey = 'rc_push';
 const _kLastKey = 'rc_push_last';
+const _kDuelInv = 'rc_push_duel_inv';
+const _kDuelTurn = 'rc_push_duel_turn';
 const _kAskedKey = 'rc_push_battery_asked';
 const _sys = MethodChannel('com.foclabroc.retro_collec/system');
 
@@ -223,6 +225,16 @@ class PushWatch {
   static bool _freeNew(Map r, Map old) =>
       r.containsKey('free_at') ? '${_i(r['free_at'])}' != '${old['freeAt']}' : old['freeDay'] != _today();
 
+  /// Appli ouverte : défis et tours déjà signalés dans l'appli (pas de notification ensuite)
+  static Future<void> seenDuels(int invites, int turns) async {
+    if (kIsWeb) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_kDuelInv, invites);
+      await prefs.setInt(_kDuelTurn, turns);
+    } catch (_) {}
+  }
+
   /// Appli ouverte : tout ce que l'appli vient d'afficher est « vu ».
   static Future<void> seen(Map<String, dynamic> r) async {
     if (kIsWeb) return; // pas de notifications Android sur le web
@@ -316,6 +328,25 @@ class PushWatch {
         'lotDay': msgs.any((m) => m.$1 == 5) || (first && r['lot_free'] == true) ? today : old['lotDay'],
       }),
     );
+
+    // défis : invitation tour par tour reçue, partie où c'est mon tour
+    try {
+      final d = await RcServer.duelPing(bg: true);
+      final inv = _i(d['invites']), trn = _i(d['turns']);
+      final oldInv = _i(prefs.getInt(_kDuelInv)), oldTrn = _i(prefs.getInt(_kDuelTurn));
+      if (notify && !first) {
+        if (inv > oldInv) {
+          msgs.add((7, t('⚔ ${d['last_from'] ?? 'Un joueur'} te défie !', '⚔ ${d['last_from'] ?? 'A player'} challenges you!'),
+              t('Une partie tour par tour t\'attend dans Bonus / Jeux (50 pièces chacun)', 'A turn-based game is waiting in Bonus / Games (50 coins each)')));
+        }
+        if (trn > oldTrn) {
+          msgs.add((8, t('🎮 À toi de jouer', '🎮 Your turn'),
+              trn == 1 ? t('Ton adversaire a joué : à toi !', 'Your opponent played: your turn!') : t('$trn parties t\'attendent', '$trn games are waiting for you')));
+        }
+      }
+      await prefs.setInt(_kDuelInv, inv);
+      await prefs.setInt(_kDuelTurn, trn);
+    } catch (_) {}
 
     if (msgs.isEmpty) return;
     await _init();

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'audio.dart';
 import 'cards.dart';
+import 'duel_watch.dart';
 import 'game.dart';
 import 'layout.dart';
 import 'main.dart';
@@ -288,7 +289,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
       }
       for (final g in games) {
         final id = _i(g['id']);
-        if (g['mode'] == 'live' && g['status'] == 'playing' && !_opened.contains(id)) {
+        if (g['mode'] == 'live' && g['status'] == 'playing' && !_opened.contains(id) && DuelWatch.i.inGame == 0) {
           _opened.add(id);
           RcAudio.sfx('powerup');
           _openGame(g);
@@ -613,6 +614,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
           Builder(builder: (_) {
             final w = _i(p['w']), l = _i(p['l']);
             final busyP = p['busy'] == true;
+            final poor = p['coins_ok'] == false; // moins de 50 pièces : ne peut pas être défié
             return _card(
               lead: _avatar(_i(p['avatar']), ring: _kTeal),
               title: Row(children: [
@@ -625,7 +627,11 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
                 ),
               ]),
               lines: [
-                Text(busyP ? t('⚔ En partie', '⚔ In a game') : t('Disponible · ${p['score']} pts', 'Available · ${p['score']} pts')),
+                Text(busyP
+                    ? t('⚔ En partie', '⚔ In a game')
+                    : poor
+                        ? t('Pas assez de pièces pour jouer', 'Not enough coins to play')
+                        : t('Disponible · ${p['score']} pts', 'Available · ${p['score']} pts')),
                 Padding(
                   padding: const EdgeInsets.only(top: 5, right: 6),
                   child: ClipRRect(
@@ -634,7 +640,10 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
                   ),
                 ),
               ],
-              btns: [_btn(busyP ? t('Occupé', 'Busy') : t('Défier', 'Challenge'), busyP ? null : () => _invite(p['pid'] as String, p['name'] as String? ?? '?', _i(p['avatar']), 'live'))],
+              btns: [
+                _btn(busyP ? t('Occupé', 'Busy') : (poor ? t('Sans pièces', 'No coins') : t('Défier', 'Challenge')),
+                    busyP || poor ? null : () => _invite(p['pid'] as String, p['name'] as String? ?? '?', _i(p['avatar']), 'live'))
+              ],
             );
           }),
         _section(t('Défis envoyés', 'Challenges sent')),
@@ -966,10 +975,14 @@ class _PlayerPickerState extends State<_PlayerPicker> {
                     itemCount: rows!.length,
                     itemBuilder: (_, i) {
                       final p = rows![i];
+                      final poor = (p['coins'] as num? ?? kC4Stake) < kC4Stake; // moins que la mise : ne peut pas être défié
                       return ListTile(
+                        enabled: !poor,
                         leading: _avatar(_i(p['avatar']), ring: p['online'] == true ? _kTeal : null),
                         title: Text(p['name'] as String? ?? '?', style: const TextStyle(fontWeight: FontWeight.w800)),
-                        subtitle: Text(t('${p['score']} pts · ${p['cards']} cartes', '${p['score']} pts · ${p['cards']} cards')),
+                        subtitle: Text(poor
+                            ? t('Pas assez de pièces pour jouer', 'Not enough coins to play')
+                            : t('${p['score']} pts · ${p['cards']} cartes', '${p['score']} pts · ${p['cards']} cards')),
                         trailing: p['online'] == true ? const Icon(Icons.circle, size: 10, color: _kTeal) : null,
                         onTap: () => Navigator.pop(context, p),
                       );
@@ -1024,10 +1037,12 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
     });
     if (g['status'] == 'done') WidgetsBinding.instance.addPostFrameCallback((_) => _showResult());
     _refresh();
+    DuelWatch.i.inGame++;
   }
 
   @override
   void dispose() {
+    DuelWatch.i.inGame--;
     _poll?.cancel();
     _tick?.cancel();
     _emoMeT?.cancel();

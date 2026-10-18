@@ -3,6 +3,11 @@
 ## v1.0.8
 - **Dernière connexion des joueurs** : sur la plaque de chaque étage du Voisinage (« vu à 14:32 », « vu hier », « vu le 12/10 », ou « en ligne »)
   et sur le profil (« Dernière connexion : aujourd'hui à 14:32 (il y a 3 h) »).
+- **Défis reçus** (4 en ligne, Console Wars) : un défi en direct s'affiche dans une fenêtre, où que tu sois dans l'appli
+  (adversaire, jeu, mise, compte à rebours de 2 min), avec Accepter (la partie s'ouvre), Refuser ou Plus tard.
+  Invitations tour par tour et parties où c'est ton tour : pastille sur « Bonus / Jeux » dans le menu, et notification
+  appli fermée. Vérification légère toutes les 10 s, seulement appli ouverte.
+- On ne peut défier qu'un joueur qui a au moins 50 pièces (« Sans pièces » dans la liste des joueurs).
 
 ## v1.0.7
 - **4 en ligne** (onglet renommé « Bonus / Jeux ») : défie un autre joueur, 50 pièces de mise chacun,

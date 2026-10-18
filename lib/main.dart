@@ -13,6 +13,7 @@ import 'catalog.dart';
 import 'game.dart';
 import 'bonus.dart';
 import 'chat.dart';
+import 'duel_watch.dart';
 import 'events.dart';
 import 'feed.dart';
 import 'layout.dart';
@@ -513,6 +514,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     }
     RcAudio.musicStart(RcAudio.homeTrack);
     Notifs.i.start();
+    DuelWatch.i.start(); // défis reçus (4 en ligne, Console Wars)
     PushWatch.start(); // notifications Android, même appli fermée
     // En arrière-plan : captures d'écran des fiches (le catalogue est vérifié à l'écran titre)
     Future(() => Catalog.updateShots());
@@ -534,6 +536,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _evSub?.cancel();
     Notifs.i.stop();
+    DuelWatch.i.stop();
     if (current == this) current = null;
     super.dispose();
   }
@@ -545,6 +548,9 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       Game.i.sync();
       Notifs.i.refresh();
       Events.i.refresh();
+      DuelWatch.i.start();
+    } else if (state == AppLifecycleState.paused) {
+      DuelWatch.i.stop(); // pas de requêtes appli en arrière-plan
     }
   }
 
@@ -657,7 +663,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   /// Mode large : colonne d'icônes toujours visible (mêmes rubriques et pastilles que le menu)
   Widget _rail() {
     return ListenableBuilder(
-      listenable: Listenable.merge([Game.i, Notifs.i, Events.i]),
+      listenable: Listenable.merge([Game.i, Notifs.i, Events.i, DuelWatch.i]),
       builder: (context, _) {
         final g = Game.i, n = Notifs.i;
         Widget item(int i, String icon, String label, {int count = 0, bool dot = false}) {
@@ -727,7 +733,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 child: Column(children: [
                   item(0, 'collection', t('Collection', 'Collection')),
                   item(1, 'packs', t('Paquets', 'Packs'), dot: g.free || n.lotFree, count: n.gifts + n.lots),
-                  item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'), dot: n.wheel),
+                  item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'), dot: n.wheel, count: DuelWatch.i.badge),
                   item(3, 'market', t('Bourse', 'Exchange'), count: n.trades + n.sales.length),
                   item(4, 'messages', t('Messages', 'Messages'), count: n.chat, dot: n.mention),
                   item(5, 'neighbors', t('Voisinage', 'Neighbors')),
@@ -753,7 +759,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       width: 270,
       child: SafeArea(
         child: ListenableBuilder(
-          listenable: Listenable.merge([Game.i, Notifs.i, Events.i]),
+          listenable: Listenable.merge([Game.i, Notifs.i, Events.i, DuelWatch.i]),
           builder: (context, _) {
             final g = Game.i, n = Notifs.i;
             Widget item(int i, String icon, String label, {int count = 0, bool dot = false, String? hint}) {
@@ -839,7 +845,14 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                           : g.free
                               ? t('Paquet gratuit dispo !', 'Free pack ready!')
                               : null),
-                  item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'), dot: n.wheel, hint: t('Roue, Gamedle, quiz, 4 en ligne, Console Wars', 'Wheel, Gamedle, quiz, Connect 4, Console Wars')),
+                  item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'),
+                      dot: n.wheel,
+                      count: DuelWatch.i.badge,
+                      hint: DuelWatch.i.invites > 0
+                          ? t('⚔ ${DuelWatch.i.lastFrom ?? 'Un joueur'} te défie', '⚔ ${DuelWatch.i.lastFrom ?? 'A player'} challenges you')
+                          : DuelWatch.i.turns > 0
+                              ? t('🎮 À toi de jouer (${DuelWatch.i.turns})', '🎮 Your turn (${DuelWatch.i.turns})')
+                              : t('Roue, Gamedle, quiz, 4 en ligne, Console Wars', 'Wheel, Gamedle, quiz, Connect 4, Console Wars')),
                   item(3, 'market', t('Bourse', 'Exchange'),
                       count: n.trades + n.sales.length, hint: t('Acheter, vendre, échanger', 'Buy, sell, trade')),
                   item(4, 'messages', t('Messages', 'Messages'),
@@ -873,12 +886,12 @@ class TabHeader extends StatelessWidget {
         child: Row(children: [
           if (Scaffold.maybeOf(context)?.hasDrawer == true)
             ListenableBuilder(
-              listenable: Listenable.merge([Game.i, Notifs.i]),
+              listenable: Listenable.merge([Game.i, Notifs.i, DuelWatch.i]),
               builder: (_, __) => IconButton(
                 tooltip: t('Menu', 'Menu'),
                 onPressed: () => HomeShellState.current?.openMenu(),
                 icon: Badge(
-                  isLabelVisible: Notifs.i.total > 0 || Game.i.free,
+                  isLabelVisible: Notifs.i.total > 0 || Game.i.free || DuelWatch.i.badge > 0,
                   backgroundColor: const Color(0xFFE24B4A),
                   smallSize: 9,
                   child: const Icon(Icons.menu, size: 28),

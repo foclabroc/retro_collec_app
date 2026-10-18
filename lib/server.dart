@@ -263,6 +263,12 @@ class RcServer {
     return _map(await _rpc('rc_c4_resign', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|c4resign|$id')}));
   }
 
+  /// Défis reçus : {live: [défis en direct], invites, turns, last_from}. bg = vérification appli fermée.
+  static Future<Map<String, dynamic>> duelPing({bool bg = false}) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_duel_ping', {'p_device': d, 'p_bg': bg}));
+  }
+
   // ── Console Wars, bataille navale (rc_bs_*) ────────────────────────────
   static Future<List<Map<String, dynamic>>> bsOnline() async {
     final d = await deviceId();

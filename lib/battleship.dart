@@ -677,10 +677,12 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
     });
     if (done) WidgetsBinding.instance.addPostFrameCallback((_) => _showResult());
     _refresh();
+    DuelWatch.i.inGame++;
   }
 
   @override
   void dispose() {
+    DuelWatch.i.inGame--;
     _poll?.cancel();
     _tick?.cancel();
     _bannerT?.cancel();
