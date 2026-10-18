@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'album.dart';
 import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
@@ -136,6 +137,19 @@ class TradesScreenState extends State<TradesScreen> {
 
   Widget _empty(String s) => Padding(padding: const EdgeInsets.all(8), child: Text(s, style: const TextStyle(color: Colors.white38)));
 
+  /// Détail d'un échange : grandes cartes, nouvelles pour moi ou non, valeur, et la décision
+  Future<void> _detail(Map<String, dynamic> r, {required bool incoming, required bool finished}) async {
+    final id = (r['id'] as num).toInt();
+    final choice = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => TradeDetailPage(trade: r, incoming: incoming, finished: finished)));
+    if (choice == 'accept') {
+      _answer(id, true);
+    } else if (choice == 'refuse') {
+      _answer(id, false);
+    } else if (choice == 'cancel') {
+      _cancel(id);
+    }
+  }
+
   Widget _tradeTile(Map<String, dynamic> r, {required bool incoming, bool finished = false}) {
     final id = (r['id'] as num).toInt();
     final give = parseItems(r['give'] as String? ?? '');
@@ -174,13 +188,29 @@ class TradesScreenState extends State<TradesScreen> {
           ),
         ]),
         const SizedBox(height: 6),
-        Text(t('Tu reçois', 'You get'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 12)),
-        const SizedBox(height: 4),
-        MiniCards(iGet),
-        const SizedBox(height: 8),
-        Text(t('Tu donnes', 'You give'), style: const TextStyle(color: Color(0xFFF09595), fontSize: 12)),
-        const SizedBox(height: 4),
-        MiniCards(iGive),
+        // toucher les cartes : le détail de l'échange
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _detail(r, incoming: incoming, finished: finished),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(t('Tu reçois', 'You get'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 12)),
+            const SizedBox(height: 4),
+            IgnorePointer(child: MiniCards(iGet)),
+            const SizedBox(height: 8),
+            Text(t('Tu donnes', 'You give'), style: const TextStyle(color: Color(0xFFF09595), fontSize: 12)),
+            const SizedBox(height: 4),
+            IgnorePointer(child: MiniCards(iGive)),
+          ]),
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            style: TextButton.styleFrom(visualDensity: VisualDensity.compact, padding: EdgeInsets.zero),
+            onPressed: () => _detail(r, incoming: incoming, finished: finished),
+            icon: const Icon(Icons.zoom_in, size: 18),
+            label: Text(t('Voir le détail', 'See details')),
+          ),
+        ),
         if (!finished) ...[
           const SizedBox(height: 10),
           if (incoming)
@@ -477,4 +507,139 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
       },
     );
   }
+}
+
+/// Détail d'un échange proposé
+class TradeDetailPage extends StatelessWidget {
+  final Map<String, dynamic> trade;
+  final bool incoming, finished;
+  const TradeDetailPage({super.key, required this.trade, required this.incoming, required this.finished});
+
+  @override
+  Widget build(BuildContext context) {
+    final give = parseItems(trade['give'] as String? ?? '');
+    final want = parseItems(trade['want'] as String? ?? '');
+    final iGet = incoming ? give : want, iGive = incoming ? want : give;
+    final name = trade['other_name'] as String? ?? '?';
+    int value(List<(String, int)> l) => l.fold(0, (a, x) => a + (Catalog.cards[x.$1] == null ? 0 : recycleValue(Catalog.cards[x.$1]!.rarity, x.$2)));
+    final vGet = value(iGet), vGive = value(iGive);
+    final fresh = iGet.where((x) => Game.i.qty(x.$1) == 0).length;
+
+    Widget row((String, int) it, {required bool mine}) {
+      final c = Catalog.cards[it.$1];
+      if (c == null) return const SizedBox();
+      final have = Game.i.qty(c.id), haveF = Game.i.qty(c.id, it.$2);
+      final sameInTrade = iGive.where((x) => x.$1 == c.id).length;
+      final note = mine
+          ? (have - sameInTrade <= 0 ? t('⚠ Ta dernière : tu ne l\'auras plus', '⚠ Your last one: you won\'t have it anymore') : t('Il t\'en restera ${have - sameInTrade}', 'You\'ll keep ${have - sameInTrade}'))
+          : (have == 0 ? t('✨ Nouvelle pour toi', '✨ New for you') : t('Tu en as déjà $have${haveF > 0 ? ' (dont $haveF ${finishName(it.$2).toLowerCase()})' : ''}', 'You already have $have'));
+      final noteColor = mine ? (have - sameInTrade <= 0 ? const Color(0xFFFFB547) : Colors.white54) : (have == 0 ? const Color(0xFF5DCAA5) : Colors.white54);
+      return InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => openCardDetail(context, c),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(children: [
+            SizedBox(width: 84, child: CardView(card: c, finish: it.$2)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(c.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                const SizedBox(height: 2),
+                Text('${Catalog.system(c.sys)?.short ?? c.sys}${c.year == null ? '' : ' · ${c.year}'}', style: const TextStyle(fontSize: 12, color: Colors.white60)),
+                const SizedBox(height: 4),
+                Wrap(spacing: 6, runSpacing: 4, children: [
+                  _pill(rarityName(c.rarity), kRarityColor[c.rarity]),
+                  if (it.$2 > 0) _pill(finishName(it.$2), it.$2 == 2 ? const Color(0xFFFFD54F) : const Color(0xFF9C8CFF)),
+                ]),
+                const SizedBox(height: 4),
+                Text(note, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: noteColor)),
+              ]),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.white38),
+          ]),
+        ),
+      );
+    }
+
+    Widget section(String title, Color color, List<(String, int)> l, int v, {required bool mine}) => Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+          decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(14), border: Border.all(color: color.withOpacity(0.6))),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Text(title, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 15)),
+              const Spacer(),
+              Text(t('${l.length} carte${l.length > 1 ? 's' : ''} · valeur $v', '${l.length} card${l.length > 1 ? 's' : ''} · value $v'),
+                  style: const TextStyle(fontSize: 12, color: Colors.white54)),
+            ]),
+            if (l.isEmpty) Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: Text(t('rien', 'nothing'), style: const TextStyle(color: Colors.white38))),
+            for (final it in l) row(it, mine: mine),
+          ]),
+        );
+
+    return MaxWidth(
+      max: 640,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(incoming ? t('Échange proposé par $name', 'Trade from $name') : t('Ton échange avec $name', 'Your trade with $name')),
+          actions: [
+            IconButton(
+              tooltip: t('Profil', 'Profile'),
+              icon: const Icon(Icons.person_search),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: trade['other_pid'] as String))),
+            ),
+          ],
+        ),
+        body: ListView(padding: const EdgeInsets.fromLTRB(14, 8, 14, 24), children: [
+          // résumé
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12)),
+            child: Text.rich(
+              TextSpan(children: [
+                TextSpan(text: t('Valeur : tu reçois ', 'Value: you get ')),
+                TextSpan(text: '$vGet', style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w900)),
+                TextSpan(text: t(', tu donnes ', ', you give ')),
+                TextSpan(text: '$vGive', style: const TextStyle(color: Color(0xFFF09595), fontWeight: FontWeight.w900)),
+                if (fresh > 0) TextSpan(text: t(' · $fresh carte${fresh > 1 ? 's' : ''} nouvelle${fresh > 1 ? 's' : ''} pour toi ✨', ' · $fresh new card${fresh > 1 ? 's' : ''} for you ✨')),
+              ]),
+              style: const TextStyle(fontSize: 13, height: 1.4),
+            ),
+          ),
+          section(t('Tu reçois', 'You get'), const Color(0xFF5DCAA5), iGet, vGet, mine: false),
+          section(t('Tu donnes', 'You give'), const Color(0xFFF09595), iGive, vGive, mine: true),
+          Text(t('Valeur = pièces données par le recyclage. Touche une carte pour voir sa fiche.', 'Value = coins given by recycling. Tap a card to see it.'),
+              style: const TextStyle(fontSize: 11.5, color: Colors.white38)),
+        ]),
+        bottomNavigationBar: finished
+            ? null
+            : SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
+                  child: incoming
+                      ? Row(children: [
+                          Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(context, 'refuse'), child: Text(t('Refuser', 'Decline')))),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(backgroundColor: const Color(0xFF2FBF8A), foregroundColor: const Color(0xFF06281B)),
+                              onPressed: () => Navigator.pop(context, 'accept'),
+                              child: Text(t('Accepter l\'échange', 'Accept the trade'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                            ),
+                          ),
+                        ])
+                      : OutlinedButton(onPressed: () => Navigator.pop(context, 'cancel'), child: Text(t('Annuler la proposition', 'Cancel offer'))),
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _pill(String s, Color c) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(color: c.withOpacity(0.2), borderRadius: BorderRadius.circular(6), border: Border.all(color: c.withOpacity(0.7))),
+        child: Text(s, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color.lerp(c, Colors.white, 0.35))),
+      );
 }

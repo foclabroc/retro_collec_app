@@ -12,6 +12,9 @@
   et son mouvement (traverse, chute, montée, pluie, feu d'artifice).
   Les 5 prochains événements sont toujours visibles en entier (titre, texte, récompense) avec leur compte à rebours
   à la seconde, mais verrouillés (« 🔒 Disponible le 24/10 à 00:00 ») jusqu'à leur début.
+- **Bourse, échanges en détail** : toucher un échange (ou « Voir le détail ») ouvre une page avec les cartes en grand,
+  leur rareté et finition, « ✨ Nouvelle pour toi » ou « Tu en as déjà 2 », « ⚠ Ta dernière » pour celles que tu donnes,
+  la valeur de chaque côté, et les boutons Accepter / Refuser. Toucher une carte ouvre sa fiche.
 - **Joueurs en ligne** : bouton 🟢 en haut du Voisinage avec la liste des connectés, « Défier » (4 en ligne ou
   Console Wars, grisé sous 50 pièces) et « Étage » pour descendre jusqu'à eux.
 
