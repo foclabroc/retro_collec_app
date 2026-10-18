@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'library.dart';
 import 'audio.dart';
 import 'cards.dart';
+import 'defis.dart';
 import 'catalog.dart';
 import 'game.dart';
 import 'bonus.dart';
@@ -573,13 +574,6 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       case 'login':
         final s = (e['streak'] as num? ?? 1).toInt();
         msg = t('Connexion jour $s : +$coins pièces', 'Day $s login: +$coins coins');
-      case 'mission':
-        final m = switch (e['mission']) {
-          'open' => t('ouvrir 2 paquets', 'open 2 packs'),
-          'recycle' => t('recycler 5 doublons', 'recycle 5 duplicates'),
-          _ => t('faire un échange ou un achat', 'make a trade or a purchase'),
-        };
-        msg = t('Mission accomplie ($m) : +$coins pièces', 'Mission complete ($m): +$coins coins');
       case 'reward':
         msg = t('🎁 Cadeau : +$coins pièces offertes !', '🎁 Gift: +$coins free coins!');
       case 'milestone':
@@ -611,6 +605,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     if (i == 4) MessagesScreenState.current?.active(true);
     if (i == 5) NeighborsScreenState.current?.load();
     if (i == 6) FeedScreenState.current?.load();
+    if (i == 7) DefisScreenState.current?.load();
     if (i == 2 || i == 5) Notifs.i.refresh();
   }
 
@@ -641,6 +636,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           MaxWidth(child: MessagesScreen()),
           NeighborsScreen(),
           MaxWidth(child: FeedScreen()),
+          MaxWidth(child: DefisScreen()),
         ]);
         return Scaffold(
           key: scaffoldKey,
@@ -732,6 +728,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 child: Column(children: [
                   item(0, 'collection', t('Collection', 'Collection')),
                   item(1, 'packs', t('Paquets', 'Packs'), dot: g.free || n.lotFree, count: n.gifts + n.lots),
+                  item(7, 'defis', t('Défis', 'Challenges'), count: n.week),
                   item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'), dot: n.wheel, count: DuelWatch.i.badge),
                   item(3, 'market', t('Bourse', 'Exchange'), count: n.trades + n.sales.length),
                   item(4, 'messages', t('Messages', 'Messages'), count: n.chat, dot: n.mention),
@@ -846,6 +843,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                           : g.free
                               ? t('Paquet gratuit dispo !', 'Free pack ready!')
                               : null),
+                  item(7, 'defis', t('Défis de la semaine', 'Weekly challenges'),
+                      count: n.week, hint: n.week > 0 ? t('Récompense à récupérer !', 'Reward to claim!') : t('6 défis et un coffre', '6 challenges and a chest')),
                   item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'),
                       dot: n.wheel,
                       count: DuelWatch.i.badge,

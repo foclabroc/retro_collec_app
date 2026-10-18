@@ -399,6 +399,19 @@ class RcServer {
   static Future<List<Map<String, dynamic>>> feed([int after = 0]) async =>
       _list(await _rpc('rc_feed_list2', {'p_after': after}));
 
+  // ── Défis de la semaine ─────────────────────────────────────────────────
+  /// {goals, rewards, prog, claim (bits : défis 0..5, coffre 6), chest, ends, coins, pixels, gifts}
+  static Future<Map<String, dynamic>> week() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_week', {'p_device': d, 'p_sig': _sig('$d|week')}));
+  }
+
+  /// Récupère un défi (1..6) ou le coffre (7) : l'état mis à jour + {gain}
+  static Future<Map<String, dynamic>> weekClaim(int i) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_week_claim', {'p_device': d, 'p_i': i, 'p_sig': _sig('$d|wclaim|$i')}));
+  }
+
   // ── Gamedle (jeu du jour) ───────────────────────────────────────────────
   /// {day, card, guesses, won, solvers, players, coins}
   static Future<Map<String, dynamic>> gamedleState() async {

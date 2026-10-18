@@ -392,8 +392,6 @@ class _PacksScreenState extends State<PacksScreen> {
                 style: const TextStyle(color: Color(0xFFCECBF6), fontSize: 12),
               ),
               const SizedBox(height: 18),
-              _Missions(g),
-              const SizedBox(height: 18),
               Text(t('Chances par carte', 'Odds per card'), style: const TextStyle(fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
               Wrap(spacing: 6, runSpacing: 6, children: [
@@ -544,46 +542,6 @@ class _PackOffer extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _Missions extends StatelessWidget {
-  final Game g;
-  const _Missions(this.g);
-  @override
-  Widget build(BuildContext context) {
-    final m = g.missions;
-    final done = (m['done'] as num? ?? 0).toInt();
-    Widget row(String label, int cur, int goal, int bit, int reward) {
-      final ok = done & bit != 0;
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Row(children: [
-          Icon(ok ? Icons.check_circle : Icons.radio_button_unchecked, color: ok ? const Color(0xFF5DCAA5) : Colors.white38, size: 20),
-          const SizedBox(width: 8),
-          Expanded(child: Text(label, style: TextStyle(color: ok ? Colors.white54 : Colors.white))),
-          Text('${min(cur, goal)}/$goal', style: const TextStyle(color: Colors.white54)),
-          const SizedBox(width: 10),
-          Text('+$reward', style: const TextStyle(color: Color(0xFFFAC775), fontWeight: FontWeight.w700)),
-        ]),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(14)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(t('Missions du jour', 'Daily missions'), style: const TextStyle(fontWeight: FontWeight.w800)),
-        const SizedBox(height: 4),
-        row(t('Ouvrir 2 paquets', 'Open 2 packs'), (m['open'] as num? ?? 0).toInt(), 2, 1, 30),
-        row(t('Recycler 5 doublons', 'Recycle 5 duplicates'), (m['recycle'] as num? ?? 0).toInt(), 5, 2, 30),
-        row(t('1 échange, achat ou vente', '1 trade, purchase or sale'), (m['trade'] as num? ?? 0).toInt(), 1, 4, 50),
-        const SizedBox(height: 4),
-        Text(t('Connexion : 50 pièces par jour, 200 tous les 7 jours d\'affilée (série : ${g.streak})',
-                'Login: 50 coins a day, 200 every 7 days in a row (streak: ${g.streak})'),
-            style: const TextStyle(color: Colors.white54, fontSize: 12)),
-      ]),
     );
   }
 }

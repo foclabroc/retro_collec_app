@@ -367,6 +367,13 @@ class Game extends ChangeNotifier {
     return ((r['count'] as num? ?? 0).toInt(), (r['gain'] as num? ?? 0).toInt());
   }
 
+  /// Met à jour pièces et pixels après une récompense
+  void setWallet(Map<String, dynamic> r) {
+    coins = (r['coins'] as num? ?? coins).toInt();
+    pixels = (r['pixels'] as num? ?? pixels).toInt();
+    notifyListeners();
+  }
+
   /// Verse les cadeaux uniques du serveur (sans erreur si hors ligne ou patch SQL absent)
   Future<void> claimRewards() async {
     try {

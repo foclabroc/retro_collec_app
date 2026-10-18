@@ -1,6 +1,15 @@
 # Pixel Trade — Changelog
 
 ## v1.0.11
+- **Défis de la semaine** (nouvel onglet « Défis » dans le menu, sous Paquets) : 6 défis du lundi au dimanche (ouvrir
+  10 paquets, recycler 30 doublons, 3 échanges/achats/ventes, gagner 2 duels qui rapportent, réussir 3 Gamedle,
+  obtenir une carte épique ou mieux). Bouton « Récupérer 150 🪙 » quand un défi est fini, pastille dans le menu.
+  Les 6 récupérés : coffre de 500 pièces + 2 pixels + 1 paquet premium dans le stock. Remplacent les missions du jour
+  (retirées de l'onglet Paquets). SQL : patch_defis_semaine.sql.
+- **Voisinage** : la tour n'affiche plus les joueurs absents depuis plus de 7 jours (ils reviennent dès qu'ils se
+  reconnectent).
+- **Collection** : les affiches des consoles sont animées (rayons qui tournent, console qui flotte, lueur, reflet,
+  bandeau, barre qui se remplit, étoiles sur les séries complètes) et n'ont plus la trame de points.
 - **Titres des onglets** : majuscules pixel blanches avec un halo et un soulignement de la couleur du thème, et l'icône
   de l'onglet dans une pastille lumineuse (sur les écrans assez larges). Le titre rétrécit si la place manque : pièces
   et pixels gardent toujours leur taille.
