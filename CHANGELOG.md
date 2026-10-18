@@ -1,6 +1,11 @@
 # Pixel Trade — Changelog
 
 ## v1.0.10
+- **Actualités enrichies** : victoires et matchs nuls au 4 en ligne et à Console Wars (avec la mise et l'abandon),
+  échanges conclus (avec la plus belle carte), ventes de la Bourse (épique ou mieux), paquets offerts, nouveaux joueurs,
+  séries de connexion (7, 30, 100, 365 jours), paquets ouverts (100e, 250e, 500e…), séries à 50 %.
+  Filtres (Tout, Duels, Cartes, Échanges, Joueurs), intertitres Aujourd'hui / Hier, deux avatars pour les duels.
+  SQL : patch_actu_plus.sql.
 - **Son** : un seul bouton 🔊 (écran titre, profil, 4 en ligne) coupe ou remet la musique et les bruitages ensemble,
   et le réglage est gardé au redémarrage de l'appli (avant, les bruitages se rallumaient).
 

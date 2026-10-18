@@ -11,8 +11,9 @@ import 'retro_theme.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Fil d'actualité : les exploits de tous les joueurs (légendaire ou dorée
-// obtenue, série complétée, Gamedle trouvé). Rempli côté serveur (rc_feed).
+// Fil d'actualité : les exploits de tous les joueurs (cartes rares, séries,
+// Gamedle, duels, échanges, ventes, cadeaux, arrivées, records), avec filtres.
+// Rempli côté serveur par des triggers (rc_feed, patch_actu_plus.sql).
 // ═══════════════════════════════════════════════════════════════════════════
 
 class FeedScreen extends StatefulWidget {
@@ -56,12 +57,69 @@ class FeedScreenState extends State<FeedScreen> {
     }
   }
 
+  String filter = 'all';
+
+  static String _cat(String kind) => switch (kind) {
+        'c4' || 'c4draw' || 'bs' || 'bsdraw' => 'duel',
+        'trade' || 'gift' => 'trade',
+        'join' || 'streak' || 'packs' => 'player',
+        _ => 'card',
+      };
+
+  /// « AUJOURD'HUI », « HIER » ou la date
+  static String _day(String? at) {
+    final d = DateTime.tryParse(at ?? '')?.toLocal();
+    if (d == null) return '';
+    final now = DateTime.now();
+    final days = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+    if (days <= 0) return t('AUJOURD\'HUI', 'TODAY');
+    if (days == 1) return t('HIER', 'YESTERDAY');
+    return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
+  }
+
+  Widget _chip(String id, String label) {
+    final on = filter == id;
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: ChoiceChip(
+        label: Text(label, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: on ? rcTheme.onAccent : Colors.white70)),
+        selected: on,
+        showCheckmark: false,
+        selectedColor: rcTheme.accent,
+        backgroundColor: kPanel,
+        onSelected: (_) => setState(() => filter = id),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // liste filtrée avec un intertitre à chaque changement de jour
+    final rows = <Object>[];
+    String? lastDay;
+    for (final e in items ?? const <Map<String, dynamic>>[]) {
+      if (filter != 'all' && _cat(e['kind'] as String? ?? '') != filter) continue;
+      final d = _day(e['at'] as String?);
+      if (d != lastDay) {
+        rows.add(d);
+        lastDay = d;
+      }
+      rows.add(e);
+    }
     return Column(children: [
       TabHeader(t('Actualités', 'News'), actions: [
         IconButton(onPressed: load, icon: const Icon(Icons.refresh), tooltip: t('Actualiser', 'Refresh')),
       ]),
+      SizedBox(
+        height: 44,
+        child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), children: [
+          _chip('all', t('Tout', 'All')),
+          _chip('duel', t('⚔ Duels', '⚔ Duels')),
+          _chip('card', t('🃏 Cartes', '🃏 Cards')),
+          _chip('trade', t('🔁 Échanges', '🔁 Trades')),
+          _chip('player', t('👋 Joueurs', '👋 Players')),
+        ]),
+      ),
       Expanded(
         child: items == null
             ? Center(
@@ -70,7 +128,7 @@ class FeedScreenState extends State<FeedScreen> {
                     : const CircularProgressIndicator())
             : RefreshIndicator(
                 onRefresh: load,
-                child: items!.isEmpty
+                child: rows.isEmpty
                     ? ListView(children: [
                         const SizedBox(height: 120),
                         const Center(child: Text('📰', style: TextStyle(fontSize: 44))),
@@ -82,9 +140,18 @@ class FeedScreenState extends State<FeedScreen> {
                       ])
                     : ListView.separated(
                         padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
-                        itemCount: items!.length,
+                        itemCount: rows.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemBuilder: (_, i) => _FeedTile(items![i]),
+                        itemBuilder: (_, i) {
+                          final r = rows[i];
+                          if (r is String) {
+                            return Padding(
+                              padding: EdgeInsets.only(left: 4, top: i == 0 ? 0 : 6),
+                              child: Text(r, style: pixelStyle(size: 8, color: Colors.white54, shadow: false)),
+                            );
+                          }
+                          return _FeedTile(r as Map<String, dynamic>);
+                        },
                       ),
               ),
       ),
@@ -106,56 +173,159 @@ class _FeedTile extends StatelessWidget {
   final Map<String, dynamic> e;
   const _FeedTile(this.e);
 
+  void _open(BuildContext context, String? pid) {
+    if (pid == null || pid == Game.i.pid) return;
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: pid)));
+  }
+
+  /// Toucher : profil du joueur (pour 2 joueurs, choix entre les deux, sauf soi)
+  void _tap(BuildContext context, String? pid, String name, String? pid2, String? name2) {
+    final mine = Game.i.pid;
+    final opts = [if (pid != null && pid != mine) (pid, name), if (pid2 != null && pid2 != mine) (pid2, name2 ?? '?')];
+    if (opts.isEmpty) return;
+    if (opts.length == 1) return _open(context, opts.first.$1);
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: kBg,
+      builder: (ctx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          for (final (p, n) in opts)
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: Text(t('Voir le profil de $n', 'See $n\'s profile')),
+              onTap: () {
+                Navigator.pop(ctx);
+                _open(context, p);
+              },
+            ),
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final kind = e['kind'] as String? ?? '';
     final card = Catalog.cards[e['card'] as String? ?? ''];
     final f = (e['f'] as num? ?? 0).toInt();
     final n = (e['n'] as num? ?? 0).toInt();
-    final name = e['name'] as String? ?? '?';
-    final pid = e['pid'] as String?;
+    final x = e['x'] as String?;
+    final pid = e['pid'] as String?, pid2 = e['pid2'] as String?;
     final me = pid != null && pid == Game.i.pid;
+    final me2 = pid2 != null && pid2 == Game.i.pid;
+    final name = me ? t('Toi', 'You') : (e['name'] as String? ?? '?');
+    final name2 = me2 ? t('toi', 'you') : (e['name2'] as String? ?? '?');
     final sysName = Catalog.system(e['sys'] as String? ?? '')?.name ?? (e['sys'] ?? '');
+    final title = card?.title ?? '';
+    final duo = pid2 != null;
 
-    // texte, couleur d'accent et icône selon l'événement
-    final (String what, Color accent, String icon) = switch (kind) {
-      'legend' => (t('a obtenu la légendaire ${card?.title ?? ''}', 'got the legendary ${card?.title ?? ''}'), kRarityColor[4], '🌟'),
-      'gold' => (t('a obtenu ${card?.title ?? ''} en version dorée', 'got a gold ${card?.title ?? ''}'), const Color(0xFFFFD54F), '★'),
-      'set' => (t('a complété la série $sysName à 100 % !', 'completed the $sysName set!'), const Color(0xFF5DCAA5), '🏆'),
+    // morceaux de phrase : (texte, en gras ?)
+    List<(String, bool)> s(String fr, String en) {
+      // **mot** = en gras
+      final out = <(String, bool)>[];
+      final parts = t(fr, en).split('**');
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i].isNotEmpty) out.add((parts[i], i.isOdd));
+      }
+      return out;
+    }
+
+    final a = '**$name**', b = '**$name2**';
+    final how = switch (x) {
+      'resign' => t(' · $name2 a abandonné', ' · $name2 resigned'),
+      'timeout' => t(' · temps écoulé pour $name2', ' · $name2 ran out of time'),
+      _ => '',
+    };
+    final (List<(String, bool)> what, Color accent, String icon, String? prize) = switch (kind) {
+      'legend' => (s('$a a obtenu la légendaire **$title**', '$a got the legendary **$title**'), kRarityColor[4], '🌟', null),
+      'gold' => (s('$a a obtenu **$title** en version dorée', '$a got a gold **$title**'), const Color(0xFFFFD54F), '★', null),
+      'set' => (s('$a a complété la série **$sysName** à 100 % !', '$a completed the **$sysName** set!'), const Color(0xFF5DCAA5), '🏆', null),
+      'half' => (s('$a a atteint **50 %** de la série **$sysName**', '$a reached **50%** of the **$sysName** set'), const Color(0xFF77AADD), '📈', null),
       'gamedle' => (
           n == 1
-              ? t('a trouvé le Gamedle du jour du premier coup !', 'solved today\'s Gamedle on the first try!')
-              : t('a trouvé le Gamedle du jour en $n essais', 'solved today\'s Gamedle in $n tries'),
+              ? s('$a a trouvé le Gamedle du jour du premier coup !', '$a solved today\'s Gamedle on the first try!')
+              : s('$a a trouvé le Gamedle du jour en $n essais', '$a solved today\'s Gamedle in $n tries'),
           const Color(0xFF3DD9FF),
-          '🧩'
+          '🧩',
+          null
         ),
-      _ => ('', Colors.white54, '•'),
+      'c4' => (s('$a a battu $b au 4 en ligne$how', '$a beat $b at Connect 4$how'), const Color(0xFFFF4757), '🔴', '+$n 🪙'),
+      'c4draw' => (s('$a et $b ont fait match nul au 4 en ligne', '$a and $b drew at Connect 4'), const Color(0xFF99AAAA), '🤝', null),
+      'bs' => (s('$a a coulé la flotte de $b à Console Wars$how', '$a sank $b\'s fleet in Console Wars$how'), const Color(0xFF3EC7FF), '🚢', '+$n 🪙'),
+      'bsdraw' => (s('$a et $b ont fait match nul à Console Wars', '$a and $b drew in Console Wars'), const Color(0xFF99AAAA), '🤝', null),
+      'trade' => (
+          card == null
+              ? s('$a et $b ont échangé $n carte${n > 1 ? 's' : ''}', '$a and $b traded $n card${n > 1 ? 's' : ''}')
+              : s('$a et $b ont échangé $n carte${n > 1 ? 's' : ''}, dont **$title**', '$a and $b traded $n card${n > 1 ? 's' : ''}, including **$title**'),
+          const Color(0xFF5DCAA5),
+          '🔁',
+          null
+        ),
+      'sale' => (s('$a a acheté **$title** à $b à la Bourse pour', '$a bought **$title** from $b on the Exchange for'), const Color(0xFFFFB347), '💱', '$n 🪙'),
+      'gift' => (s('$a a offert un paquet à $b 🎁', '$a gave $b a pack 🎁'), const Color(0xFFFF6B9A), '🎁', null),
+      'join' => (s('Bienvenue à $a qui rejoint Pixel Trade ! 👋', 'Welcome $a, who just joined Pixel Trade! 👋'), const Color(0xFF9A7DFF), '👋', null),
+      'streak' => (s('$a se connecte depuis **$n jours** d\'affilée 🔥', '$a has logged in **$n days** in a row 🔥'), const Color(0xFFFF8A5B), '🔥', null),
+      'packs' => (s('$a a ouvert son **${n}e paquet** 📦', '$a opened their **${n}th pack** 📦'), const Color(0xFF6EA8FF), '📦', null),
+      _ => (<(String, bool)>[], Colors.white54, '•', null),
     };
+    if (what.isEmpty) return const SizedBox.shrink();
 
+    final av1 = (e['avatar'] as num? ?? 0).toInt(), av2 = (e['avatar2'] as num? ?? 0).toInt();
+    final loserGrey = kind == 'c4' || kind == 'bs';
+    final anyMe = me || me2;
     return Material(
       color: kPanel,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: pid == null || me ? null : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: pid))),
+        onTap: () => _tap(context, pid, e['name'] as String? ?? '?', pid2, e['name2'] as String?),
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: accent.withOpacity(me ? 0.9 : 0.45), width: me ? 1.6 : 1),
+            border: Border.all(color: accent.withOpacity(anyMe ? 0.9 : 0.45), width: anyMe ? 1.6 : 1),
             gradient: LinearGradient(colors: [accent.withOpacity(0.14), Colors.transparent]),
           ),
           child: Row(children: [
-            avatarWidget((e['avatar'] as num? ?? 0).toInt(), size: 42),
+            if (duo)
+              SizedBox(
+                width: 54,
+                height: 44,
+                child: Stack(children: [
+                  Positioned(left: 0, top: 0, child: avatarWidget(av1, size: 34)),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Opacity(opacity: loserGrey ? 0.55 : 1, child: avatarWidget(av2, size: 34)),
+                  ),
+                ]),
+              )
+            else
+              avatarWidget(av1, size: 42),
             const SizedBox(width: 10),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text.rich(
                   TextSpan(children: [
-                    TextSpan(text: me ? t('Toi ', 'You ') : '$name ', style: TextStyle(fontWeight: FontWeight.w800, color: me ? kGold : Colors.white)),
-                    TextSpan(text: what, style: const TextStyle(color: Colors.white70)),
+                    for (final (txt, bold) in what)
+                      TextSpan(
+                        text: txt,
+                        style: bold
+                            ? TextStyle(fontWeight: FontWeight.w800, color: (txt == '$name' && me) || (txt == '$name2' && me2) ? rcTheme.accent : Colors.white)
+                            : null,
+                      ),
+                    if (prize != null)
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Container(
+                          margin: const EdgeInsets.only(left: 5),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(8)),
+                          child: Text(prize, style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.w900, fontSize: 12)),
+                        ),
+                      ),
                   ]),
-                  style: const TextStyle(fontSize: 14, height: 1.3),
+                  style: const TextStyle(fontSize: 14, height: 1.3, color: Colors.white70),
                 ),
                 const SizedBox(height: 4),
                 Text(_ago(e['at'] as String?), style: const TextStyle(color: Colors.white38, fontSize: 11)),
