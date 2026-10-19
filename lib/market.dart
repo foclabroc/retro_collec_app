@@ -707,7 +707,11 @@ class MyListingsState extends State<MyListings> {
     if (rows == null) return const Center(child: CircularProgressIndicator(color: kGold));
     final list = rows!.where((r) => Catalog.cards.containsKey(r['card'])).toList();
     final forSale = list.where((r) => r['sold'] != true).toList();
-    final sold = list.where((r) => r['sold'] == true).toList();
+    final sold = list.where((r) => r['sold'] == true).toList()
+      // les plus récentes d'abord (les nouvelles ventes en tête)
+      ..sort((a, b) => (b['sold_at']?.toString() ?? '').compareTo(a['sold_at']?.toString() ?? ''));
+    final fresh = sold.where((r) => Notifs.i.isFreshSale(r['id'])).toList();
+    final freshTotal = fresh.fold<int>(0, (a, r) => a + (r['price'] as num).toInt());
     final soldTotal = sold.fold<int>(0, (a, r) => a + (r['price'] as num).toInt());
     final open = forSale.length;
     return RefreshIndicator(
@@ -751,6 +755,28 @@ class MyListingsState extends State<MyListings> {
           _head(t('En vente', 'For sale'), '${forSale.length}'),
           _grid([for (final r in forSale) _listing(r)]),
         ],
+        if (fresh.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F6E56).withOpacity(0.35),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF5DCAA5), width: 1.5),
+            ),
+            child: Row(children: [
+              const Text('💰', style: TextStyle(fontSize: 22)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                    fresh.length == 1
+                        ? t('Nouvelle vente : ${Catalog.cards[fresh.first['card']]?.title ?? '?'} à ${fresh.first['buyer'] ?? '?'} (+$freshTotal 🪙)',
+                            'New sale: ${Catalog.cards[fresh.first['card']]?.title ?? '?'} to ${fresh.first['buyer'] ?? '?'} (+$freshTotal 🪙)')
+                        : t('${fresh.length} nouvelles ventes : +$freshTotal 🪙', '${fresh.length} new sales: +$freshTotal 🪙'),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
+              ),
+            ]),
+          ),
         if (sold.isNotEmpty) ...[
           _head(t('Vendues récemment', 'Recently sold'), t('+$soldTotal 🪙 sur 7 jours', '+$soldTotal 🪙 in 7 days')),
           _grid([for (final r in sold) _listing(r)]),
@@ -785,11 +811,12 @@ class MyListingsState extends State<MyListings> {
     final c = Catalog.cards[r['card']]!;
     final f = (r['finish'] as num).toInt();
     final isSold = r['sold'] == true;
+    final isNew = isSold && Notifs.i.isFreshSale(r['id']);
     return Column(children: [
       Padding(
         padding: const EdgeInsets.only(top: 7, left: 3, right: 3),
         child: Stack(clipBehavior: Clip.none, children: [
-          isSold
+          isSold && !isNew
               ? ColorFiltered(
                   colorFilter: const ColorFilter.matrix(<double>[
                     0.45, 0.25, 0.08, 0, 0, //
@@ -808,6 +835,16 @@ class MyListingsState extends State<MyListings> {
               child: Text('🪙 ${(r['price'] as num).toInt()}', style: const TextStyle(color: Color(0xFFFFD166), fontSize: 11, fontWeight: FontWeight.w900)),
             ),
           ),
+          if (isNew)
+            Positioned(
+              left: -3,
+              top: -7,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(color: const Color(0xFFE24B4A), borderRadius: BorderRadius.circular(10)),
+                child: Text(t('NOUVEAU', 'NEW'), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
+              ),
+            ),
           if (isSold)
             Positioned.fill(
               child: Center(

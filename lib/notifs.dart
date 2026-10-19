@@ -36,6 +36,13 @@ class Notifs extends ChangeNotifier {
   bool chatOpen = false; // écran Messages affiché : pas de pastille
   int _lastGifts = -1;
   List<Map<String, dynamic>> sales = []; // ventes pas encore vues
+  final Set<int> freshSales = {}; // ventes vues pendant cette session (mises en avant dans « Vendre »)
+
+  /// Vente toute récente (pas encore vue, ou vue pendant cette session)
+  bool isFreshSale(dynamic id) {
+    final n = (id as num?)?.toInt();
+    return n != null && (freshSales.contains(n) || sales.any((x) => (x['id'] as num?)?.toInt() == n));
+  }
   final _announced = <int>{};
   int _lastTrades = -1; // -1 : premier passage (pas de message)
   Timer? _timer;
@@ -119,6 +126,7 @@ class Notifs extends ChangeNotifier {
   /// Les ventes ont été vues (ouverture du Marché)
   Future<void> salesSeen() async {
     if (sales.isEmpty) return;
+    freshSales.addAll([for (final x in sales) if (x['id'] is num) (x['id'] as num).toInt()]);
     sales = [];
     notifyListeners();
     try {
