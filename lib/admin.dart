@@ -228,7 +228,12 @@ class _AccountsTabState extends State<_AccountsTab> with AutomaticKeepAliveClien
   String _q = '';
   List<Map<String, dynamic>>? _rows;
   String? _error;
-  bool _onlyFlagged = false;
+  int _filter = 0; // 0 : tous, 1 : vus aujourd'hui, 2 : à vérifier
+
+  bool _seenToday(Map<String, dynamic> p) {
+    final s = _d(p['seen_at']), n = DateTime.now();
+    return s != null && s.year == n.year && s.month == n.month && s.day == n.day;
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -308,10 +313,9 @@ class _AccountsTabState extends State<_AccountsTab> with AutomaticKeepAliveClien
         const SizedBox(height: 8),
         if (rows != null && _q.isEmpty)
           Row(children: [
-            _num('${rows.length}', t('nouveaux · 7 j', 'new · 7 d')),
-            _num('$active', t('vus aujourd\'hui', 'seen today')),
-            _num('$flagged', _onlyFlagged ? t('à vérifier ✓', 'to check ✓') : t('à vérifier', 'to check'),
-                on: _onlyFlagged, onTap: () => setState(() => _onlyFlagged = !_onlyFlagged)),
+            _num('${rows.length}', t('nouveaux · 7 j', 'new · 7 d'), on: _filter == 0, onTap: () => setState(() => _filter = 0)),
+            _num('$active', t('vus aujourd\'hui', 'seen today'), on: _filter == 1, onTap: () => setState(() => _filter = _filter == 1 ? 0 : 1)),
+            _num('$flagged', t('à vérifier', 'to check'), on: _filter == 2, onTap: () => setState(() => _filter = _filter == 2 ? 0 : 2)),
           ]),
         const SizedBox(height: 6),
         if (rows == null)
@@ -326,7 +330,8 @@ class _AccountsTabState extends State<_AccountsTab> with AutomaticKeepAliveClien
           )
         else
           for (final p in rows)
-            if (!_onlyFlagged || _level(_accountTags(p)) != null) _accountRow(context, p),
+            if (_q.isNotEmpty || _filter == 0 || (_filter == 1 && _seenToday(p)) || (_filter == 2 && _level(_accountTags(p)) != null))
+              _accountRow(context, p),
       ]),
     );
   }
