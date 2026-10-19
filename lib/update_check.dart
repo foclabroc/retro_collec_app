@@ -7,6 +7,9 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'server.dart';
+import 'web_audio_stub.dart' if (dart.library.js_interop) 'web_audio_web.dart';
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Vérification des mises à jour (GitHub Releases de foclabroc/retro_collec_app)
 // À chaque nouvelle version : changer kRetroCollecVersion ET « version: » du
@@ -100,6 +103,7 @@ class UpdateGateState extends State<UpdateGate> {
 
   /// 0 : à jour, 1 : mise à jour proposée, 2 : hors ligne (seulement si manual).
   Future<int> check({bool manual = false}) async {
+    if (!manual && await _belowMinimum()) return 1;
     RetroCollecUpdate? u;
     try {
       u = await checkRetroCollecUpdate(throwOnError: manual);
@@ -118,6 +122,59 @@ class UpdateGateState extends State<UpdateGate> {
     return 1;
   }
 
+  /// Version minimale réglée depuis la page admin : bloque l'appli tant qu'elle n'est pas mise à jour.
+  Future<bool> _belowMinimum() async {
+    String min;
+    try {
+      min = (await RcServer.appConfig())['min_version']?.toString() ?? '1.0.0';
+    } catch (_) {
+      return false; // hors ligne : on laisse jouer
+    }
+    if (_compare(kRetroCollecVersion, min) >= 0 || !mounted) return false;
+    final fr = widget.french;
+    if (kIsWeb) {
+      await showDialog<void>(
+        context: context,
+        useRootNavigator: true,
+        barrierDismissible: false,
+        builder: (ctx) => PopScope(
+          canPop: false,
+          child: AlertDialog(
+            backgroundColor: const Color(0xFF1C2230),
+            title: Text(fr ? 'Nouvelle version disponible' : 'New version available',
+                style: const TextStyle(color: Colors.white, fontSize: 16)),
+            content: Text(
+                fr ? 'Cette page utilise une ancienne version du jeu ($kRetroCollecVersion). Recharge pour passer à la $min ou plus.'
+                   : 'This page runs an old version of the game ($kRetroCollecVersion). Reload to get $min or newer.',
+                style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.3)),
+            actions: [
+              ElevatedButton.icon(
+                onPressed: webReload,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: Text(fr ? 'Recharger' : 'Reload'),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE53935)),
+              ),
+            ],
+          ),
+        ),
+      );
+      return true;
+    }
+    RetroCollecUpdate? u;
+    try {
+      u = await checkRetroCollecUpdate(throwOnError: true);
+    } catch (_) {}
+    if (!mounted) return true;
+    final upd = u ?? RetroCollecUpdate(min, _releasesPage, null);
+    await showDialog<void>(
+      context: context,
+      useRootNavigator: true,
+      barrierDismissible: false,
+      builder: (ctx) => _UpdateDialog(update: upd, french: fr, forced: true),
+    );
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) => widget.child;
 }
@@ -126,7 +183,8 @@ class UpdateGateState extends State<UpdateGate> {
 class _UpdateDialog extends StatefulWidget {
   final RetroCollecUpdate update;
   final bool french;
-  const _UpdateDialog({required this.update, required this.french});
+  final bool forced; // version minimale imposée : impossible de fermer
+  const _UpdateDialog({required this.update, required this.french, this.forced = false});
 
   @override
   State<_UpdateDialog> createState() => _UpdateDialogState();
@@ -214,7 +272,7 @@ class _UpdateDialogState extends State<_UpdateDialog> {
   }
 
   void _openPage() {
-    Navigator.of(context).pop();
+    if (!widget.forced) Navigator.of(context).pop();
     launchUrl(Uri.parse(widget.update.pageUrl), mode: LaunchMode.externalApplication);
   }
 
@@ -223,13 +281,13 @@ class _UpdateDialogState extends State<_UpdateDialog> {
     const red = Color(0xFFE02020);
     final pct = _progress < 0 ? null : _progress;
     return PopScope(
-      canPop: _step != 1,
+      canPop: _step != 1 && !widget.forced,
       child: AlertDialog(
         backgroundColor: const Color(0xFF1C2230),
         title: Row(children: [
           const Icon(Icons.system_update_rounded, color: red),
           const SizedBox(width: 10),
-          Expanded(child: Text(fr ? 'Mise à jour disponible' : 'Update available',
+          Expanded(child: Text(widget.forced ? (fr ? 'Mise à jour obligatoire' : 'Update required') : (fr ? 'Mise à jour disponible' : 'Update available'),
               style: const TextStyle(color: Colors.white, fontSize: 16))),
         ]),
         content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -239,6 +297,12 @@ class _UpdateDialogState extends State<_UpdateDialog> {
           Text('${fr ? 'Nouvelle version' : 'New version'} : ${widget.update.latest}',
               style: const TextStyle(color: Colors.white, fontSize: 14)),
           const SizedBox(height: 14),
+          if (widget.forced && _step == 0) ...[
+            Text(fr ? 'Cette version n\'est plus prise en charge. Installe la nouvelle pour continuer à jouer.'
+                    : 'This version is no longer supported. Install the new one to keep playing.',
+                style: const TextStyle(color: Colors.amberAccent, fontSize: 13, height: 1.3)),
+            const SizedBox(height: 8),
+          ],
           if (_step == 0)
             Text(fr ? 'Télécharger et installer maintenant ? Ta progression est conservée.'
                     : 'Download and install now? Your progress is kept.',
@@ -265,7 +329,7 @@ class _UpdateDialogState extends State<_UpdateDialog> {
         ]),
         actions: [
           if (_step == 0) ...[
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(fr ? 'Plus tard' : 'Later')),
+            if (!widget.forced) TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(fr ? 'Plus tard' : 'Later')),
             ElevatedButton.icon(
               onPressed: _download,
               icon: const Icon(Icons.download_rounded, size: 18),
@@ -278,12 +342,16 @@ class _UpdateDialogState extends State<_UpdateDialog> {
               onPressed: () {
                 _cancelled = true;
                 _client?.close(force: true);
-                Navigator.of(context).pop();
+                if (widget.forced) {
+                  setState(() => _step = 0);
+                } else {
+                  Navigator.of(context).pop();
+                }
               },
               child: Text(fr ? 'Annuler' : 'Cancel'),
             ),
           if (_step == 2) ...[
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(fr ? 'Fermer' : 'Close')),
+            if (!widget.forced) TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(fr ? 'Fermer' : 'Close')),
             ElevatedButton.icon(
               onPressed: _install,
               icon: const Icon(Icons.install_mobile_rounded, size: 18),
@@ -292,7 +360,7 @@ class _UpdateDialogState extends State<_UpdateDialog> {
             ),
           ],
           if (_step == 3) ...[
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(fr ? 'Fermer' : 'Close')),
+            if (!widget.forced) TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(fr ? 'Fermer' : 'Close')),
             ElevatedButton.icon(
               onPressed: _openPage,
               icon: const Icon(Icons.open_in_new_rounded, size: 18),

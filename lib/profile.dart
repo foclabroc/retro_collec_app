@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'account.dart';
+import 'admin.dart';
 
 import 'album.dart';
 import 'audio.dart';
@@ -44,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _load();
+    checkAdmin();
   }
 
   Future<void> _load() async {
@@ -194,6 +196,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Container(
                   decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(12)),
                   child: Column(children: [
+                    // Admin : visible seulement si le serveur confirme que ce compte est admin
+                    ValueListenableBuilder<bool>(
+                      valueListenable: rcIsAdmin,
+                      builder: (context, admin, _) => !admin
+                          ? const SizedBox.shrink()
+                          : ListTile(
+                              leading: const Icon(Icons.admin_panel_settings, color: Color(0xFFFF8A8A)),
+                              title: const Text('Admin', style: TextStyle(fontWeight: FontWeight.w900)),
+                              subtitle: Text(t('Comptes, liens, stats, chat, outils', 'Accounts, links, stats, chat, tools'),
+                                  style: const TextStyle(fontSize: 12, color: Colors.white54)),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminPage())),
+                            ),
+                    ),
                     ListTile(
                       leading: const Icon(Icons.tablet_android),
                       title: Text(t('Affichage', 'Layout')),

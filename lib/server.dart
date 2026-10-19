@@ -648,4 +648,40 @@ class RcServer {
     final r = await _rpc('rc_profile', {'p_pid': pid});
     return r == null ? null : _map(r);
   }
+
+  // ── Admin (réservé aux comptes de rc_admins, vérifié par le serveur) ──────
+  static Future<dynamic> _admin(String fn, String payload, [Map<String, dynamic> extra = const {}]) async {
+    final d = await deviceId();
+    return _rpc(fn, {'p_device': d, 'p_sig': _sig('$d|admin|$payload'), ...extra});
+  }
+
+  /// Version minimale exigée (publique) : {min_version}
+  static Future<Map<String, dynamic>> appConfig() async => _map(await _rpc('rc_app_config', {}));
+
+  static Future<bool> adminCheck() async {
+    try {
+      return (await _admin('rc_admin_check', 'check')) == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> adminAccounts([String q = '']) async =>
+      _list(await _admin('rc_admin_accounts', 'accounts|$q', {'p_query': q}));
+
+  static Future<Map<String, dynamic>> adminPlayer(String pid) async =>
+      _map(await _admin('rc_admin_player', 'player|$pid', {'p_pid': pid}));
+
+  static Future<List<Map<String, dynamic>>> adminLinks() async => _list(await _admin('rc_admin_links', 'links'));
+
+  static Future<Map<String, dynamic>> adminStats() async => _map(await _admin('rc_admin_stats', 'stats'));
+
+  static Future<List<Map<String, dynamic>>> adminChat() async => _list(await _admin('rc_admin_chat', 'chat'));
+
+  /// act : hide, show, ban (24 h), unban
+  static Future<bool> adminChatAct(int id, String act) async =>
+      (await _admin('rc_admin_chat_act', 'chatact|$id|$act', {'p_id': id, 'p_act': act})) == true;
+
+  static Future<Map<String, dynamic>> adminSetConfig(String key, String value) async =>
+      _map(await _admin('rc_admin_set_config', 'config|$key|$value', {'p_key': key, 'p_value': value}));
 }

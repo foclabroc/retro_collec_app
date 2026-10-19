@@ -218,3 +218,9 @@ final Map<String, (int, Float32List) Function()> _sounds = {
   'zap': () => (_kChip, _mix(_tone(90, 70, 480, 0.30, _square, decay: 1.2, vibrato: 60), _tone(5000, 2000, 480, 0.16, _noise, decay: 1.5))),
   'explode': () => (_kChip, _mix(_tone(2500, 120, 650, 0.32, _noise, decay: 1.8), _tone(140, 45, 650, 0.30, _square, decay: 2))),
 };
+
+/// Recharge la page en contournant le cache (nouvelle version du jeu).
+void webReload() {
+  final l = web.window.location;
+  l.href = '${l.origin}${l.pathname}?v=${DateTime.now().millisecondsSinceEpoch}';
+}
