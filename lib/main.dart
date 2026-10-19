@@ -597,6 +597,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  DateTime? _lastBack; // double appui sur retour pour quitter
 
   void openMenu() {
     final st = scaffoldKey.currentState;
@@ -627,10 +628,23 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        if (scaffoldKey.currentState?.isDrawerOpen == true) {
-          scaffoldKey.currentState?.closeDrawer();
+        final st = scaffoldKey.currentState;
+        if (st != null && st.hasDrawer) {
+          // téléphone : retour ouvre le panneau latéral, qui reste ouvert jusqu'au choix d'un onglet ;
+          // panneau déjà ouvert : deux fois retour en 2 s pour quitter
+          if (!st.isDrawerOpen) {
+            st.openDrawer();
+            return;
+          }
+          final now = DateTime.now();
+          if (_lastBack != null && now.difference(_lastBack!) < const Duration(seconds: 2)) {
+            SystemNavigator.pop();
+          } else {
+            _lastBack = now;
+            toast(t('Choisis un onglet, ou appuie encore sur retour pour quitter', 'Pick a tab, or press back again to quit'));
+          }
         } else if (tab != 0) {
-          _select(0);
+          _select(0); // mode large (menu toujours visible) : retour vers la Collection
         } else {
           widget.onBackToTitle?.call();
         }
