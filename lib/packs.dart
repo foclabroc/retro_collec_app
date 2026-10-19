@@ -42,6 +42,7 @@ Future<void> showPackOpening(BuildContext context, Map<String, dynamic> r, Strin
   ));
   Game.i.sync();
   Notifs.i.refresh();
+  PacksScreenState.reloadPending();
 }
 
 /// Accès depuis le menu : recharge le paquet entamé quand on ouvre l'onglet
@@ -80,11 +81,15 @@ class _PacksScreenState extends State<PacksScreen> {
   }
 
   Future<void> _resume() async {
-    final p = pending;
-    if (p == null || busy) return;
+    if (pending == null || busy) return;
     setState(() => busy = true);
     try {
-      await showPackOpening(context, p, (p['kind'] as String?) ?? 'mixte', p['sys'] as String?);
+      final p = await Game.i.pendingChoice(); // toujours en attente ? (il a pu être ouvert ailleurs)
+      if (p == null) {
+        toast(t('Ce paquet a déjà été ouvert', 'This pack was already opened'));
+      } else if (mounted) {
+        await showPackOpening(context, p, (p['kind'] as String?) ?? 'mixte', p['sys'] as String?);
+      }
     } catch (e) {
       toast(errText(e));
     }
@@ -713,7 +718,11 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   }
 
   /// Booster choisi : le serveur donne ses cartes, puis on passe au paquet à déchirer.
+  bool _choosing = false;
+
   Future<void> _choose(int i) async {
+    if (_choosing) return; // un seul envoi à la fois
+    _choosing = true;
     try {
       final r = await Game.i.pickPack(i);
       if (!mounted) return;
@@ -725,7 +734,16 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         phase = _Phase.pack;
       });
     } catch (e) {
-      toast(errText(e));
+      if ('$e'.contains('aucun booster')) {
+        // ce paquet a déjà été ouvert (autre écran, autre appareil) : on ferme proprement
+        toast(t('Ce paquet a déjà été ouvert', 'This pack was already opened'));
+        Game.i.sync();
+        if (mounted) Navigator.of(context).maybePop();
+      } else {
+        toast(errText(e));
+      }
+    } finally {
+      _choosing = false;
     }
   }
 
