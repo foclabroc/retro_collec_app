@@ -10,6 +10,7 @@ import 'package:web/web.dart' as web;
 web.HTMLAudioElement? _audio;
 int? _index;
 bool _wanted = false;
+int _errors = 0; // lecteurs recréés après une erreur (au plus 3, pour ne pas boucler)
 
 // .ogg (Chrome, Firefox, Android) ; .mp3 pour Safari / iPhone qui ne lisent pas l'ogg.
 // Les mp3 sont dans web/music/ : ils ne sont pas ajoutés à l'APK.
@@ -29,10 +30,7 @@ void webMusic(String method, Map<String, dynamic>? args) {
         }
         _audio?.pause();
         _index = i;
-        _audio = web.HTMLAudioElement()
-          ..src = _src(i)
-          ..loop = true
-          ..volume = 0.45;
+        _audio = _newAudio(i);
         _audio!.play();
       case 'musicStop':
         _wanted = false;
@@ -47,6 +45,38 @@ void webMusic(String method, Map<String, dynamic>? args) {
         _playSfx(method == 'sfx' ? (args?['name'] as String? ?? '') : method);
     }
   } catch (_) {}
+}
+
+/// Lecteur de musique en boucle. « loop » ne suffit pas toujours sur le web : quand le
+/// fichier vient du cache de l'appli (service worker), certains navigateurs ne savent pas
+/// revenir au début. On relance donc nous-mêmes à la fin du morceau, et on recrée le
+/// lecteur s'il tombe en erreur.
+web.HTMLAudioElement _newAudio(int i) {
+  final a = web.HTMLAudioElement()
+    ..src = _src(i)
+    ..loop = true
+    ..volume = 0.45;
+  a.addEventListener(
+      'ended',
+      ((web.Event _) {
+        if (!_wanted || _audio != a) return;
+        _errors = 0;
+        try {
+          a.currentTime = 0;
+          a.play();
+        } catch (_) {}
+      }).toJS);
+  a.addEventListener(
+      'error',
+      ((web.Event _) {
+        if (!_wanted || _audio != a || _index == null || _errors >= 3) return;
+        _errors++;
+        // lecteur cassé : on en recrée un sur le même morceau
+        final n = _newAudio(_index!);
+        _audio = n;
+        n.play();
+      }).toJS);
+  return a;
 }
 
 // ── Effets sonores : mêmes sons que la version Android (MainActivity.kt), générés
