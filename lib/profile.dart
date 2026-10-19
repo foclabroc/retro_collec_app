@@ -183,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 18),
                 Text(t('Mes séries', 'My sets'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 8),
-                for (final s in Catalog.systems) _setRow(s.name, g.ownedIn(s.id), s.count),
+                for (final s in [...Catalog.systems, ...Catalog.sagaSystems]) _setRow(s.name, g.ownedIn(s.id), s.count),
                 const SizedBox(height: 18),
                 Text(t('Statistiques', 'Statistics'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 8),
@@ -1074,7 +1074,7 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                     const SizedBox(width: 10),
                     Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white60, fontSize: 11.5, fontWeight: FontWeight.w800))),
                   ]),
-                  for (final s in Catalog.systems)
+                  for (final s in [...Catalog.systems, ...Catalog.sagaSystems])
                     InkWell(
                       onTap: () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => OtherAlbumPage(sys: s.id, owned: owned, name: name, pid: widget.pid),

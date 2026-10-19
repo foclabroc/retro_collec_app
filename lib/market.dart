@@ -415,7 +415,7 @@ class MarketGroupsState extends State<MarketGroups> {
               title(t('Console', 'System')),
               Wrap(spacing: 6, runSpacing: 6, children: [
                 opt(t('Toutes', 'All'), sys.isEmpty, () => sys = ''),
-                for (final s in Catalog.systems) opt(s.name, sys == s.id, () => sys = s.id),
+                for (final s in [...Catalog.systems, ...Catalog.sagaSystems]) opt(s.name, sys == s.id, () => sys = s.id),
               ]),
               title(t('Rareté', 'Rarity')),
               Wrap(spacing: 6, runSpacing: 6, children: [
@@ -1070,7 +1070,7 @@ class _SellPickerPageState extends State<SellPickerPage> {
                 underline: const SizedBox(),
                 items: [
                   DropdownMenuItem(value: '', child: Text(t('Toutes les consoles', 'All systems'))),
-                  for (final s in Catalog.systems) DropdownMenuItem(value: s.id, child: Text(s.name)),
+                  for (final s in [...Catalog.systems, ...Catalog.sagaSystems]) DropdownMenuItem(value: s.id, child: Text(s.name)),
                 ],
                 onChanged: (v) => setState(() => sys = v ?? ''),
               ),
