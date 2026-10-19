@@ -84,6 +84,7 @@ Widget _bsShipImage(String k, bool h, double cell, {double opacity = 1, bool wre
 }
 
 final kBsDuel = DuelKind(
+  code: 'bs',
   title: 'CONSOLE WARS',
   liveSub: '30 s par tir',
   turnSub: '24 h par tir',
@@ -655,6 +656,8 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
   String? _bannerText, _bannerSub, _bannerKind;
   Timer? _bannerT;
   String? _emoMe, _emoOpp, _emoOppAt;
+  String? _bigEmo, _bigWho; // grande réaction au milieu de l'écran
+  int _bigSeq = 0;
   Timer? _emoMeT, _emoOppT;
 
   // placement
@@ -866,8 +869,13 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
 
   void _bubble(bool me, String emo) {
     RcAudio.sfx('spring');
-    setState(() => me ? _emoMe = emo : _emoOpp = emo);
-    final timer = Timer(const Duration(milliseconds: 1900), () {
+    setState(() {
+      me ? _emoMe = emo : _emoOpp = emo;
+      _bigEmo = emo;
+      _bigWho = me ? t('Toi', 'You') : oppName;
+      _bigSeq++;
+    });
+    final timer = Timer(const Duration(milliseconds: 3200), () {
       if (mounted) setState(() => me ? _emoMe = null : _emoOpp = null);
     });
     if (me) {
@@ -1138,7 +1146,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 6)]),
-              child: Text(emo, style: const TextStyle(fontSize: 17)),
+              child: Text(emo, style: TextStyle(fontSize: isPhrase(emo) ? 13 : 17, fontWeight: FontWeight.w900, color: const Color(0xFF151515))),
             ),
           ),
       ]),
@@ -1378,23 +1386,8 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
       ),
       if (playing) ...[
         const SizedBox(height: 12),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          for (final e in _kEmotes)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: InkResponse(
-                onTap: () => _emote(e),
-                radius: 24,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: kPanel, shape: BoxShape.circle, border: Border.all(color: Colors.white12)),
-                  child: Text(e, style: const TextStyle(fontSize: 18)),
-                ),
-              ),
-            ),
-        ]),
+        // réactions : 5 emojis + phrases rapides
+        ReactionBar(emotes: _kEmotes, onSend: _emote),
       ],
       Padding(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
@@ -1460,6 +1453,8 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
                         ? _setupView(box.maxWidth)
                         : _battleView(box.maxWidth),
               ),
+              // grande réaction au milieu de l'écran
+              if (_bigEmo != null) Positioned.fill(child: BigReaction(emo: _bigEmo!, who: _bigWho ?? '', seq: _bigSeq)),
               // bannière (touché, à l'eau, coulée)
               IgnorePointer(
                 child: Align(

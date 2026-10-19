@@ -427,6 +427,19 @@ class RcServer {
     return _map(await _rpc('rc_ref_set', {'p_device': d, 'p_code': code, 'p_sig': _sig('$d|refset|$code')}));
   }
 
+  // ── Messages des duels ──────────────────────────────────────────────────
+  /// Petit mot joint à mon défi (game : 'c4' ou 'bs')
+  static Future<void> duelMsg(String game, int id, String msg) async {
+    final d = await deviceId();
+    await _rpc('rc_duel_msg', {'p_device': d, 'p_game': game, 'p_id': id, 'p_msg': msg, 'p_sig': _sig('$d|dmsg|$game|$id|$msg')});
+  }
+
+  /// Réponse rapide à un défi reçu
+  static Future<void> duelReply(String game, int id, String msg) async {
+    final d = await deviceId();
+    await _rpc('rc_duel_reply', {'p_device': d, 'p_game': game, 'p_id': id, 'p_msg': msg, 'p_sig': _sig('$d|dreply|$game|$id|$msg')});
+  }
+
   // ── Défis de la semaine ─────────────────────────────────────────────────
   /// {goals, rewards, prog, claim (bits : défis 0..5, coffre 6), chest, ends, coins, pixels, gifts}
   static Future<Map<String, dynamic>> week() async {

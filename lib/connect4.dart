@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'audio.dart';
 import 'cards.dart';
+import 'duel_msg.dart';
 import 'duel_watch.dart';
 import 'game.dart';
 import 'layout.dart';
@@ -235,6 +236,7 @@ class _Connect4TileState extends State<Connect4Tile> {
 // ─── Salon (commun au 4 en ligne et à Console Wars) ─────────────────────────
 /// Ce qui change d'un jeu à l'autre dans le salon
 class DuelKind {
+  final String code; // 'c4' ou 'bs' (messages des duels)
   final String title, liveSub, turnSub;
   final Future<List<Map<String, dynamic>>> Function() list, online, top;
   final Future<Map<String, dynamic>> Function() stats;
@@ -243,6 +245,7 @@ class DuelKind {
   final Widget Function(Map g) thumb; // miniature d'une partie tour par tour
   final Widget Function(Map<String, dynamic> g) page; // écran de jeu
   const DuelKind({
+    required this.code,
     required this.title,
     required this.liveSub,
     required this.turnSub,
@@ -258,6 +261,7 @@ class DuelKind {
 }
 
 final kC4Duel = DuelKind(
+  code: 'c4',
   title: '4 EN LIGNE',
   liveSub: '1 min par coup',
   turnSub: '24 h par coup',
@@ -288,6 +292,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
   Timer? _poll;
   final _opened = <int>{}; // parties en direct déjà ouvertes automatiquement
   final _wait = ValueNotifier<String?>(null); // défi en direct en attente : null, 'ok' (accepté), 'no' (refusé / expiré)
+  final _waitReply = ValueNotifier<String?>(null); // réponse rapide de l'invité
   int? _waitId;
 
   @override
@@ -306,6 +311,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
   void dispose() {
     _poll?.cancel();
     _wait.dispose();
+    _waitReply.dispose();
     super.dispose();
   }
 
@@ -327,6 +333,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
       if (_waitId != null) {
         final m = games.where((x) => _i(x['id']) == _waitId);
         final g = m.isEmpty ? null : m.first;
+        if (g != null && g['reply'] != null) _waitReply.value = g['reply'] as String?;
         if (g != null && g['status'] == 'playing') {
           _wait.value = 'ok';
           _waitId = null;
@@ -357,7 +364,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
     inGame = false;
     Game.i.sync();
     await _load(full: true);
-    if (again != null && mounted) _invite(again['pid'] as String, again['name'] as String? ?? '?', again['avatar'] as int? ?? 0, again['mode'] as String);
+    if (again != null && mounted) _invite(again['pid'] as String, again['name'] as String? ?? '?', again['avatar'] as int? ?? 0, again['mode'] as String, rematch: true);
   }
 
   Future<void> _run(Future<Map<String, dynamic>> Function() f, {bool open = false, String? ok}) async {
@@ -379,7 +386,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
     if (mounted) setState(() => busy = false);
   }
 
-  Future<void> _invite(String pid, String name, int avatar, String mode, {String? friendly}) async {
+  Future<void> _invite(String pid, String name, int avatar, String mode, {String? friendly, bool rematch = false}) async {
     if (busy) return;
     // prévenir avant d'envoyer le défi : cette partie ne rapportera rien
     if (friendly != null) {
@@ -397,18 +404,23 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
       );
       if (go != true || !mounted) return;
     }
+    // un petit mot avec le défi (facultatif)
+    final msg = await pickDuelMessage(context, rematch ? t('⚔ Revanche contre $name', '⚔ Rematch against $name') : t('⚔ Défier $name', '⚔ Challenge $name'));
+    if (msg == null || !mounted) return;
     setState(() => busy = true);
     try {
       final g = await k.invite(pid, mode);
       RcAudio.sfx('continue');
+      if (msg.isNotEmpty) RcServer.duelMsg(k.code, _i(g['id']), msg).catchError((_) {});
       if (mode == 'live') {
         _waitId = _i(g['id']);
         _wait.value = null;
+        _waitReply.value = null;
         if (mounted) setState(() => busy = false);
         final cancel = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
-          builder: (_) => _WaitDialog(name: name, avatar: avatar, deadline: g['deadline'] as String?, now: g['now'] as String?, state: _wait, friendly: g['friendly'] as String?),
+          builder: (_) => _WaitDialog(name: name, avatar: avatar, deadline: g['deadline'] as String?, now: g['now'] as String?, state: _wait, reply: _waitReply, friendly: g['friendly'] as String?),
         );
         if (cancel == true && _waitId != null) {
           final id = _waitId!;
@@ -635,9 +647,35 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
           child: _card(
             lead: _avatar(_av(g), ring: (g['opp'] as Map?)?['online'] == true ? _kTeal : null),
             title: Text(t('${_name(g)} te défie ⚔', '${_name(g)} challenges you ⚔'), maxLines: 1, overflow: TextOverflow.ellipsis),
-            lines: [Text('${g['mode'] == 'live' ? t('En direct', 'Live') : t('Tour par tour', 'Turn-based')} · ${_i(g['stake'], kC4Stake) > 0 ? '${_i(g['stake'], kC4Stake)} ${t('pièces', 'coins')}' : g['friendly'] != null ? t('amicale, sans gains', 'friendly, no rewards') : t('gratuit', 'free')}')],
+            lines: [
+              Text('${g['mode'] == 'live' ? t('En direct', 'Live') : t('Tour par tour', 'Turn-based')} · ${_i(g['stake'], kC4Stake) > 0 ? '${_i(g['stake'], kC4Stake)} ${t('pièces', 'coins')}' : g['friendly'] != null ? t('amicale, sans gains', 'friendly, no rewards') : t('gratuit', 'free')}'),
+              if (g['msg'] != null) SayLine(g['msg'] as String),
+              if (g['reply'] != null) SayLine(g['reply'] as String, who: t('Toi', 'You')),
+            ],
             btns: [
               _Countdown(total: g['mode'] == 'live' ? 120 : 86400, left: _leftOf(g), label: _left(g)),
+              IconButton(
+                tooltip: t('Répondre', 'Reply'),
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  backgroundColor: kBg.withOpacity(0.98),
+                  builder: (ctx) => SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        Text(t('Répondre à ${_name(g)}', 'Reply to ${_name(g)}'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                        const SizedBox(height: 12),
+                        ReplyChips(game: k.code, id: _i(g['id']), to: _name(g), onSent: () {
+                          Navigator.pop(ctx);
+                          _load();
+                        }),
+                      ]),
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.chat_bubble_outline, color: Colors.white70, size: 20),
+                visualDensity: VisualDensity.compact,
+              ),
               _btn(t('Jouer', 'Play'), () => _run(() => k.answer(_i(g['id']), true), open: true)),
               IconButton(
                 onPressed: busy ? null : () => _run(() => k.answer(_i(g['id']), false), ok: t('Défi refusé', 'Challenge declined')),
@@ -715,7 +753,10 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
           _card(
             lead: _avatar(_av(g)),
             title: Text(_name(g)),
-            lines: [Text(t('Attend sa réponse · ${_left(g)}', 'Waiting for an answer · ${_left(g)}'))],
+            lines: [
+              Text(t('Attend sa réponse · ${_left(g)}', 'Waiting for an answer · ${_left(g)}')),
+              if (g['reply'] != null) SayLine(g['reply'] as String, who: _name(g)),
+            ],
             btns: [_btn(t('Annuler', 'Cancel'), () => _run(() => k.answer(_i(g['id']), false), ok: t('Défi annulé', 'Challenge cancelled')), ghost: true)],
           ),
       ]);
@@ -750,7 +791,10 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
           _card(
             lead: _avatar(_av(g)),
             title: Text(_name(g)),
-            lines: [Text(t('Invitation envoyée · expire dans ${_left(g)}', 'Invitation sent · expires in ${_left(g)}'))],
+            lines: [
+              Text(t('Invitation envoyée · expire dans ${_left(g)}', 'Invitation sent · expires in ${_left(g)}')),
+              if (g['reply'] != null) SayLine(g['reply'] as String, who: _name(g)),
+            ],
             btns: [_btn(t('Annuler', 'Cancel'), () => _run(() => k.answer(_i(g['id']), false), ok: t('Invitation annulée', 'Invitation cancelled')), ghost: true)],
           ),
         if (theirTurn.isEmpty && turnOut.isEmpty) _empty(t('Aucune partie en attente', 'No game waiting')),
@@ -795,7 +839,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
             btns: [
               _btn(t('Revanche', 'Rematch'), () {
                 final o = g['opp'] as Map? ?? const {};
-                _invite(o['pid'] as String? ?? '', o['name'] as String? ?? '?', _i(o['avatar']), g['mode'] as String? ?? 'turn');
+                _invite(o['pid'] as String? ?? '', o['name'] as String? ?? '?', _i(o['avatar']), g['mode'] as String? ?? 'turn', rematch: true);
               }, ghost: true),
             ],
           ),
@@ -877,8 +921,9 @@ class _WaitDialog extends StatefulWidget {
   final int avatar;
   final String? deadline, now;
   final ValueNotifier<String?> state;
+  final ValueNotifier<String?>? reply; // réponse rapide de l'invité
   final String? friendly; // partie amicale : raison
-  const _WaitDialog({required this.name, required this.avatar, required this.deadline, required this.now, required this.state, this.friendly});
+  const _WaitDialog({required this.name, required this.avatar, required this.deadline, required this.now, required this.state, this.reply, this.friendly});
   @override
   State<_WaitDialog> createState() => _WaitDialogState();
 }
@@ -947,6 +992,16 @@ class _WaitDialogState extends State<_WaitDialog> {
           ),
           const SizedBox(height: 12),
           Text(t('En attente de sa réponse…', 'Waiting for an answer…'), style: const TextStyle(color: Colors.white60)),
+          if (widget.reply != null)
+            ValueListenableBuilder<String?>(
+              valueListenable: widget.reply!,
+              builder: (_, r, __) => r == null
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: SayBubble(r, caption: t('${widget.name} a répondu', '${widget.name} replied')),
+                    ),
+            ),
           const SizedBox(height: 4),
           Text(widget.friendly != null ? duelWhyLine(widget.friendly) : t('Partie gratuite : le gagnant gagne $kDuelWin pièces + 1 pixel.', 'Free game: the winner gets $kDuelWin coins + 1 pixel.'),
               textAlign: TextAlign.center, style: TextStyle(color: widget.friendly != null ? const Color(0xFFFFC46B) : Colors.white54, fontSize: 12)),
@@ -1084,6 +1139,8 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
   int? _lastPlaced; // case du dernier pion posé (animation)
   int? _aim; // colonne visée (pion fantôme)
   String? _emoMe, _emoOpp; // bulles de réaction
+  String? _bigEmo, _bigWho; // grande réaction au milieu du plateau
+  int _bigSeq = 0;
   String? _emoOppAt;
   Timer? _emoMeT, _emoOppT;
 
@@ -1192,8 +1249,13 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
 
   void _bubble(bool me, String emo) {
     RcAudio.sfx('spring');
-    setState(() => me ? _emoMe = emo : _emoOpp = emo);
-    final timer = Timer(const Duration(milliseconds: 1900), () {
+    setState(() {
+      me ? _emoMe = emo : _emoOpp = emo;
+      _bigEmo = emo;
+      _bigWho = me ? t('Toi', 'You') : ((g['opp'] as Map?)?['name'] as String? ?? '?');
+      _bigSeq++;
+    });
+    final timer = Timer(const Duration(milliseconds: 3200), () {
       if (mounted) setState(() => me ? _emoMe = null : _emoOpp = null);
     });
     if (me) {
@@ -1376,7 +1438,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 6)]),
-                  child: Text(emo, style: const TextStyle(fontSize: 18)),
+                  child: Text(emo, style: TextStyle(fontSize: isPhrase(emo) ? 13 : 18, fontWeight: FontWeight.w900, color: const Color(0xFF151515))),
                 ),
               ),
             ),
@@ -1440,7 +1502,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
               const SizedBox(height: 6),
               // pion fantôme au-dessus de la colonne visée
               SizedBox(
-                height: 26,
+                height: 32,
                 child: Row(children: [
                   for (var c = 0; c < 7; c++)
                     Expanded(
@@ -1449,8 +1511,8 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                           opacity: _aim == c && myTurn ? 0.9 : 0,
                           duration: const Duration(milliseconds: 120),
                           child: Container(
-                            width: 22,
-                            height: 22,
+                            width: 28,
+                            height: 28,
                             decoration: BoxDecoration(shape: BoxShape.circle, color: myColor, boxShadow: [BoxShadow(color: myColor, blurRadius: 10)]),
                           ),
                         ),
@@ -1458,6 +1520,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                     ),
                 ]),
               ),
+              Stack(clipBehavior: Clip.none, children: [
               AspectRatio(
                 aspectRatio: 7 / 6.1,
                 child: LayoutBuilder(builder: (context, box) {
@@ -1507,6 +1570,9 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                   );
                 }),
               ),
+              // grande réaction au milieu du plateau
+              if (_bigEmo != null) Positioned.fill(child: BigReaction(emo: _bigEmo!, who: _bigWho ?? '', seq: _bigSeq)),
+              ]),
               Padding(
                 padding: const EdgeInsets.only(top: 14),
                 child: Row(children: [
@@ -1527,25 +1593,8 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
             ]),
           ),
           const SizedBox(height: 12),
-          // réactions
-          if (playing)
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              for (final e in _kEmotes)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: InkResponse(
-                    onTap: () => _emote(e),
-                    radius: 26,
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: kPanel, shape: BoxShape.circle, border: Border.all(color: Colors.white12)),
-                      child: Text(e, style: const TextStyle(fontSize: 20)),
-                    ),
-                  ),
-                ),
-            ]),
+          // réactions : 5 emojis + phrases rapides
+          if (playing) ReactionBar(emotes: _kEmotes, onSend: _emote),
           const SizedBox(height: 12),
           Row(children: [
             if (playing)
@@ -1593,9 +1642,19 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
           if (color == null) const BoxShadow(color: Color(0x30FFFFFF), offset: Offset(0, 1)),
         ],
       ),
-      child: color == null ? null : FractionallySizedBox(widthFactor: 0.5, heightFactor: 0.5, child: Container(decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.black12, width: 2)))),
+      child: color == null ? null : FractionallySizedBox(widthFactor: 0.62, heightFactor: 0.62, child: Container(decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.black12, width: 2)))),
     );
-    if (color == null || idx != _lastPlaced) return disc;
+    // pion posé : il remplit tout le trou (un peu plus grand que le trou vide), avec une ombre
+    final placed = color == null
+        ? disc
+        : Transform.scale(
+            scale: 1.16,
+            child: DecoratedBox(
+              decoration: const BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Color(0x66000000), blurRadius: 4, offset: Offset(0, 2))]),
+              child: disc,
+            ),
+          );
+    if (color == null || idx != _lastPlaced) return placed;
     // le pion qui vient d'être posé tombe dans sa colonne, puis rebondit
     return TweenAnimationBuilder<double>(
       key: ValueKey('drop$idx${g['moves']}'),
@@ -1603,7 +1662,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
       duration: Duration(milliseconds: 260 + (idx ~/ 7) * 55),
       curve: Curves.bounceOut,
       builder: (_, y, child) => FractionalTranslation(translation: Offset(0, y * 1.15), child: child),
-      child: disc,
+      child: placed,
     );
   }
 

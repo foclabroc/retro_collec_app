@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'audio.dart';
 import 'connect4.dart';
+import 'duel_msg.dart';
 import 'game.dart';
 import 'main.dart';
 import 'push.dart';
@@ -171,7 +172,9 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
           ]),
         );
     return Center(
-      child: Material(
+      child: SingleChildScrollView(
+       padding: const EdgeInsets.symmetric(vertical: 16),
+       child: Material(
         color: Colors.transparent,
         child: Container(
           width: 360,
@@ -197,6 +200,12 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
             ]),
             const SizedBox(height: 6),
             Text(t('$name te défie !', '$name challenges you!'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+            // son petit mot
+            if (widget.x['msg'] != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 6),
+                child: SayBubble(widget.x['msg'] as String),
+              ),
             Text.rich(
               TextSpan(children: [
                 TextSpan(text: t('● en ligne', '● online'), style: const TextStyle(color: Color(0xFF5DCAA5))),
@@ -259,8 +268,21 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
               onPressed: () => Navigator.of(context).pop(),
               child: Text(t('Plus tard (il reste dans le salon)', 'Later (it stays in the lobby)'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
             ),
+            // répondre sans jouer tout de suite
+            const Divider(color: Colors.white12, height: 14),
+            Text(t('ou réponds-lui :', 'or reply:'), style: const TextStyle(color: Colors.white54, fontSize: 11.5, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            ReplyChips(
+              game: bs ? 'bs' : 'c4',
+              id: (widget.x['id'] as num? ?? 0).toInt(),
+              to: name,
+              onSent: () {
+                if (mounted) Navigator.of(context).pop(); // la réponse part : le défi reste dans le salon
+              },
+            ),
           ]),
         ),
+       ),
       ),
     );
   }
