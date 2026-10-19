@@ -48,6 +48,12 @@ Future<void> showPackOpening(BuildContext context, Map<String, dynamic> r, Strin
 /// Accès depuis le menu : recharge le paquet entamé quand on ouvre l'onglet
 class PacksScreenState {
   static void reloadPending() => _PacksScreenState.current?.loadPending();
+
+  /// Clic sur les pièces du bandeau : défile jusqu'à la boutique
+  static void showShop() => _PacksScreenState.current?.showShop();
+
+  /// Clic sur les pixels du bandeau : ouvre le sous-menu des boosters spéciaux
+  static void openPixels() => _PacksScreenState.current?._openPixels();
 }
 
 class PacksScreen extends StatefulWidget {
@@ -60,6 +66,13 @@ class _PacksScreenState extends State<PacksScreen> {
   static _PacksScreenState? current;
   bool busy = false;
   Map<String, dynamic>? pending; // paquet déjà payé dont le booster n'est pas encore choisi
+  final _scroll = ScrollController();
+  final _shopKey = GlobalKey();
+
+  void showShop() {
+    final c = _shopKey.currentContext;
+    if (c != null) Scrollable.ensureVisible(c, duration: const Duration(milliseconds: 500), curve: Curves.easeInOutCubic);
+  }
 
   @override
   void initState() {
@@ -71,6 +84,7 @@ class _PacksScreenState extends State<PacksScreen> {
   @override
   void dispose() {
     if (current == this) current = null;
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -322,146 +336,120 @@ class _PacksScreenState extends State<PacksScreen> {
     return ListenableBuilder(
       listenable: Listenable.merge([Game.i, Notifs.i]),
       builder: (context, _) {
-        final g = Game.i;
+        final g = Game.i, n = Notifs.i;
+        final stock = n.gifts + n.lots + (pending != null ? 1 : 0);
+        final pk = pending?['kind'];
+        Widget shop(String kind, String label, String title, String sub, VoidCallback onTap) {
+          final price = kPackPrice[kind]!;
+          return _ShopTile(
+            kind: kind,
+            label: label,
+            title: title,
+            subtitle: sub,
+            price: price,
+            color: _kOfferColor[kind]!,
+            afford: g.coins >= price,
+            enabled: !busy && g.coins >= price,
+            onTap: onTap,
+          );
+        }
+
         return Column(children: [
           TabHeader(t('Paquets', 'Packs'), icon: 'packs'),
           Expanded(
-            child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: [
+            child: ListView(controller: _scroll, padding: const EdgeInsets.fromLTRB(14, 4, 14, 24), children: [
               // catégorie Pixels : une ligne compacte, les boosters spéciaux dans un sous-menu
               _PixelsRow(g.pixels, onTap: _openPixels),
-              const SizedBox(height: 14),
               // paquets en stock : déjà payés ou offerts, ouverts seulement quand on les déchire
-              if (Notifs.i.gifts > 0 || Notifs.i.lots > 0 || pending != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, bottom: 8),
-                  child: Text(t('📦 EN STOCK · ${Notifs.i.gifts + Notifs.i.lots + (pending != null ? 1 : 0)}', '📦 IN STOCK · ${Notifs.i.gifts + Notifs.i.lots + (pending != null ? 1 : 0)}'),
-                      style: pixelStyle(size: 10)),
+              if (stock > 0) ...[
+                _Section(t('EN STOCK · $stock', 'IN STOCK · $stock')),
+                SizedBox(
+                  height: 146,
+                  child: ListView(scrollDirection: Axis.horizontal, clipBehavior: Clip.none, children: [
+                    // paquet entamé : on a ouvert le choix des boosters puis quitté sans déchirer
+                    if (pending != null)
+                      _StockTile(
+                        kind: kPackPrice.containsKey(pk) && pk != 'lot' && pk != 'gift' ? pk as String : 'mixte',
+                        label: t('Entamé', 'Started'),
+                        title: t('Paquet entamé', 'Started pack'),
+                        color: const Color(0xFFB0662A),
+                        count: 1,
+                        enabled: !busy,
+                        onTap: _resume,
+                      ),
+                    if (n.gifts > 0)
+                      _StockTile(
+                        kind: 'gift',
+                        label: t('Cadeau', 'Gift'),
+                        title: n.gifts == 1 ? t('De ${n.giftFrom}', 'From ${n.giftFrom}') : t('De ${n.giftFrom} et d\'autres', 'From ${n.giftFrom} and others'),
+                        color: const Color(0xFFD8453C),
+                        count: n.gifts,
+                        enabled: !busy,
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GiftsPage())),
+                      ),
+                    if (n.lots > 0)
+                      _StockTile(
+                        kind: 'lot',
+                        label: t('Lot', 'Bundle'),
+                        title: t('Déjà payés', 'Already paid'),
+                        color: const Color(0xFF534AB7),
+                        count: n.lots,
+                        enabled: !busy,
+                        onTap: () => _open('lot'),
+                      ),
+                  ]),
                 ),
-              // paquet entamé : on a ouvert le choix des boosters puis quitté sans déchirer
-              if (pending != null)
-                _PackOffer(
-                  kind: kPackPrice.containsKey(pending!['kind']) && pending!['kind'] != 'lot' && pending!['kind'] != 'gift' ? pending!['kind'] as String : 'mixte',
-                  packLabel: t('Entamé', 'Started'),
-                  title: t('Paquet entamé', 'Started pack'),
-                  subtitle: t('Tu n\'as pas encore choisi ton booster · touche pour continuer', 'You haven\'t picked your booster yet · tap to continue'),
-                  price: 0,
-                  color: const Color(0xFFB0662A),
-                  highlight: true,
-                  enabled: !busy,
-                  onTap: _resume,
-                ),
-              if (Notifs.i.gifts > 0)
-                _PackOffer(
-                  kind: 'gift',
-                  packLabel: t('Cadeau', 'Gift'),
-                  title: t('Cadeaux reçus ×${Notifs.i.gifts}', 'Gifts received ×${Notifs.i.gifts}'),
-                  subtitle: Notifs.i.gifts == 1
-                      ? t('Offert par ${Notifs.i.giftFrom} · touche pour voir', 'From ${Notifs.i.giftFrom} · tap to see')
-                      : t('De ${Notifs.i.giftFrom} et d\'autres · touche pour voir la liste', 'From ${Notifs.i.giftFrom} and others · tap to see the list'),
-                  price: 0,
-                  color: const Color(0xFFD8453C),
-                  highlight: true,
-                  enabled: !busy,
-                  trailing: const Icon(Icons.chevron_right, color: Colors.white70),
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GiftsPage())),
-                ),
-              if (Notifs.i.lots > 0)
-                _PackOffer(
-                  kind: 'lot',
-                  packLabel: t('Lot', 'Bundle'),
-                  title: t('Paquets en stock ×${Notifs.i.lots}', 'Packs in stock ×${Notifs.i.lots}'),
-                  subtitle: t('Déjà payés · touche pour en déchirer un', 'Already paid · tap to tear one open'),
-                  price: 0,
-                  color: const Color(0xFF534AB7),
-                  highlight: true,
-                  enabled: !busy,
-                  onTap: () => _open('lot'),
-                ),
-              _PackOffer(
-                kind: 'free',
-                packLabel: t('Gratuit', 'Free'),
-                title: t('Paquet gratuit', 'Free pack'),
-                subtitle: g.free ? t('5 cartes offertes, toutes consoles · toutes les 6 h', '5 free cards, all systems · every 6 h') : '',
-                below: g.free ? null : const _FreeCountdown(),
-                price: 0,
-                color: const Color(0xFF1D9E75),
-                highlight: g.free,
-                enabled: g.free && !busy,
-                onTap: () => _open('free'),
+              ],
+              const SizedBox(height: 14),
+              _FreeHero(free: g.free, enabled: g.free && !busy, onTap: () => _open('free')),
+              _Section(t('BOUTIQUE', 'SHOP'), key: _shopKey),
+              LayoutBuilder(builder: (context, box) {
+                final cols = box.maxWidth >= 560 ? 4 : 2;
+                return GridView(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: cols, mainAxisSpacing: 10, crossAxisSpacing: 10, mainAxisExtent: 214),
+                  children: [
+                    shop('mixte', t('Mixte', 'Mixed'), t('Mixte', 'Mixed'), t('5 cartes, toutes consoles', '5 cards, all systems'), () => _open('mixte')),
+                    shop('console', 'Console', 'Console', t('5 cartes de la console de ton choix', '5 cards from the system of your choice'), _pickConsole),
+                    shop('mystery', t('Mystère', 'Mystery'), t('Mystère', 'Mystery'), t('3, 5 ou… 8 cartes ! Surprise à l\'ouverture', '3, 5 or… 8 cards! Surprise inside'), () => _open('mystery')),
+                    shop('premium', 'Premium', 'Premium', t('5 cartes dont une rare ou mieux garantie', '5 cards, one rare or better guaranteed'), () => _open('premium')),
+                  ],
+                );
+              }),
+              const SizedBox(height: 10),
+              _LotTile(free: n.lotFree, afford: g.coins >= kLotPrice, enabled: !busy && (n.lotFree || g.coins >= kLotPrice), onTap: _buyLot),
+              const SizedBox(height: 14),
+              // garantie épique : jauge sur 30 paquets
+              Container(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 11),
+                decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white12)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text.rich(
+                    TextSpan(style: const TextStyle(color: Color(0xFFCECBF6), fontSize: 12), children: [
+                      TextSpan(text: t('Épique ou mieux garantie dans ', 'Epic or better guaranteed within ')),
+                      TextSpan(text: '${max(1, 30 - g.pity)}', style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+                      TextSpan(text: t(' paquet(s) au plus', ' pack(s)')),
+                    ]),
+                  ),
+                  const SizedBox(height: 7),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(value: (g.pity / 30).clamp(0.0, 1.0), minHeight: 7, color: const Color(0xFFB04FE0), backgroundColor: Colors.white10),
+                  ),
+                ]),
               ),
-              _PackOffer(
-                kind: 'mixte',
-                packLabel: t('Mixte', 'Mixed'),
-                title: t('Paquet mixte', 'Mixed pack'),
-                subtitle: t('5 cartes, toutes consoles', '5 cards, all systems'),
-                price: kPackPrice['mixte']!,
-                color: const Color(0xFF534AB7),
-                enabled: !busy && g.coins >= kPackPrice['mixte']!,
-                onTap: () => _open('mixte'),
-              ),
-              _PackOffer(
-                kind: 'mixte',
-                packLabel: t('Lot', 'Bundle'),
-                art: const _LotArt(),
-                title: t('Lot de 5 paquets mixtes', '5 mixed packs bundle'),
-                subtitle: Notifs.i.lotFree
-                    ? t('🎉 GRATUIT aujourd\'hui (samedi) ! 25 cartes', '🎉 FREE today (Saturday)! 25 cards')
-                    : t('25 cartes · gratuit chaque samedi', '25 cards · free every Saturday'),
-                price: Notifs.i.lotFree ? 0 : kLotPrice,
-                color: const Color(0xFF534AB7),
-                highlight: Notifs.i.lotFree,
-                enabled: !busy && (Notifs.i.lotFree || g.coins >= kLotPrice),
-                onTap: _buyLot,
-              ),
-              _PackOffer(
-                kind: 'console',
-                packLabel: t('Console', 'Console'),
-                title: t('Paquet console', 'Console pack'),
-                subtitle: t('5 cartes de la console de ton choix', '5 cards from the system of your choice'),
-                price: kPackPrice['console']!,
-                color: const Color(0xFF185FA5),
-                enabled: !busy && g.coins >= kPackPrice['console']!,
-                onTap: _pickConsole,
-              ),
-              _PackOffer(
-                kind: 'premium',
-                packLabel: 'Premium',
-                title: t('Paquet premium', 'Premium pack'),
-                subtitle: t('5 cartes dont une rare ou mieux garantie', '5 cards, one rare or better guaranteed'),
-                price: kPackPrice['premium']!,
-                color: const Color(0xFF854F0B),
-                enabled: !busy && g.coins >= kPackPrice['premium']!,
-                onTap: () => _open('premium'),
-              ),
-              _PackOffer(
-                kind: 'mystery',
-                packLabel: t('Mystère', 'Mystery'),
-                title: t('Paquet mystère', 'Mystery pack'),
-                subtitle: t('3, 5 ou… 8 cartes ! Surprise à l\'ouverture', '3, 5 or… 8 cards! Surprise inside'),
-                price: kPackPrice['mystery']!,
-                color: const Color(0xFF8E2D8E),
-                enabled: !busy && g.coins >= kPackPrice['mystery']!,
-                onTap: () => _open('mystery'),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                t('Épique ou mieux garantie dans ${max(1, 30 - g.pity)} paquet(s) au plus',
-                    'Epic or better guaranteed within ${max(1, 30 - g.pity)} pack(s)'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFFCECBF6), fontSize: 12),
-              ),
-              const SizedBox(height: 18),
-              Text(t('Chances par carte', 'Odds per card'), style: const TextStyle(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
+              const SizedBox(height: 12),
               Wrap(spacing: 6, runSpacing: 6, children: [
                 for (final (r, p) in const [(0, '60 %'), (1, '26 %'), (2, '10 %'), (3, '3,2 %'), (4, '0,8 %')])
-                  Chip(
-                    backgroundColor: kRarityDark[r],
-                    side: BorderSide(color: kRarityColor[r]),
-                    label: Text('${rarityName(r)} $p', style: TextStyle(color: kRarityLight[r], fontSize: 12)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(color: kRarityDark[r], borderRadius: BorderRadius.circular(8), border: Border.all(color: kRarityColor[r])),
+                    child: Text('${rarityName(r)} $p', style: TextStyle(color: kRarityLight[r], fontSize: 11.5, fontWeight: FontWeight.w800)),
                   ),
               ]),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(t('Finition brillante : ${livePct('holo')} · dorée : ${livePct('gold')} · full art (épiques et légendaires) : ${livePct('fullart')}', 'Holo finish: ${livePct('holo')} · gold: ${livePct('gold')} · full art (epic and legendary): ${livePct('fullart')}'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
             ]),
           ),
@@ -1979,6 +1967,255 @@ class _FreeCountdownState extends State<_FreeCountdown> {
   }
 }
 
+
+
+// ─── Vue en mosaïque ───────────────────────────────────────────────────────
+/// Titre de rubrique en pixels, suivi d'un filet
+class _Section extends StatelessWidget {
+  final String label;
+  const _Section(this.label, {super.key});
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(2, 16, 2, 8),
+        child: Row(children: [
+          Text(label, style: pixelStyle(size: 9, color: const Color(0xFFFFD166), shadow: false)),
+          const SizedBox(width: 8),
+          Expanded(child: Container(height: 1, color: const Color(0x40FFD166))),
+        ]),
+      );
+}
+
+/// Pastille du nombre (paquets en stock)
+Widget _countBadge(int n) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+      decoration: BoxDecoration(color: const Color(0xFFD8453C), borderRadius: BorderRadius.circular(10), border: Border.all(color: kBg, width: 2)),
+      child: Text('$n', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)),
+    );
+
+/// Prix en pièces : rouge si on n'a pas assez
+class _PriceChip extends StatelessWidget {
+  final int price;
+  final bool ok;
+  const _PriceChip(this.price, {required this.ok});
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: ok ? const Color(0xFF412402) : const Color(0xFF3A1616),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: ok ? const Color(0xFF6B4A10) : const Color(0xFF5A2A2A)),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.monetization_on, color: ok ? const Color(0xFFFAC775) : const Color(0xFFFF8A80), size: 15),
+          const SizedBox(width: 4),
+          Text(fmt(price), style: TextStyle(color: ok ? const Color(0xFFFAC775) : const Color(0xFFFF8A80), fontWeight: FontWeight.w800)),
+        ]),
+      );
+}
+
+/// Paquet en stock (bandeau horizontal) : booster, titre, pastille du nombre
+class _StockTile extends StatelessWidget {
+  final String kind, label, title;
+  final Color color;
+  final int count;
+  final bool enabled;
+  final VoidCallback onTap;
+  const _StockTile({required this.kind, required this.label, required this.title, required this.color, required this.count, required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(right: 10, top: 8),
+        child: Opacity(
+          opacity: enabled ? 1 : 0.5,
+          child: GestureDetector(
+            onTap: enabled ? onTap : null,
+            child: Stack(clipBehavior: Clip.none, children: [
+              Container(
+                width: 100,
+                padding: const EdgeInsets.fromLTRB(6, 10, 6, 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: kGold, width: 2),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color.lerp(color, Colors.black, 0.45)!, Color.lerp(color, Colors.black, 0.8)!],
+                  ),
+                ),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  _MiniBooster(kind: kind, label: label, color: color, width: 40),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 28,
+                    child: Center(
+                      child: Text(title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, height: 1.15)),
+                    ),
+                  ),
+                ]),
+              ),
+              Positioned(top: -7, right: -5, child: _countBadge(count)),
+            ]),
+          ),
+        ),
+      );
+}
+
+/// Paquet gratuit en grand : bouton « Ouvrir » ou compte à rebours
+class _FreeHero extends StatelessWidget {
+  final bool free, enabled;
+  final VoidCallback onTap;
+  const _FreeHero({required this.free, required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const green = Color(0xFF1D9E75);
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: free ? kGold : green.withOpacity(0.7), width: free ? 2 : 1.5),
+          gradient: const RadialGradient(center: Alignment(-0.7, 0), radius: 1.3, colors: [Color(0xFF1C6A54), Color(0xFF0E3A34), Color(0xFF0B2A30)]),
+          boxShadow: [if (free) BoxShadow(color: green.withOpacity(0.45), blurRadius: 16)],
+        ),
+        child: Row(children: [
+          const SizedBox(width: 4),
+          _MiniBooster(kind: 'free', label: t('Gratuit', 'Free'), color: green, width: 64),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(t('TOUTES LES 6 H', 'EVERY 6 H'), style: pixelStyle(size: 7.5, color: const Color(0xFF9FE0C4), shadow: false)),
+              const SizedBox(height: 6),
+              Text(t('Paquet gratuit', 'Free pack'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 2),
+              Text(t('5 cartes offertes, toutes consoles', '5 free cards, all systems'), style: const TextStyle(fontSize: 12, color: Color(0xFFCFE9DF))),
+              const SizedBox(height: 10),
+              if (free)
+                FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800), visualDensity: VisualDensity.compact),
+                  onPressed: enabled ? onTap : null,
+                  child: Text(t('Ouvrir', 'Open'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                )
+              else
+                const _FreeCountdown(),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Tuile de la boutique : gros booster sur un halo de sa couleur, nom, description, prix
+class _ShopTile extends StatelessWidget {
+  final String kind, label, title, subtitle;
+  final int price;
+  final Color color;
+  final bool afford, enabled;
+  final VoidCallback onTap;
+  const _ShopTile({
+    required this.kind,
+    required this.label,
+    required this.title,
+    required this.subtitle,
+    required this.price,
+    required this.color,
+    required this.afford,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => Opacity(
+        opacity: afford ? 1 : 0.6,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: enabled ? onTap : null,
+            child: Ink(
+              padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: color.withOpacity(0.9), width: 1.5),
+                gradient: RadialGradient(
+                  center: const Alignment(0, -0.35),
+                  radius: 0.95,
+                  colors: [color.withOpacity(0.6), Color.lerp(color, kBg, 0.8)!],
+                ),
+              ),
+              child: Column(children: [
+                _MiniBooster(kind: kind, label: label, color: color, width: 58),
+                const SizedBox(height: 8),
+                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5)),
+                const SizedBox(height: 2),
+                Expanded(
+                  child: Text(subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Color(0xFFC5C9E6), fontSize: 11, height: 1.25)),
+                ),
+                _PriceChip(price, ok: afford),
+              ]),
+            ),
+          ),
+        ),
+      );
+}
+
+/// Lot de 5 paquets : tuile pleine largeur, gratuit le samedi
+class _LotTile extends StatelessWidget {
+  final bool free, afford, enabled;
+  final VoidCallback onTap;
+  const _LotTile({required this.free, required this.afford, required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const color = Color(0xFF534AB7);
+    return Opacity(
+      opacity: free || afford ? 1 : 0.6,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: enabled ? onTap : null,
+          child: Ink(
+            padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: free ? kGold : color.withOpacity(0.9), width: free ? 2 : 1.5),
+              gradient: RadialGradient(center: const Alignment(-0.7, 0), radius: 1.4, colors: [color.withOpacity(0.6), Color.lerp(color, kBg, 0.8)!]),
+            ),
+            child: Row(children: [
+              const _LotArt(width: 86),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(t('Lot de 5 paquets mixtes', '5 mixed packs bundle'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                  const SizedBox(height: 3),
+                  Text(
+                    free ? t('🎉 GRATUIT aujourd\'hui (samedi) ! 25 cartes', '🎉 FREE today (Saturday)! 25 cards') : t('25 cartes · gratuit chaque samedi', '25 cards · free every Saturday'),
+                    style: TextStyle(color: free ? const Color(0xFF9FE0C4) : const Color(0xFFC5C9E6), fontSize: 12, fontWeight: free ? FontWeight.w800 : FontWeight.w500),
+                  ),
+                  const SizedBox(height: 8),
+                  free
+                      ? Text(t('GRATUIT', 'FREE'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w900))
+                      : _PriceChip(kLotPrice, ok: afford),
+                ]),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 // ─── Pixels : 1 par booster ouvert, échangeables contre des boosters spéciaux ─
 /// Petit pixel doré (icône de la monnaie des boosters spéciaux)

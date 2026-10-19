@@ -977,14 +977,23 @@ class TabHeader extends StatelessWidget {
           ListenableBuilder(
             listenable: Game.i,
             builder: (_, __) => Row(mainAxisSize: MainAxisSize.min, children: [
-              PixelChip(Game.i.pixels),
+              GestureDetector(onTap: () => _goPacks(context, pixels: true), child: PixelChip(Game.i.pixels)),
               const SizedBox(width: 6),
-              CoinChip(Game.i.coins),
+              GestureDetector(onTap: () => _goPacks(context, pixels: false), child: CoinChip(Game.i.coins)),
             ]),
           ),
           const SizedBox(width: 8),
         ]),
       );
+}
+
+/// Clic sur les pixels ou les pièces d'un bandeau : onglet Paquets, puis sous-menu Pixels ou boutique
+void _goPacks(BuildContext context, {required bool pixels}) {
+  final shell = HomeShellState.current;
+  if (shell == null) return;
+  Navigator.of(context).popUntil((r) => r.isFirst); // page ouverte par-dessus (mon profil) : on la ferme
+  shell.goTo(1);
+  WidgetsBinding.instance.addPostFrameCallback((_) => pixels ? PacksScreenState.openPixels() : PacksScreenState.showShop());
 }
 
 /// Icône d'onglet colorée (assets/tabs/<nom>.png) : estompée si l'onglet n'est pas sélectionné.
