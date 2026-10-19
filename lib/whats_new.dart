@@ -12,6 +12,16 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('💬', 'Duels : ajoute un petit mot à tes défis et revanches, et réponds aux défis reçus (« J\'arrive ! », « Dans 5 minutes »…)',
+      'Duels: add a short message to your challenges and rematches, and reply to challenges ("Coming!", "In 5 minutes"…)'),
+  ('🔥', 'Réactions en grand au milieu du plateau, et phrases rapides en partie (« Bien joué ! », « GG 🤝 »…)',
+      'Big reactions in the middle of the board, and quick phrases in game ("Well played!", "GG 🤝"…)'),
+  ('🔴', '4 en ligne : des pions plus grands', 'Connect 4: bigger discs'),
+  ('🎮', 'Bonus / Jeux : « À toi de jouer » et invitations bien visibles, mis à jour en direct',
+      'Bonus / Games: "Your turn" and invitations clearly visible, updated live'),
+  ('☰', 'Menu plus compact : tout tient sur un écran', 'More compact menu: everything fits on one screen'),
+  ('📊', 'Collection : tableau de bord replié, une flèche pour le déplier', 'Collection: collapsed dashboard, an arrow to expand it'),
+  ('#', 'Aussi depuis la 1.0.11', 'Also since 1.0.11'),
   ('🌈', 'Sagas Mario, Sonic, Zelda et Pokémon : cartes holo rares (3,2 % par carte), avec leurs albums dans la Collection',
       'Mario, Sonic, Zelda and Pokémon sagas: rare holo cards (3.2% per card), with their albums in the Collection'),
   ('🎯', 'Défis de la semaine : 6 défis et un coffre (500 pièces, 2 pixels, 1 paquet premium), à la place des missions du jour',

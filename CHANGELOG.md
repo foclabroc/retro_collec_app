@@ -1,6 +1,8 @@
 # Pixel Trade — Changelog
 
-## v1.0.12 (en cours)
+## v1.0.12
+_Version 1.0.12+13._
+
 - **Duels : messages** — un petit mot avec un défi ou une revanche (phrase toute faite ou texte de 60 caractères,
   filtré comme le chat), affiché dans la fenêtre « X te défie ! » et dans le salon ; réponses rapides de l'invité
   (« J'arrive ! », « Dans 5 minutes »…, ou texte), vues par celui qui attend. SQL : patch_duels_messages.sql.
