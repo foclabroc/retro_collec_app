@@ -44,6 +44,11 @@ Future<void> showPackOpening(BuildContext context, Map<String, dynamic> r, Strin
   Notifs.i.refresh();
 }
 
+/// Accès depuis le menu : recharge le paquet entamé quand on ouvre l'onglet
+class PacksScreenState {
+  static void reloadPending() => _PacksScreenState.current?.loadPending();
+}
+
 class PacksScreen extends StatefulWidget {
   const PacksScreen({super.key});
   @override
@@ -51,7 +56,41 @@ class PacksScreen extends StatefulWidget {
 }
 
 class _PacksScreenState extends State<PacksScreen> {
+  static _PacksScreenState? current;
   bool busy = false;
+  Map<String, dynamic>? pending; // paquet déjà payé dont le booster n'est pas encore choisi
+
+  @override
+  void initState() {
+    super.initState();
+    current = this;
+    loadPending();
+  }
+
+  @override
+  void dispose() {
+    if (current == this) current = null;
+    super.dispose();
+  }
+
+  /// Paquet entamé (on a quitté le choix des boosters sans déchirer) : il reste dans le stock
+  Future<void> loadPending() async {
+    final p = await Game.i.pendingChoice();
+    if (mounted) setState(() => pending = p);
+  }
+
+  Future<void> _resume() async {
+    final p = pending;
+    if (p == null || busy) return;
+    setState(() => busy = true);
+    try {
+      await showPackOpening(context, p, (p['kind'] as String?) ?? 'mixte', p['sys'] as String?);
+    } catch (e) {
+      toast(errText(e));
+    }
+    if (mounted) setState(() => busy = false);
+    await loadPending();
+  }
 
   Future<void> _open(String kind, [String? sys]) async {
     if (busy) return;
@@ -63,6 +102,7 @@ class _PacksScreenState extends State<PacksScreen> {
       toast(errText(e));
     }
     if (mounted) setState(() => busy = false);
+    await loadPending();
   }
 
   /// Confirmation d'achat : booster, prix, solde avant/après.
@@ -286,10 +326,24 @@ class _PacksScreenState extends State<PacksScreen> {
               _PixelsRow(g.pixels, onTap: _openPixels),
               const SizedBox(height: 14),
               // paquets en stock : déjà payés ou offerts, ouverts seulement quand on les déchire
-              if (Notifs.i.gifts > 0 || Notifs.i.lots > 0)
+              if (Notifs.i.gifts > 0 || Notifs.i.lots > 0 || pending != null)
                 Padding(
                   padding: const EdgeInsets.only(left: 4, bottom: 8),
-                  child: Text(t('📦 EN STOCK · ${Notifs.i.gifts + Notifs.i.lots}', '📦 IN STOCK · ${Notifs.i.gifts + Notifs.i.lots}'), style: pixelStyle(size: 10)),
+                  child: Text(t('📦 EN STOCK · ${Notifs.i.gifts + Notifs.i.lots + (pending != null ? 1 : 0)}', '📦 IN STOCK · ${Notifs.i.gifts + Notifs.i.lots + (pending != null ? 1 : 0)}'),
+                      style: pixelStyle(size: 10)),
+                ),
+              // paquet entamé : on a ouvert le choix des boosters puis quitté sans déchirer
+              if (pending != null)
+                _PackOffer(
+                  kind: kPackPrice.containsKey(pending!['kind']) && pending!['kind'] != 'lot' && pending!['kind'] != 'gift' ? pending!['kind'] as String : 'mixte',
+                  packLabel: t('Entamé', 'Started'),
+                  title: t('Paquet entamé', 'Started pack'),
+                  subtitle: t('Tu n\'as pas encore choisi ton booster · touche pour continuer', 'You haven\'t picked your booster yet · tap to continue'),
+                  price: 0,
+                  color: const Color(0xFFB0662A),
+                  highlight: true,
+                  enabled: !busy,
+                  onTap: _resume,
                 ),
               if (Notifs.i.gifts > 0)
                 _PackOffer(

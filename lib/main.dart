@@ -616,6 +616,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     }
     if (i == 7) DefisScreenState.current?.load();
     if (i == 2 || i == 5) Notifs.i.refresh();
+    if (i == 1) PacksScreenState.reloadPending();
   }
 
 
