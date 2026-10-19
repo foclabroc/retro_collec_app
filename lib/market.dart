@@ -89,7 +89,7 @@ Future<void> showCardOffers(BuildContext context, String cardId, {int? finish}) 
       expand: false,
       initialChildSize: 0.6,
       maxChildSize: 0.92,
-      builder: (ctx, scroll) => _CardOffers(cardId: cardId, finish: finish, scroll: scroll),
+      builder: (ctx, scroll) => _CardOffers(cardId: cardId, finish: finish, scroll: scroll, sheet: true),
     ),
   );
 }
@@ -98,7 +98,8 @@ class _CardOffers extends StatefulWidget {
   final String cardId;
   final int? finish;
   final ScrollController scroll;
-  const _CardOffers({super.key, required this.cardId, required this.finish, required this.scroll});
+  final bool sheet; // dans une feuille du bas (téléphone) ; sinon panneau à droite (mode large)
+  const _CardOffers({super.key, required this.cardId, required this.finish, required this.scroll, this.sheet = false});
   @override
   State<_CardOffers> createState() => _CardOffersState();
 }
@@ -201,7 +202,14 @@ class _CardOffersState extends State<_CardOffers> {
                 style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800), visualDensity: VisualDensity.compact),
                 onPressed: () async {
                   if (await buyLot(context, rows![i])) {
-                    if (context.mounted) Navigator.of(context).pop();
+                    // feuille du bas : on la ferme ; panneau du mode large : surtout pas de « pop »
+                    // (il fermerait l'écran principal et ne laisserait que le fond)
+                    if (widget.sheet && context.mounted) {
+                      Navigator.of(context).pop();
+                    } else {
+                      load();
+                      MarketGroupsState.current?.load();
+                    }
                   } else {
                     load();
                   }
@@ -226,6 +234,7 @@ class MarketGroups extends StatefulWidget {
 }
 
 class MarketGroupsState extends State<MarketGroups> {
+  static MarketGroupsState? current;
   List<Map<String, dynamic>>? rows;
   String? error;
   final search = TextEditingController();
@@ -240,6 +249,7 @@ class MarketGroupsState extends State<MarketGroups> {
 
   @override
   void dispose() {
+    if (current == this) current = null;
     _offersScroll.dispose();
     search.dispose();
     super.dispose();
@@ -248,6 +258,7 @@ class MarketGroupsState extends State<MarketGroups> {
   @override
   void initState() {
     super.initState();
+    current = this;
     load();
   }
 
