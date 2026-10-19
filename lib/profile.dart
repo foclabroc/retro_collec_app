@@ -1022,7 +1022,7 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                         const SizedBox(height: 2),
                         p!['online'] == true
                             ? Text(t('● En ligne', '● Online'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 12, fontWeight: FontWeight.w800))
-                            : Text(t('🕒 Dernière connexion : ', '🕒 Last seen: ') + lastSeenLong(DateTime.tryParse(p!['seen_at']?.toString() ?? '')?.toLocal()),
+                            : Text(t('🕒 Dernière connexion : ', '🕒 Last seen: ') + _lastSeen(p!),
                                 style: const TextStyle(color: Colors.white60, fontSize: 12)),
                       ]),
                     ),
@@ -1234,4 +1234,15 @@ class OtherAlbumPage extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Dernière connexion d'un profil : heure exacte (seen_at), sinon le dernier jour connu (seen_day, sans heure)
+String _lastSeen(Map p) {
+  final at = DateTime.tryParse(p['seen_at']?.toString() ?? '')?.toLocal();
+  if (at != null) return lastSeenLong(at);
+  final d = DateTime.tryParse(p['seen_day']?.toString() ?? '');
+  if (d == null) return lastSeenLong(null);
+  final days = DateTime.now().difference(DateTime(d.year, d.month, d.day)).inDays;
+  String two(int n) => n.toString().padLeft(2, '0');
+  return t('le ${two(d.day)}/${two(d.month)} (il y a $days jour${days > 1 ? 's' : ''})', 'on ${d.month}/${d.day} ($days day${days > 1 ? 's' : ''} ago)');
 }
