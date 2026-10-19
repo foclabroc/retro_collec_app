@@ -9,6 +9,8 @@ import 'server.dart';
 import 'tower.dart';
 import 'update_check.dart';
 
+part 'admin_tools.dart';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Page admin (réservée aux comptes de rc_admins : le bouton n'apparaît que si
 // le serveur le confirme, et chaque fonction du serveur revérifie).
@@ -194,6 +196,7 @@ List<_Tag> _accountTags(Map<String, dynamic> p) {
   if (given - got >= 150) tags.add(_Tag(t('donne ${given - got} de valeur sans contrepartie', 'gave away ${given - got} in value'), _red));
   if (_i(p['overpaid']) > 0) tags.add(_Tag(t('${_i(p['overpaid'])} achat(s) à 5× le prix moyen', '${_i(p['overpaid'])} buy(s) at 5× avg price'), _red));
   if (_i(p['gifts_out']) >= 3) tags.add(_Tag(t('${_i(p['gifts_out'])} cadeaux offerts', '${_i(p['gifts_out'])} gifts sent'), _org));
+  if (p['blocked'] == true) tags.add(_Tag(t('⛔ compte bloqué', '⛔ account blocked'), _red));
   if (p['chat_banned'] == true) tags.add(_Tag(t('chat interdit', 'chat banned'), _org));
   if (age < 72 && tags.isNotEmpty) tags.add(_Tag(t('compte récent', 'new account'), _org));
   if (tags.isEmpty) tags.add(_Tag(t('rien à signaler', 'nothing to report'), _ok));
@@ -383,11 +386,12 @@ class AdminPlayerPage extends StatelessWidget {
               _num('${_i(p['days'])}', t('jours', 'days')),
             ]),
             const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: pid))),
-              icon: const Icon(Icons.person),
-              label: Text(t('Voir son profil', 'View profile')),
-            ),
+            if (p['blocked'] == true)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _tags([_Tag(t('⛔ compte bloqué : ni échange, ni vente, ni achat, ni cadeau', '⛔ blocked: no trade, sale, buy or gift'), _red)]),
+              ),
+            _PlayerActions(pid: pid, player: p, reload: reload),
             const SizedBox(height: 12),
             Text(t('Activité (100 dernières actions)', 'Activity (last 100 actions)'),
                 style: const TextStyle(color: Colors.white60, fontWeight: FontWeight.w800)),
@@ -709,83 +713,6 @@ class _ChatTab extends StatelessWidget {
           banned ? btn(t('Lever l\'interdiction', 'Lift ban'), 'unban') : btn(t('🔇 Interdire 24 h', '🔇 Ban 24 h'), 'ban', danger: true),
         ]),
       ]),
-    );
-  }
-}
-
-// ─── Outils ─────────────────────────────────────────────────────────────────
-
-class _ToolsTab extends StatelessWidget {
-  const _ToolsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return _Loader<Map<String, dynamic>>(
-      load: RcServer.appConfig,
-      builder: (context, c, reload) {
-        final min = c['min_version']?.toString() ?? '1.0.0';
-        Future<void> change() async {
-          final ctl = TextEditingController(text: min);
-          final v = await showDialog<String>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text(t('Version minimale', 'Minimum version')),
-              content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(
-                    t('Les applis plus anciennes affichent une fenêtre bloquante avec le bouton de téléchargement (web : recharger).',
-                        'Older apps show a blocking window with the download button (web: reload).'),
-                    style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                const SizedBox(height: 10),
-                TextField(controller: ctl, autofocus: true, decoration: const InputDecoration(hintText: '1.0.12')),
-              ]),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Annuler', 'Cancel'))),
-                ElevatedButton(onPressed: () => Navigator.pop(ctx, ctl.text.trim()), child: const Text('OK')),
-              ],
-            ),
-          );
-          if (v == null || v.isEmpty || v == min) return;
-          try {
-            await RcServer.adminSetConfig('min_version', v);
-            toast(t('Version minimale : $v', 'Minimum version: $v'));
-            await reload();
-          } catch (e) {
-            toast(errText(e));
-          }
-        }
-
-        return ListView(padding: const EdgeInsets.all(10), children: [
-          _box(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(t('📱 Version minimale', '📱 Minimum version'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
-              const SizedBox(height: 4),
-              Text(
-                  t('Les APK plus anciens doivent se mettre à jour pour jouer (fenêtre bloquante avec le bouton de téléchargement).',
-                      'Older APKs must update to play (blocking window with the download button).'),
-                  style: const TextStyle(color: Colors.white60, fontSize: 12.5)),
-              const SizedBox(height: 10),
-              Row(children: [
-                _num(kRetroCollecVersion, t('actuelle', 'current')),
-                _num(min, t('minimale', 'minimum')),
-                const SizedBox(width: 6),
-                ElevatedButton(onPressed: change, child: Text(t('Changer', 'Change'))),
-              ]),
-              const SizedBox(height: 6),
-              Text(
-                  t('⚠️ Ne mets pas une version plus récente que le dernier APK publié, sinon personne ne pourra jouer.',
-                      '⚠️ Never set a version newer than the latest published APK, or nobody can play.'),
-                  style: const TextStyle(color: _org, fontSize: 11.5)),
-            ]),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Text(
-                t('Bientôt ici : annonce, cadeau, sondage, événements, réglages en direct, renommer, bloquer, retirer une offre.',
-                    'Coming here: announcement, gift, poll, events, live settings, rename, block, remove an offer.'),
-                style: const TextStyle(color: Colors.white38, fontSize: 12)),
-          ),
-        ]);
-      },
     );
   }
 }

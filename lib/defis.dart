@@ -203,9 +203,9 @@ class _ChestState extends State<_Chest> with SingleTickerProviderStateMixin {
     final text = w.open
         ? t('Coffre ouvert ! Rendez-vous lundi pour de nouveaux défis.', 'Chest opened! New challenges on Monday.')
         : w.ready
-            ? t('Touche le coffre : 500 pièces + 2 pixels + 1 paquet premium', 'Tap the chest: 500 coins + 2 pixels + 1 premium pack')
-            : t('${w.got}/${w.total} défis · termine-les tous : 500 pièces + 2 pixels + 1 paquet premium',
-                '${w.got}/${w.total} challenges · finish them all: 500 coins + 2 pixels + 1 premium pack');
+            ? t('Touche le coffre : ${liveInt('chest_coins')} pièces + ${liveInt('chest_pixels')} pixels + 1 paquet premium', 'Tap the chest: ${liveInt('chest_coins')} coins + ${liveInt('chest_pixels')} pixels + 1 premium pack')
+            : t('${w.got}/${w.total} défis · termine-les tous : ${liveInt('chest_coins')} pièces + ${liveInt('chest_pixels')} pixels + 1 paquet premium',
+                '${w.got}/${w.total} challenges · finish them all: ${liveInt('chest_coins')} coins + ${liveInt('chest_pixels')} pixels + 1 premium pack');
     return Material(
       color: Colors.transparent,
       child: InkWell(

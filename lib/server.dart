@@ -684,4 +684,81 @@ class RcServer {
 
   static Future<Map<String, dynamic>> adminSetConfig(String key, String value) async =>
       _map(await _admin('rc_admin_set_config', 'config|$key|$value', {'p_key': key, 'p_value': value}));
+
+  /// Réglages en direct : valeurs envoyées en JSON (ex. {"saga":3.2,"mixte":100})
+  static Future<Map<String, dynamic>> adminSetLive(Map<String, num> values) async {
+    final v = jsonEncode(values);
+    return _map(await _admin('rc_admin_set_live', 'live|$v', {'p_values': v}));
+  }
+
+  static Future<bool> adminBlock(String pid, bool on) async =>
+      (await _admin('rc_admin_block', 'block|$pid|${on ? 1 : 0}', {'p_pid': pid, 'p_on': on})) == true;
+
+  /// 'ok' ou 'taken'
+  static Future<String> adminRename(String pid, String name) async =>
+      (await _admin('rc_admin_rename', 'rename|$pid|$name', {'p_pid': pid, 'p_name': name}))?.toString() ?? 'ok';
+
+  static Future<List<Map<String, dynamic>>> adminMarket([String q = '']) async =>
+      _list(await _admin('rc_admin_market', 'market|$q', {'p_query': q}));
+
+  static Future<bool> adminMarketRemove(int id) async =>
+      (await _admin('rc_admin_market_remove', 'mremove|$id', {'p_id': id})) == true;
+
+  /// pid vide = tous les joueurs
+  static Future<void> adminMail(String pid, String title, String body, int coins, int pixels, int packs) async {
+    await _admin('rc_admin_mail', 'mail|$pid|$title|$coins|$pixels|$packs', {
+      'p_pid': pid,
+      'p_title': title,
+      'p_body': body,
+      'p_coins': coins,
+      'p_pixels': pixels,
+      'p_packs': packs,
+    });
+  }
+
+  static Future<List<Map<String, dynamic>>> adminMails() async => _list(await _admin('rc_admin_mails', 'mails'));
+
+  static Future<void> adminMailDelete(int id) async => _admin('rc_admin_mail_delete', 'maildel|$id', {'p_id': id});
+
+  static Future<List<Map<String, dynamic>>> adminPolls() async => _list(await _admin('rc_admin_polls', 'polls'));
+
+  /// options : une réponse par ligne (2 à 4)
+  static Future<void> adminPollNew(String question, String options, int days) async {
+    await _admin('rc_admin_poll_new', 'pollnew|$question|$options|$days', {'p_question': question, 'p_options': options, 'p_days': days});
+  }
+
+  static Future<void> adminPollClose(int id) async => _admin('rc_admin_poll_close', 'pollclose|$id', {'p_id': id});
+
+  static Future<List<Map<String, dynamic>>> adminEvents() async => _list(await _admin('rc_admin_events', 'events'));
+
+  /// id null : nouvel événement
+  static Future<void> adminEventSave(int? id, Map<String, dynamic> data) async {
+    final v = jsonEncode(data);
+    await _admin('rc_admin_event_save', 'evsave|${id ?? 0}|$v', {'p_id': id, 'p_data': v});
+  }
+
+  static Future<void> adminEventActive(int id, bool on) async =>
+      _admin('rc_admin_event_active', 'evactive|$id|${on ? 1 : 0}', {'p_id': id, 'p_on': on});
+
+  // ── Courrier de l'admin et sondage (à l'ouverture du jeu) ────────────────
+  static Future<List<Map<String, dynamic>>> mailList() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_mail_list', {'p_device': d, 'p_sig': _sig('$d|mail')}));
+  }
+
+  static Future<Map<String, dynamic>> mailRead(int id) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_mail_read', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|mailread|$id')}));
+  }
+
+  static Future<Map<String, dynamic>?> pollCurrent() async {
+    final d = await deviceId();
+    final r = await _rpc('rc_poll_current', {'p_device': d, 'p_sig': _sig('$d|poll')});
+    return r is Map ? _map(r) : null;
+  }
+
+  static Future<Map<String, dynamic>> pollVote(int id, int choice) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_poll_vote', {'p_device': d, 'p_id': id, 'p_choice': choice, 'p_sig': _sig('$d|vote|$id|$choice')}));
+  }
 }

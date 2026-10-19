@@ -83,8 +83,8 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
                       next == 0
                           ? (saga != null ? t('Saga complète !', 'Saga complete!') : t('Série complète !', 'Set complete!'))
                           : saga != null
-                              ? t('Prochain palier : ${total * next ~/ 100}/$total → ${rewards[next]} pièces${next == 100 ? ' + 2 pixels' : ''} · cartes de saga : 3,2 % de chance par carte de paquet',
-                                  'Next milestone: ${total * next ~/ 100}/$total → ${rewards[next]} coins${next == 100 ? ' + 2 pixels' : ''} · saga cards: 3.2% chance per pack card')
+                              ? t('Prochain palier : ${total * next ~/ 100}/$total → ${rewards[next]} pièces${next == 100 ? ' + 2 pixels' : ''} · cartes de saga : ${livePct('saga')} de chance par carte de paquet',
+                                  'Next milestone: ${total * next ~/ 100}/$total → ${rewards[next]} coins${next == 100 ? ' + 2 pixels' : ''} · saga cards: ${livePct('saga')} chance per pack card')
                               : t('Prochain palier : $next % → ${rewards[next]} pièces', 'Next milestone: $next% → ${rewards[next]} coins'),
                       style: const TextStyle(fontSize: 11, color: Colors.white54),
                     ),
@@ -531,8 +531,8 @@ class _CardDetailPageState extends State<CardDetailPage> {
           onPressed: busy || g.coins < cost ? null : () => _craft(c, cost),
         )
       else
-        Text(t('Carte de saga : on ne la trouve que dans les paquets (3,2 % de chance par carte), à la Bourse ou en échange.',
-                'Saga card: only found in packs (3.2% chance per card), on the Exchange or in trades.'),
+        Text(t('Carte de saga : on ne la trouve que dans les paquets (${livePct('saga')} de chance par carte), à la Bourse ou en échange.',
+                'Saga card: only found in packs (${livePct('saga')} chance per card), on the Exchange or in trades.'),
             textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: Colors.white54)),
       if (total > 1)
         Padding(

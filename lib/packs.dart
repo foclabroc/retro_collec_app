@@ -462,7 +462,7 @@ class _PacksScreenState extends State<PacksScreen> {
                   ),
               ]),
               const SizedBox(height: 6),
-              Text(t('Finition brillante : 5 % · dorée : 0,5 % · full art (épiques et légendaires) : 0,2 %', 'Holo finish: 5% · gold: 0.5% · full art (epic and legendary): 0.2%'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              Text(t('Finition brillante : ${livePct('holo')} · dorée : ${livePct('gold')} · full art (épiques et légendaires) : ${livePct('fullart')}', 'Holo finish: ${livePct('holo')} · gold: ${livePct('gold')} · full art (epic and legendary): ${livePct('fullart')}'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
             ]),
           ),
         ]);

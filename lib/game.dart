@@ -78,7 +78,32 @@ int recycleValue(int r, int f) => const [5, 15, 50, 150, 500][r] * const [1, 3, 
 int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
 /// Boosters spéciaux payés en pixels (1 pixel par booster ouvert)
 const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40};
-const kPackPrice = {'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0, 'lot': 0};
+final kPackPrice = <String, int>{'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0, 'lot': 0};
+
+/// Réglages en direct (page admin → rc_config « live ») : chances en %, coffre des défis.
+final rcLive = <String, num>{'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 0.2, 'chest_coins': 500, 'chest_pixels': 2};
+
+/// Applique les réglages reçus du serveur (prix des paquets compris)
+void applyLive(dynamic m) {
+  if (m is! Map) return;
+  for (final k in const ['mixte', 'console', 'premium', 'mystery']) {
+    final v = m[k];
+    if (v is num) kPackPrice[k] = v.toInt();
+  }
+  for (final k in rcLive.keys.toList()) {
+    final v = m[k];
+    if (v is num) rcLive[k] = v;
+  }
+}
+
+/// Chance en texte : « 3,2 % » / « 3.2% »
+String livePct(String k) {
+  final v = rcLive[k] ?? 0;
+  final s = v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+  return t('${s.replaceAll('.', ',')} %', '$s%');
+}
+
+int liveInt(String k) => (rcLive[k] ?? 0).toInt();
 const kLotPrice = 500; // lot de 5 paquets mixtes (gratuit le samedi)
 
 const kGold = Color(0xFFEF9F27);

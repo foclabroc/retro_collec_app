@@ -169,7 +169,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     Expanded(
                       child: Text(
                           sagas
-                              ? t('Cartes holo : 3,2 % de chance par carte de paquet', 'Holo cards: 3.2% chance per pack card')
+                              ? t('Cartes holo : ${livePct('saga')} de chance par carte de paquet', 'Holo cards: ${livePct('saga')} chance per pack card')
                               : t('Mes consoles', 'My systems'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

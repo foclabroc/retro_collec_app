@@ -7,6 +7,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'game.dart';
 import 'server.dart';
 import 'web_audio_stub.dart' if (dart.library.js_interop) 'web_audio_web.dart';
 
@@ -126,7 +127,9 @@ class UpdateGateState extends State<UpdateGate> {
   Future<bool> _belowMinimum() async {
     String min;
     try {
-      min = (await RcServer.appConfig())['min_version']?.toString() ?? '1.0.0';
+      final cfg = await RcServer.appConfig();
+      applyLive(cfg['live']);
+      min = cfg['min_version']?.toString() ?? '1.0.0';
     } catch (_) {
       return false; // hors ligne : on laisse jouer
     }

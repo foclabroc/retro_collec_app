@@ -11,6 +11,7 @@ import 'audio.dart';
 import 'cards.dart';
 import 'defis.dart';
 import 'catalog.dart';
+import 'inbox.dart';
 import 'game.dart';
 import 'bonus.dart';
 import 'chat.dart';
@@ -526,6 +527,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       if (mounted) await PushWatch.maybeAskBattery(context);
       await Game.i.claimRewards();
       Events.i.refresh();
+      if (mounted) await showInbox(context); // annonces / cadeaux de l'admin, puis sondage
       // booster payé mais pas encore choisi (appli fermée pendant le choix) : on reprend
       final p = await Game.i.pendingChoice();
       if (p != null && mounted) await showPackOpening(context, p, (p['kind'] as String?) ?? 'mixte');
@@ -550,6 +552,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       Notifs.i.refresh();
       Events.i.refresh();
       DuelWatch.i.start();
+      showInbox(context);
     } else if (state == AppLifecycleState.paused) {
       DuelWatch.i.stop(); // pas de requêtes appli en arrière-plan
     }
