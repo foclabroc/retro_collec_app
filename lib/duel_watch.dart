@@ -26,6 +26,7 @@ class DuelWatch extends ChangeNotifier {
   String? lastFrom;
   List<Map<String, dynamic>> live = [];
   final _handled = <String>{}; // défis déjà montrés (jeu:id)
+  final _replies = <String>{}; // réponses à mes défis déjà annoncées (jeu:id:texte)
   bool _showing = false;
   int inGame = 0; // pages de partie ouvertes : pas de fenêtre par-dessus
 
@@ -51,9 +52,45 @@ class DuelWatch extends ChangeNotifier {
       lastFrom = r['last_from'] as String?;
       PushWatch.seenDuels(invites, turns); // déjà visible dans l'appli : pas de notification
       notifyListeners();
+      _announceReplies(r['replies']);
       _maybeShow();
     } catch (_) {
       // serveur pas encore à jour ou hors ligne : on réessaiera
+    }
+  }
+
+  /// Réponse reçue à un défi que j'ai lancé : toast où que je sois, avec « Voir » (salon du jeu)
+  void _announceReplies(dynamic list) {
+    if (list is! List) return;
+    for (final x in list) {
+      if (x is! Map) continue;
+      final key = '${x['game']}:${x['id']}:${x['reply']}';
+      if (!_replies.add(key)) continue;
+      final bs = x['game'] == 'bs';
+      final name = x['name']?.toString() ?? '?';
+      RcAudio.sfx('logo');
+      rcMessenger.currentState
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          backgroundColor: const Color(0xFF3C3489),
+          duration: const Duration(seconds: 6),
+          content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(t('💬 $name a répondu à ton défi', '💬 $name replied to your challenge'), style: const TextStyle(fontWeight: FontWeight.w900)),
+            Text('« ${x['reply']} »', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+            Text(t('${bs ? 'Console Wars' : '4 en ligne'} · le défi attend toujours', '${bs ? 'Console Wars' : 'Connect 4'} · the challenge is still pending'),
+                style: const TextStyle(fontSize: 11.5, color: Color(0xFFCFCAFF))),
+          ]),
+          action: SnackBarAction(
+            label: t('Voir', 'See'),
+            textColor: const Color(0xFFFFD166),
+            onPressed: () {
+              final ctx = HomeShellState.current?.context;
+              if (ctx == null || !ctx.mounted) return;
+              Navigator.of(ctx).push(MaterialPageRoute(builder: (_) => Connect4Lobby(kind: bs ? kBsDuel : kC4Duel)));
+            },
+          ),
+        ));
+      break; // une à la fois ; les suivantes au prochain passage
     }
   }
 

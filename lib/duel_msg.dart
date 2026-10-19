@@ -175,9 +175,13 @@ class _MsgSheetState extends State<_MsgSheet> {
             controller: ctl,
             maxLength: kDuelMsgMax,
             textCapitalization: TextCapitalization.sentences,
+            textInputAction: TextInputAction.send,
             onChanged: (_) => setState(() {}),
+            onSubmitted: (v) => Navigator.pop(context, v.trim()), // Entrée = « Envoyer le défi »
             decoration: InputDecoration(
               hintText: t('✏️ Écris ton message…', '✏️ Write your message…'),
+              helperText: t('↵ Entrée envoie le défi avec ce message', '↵ Enter sends the challenge with this message'),
+              helperStyle: const TextStyle(color: Color(0xFFFFD08A), fontWeight: FontWeight.w800),
               filled: true,
               fillColor: const Color(0x33000000),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),

@@ -184,6 +184,25 @@ class _SagaFaceState extends State<SagaFace> with SingleTickerProviderStateMixin
               ]),
             ),
           ]),
+          // numéro de la carte dans sa saga
+          Positioned(
+            left: w * 0.035,
+            top: w * 0.035,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: w * 0.025, vertical: w * 0.008),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.55),
+                borderRadius: BorderRadius.circular(w * 0.05),
+                border: Border.all(color: (owned ? saga.accent : Colors.white24).withOpacity(0.8), width: max(0.8, w * 0.006)),
+              ),
+              child: Text('#${widget.card.num.toString().padLeft(2, '0')}',
+                  style: TextStyle(
+                      fontSize: max(6.5, w * 0.042),
+                      fontWeight: FontWeight.w900,
+                      color: owned ? saga.accent : Colors.white38,
+                      fontFeatures: const [FontFeature.tabularFigures()])),
+            ),
+          ),
           // reflet holographique : suit l'inclinaison, sinon glisse tout seul
           if (owned)
             IgnorePointer(
