@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icônes des notifications : utilisées seulement par leur nom, à garder dans l'APK -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_notify,@drawable/ic_notif_large" />

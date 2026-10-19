@@ -192,7 +192,7 @@ class PushWatch {
   static Future<void> _init() async {
     if (_ready) return;
     await _notif.initialize(
-      settings: const InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher')),
+      settings: const InitializationSettings(android: AndroidInitializationSettings('ic_stat_notify')),
     );
     _ready = true;
   }
@@ -362,6 +362,9 @@ class PushWatch {
             channelDescription: t('Cadeaux, ventes, échanges et paquets gratuits', 'Gifts, sales, trades and free packs'),
             importance: Importance.high,
             priority: Priority.high,
+            icon: 'ic_stat_notify', // silhouette blanche (barre d'état)
+            color: const Color(0xFFEF9F27),
+            largeIcon: const DrawableResourceAndroidBitmap('ic_notif_large'), // l'icône du jeu en couleur
             styleInformation: BigTextStyleInformation(body),
           ),
         ),
