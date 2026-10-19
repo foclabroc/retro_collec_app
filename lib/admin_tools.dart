@@ -56,46 +56,62 @@ InputDecoration _field(String label, {String? hint}) => InputDecoration(
 
 // ─── Courrier (annonce ou cadeau) ───────────────────────────────────────────
 
-/// Écrire un message : pid vide = tous les joueurs. Renvoie true si envoyé.
-Future<bool> _composeMail(BuildContext context, {String pid = '', String? toName}) async {
+/// Écrire un message : pid vide = un groupe de joueurs (tous, actifs, nouveaux, inactifs). Renvoie true si envoyé.
+Future<bool> _composeMail(BuildContext context, {String pid = '', String? toName, String group = 'all'}) async {
   final title = TextEditingController(), body = TextEditingController();
-  final coins = TextEditingController(text: '0'), pixels = TextEditingController(text: '0'), packs = TextEditingController(text: '0');
+  var reward = <String, dynamic>{};
+  var target = pid.isNotEmpty ? 'pid:$pid' : group;
+  final groups = {
+    'all': t('Tous les joueurs', 'All players'),
+    'active7': t('Actifs · 7 j', 'Active · 7 d'),
+    'new7': t('Nouveaux · 7 j', 'New · 7 d'),
+    'inactive7': t('Inactifs depuis 7 j (pour les faire revenir)', 'Inactive for 7 d (win them back)'),
+  };
   final send = await showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(toName == null ? t('Message à tous les joueurs', 'Message to all players') : t('Cadeau pour $toName', 'Gift for $toName')),
-      content: SingleChildScrollView(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-              toName == null
-                  ? t('Une fenêtre à la prochaine ouverture du jeu, une fois par joueur (inscrits avant l\'envoi, pendant 30 jours). Sans récompense = simple annonce.',
-                      'A window at next launch, once per player (signed up before sending, for 30 days). No reward = plain announcement.')
-                  : t('Une fenêtre à sa prochaine ouverture du jeu.', 'A window at their next launch.'),
-              style: const TextStyle(color: Colors.white60, fontSize: 12.5)),
-          const SizedBox(height: 12),
-          TextField(controller: title, maxLength: 80, decoration: _field(t('Titre', 'Title'), hint: t('Week-end double pixels !', 'Double pixels weekend!'))),
-          const SizedBox(height: 4),
-          TextField(controller: body, maxLength: 600, minLines: 2, maxLines: 5, decoration: _field(t('Message', 'Message'))),
-          const SizedBox(height: 8),
-          Row(children: [
-            Expanded(child: TextField(controller: coins, keyboardType: TextInputType.number, decoration: _field('🪙'))),
-            const SizedBox(width: 6),
-            Expanded(child: TextField(controller: pixels, keyboardType: TextInputType.number, decoration: _field('▦'))),
-            const SizedBox(width: 6),
-            Expanded(child: TextField(controller: packs, keyboardType: TextInputType.number, decoration: _field(t('premium', 'premium')))),
-          ]),
-        ]),
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setD) => AlertDialog(
+        title: Text(toName == null ? t('Annonce / cadeau', 'Announcement / gift') : t('Cadeau pour $toName', 'Gift for $toName')),
+        content: SizedBox(
+          width: 420,
+          child: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Text(
+                  toName == null
+                      ? t('Une fenêtre à la prochaine ouverture du jeu, une fois par joueur (pendant 30 jours). Sans récompense = simple annonce.',
+                          'A window at next launch, once per player (for 30 days). No reward = plain announcement.')
+                      : t('Une fenêtre à sa prochaine ouverture du jeu.', 'A window at their next launch.'),
+                  style: const TextStyle(color: Colors.white60, fontSize: 12.5)),
+              const SizedBox(height: 12),
+              if (toName == null) ...[
+                DropdownButtonFormField<String>(
+                  value: target,
+                  decoration: _field(t('Pour qui', 'Who')),
+                  items: [for (final e in groups.entries) DropdownMenuItem(value: e.key, child: Text(e.value, overflow: TextOverflow.ellipsis))],
+                  onChanged: (v) => setD(() => target = v ?? 'all'),
+                ),
+                const SizedBox(height: 10),
+              ],
+              TextField(controller: title, maxLength: 80, decoration: _field(t('Titre', 'Title'), hint: t('Week-end double pixels !', 'Double pixels weekend!'))),
+              const SizedBox(height: 4),
+              TextField(controller: body, maxLength: 600, minLines: 2, maxLines: 5, decoration: _field(t('Message', 'Message'))),
+              const SizedBox(height: 8),
+              Text(t('Récompense', 'Reward'), style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 6),
+              RewardEditor(value: reward, onChanged: (v) => setD(() => reward = v)),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: Text(t('Envoyer', 'Send'))),
+        ],
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
-        ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: Text(t('Envoyer', 'Send'))),
-      ],
     ),
   );
   if (send != true) return false;
-  final c = int.tryParse(coins.text.trim()) ?? 0, px = int.tryParse(pixels.text.trim()) ?? 0, pk = int.tryParse(packs.text.trim()) ?? 0;
   try {
-    await RcServer.adminMail(pid, title.text.trim(), body.text.trim(), c, px, pk);
+    await RcServer.adminMail2(target, title.text.trim(), body.text.trim(), reward);
     toast(t('Message envoyé', 'Message sent'));
     return true;
   } catch (e) {
@@ -207,8 +223,25 @@ class _ToolsTab extends StatelessWidget {
               label: Text(t('Gérer les événements', 'Manage events')),
             ),
           ]),
+          _bannerSection(context, cfg['banner'] is Map ? Map<String, dynamic>.from(cfg['banner'] as Map) : null, reload),
+          _maintenanceSection(context, cfg['maintenance'] is Map ? Map<String, dynamic>.from(cfg['maintenance'] as Map) : null, reload),
           _liveSection(context, live, reload),
           _versionSection(context, cfg['min_version']?.toString() ?? '1.0.0', reload),
+          _section(t('🔍 Chercher une carte', '🔍 Find a card'),
+              t('Qui la possède (et en quelle finition), combien d\'exemplaires circulent, dernières ventes.', 'Who owns it (and which finish), how many copies exist, last sales.'), [
+            ElevatedButton.icon(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminCardPage())),
+              icon: const Icon(Icons.search),
+              label: Text(t('Chercher', 'Search')),
+            ),
+          ]),
+          _section(t('📜 Journal admin', '📜 Admin log'), t('Tes 200 dernières actions : cadeaux, blocages, renommages, réglages, événements.', 'Your last 200 actions: gifts, blocks, renames, settings, events.'), [
+            ElevatedButton.icon(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminLogPage())),
+              icon: const Icon(Icons.history),
+              label: Text(t('Voir le journal', 'See the log')),
+            ),
+          ]),
           _section(t('💱 Bourse', '💱 Market'), t('Retirer une offre abusive : la carte retourne au vendeur.', 'Remove an abusive offer: the card goes back to the seller.'), [
             ElevatedButton.icon(
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminMarketPage())),
@@ -223,15 +256,23 @@ class _ToolsTab extends StatelessWidget {
 
   Widget _mailSection(BuildContext context, List<Map<String, dynamic>> mails, Future<void> Function() reload) {
     return _section(t('📢 Annonce et 🎁 cadeau à tous', '📢 Announcement and 🎁 gift to all'),
-        t('Une fenêtre à la prochaine ouverture du jeu. Pièces, pixels ou paquets premium en option (ex. : dédommagement après un bug). Pour un seul joueur : sa fiche → Offrir.',
-            'A window at next launch. Optional coins, pixels or premium packs (e.g. after a bug). For one player: their file → Gift.'),
+        t('Une fenêtre à la prochaine ouverture du jeu, pour tous ou un groupe (actifs, nouveaux, inactifs). Pièces, pixels, paquets, boosters, lot ou carte en option. Pour un seul joueur : sa fiche → Offrir.',
+            'A window at next launch, for everyone or a group (active, new, inactive). Optional coins, pixels, packs, boosters, bundle or card. For one player: their file → Gift.'),
         [
           ElevatedButton.icon(
             onPressed: () async {
               if (await _composeMail(context)) await reload();
             },
             icon: const Icon(Icons.campaign),
-            label: Text(t('Nouveau message à tous', 'New message to all')),
+            label: Text(t('Nouveau message', 'New message')),
+          ),
+          const SizedBox(height: 6),
+          OutlinedButton.icon(
+            onPressed: () async {
+              if (await _composeMail(context, group: 'inactive7')) await reload();
+            },
+            icon: const Icon(Icons.card_giftcard),
+            label: Text(t('🎯 Cadeau ciblé (groupe)', '🎯 Targeted gift (group)')),
           ),
           if (mails.isNotEmpty) ...[
             const SizedBox(height: 10),
@@ -245,9 +286,9 @@ class _ToolsTab extends StatelessWidget {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(m['title']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
                       Text(
-                          '${_date(_d(m['at']))} · ${m['to'] == null ? t('tous', 'all') : '→ ${m['to']}'}'
-                          '${_i(m['coins']) > 0 ? ' · ${_i(m['coins'])} 🪙' : ''}${_i(m['pixels']) > 0 ? ' · ${_i(m['pixels'])} ▦' : ''}'
-                          '${_i(m['packs']) > 0 ? ' · ${_i(m['packs'])} premium' : ''} · ${t('lu ${_i(m['read'])} fois', 'read ${_i(m['read'])}×')}',
+                          '${_date(_d(m['at']))} · ${m['to'] != null ? '→ ${m['to']}' : switch (m['grp']) { 'active7' => t('actifs 7 j (${_i(m['sent'])})', 'active 7 d (${_i(m['sent'])})'), 'new7' => t('nouveaux 7 j (${_i(m['sent'])})', 'new 7 d (${_i(m['sent'])})'), 'inactive7' => t('inactifs (${_i(m['sent'])})', 'inactive (${_i(m['sent'])})'), _ => t('tous', 'all') }}'
+                          '${rewardAny(rewardAdd(rewardOf(m), {'packs': {'premium': _i(m['packs'])}})) ? ' · ${rewardText(rewardAdd(rewardOf(m), {'packs': {'premium': _i(m['packs'])}}))}' : ''}'
+                          ' · ${t('lu ${_i(m['read'])} fois', 'read ${_i(m['read'])}×')}',
                           style: const TextStyle(color: Colors.white54, fontSize: 11.5)),
                     ]),
                   ),
@@ -375,6 +416,113 @@ class _ToolsTab extends StatelessWidget {
     if (ok != true) return;
     final options = opts.map((c) => c.text.trim().replaceAll('\n', ' ')).where((s) => s.isNotEmpty).join('\n');
     await _run(() => RcServer.adminPollNew(q.text.trim(), options, days), t('Sondage lancé', 'Poll started'), reload);
+  }
+
+  Widget _bannerSection(BuildContext context, Map<String, dynamic>? banner, Future<void> Function() reload) {
+    Future<void> edit() async {
+      final ctl = TextEditingController(text: banner?['text']?.toString() ?? '');
+      var until = _d(banner?['until']) ?? DateTime.now().add(const Duration(days: 1));
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setD) => AlertDialog(
+            title: Text(t('Bandeau d\'info', 'Info banner')),
+            content: Column(mainAxisSize: MainAxisSize.min, children: [
+              TextField(controller: ctl, maxLength: 200, minLines: 1, maxLines: 3, autofocus: true,
+                  decoration: _field(t('Texte', 'Text'), hint: t('Maintenance ce soir à 22 h', 'Maintenance tonight at 10 pm'))),
+              Row(children: [
+                Text(t('Jusqu\'au', 'Until'), style: const TextStyle(color: Colors.white70)),
+                const Spacer(),
+                OutlinedButton(
+                  onPressed: () async {
+                    final d = await showDatePicker(context: ctx, initialDate: until, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 60)));
+                    if (d == null || !ctx.mounted) return;
+                    final tm = await showTimePicker(context: ctx, initialTime: TimeOfDay.fromDateTime(until));
+                    setD(() => until = DateTime(d.year, d.month, d.day, tm?.hour ?? until.hour, tm?.minute ?? until.minute));
+                  },
+                  child: Text(_date(until)),
+                ),
+              ]),
+            ]),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
+              ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: Text(t('Afficher', 'Show'))),
+            ],
+          ),
+        ),
+      );
+      if (ok != true) return;
+      await _run(() => RcServer.adminSetConfig('banner', jsonEncode({'text': ctl.text.trim(), 'until': until.toUtc().toIso8601String()})),
+          ctl.text.trim().isEmpty ? t('Bandeau retiré', 'Banner removed') : t('Bandeau affiché', 'Banner shown'), reload);
+    }
+
+    return _section(t('📢 Bandeau d\'info', '📢 Info banner'),
+        t('Une ligne en haut de l\'appli pour tous les joueurs, jusqu\'à la date choisie (APK : à partir de la prochaine version).',
+            'A line at the top of the app for all players, until the chosen date (APK: from the next version).'),
+        [
+          if (banner != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text('« ${banner['text']} » · ${t('jusqu\'au', 'until')} ${_date(_d(banner['until']))}', style: const TextStyle(color: _org, fontSize: 12.5)),
+            ),
+          Row(children: [
+            ElevatedButton(onPressed: edit, child: Text(banner == null ? t('Écrire le bandeau', 'Write the banner') : t('Modifier', 'Edit'))),
+            const SizedBox(width: 8),
+            if (banner != null)
+              OutlinedButton(
+                onPressed: () => _run(() => RcServer.adminSetConfig('banner', jsonEncode({'text': ''})), t('Bandeau retiré', 'Banner removed'), reload),
+                child: Text(t('Retirer', 'Remove')),
+              ),
+          ]),
+        ]);
+  }
+
+  Widget _maintenanceSection(BuildContext context, Map<String, dynamic>? m, Future<void> Function() reload) {
+    final on = m != null && m['on'] == true;
+    Future<void> enable() async {
+      final ctl = TextEditingController(text: m?['msg']?.toString() ?? '');
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(t('Activer la maintenance ?', 'Turn on maintenance?')),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(t('Les joueurs voient une fenêtre bloquante à l\'ouverture du jeu (toi, tu passes).', 'Players get a blocking window at launch (you get through).'),
+                style: const TextStyle(color: Colors.white70, fontSize: 13)),
+            const SizedBox(height: 10),
+            TextField(controller: ctl, maxLength: 300, minLines: 1, maxLines: 3,
+                decoration: _field(t('Message', 'Message'), hint: t('Mise à jour en cours, retour vers 22 h 30', 'Update in progress, back around 10:30 pm'))),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8A2232)),
+              child: Text(t('Activer', 'Turn on')),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+      await _run(() => RcServer.adminSetConfig('maintenance', jsonEncode({'on': true, 'msg': ctl.text.trim()})), t('Maintenance activée', 'Maintenance on'), reload);
+    }
+
+    return _section(t('🛠 Mode maintenance', '🛠 Maintenance mode'),
+        t('Bloque l\'accès avec un message, sauf pour les admins. Pratique avant un gros SQL (APK : à partir de la prochaine version).',
+            'Blocks access with a message, except for admins. Handy before a big SQL change (APK: from the next version).'),
+        [
+          if (on)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _tags([_Tag(t('⛔ ACTIVÉ : les joueurs sont bloqués', '⛔ ON: players are blocked'), _red)]),
+            ),
+          on
+              ? ElevatedButton(
+                  onPressed: () => _run(() => RcServer.adminSetConfig('maintenance', jsonEncode({'on': false})), t('Maintenance terminée', 'Maintenance off'), reload),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1D6E56)),
+                  child: Text(t('Terminer la maintenance', 'End maintenance')),
+                )
+              : OutlinedButton(onPressed: enable, child: Text(t('Activer…', 'Turn on…'))),
+        ]);
   }
 
   Widget _liveSection(BuildContext context, Map<String, dynamic> live, Future<void> Function() reload) {
@@ -616,6 +764,164 @@ class _AdminMarketPageState extends State<AdminMarketPage> {
   }
 }
 
+// ─── Chercher une carte ─────────────────────────────────────────────────────
+
+class AdminCardPage extends StatefulWidget {
+  const AdminCardPage({super.key});
+  @override
+  State<AdminCardPage> createState() => _AdminCardPageState();
+}
+
+class _AdminCardPageState extends State<AdminCardPage> {
+  final _ctl = TextEditingController();
+  String _q = '';
+  String? _card;
+
+  @override
+  void dispose() {
+    _ctl.dispose();
+    super.dispose();
+  }
+
+  List<RcCard> get _hits {
+    final q = _q.toLowerCase();
+    if (q.length < 2) return const [];
+    return Catalog.cards.values.where((c) => c.title.toLowerCase().contains(q) || c.id.toLowerCase() == q).take(40).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kBg,
+      appBar: AppBar(backgroundColor: kBg, title: Text(_card == null ? t('Chercher une carte', 'Find a card') : _cardName(_card))),
+      body: _card != null ? _detail(_card!) : Column(children: [
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: TextField(
+            controller: _ctl,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: t('Titre du jeu…', 'Game title…'),
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: kPanel,
+              isDense: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            ),
+            onChanged: (v) => setState(() => _q = v.trim()),
+          ),
+        ),
+        Expanded(
+          child: ListView(children: [
+            for (final c in _hits)
+              ListTile(
+                dense: true,
+                title: Text(c.title, style: const TextStyle(fontWeight: FontWeight.w800)),
+                subtitle: Text('${Catalog.system(c.sys)?.name ?? c.sys} · ${rarityName(c.rarity)}', style: TextStyle(color: kRarityLight[c.rarity.clamp(0, 4)], fontSize: 12)),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => setState(() => _card = c.id),
+              ),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  Widget _detail(String id) => PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (did, _) {
+          if (!did) setState(() => _card = null);
+        },
+        child: _Loader<Map<String, dynamic>>(
+          key: ValueKey(id),
+          load: () => RcServer.adminCard(id),
+          builder: (context, d, reload) {
+            final fin = d['finishes'] is Map ? d['finishes'] as Map : const {};
+            final owners = [for (final o in (d['owners'] as List? ?? const [])) if (o is Map) Map<String, dynamic>.from(o)];
+            final sales = [for (final o in (d['sales'] as List? ?? const [])) if (o is Map) Map<String, dynamic>.from(o)];
+            String fins(dynamic m) => m is Map
+                ? m.entries.where((e) => _i(e.value) > 0).map((e) => '${e.value}${_finish(e.key).isEmpty ? '' : _finish(e.key)}').join(' · ')
+                : '';
+            return ListView(padding: const EdgeInsets.all(10), children: [
+              Row(children: [
+                _num('${_i(d['total'])}', t('exemplaires', 'copies')),
+                _num('${_i(d['players'])}', t('joueurs', 'players')),
+                _num('${_i(d['open'])}', t('en Bourse', 'on market')),
+              ]),
+              if (fin.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(4, 8, 4, 4), child: Text(t('Finitions : ${fins(fin)}', 'Finishes: ${fins(fin)}'), style: const TextStyle(color: Colors.white70, fontSize: 12.5))),
+              if (sales.isNotEmpty)
+                _box(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(t('Dernières ventes', 'Last sales'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    for (final v in sales) Text('${_date(_d(v['at']))} · ${_i(v['price'])} 🪙${_finish(v['f'])}', style: const TextStyle(color: Colors.white70, fontSize: 12.5)),
+                  ]),
+                ),
+              const SizedBox(height: 6),
+              Text(t('Qui la possède', 'Who owns it'), style: const TextStyle(color: Colors.white60, fontWeight: FontWeight.w800)),
+              if (owners.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text(t('Personne', 'Nobody'), style: const TextStyle(color: Colors.white54))),
+              for (final o in owners)
+                ListTile(
+                  dense: true,
+                  leading: avatarWidget(_i(o['avatar']), size: 30),
+                  title: Text(o['name']?.toString() ?? '?', style: const TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: Text(fins(o['f']), style: const TextStyle(fontSize: 12)),
+                  trailing: Text('×${_i(o['n'])}', style: const TextStyle(fontWeight: FontWeight.w900)),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => AdminPlayerPage(pid: o['pid'].toString()))),
+                ),
+            ]);
+          },
+        ),
+      );
+}
+
+// ─── Journal admin ──────────────────────────────────────────────────────────
+
+class AdminLogPage extends StatelessWidget {
+  const AdminLogPage({super.key});
+
+  static String _label(String a) {
+    final p = a.split('|');
+    final rest = p.length > 1 ? p.sublist(1).join(' · ') : '';
+    final what = switch (p.first) {
+      'mail' || 'mail2' => t('✉ courrier / cadeau', '✉ mail / gift'),
+      'block' => t('⛔ blocage', '⛔ block'),
+      'rename' => t('✏ renommage', '✏ rename'),
+      'config' => t('⚙ réglage', '⚙ setting'),
+      'live' => t('⚙ réglages en direct', '⚙ live settings'),
+      'mremove' => t('💱 offre retirée', '💱 offer removed'),
+      'maildel' => t('🗑 courrier supprimé', '🗑 mail deleted'),
+      'pollnew' => t('📊 sondage lancé', '📊 poll started'),
+      'pollclose' => t('📊 sondage clos', '📊 poll closed'),
+      'evsave' => t('🎉 événement enregistré', '🎉 event saved'),
+      'evactive' => t('🎉 événement activé / désactivé', '🎉 event toggled'),
+      _ => p.first,
+    };
+    return rest.isEmpty ? what : '$what · ${rest.length > 160 ? '${rest.substring(0, 160)}…' : rest}';
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: kBg,
+        appBar: AppBar(backgroundColor: kBg, title: Text(t('Journal admin', 'Admin log'))),
+        body: _Loader<List<Map<String, dynamic>>>(
+          load: RcServer.adminLog,
+          builder: (context, rows, reload) => ListView(padding: const EdgeInsets.all(10), children: [
+            if (rows.isEmpty) Padding(padding: const EdgeInsets.all(20), child: Text(t('Rien pour l\'instant (compté depuis la mise à jour du serveur)', 'Nothing yet (counted since the server update)'), style: const TextStyle(color: Colors.white54))),
+            for (final r in rows)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Colors.white10))),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(width: 84, child: Text(_date(_d(r['at'])), style: const TextStyle(color: Colors.white54, fontSize: 12))),
+                  Expanded(child: Text('${_label(r['action']?.toString() ?? '')}${r['by'] != null ? ' — ${r['by']}' : ''}', style: const TextStyle(fontSize: 12.5, height: 1.3))),
+                ]),
+              ),
+          ]),
+        ),
+      );
+}
+
 // ─── Événements ─────────────────────────────────────────────────────────────
 
 const _kEvColors = ['#EF9F27', '#E24B4A', '#5DCAA5', '#4FA3FF', '#B57BFF', '#FF4FD8', '#FFD166'];
@@ -685,7 +991,7 @@ class _AdminEventsPageState extends State<AdminEventsPage> {
     final kind = switch (e['kind']) {
       'effect' => t('effet', 'effect'),
       'goal' => t('défi', 'challenge'),
-      _ => _i(e['coins']) > 0 || _i(e['pixels']) > 0 ? t('cadeau', 'gift') : 'info',
+      _ => rewardAny(rewardOf(e)) ? t('cadeau : ${rewardText(rewardOf(e))}', 'gift: ${rewardText(rewardOf(e))}') : 'info',
     };
     final when = '${_date(_d(e['starts_at']))} → ${e['ends_at'] == null ? '∞' : _date(_d(e['ends_at']))}';
     return Opacity(
@@ -723,11 +1029,12 @@ class _EventEditor extends StatefulWidget {
 }
 
 class _EventEditorState extends State<_EventEditor> {
-  late String kind, color, effect, goal, action;
-  late final TextEditingController icon, title, body, titleEn, bodyEn, coins, pixels, effectValue, decor;
+  late String kind, color, effect, goal, action, promoArg, consoleArg;
+  late final TextEditingController icon, title, body, titleEn, bodyEn, effectValue, decor;
+  late Map<String, dynamic> reward;
   late DateTime start;
   DateTime? end;
-  final steps = <(TextEditingController, TextEditingController, TextEditingController)>[];
+  final steps = <(TextEditingController, Map<String, dynamic>)>[]; // (nombre, récompense)
   bool busy = false;
 
   @override
@@ -741,32 +1048,60 @@ class _EventEditorState extends State<_EventEditor> {
     goal = s('goal', 'packs');
     action = s('action');
     if (!const ['', 'packs', 'collection', 'bonus', 'market', 'messages', 'neighbors', 'news'].contains(action)) action = '';
-    if (!const ['pixels_x2', 'free_fast'].contains(effect)) effect = 'pixels_x2';
-    if (!const ['packs', 'c4_wins', 'bs_wins', 'gamedle'].contains(goal)) goal = 'packs';
+    if (!_kEffects.containsKey(effect)) effect = 'pixels_x2';
+    if (!_kGoals.contains(goal)) goal = 'packs';
+    promoArg = effect == 'promo' ? s('arg', 'all') : 'all';
+    if (!const ['all', 'mixte', 'console', 'premium', 'mystery', 'lot'].contains(promoArg)) promoArg = 'all';
+    consoleArg = goal == 'console' ? s('arg') : '';
+    if (Catalog.system(consoleArg) == null) consoleArg = Catalog.systems.isEmpty ? '' : Catalog.systems.first.id;
     if (!const ['info', 'effect', 'goal'].contains(kind)) kind = 'info';
     icon = TextEditingController(text: s('icon', '🎉'));
     title = TextEditingController(text: s('title'));
     body = TextEditingController(text: s('body'));
     titleEn = TextEditingController(text: s('title_en'));
     bodyEn = TextEditingController(text: s('body_en'));
-    coins = TextEditingController(text: '${_i(e['coins'])}');
-    pixels = TextEditingController(text: '${_i(e['pixels'])}');
+    reward = rewardOf(e);
     effectValue = TextEditingController(text: e['effect_value'] == null ? '' : '${_i(e['effect_value'])}');
     decor = TextEditingController(text: s('decor'));
     final now = DateTime.now();
     start = _d(e['starts_at']) ?? DateTime(now.year, now.month, now.day, now.hour + 1);
     end = e.isEmpty ? start.add(const Duration(days: 2)) : _d(e['ends_at']);
     for (final st in (e['steps'] as List? ?? const [])) {
-      if (st is Map) _addStep(_i(st['n']), _i(st['coins']), _i(st['pixels']));
+      if (st is Map) _addStep(_i(st['n']), rewardOf(st));
     }
-    if (steps.isEmpty) _addStep(5, 100, 0);
+    if (steps.isEmpty) _addStep(5, {'coins': 100});
   }
 
-  void _addStep(int n, int c, int p) => steps.add((
-        TextEditingController(text: '$n'),
-        TextEditingController(text: '$c'),
-        TextEditingController(text: '$p'),
-      ));
+  void _addStep(int n, Map<String, dynamic> r) => steps.add((TextEditingController(text: '$n'), rewardClean(r)));
+
+  /// Modèles de paliers : (nom, [(nombre, récompense)])
+  static List<(String, List<(int, Map<String, dynamic>)>)> get _stepPresets => [
+        (t('Facile / Moyen / Dur', 'Easy / Medium / Hard'), [
+          (3, {'coins': 300}),
+          (10, {'pixels': 3, 'packs': {'premium': 1}}),
+          (25, {'packs': {'gold': 1}}),
+        ]),
+        (t('5 petits paliers', '5 small steps'), [
+          (1, {'coins': 50}),
+          (3, {'coins': 100}),
+          (5, {'coins': 150}),
+          (8, {'pixels': 2}),
+          (12, {'packs': {'star': 1}}),
+        ]),
+        (t('Un seul gros palier', 'One big step'), [
+          (20, {'packs': {'premium': 2, 'gold': 1}}),
+        ]),
+      ];
+
+  /// Modèles d'effets : (nom, effet, valeur, arg)
+  static List<(String, String, int, String)> get _effectPresets => [
+        (t('Pixels ×2 tout le week-end', 'Pixels ×2 all weekend'), 'pixels_x2', 2, ''),
+        (t('-20 % sur tout', '-20% on everything'), 'promo', 20, 'all'),
+        (t('-30 % premium', '-30% premium'), 'promo', 30, 'premium'),
+        (t('-50 % mystère', '-50% mystery'), 'promo', 50, 'mystery'),
+        (t('Brillantes ×2', 'Holo ×2'), 'holo_x', 2, ''),
+        (t('Lot ×5 gratuit', 'Free bundle ×5'), 'lot_free', 1, ''),
+      ];
 
   Future<DateTime?> _pick(DateTime initial) async {
     final d = await showDatePicker(
@@ -795,16 +1130,24 @@ class _EventEditorState extends State<_EventEditor> {
       'ends_at': end?.toUtc().toIso8601String(),
       'action': action,
       'active': widget.event == null ? true : widget.event!['active'] == true,
-      if (kind == 'info') 'coins': int.tryParse(coins.text.trim()) ?? 0,
-      if (kind == 'info') 'pixels': int.tryParse(pixels.text.trim()) ?? 0,
+      if (kind == 'info') 'coins': _i(reward['coins']),
+      if (kind == 'info') 'pixels': _i(reward['pixels']),
+      if (kind == 'info') 'reward': {...reward}..remove('coins')..remove('pixels'),
       if (kind == 'effect') 'effect': effect,
-      if (kind == 'effect') 'effect_value': effectValue.text.trim(),
+      if (kind == 'effect') 'effect_value': effect == 'lot_free' ? '' : effectValue.text.trim(),
+      if (kind == 'effect' && effect == 'promo') 'arg': promoArg,
       if (kind == 'goal') 'goal': goal,
+      if (kind == 'goal' && goal == 'console') 'arg': consoleArg,
       if (kind == 'goal')
         'steps': [
-          for (final (n, c, p) in steps)
+          for (final (n, r) in steps)
             if ((int.tryParse(n.text.trim()) ?? 0) > 0)
-              {'n': int.tryParse(n.text.trim()) ?? 0, 'coins': int.tryParse(c.text.trim()) ?? 0, 'pixels': int.tryParse(p.text.trim()) ?? 0},
+              {
+                'n': int.tryParse(n.text.trim()) ?? 0,
+                'coins': _i(r['coins']),
+                'pixels': _i(r['pixels']),
+                'reward': {...r}..remove('coins')..remove('pixels'),
+              },
         ],
     };
     setState(() => busy = true);
@@ -911,57 +1254,130 @@ class _EventEditorState extends State<_EventEditor> {
         ),
         gap(),
         if (kind == 'info') ...[
-          Text(t('Récompense à récupérer (0 = simple info)', 'Reward to collect (0 = plain info)'), style: const TextStyle(color: Colors.white70)),
+          Text(t('Récompense à récupérer (rien = simple info)', 'Reward to collect (nothing = plain info)'), style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 6),
-          Row(children: [
-            Expanded(child: TextField(controller: coins, keyboardType: TextInputType.number, decoration: _field('🪙'))),
-            const SizedBox(width: 8),
-            Expanded(child: TextField(controller: pixels, keyboardType: TextInputType.number, decoration: _field('▦'))),
-          ]),
+          RewardEditor(value: reward, onChanged: (v) => setState(() => reward = v)),
+          if (rewardAny(reward))
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(t('Le joueur verra : Récupérer ${rewardText(reward, icons: false)}', 'Players will see: Claim ${rewardText(reward, icons: false)}'),
+                  style: const TextStyle(color: Color(0xFF9FE0C4), fontSize: 12.5)),
+            ),
         ],
         if (kind == 'effect') ...[
+          Text(t('Modèles', 'Presets'), style: const TextStyle(color: Colors.white70)),
+          const SizedBox(height: 6),
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            for (final (name, ef, v, arg) in _effectPresets)
+              ActionChip(
+                label: Text(name, style: const TextStyle(fontSize: 12)),
+                side: BorderSide(color: effect == ef && effectValue.text.trim() == '$v' && (ef != 'promo' || promoArg == arg) ? kGold : Colors.white24),
+                onPressed: () => setState(() {
+                  effect = ef;
+                  effectValue.text = ef == 'lot_free' ? '' : '$v';
+                  if (ef == 'promo') promoArg = arg;
+                }),
+              ),
+          ]),
+          const SizedBox(height: 10),
           DropdownButtonFormField<String>(
             value: effect,
+            isExpanded: true,
             decoration: _field(t('Effet', 'Effect')),
-            items: [
-              DropdownMenuItem(value: 'pixels_x2', child: Text(t('Pixels multipliés (par booster)', 'Pixels multiplied (per booster)'))),
-              DropdownMenuItem(value: 'free_fast', child: Text(t('Paquet gratuit plus fréquent', 'Faster free pack'))),
-            ],
+            items: [for (final e in _kEffects.entries) DropdownMenuItem(value: e.key, child: Text(e.value, overflow: TextOverflow.ellipsis))],
             onChanged: (v) => setState(() => effect = v ?? 'pixels_x2'),
           ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: effectValue,
-            keyboardType: TextInputType.number,
-            decoration: _field(effect == 'pixels_x2' ? t('Multiplicateur (vide = ×2)', 'Multiplier (empty = ×2)') : t('Toutes les X heures (vide = 3)', 'Every X hours (empty = 3)')),
+          if (effect == 'promo') ...[
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: promoArg,
+              decoration: _field(t('Sur quel paquet', 'Which pack')),
+              items: [
+                DropdownMenuItem(value: 'all', child: Text(t('Tous les paquets', 'All packs'))),
+                DropdownMenuItem(value: 'mixte', child: Text(t('Mixte', 'Mixed'))),
+                const DropdownMenuItem(value: 'console', child: Text('Console')),
+                const DropdownMenuItem(value: 'premium', child: Text('Premium')),
+                DropdownMenuItem(value: 'mystery', child: Text(t('Mystère', 'Mystery'))),
+                DropdownMenuItem(value: 'lot', child: Text(t('Lot de 5', 'Bundle of 5'))),
+              ],
+              onChanged: (v) => setState(() => promoArg = v ?? 'all'),
+            ),
+          ],
+          if (effect != 'lot_free') ...[
+            const SizedBox(height: 8),
+            TextField(
+              controller: effectValue,
+              keyboardType: TextInputType.number,
+              decoration: _field(switch (effect) {
+                'pixels_x2' => t('Multiplicateur (vide = ×2)', 'Multiplier (empty = ×2)'),
+                'free_fast' => t('Toutes les X heures (vide = 3)', 'Every X hours (empty = 3)'),
+                'promo' => t('Réduction en % (vide = 20)', 'Discount in % (empty = 20)'),
+                _ => t('Multiplicateur (vide = ×2, max ×5)', 'Multiplier (empty = ×2, max ×5)'),
+              }),
+            ),
+          ],
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(_kEffectHelp[effect] ?? '', style: const TextStyle(color: Colors.white54, fontSize: 12)),
           ),
         ],
         if (kind == 'goal') ...[
           DropdownButtonFormField<String>(
             value: goal,
+            isExpanded: true,
             decoration: _field(t('À compter', 'Counted')),
-            items: [
-              DropdownMenuItem(value: 'packs', child: Text(t('Boosters ouverts', 'Boosters opened'))),
-              DropdownMenuItem(value: 'c4_wins', child: Text(t('Parties de 4 en ligne gagnées', 'Connect 4 wins'))),
-              DropdownMenuItem(value: 'bs_wins', child: Text(t('Parties de Console Wars gagnées', 'Console Wars wins'))),
-              DropdownMenuItem(value: 'gamedle', child: Text(t('Gamedle trouvés', 'Gamedles solved'))),
-            ],
+            items: [for (final g in _kGoals) DropdownMenuItem(value: g, child: Text(g == 'console' ? t('Cartes d\'une console obtenues', 'Cards of a system obtained') : goalLabel(g), overflow: TextOverflow.ellipsis))],
             onChanged: (v) => setState(() => goal = v ?? 'packs'),
           ),
+          if (goal == 'console') ...[
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: consoleArg.isEmpty ? null : consoleArg,
+              isExpanded: true,
+              decoration: _field(t('Console', 'System')),
+              items: [for (final c in Catalog.systems) DropdownMenuItem(value: c.id, child: Text(c.name))],
+              onChanged: (v) => setState(() => consoleArg = v ?? consoleArg),
+            ),
+          ],
+          const SizedBox(height: 10),
+          Text(t('Modèles de paliers', 'Step presets'), style: const TextStyle(color: Colors.white70)),
+          const SizedBox(height: 6),
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            for (final (name, list) in _stepPresets)
+              ActionChip(
+                label: Text(name, style: const TextStyle(fontSize: 12)),
+                onPressed: () => setState(() {
+                  steps.clear();
+                  for (final (n, r) in list) {
+                    _addStep(n, r);
+                  }
+                }),
+              ),
+          ]),
           const SizedBox(height: 10),
           Text(t('Paliers', 'Steps'), style: const TextStyle(color: Colors.white70)),
-          for (final (i, (n, c, p)) in steps.indexed)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Row(children: [
-                Expanded(child: TextField(controller: n, keyboardType: TextInputType.number, decoration: _field(t('nombre', 'count')))),
-                const SizedBox(width: 6),
-                Expanded(child: TextField(controller: c, keyboardType: TextInputType.number, decoration: _field('🪙'))),
-                const SizedBox(width: 6),
-                Expanded(child: TextField(controller: p, keyboardType: TextInputType.number, decoration: _field('▦'))),
-                IconButton(
-                  icon: const Icon(Icons.remove_circle_outline, color: Colors.white54),
-                  onPressed: steps.length <= 1 ? null : () => setState(() => steps.removeAt(i)),
+          for (final (i, (n, r)) in steps.indexed)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white12)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Row(children: [
+                  Text(t('Palier ${i + 1}', 'Step ${i + 1}'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                  const SizedBox(width: 10),
+                  SizedBox(width: 90, child: TextField(controller: n, keyboardType: TextInputType.number, decoration: _field(t('nombre', 'count')))),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle_outline, color: Colors.white54),
+                    onPressed: steps.length <= 1 ? null : () => setState(() => steps.removeAt(i)),
+                  ),
+                ]),
+                const SizedBox(height: 6),
+                RewardEditor(
+                  key: ObjectKey(n),
+                  value: r,
+                  presets: false,
+                  onChanged: (v) => setState(() => steps[i] = (n, v)),
                 ),
               ]),
             ),
@@ -969,7 +1385,7 @@ class _EventEditorState extends State<_EventEditor> {
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
-                onPressed: () => setState(() => _addStep(0, 0, 0)),
+                onPressed: () => setState(() => _addStep(0, {'coins': 100})),
                 icon: const Icon(Icons.add),
                 label: Text(t('Ajouter un palier', 'Add a step')),
               ),
@@ -985,3 +1401,25 @@ class _EventEditorState extends State<_EventEditor> {
     );
   }
 }
+
+const _kGoals = ['packs', 'c4_wins', 'bs_wins', 'gamedle', 'sales', 'trades', 'recycle', 'epics', 'gifts_sent', 'quiz', 'console'];
+
+Map<String, String> get _kEffects => {
+      'pixels_x2': t('Pixels multipliés (par booster)', 'Pixels multiplied (per booster)'),
+      'free_fast': t('Paquet gratuit plus fréquent', 'Faster free pack'),
+      'promo': t('Paquets en promo', 'Packs on sale'),
+      'holo_x': t('Brillantes et dorées plus fréquentes', 'More holo and gold cards'),
+      'rare_x': t('Épiques et légendaires plus fréquentes', 'More epic and legendary cards'),
+      'recycle_x': t('Recyclage des doublons bonus', 'Duplicate recycling bonus'),
+      'duel_x': t('Duels : gains multipliés', 'Duels: multiplied gains'),
+      'lot_free': t('Lot de 5 paquets gratuit (une fois par jour)', 'Free bundle of 5 packs (once a day)'),
+    };
+
+Map<String, String> get _kEffectHelp => {
+      'promo': t('Prix barré dans la boutique, appliqué par le serveur.', 'Struck-through price in the shop, applied by the server.'),
+      'holo_x': t('Multiplie les chances de brillante et de dorée (max ×5).', 'Multiplies holo and gold odds (max ×5).'),
+      'rare_x': t('Multiplie les chances d\'épique et de légendaire (max ×5).', 'Multiplies epic and legendary odds (max ×5).'),
+      'recycle_x': t('Les pièces du recyclage sont multipliées (max ×5).', 'Recycling coins are multiplied (max ×5).'),
+      'duel_x': t('Les pièces des duels classés sont multipliées (max ×5).', 'Ranked duel coins are multiplied (max ×5).'),
+      'lot_free': t('Comme le samedi : une fois par joueur et par jour pendant l\'événement.', 'Like Saturdays: once per player per day during the event.'),
+    };

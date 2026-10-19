@@ -740,6 +740,22 @@ class RcServer {
   static Future<void> adminEventActive(int id, bool on) async =>
       _admin('rc_admin_event_active', 'evactive|$id|${on ? 1 : 0}', {'p_id': id, 'p_on': on});
 
+  /// Courrier avec récompense enrichie. target : all, active7, new7, inactive7 ou pid:<pid>
+  static Future<void> adminMail2(String target, String title, String body, Map<String, dynamic> reward) async {
+    final r = jsonEncode(reward);
+    await _admin('rc_admin_mail2', 'mail2|$target|$title|$r', {'p_target': target, 'p_title': title, 'p_body': body, 'p_reward': r});
+  }
+
+  /// Listes des stats : active7, today, new7, packs, sales, duels
+  static Future<List<Map<String, dynamic>>> adminStatList(String kind) async =>
+      _list(await _admin('rc_admin_stat_list', 'statlist|$kind', {'p_kind': kind}));
+
+  /// Qui possède une carte, combien en circulent, dernières ventes
+  static Future<Map<String, dynamic>> adminCard(String card) async => _map(await _admin('rc_admin_card', 'card|$card', {'p_card': card}));
+
+  /// Journal des actions admin (200 dernières)
+  static Future<List<Map<String, dynamic>>> adminLog() async => _list(await _admin('rc_admin_log_list', 'log'));
+
   // ── Courrier de l'admin et sondage (à l'ouverture du jeu) ────────────────
   static Future<List<Map<String, dynamic>>> mailList() async {
     final d = await deviceId();

@@ -86,9 +86,17 @@ final rcLive = <String, num>{'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 0.2
 /// Applique les réglages reçus du serveur (prix des paquets compris)
 void applyLive(dynamic m) {
   if (m is! Map) return;
+  // promos en cours (effet d'événement) : % de réduction par paquet
+  final promo = m['promo'] is Map ? m['promo'] as Map : const {};
+  for (final k in const ['mixte', 'console', 'premium', 'mystery', 'lot']) {
+    final p = promo[k];
+    kPackPromo[k] = p is num ? p.toInt().clamp(0, 90) : 0;
+  }
   for (final k in const ['mixte', 'console', 'premium', 'mystery']) {
     final v = m[k];
-    if (v is num) kPackPrice[k] = v.toInt();
+    if (v is num) kPackBase[k] = v.toInt();
+    // même calcul que le serveur (rc__pack_price)
+    kPackPrice[k] = (kPackBase[k] ?? kPackPrice[k] ?? 0) * (100 - (kPackPromo[k] ?? 0)) ~/ 100;
   }
   for (final k in rcLive.keys.toList()) {
     final v = m[k];
@@ -105,6 +113,13 @@ String livePct(String k) {
 
 int liveInt(String k) => (rcLive[k] ?? 0).toInt();
 const kLotPrice = 500; // lot de 5 paquets mixtes (gratuit le samedi)
+
+/// Prix de base des paquets (avant promo) et promos en cours (%), venus du serveur
+final kPackBase = <String, int>{'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120};
+final kPackPromo = <String, int>{};
+
+/// Prix du lot de 5 paquets, promo comprise
+int get lotPrice => kLotPrice * (100 - (kPackPromo['lot'] ?? 0)) ~/ 100;
 
 const kGold = Color(0xFFEF9F27);
 // Couleurs de fond selon le thème d'interface choisi (retro_theme.dart)

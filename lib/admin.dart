@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
 import 'main.dart';
+import 'events.dart' show goalLabel;
 import 'profile.dart';
+import 'rewards.dart';
 import 'server.dart';
 import 'tower.dart';
 import 'update_check.dart';
@@ -469,6 +473,23 @@ class AdminPlayerPage extends StatelessWidget {
               'trade $st with $other: gives ${list(gave)} ($gv) ↔ gets ${list(got)} ($gt)'),
           lopsided ? (e['status'] == 'accepted' ? _red : _org) : null
         );
+      case 'pack':
+        final k = e['pack']?.toString() ?? '';
+        final name = switch (k) {
+          'free' => t('gratuit', 'free'),
+          'mixte' => t('mixte', 'mixed'),
+          'console' => 'console',
+          'premium' => 'premium',
+          'mystery' => t('mystère', 'mystery'),
+          'gift' => t('cadeau', 'gift'),
+          'lot' => t('du lot', 'from bundle'),
+          'star' => t('Étoile', 'Star'),
+          'sconsole' => 'Console+',
+          'gold' => t('Rétro d\'or', 'Retro Gold'),
+          _ => k,
+        };
+        final sys = e['sys'] == null ? '' : ' · ${Catalog.system(e['sys'].toString())?.name ?? e['sys']}';
+        return (t('📦 ouvre un paquet $name$sys', '📦 opens a $name pack$sys'), Colors.white70);
       case 'gift_out':
         return (t('🎁 cadeau offert à $other', '🎁 gift sent to $other'), null);
       case 'gift_in':
@@ -575,23 +596,29 @@ class _StatsTab extends StatelessWidget {
         final rich = [for (final d in (s['rich'] as List? ?? const [])) if (d is Map) Map<String, dynamic>.from(d)];
         final players = _i(s['players']);
         final maxP = days.fold<int>(1, (m, d) => _i(d['players']) > m ? _i(d['players']) : m);
-        Widget line(String a, String b) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: Row(children: [
-                Expanded(child: Text(a, style: const TextStyle(color: Colors.white60, fontSize: 13))),
-                Text(b, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
-              ]),
+        Widget line(String a, String b, [VoidCallback? onTap]) => InkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Row(children: [
+                  Expanded(child: Text(a, style: const TextStyle(color: Colors.white60, fontSize: 13))),
+                  Text(b, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                  if (onTap != null) const Icon(Icons.chevron_right, size: 18, color: kGold),
+                ]),
+              ),
             );
         return ListView(padding: const EdgeInsets.all(10), children: [
           Row(children: [
-            _num('${_i(s['active7'])}', t('actifs · 7 j', 'active · 7 d')),
-            _num('${_i(s['today'])}', t('aujourd\'hui', 'today')),
-            _num('+${_i(s['new7'])}', t('nouveaux · 7 j', 'new · 7 d')),
+            _num('${_i(s['active7'])}', t('actifs · 7 j', 'active · 7 d'), onTap: () => _statList(context, 'active7', t('Actifs · 7 j', 'Active · 7 d'))),
+            _num('${_i(s['today'])}', t('aujourd\'hui', 'today'), onTap: () => _statList(context, 'today', t('Vus aujourd\'hui', 'Seen today'))),
+            _num('+${_i(s['new7'])}', t('nouveaux · 7 j', 'new · 7 d'), onTap: () => _statList(context, 'new7', t('Nouveaux · 7 j', 'New · 7 d'))),
           ]),
           Row(children: [
-            _num('${_i(s['packs_today'])}', t('paquets ouverts aujourd\'hui', 'packs opened today')),
-            _num('${_i(s['sales_today'])}', t('ventes Bourse aujourd\'hui', 'market sales today')),
-            _num('${_i(s['duels_today'])}', t('duels aujourd\'hui', 'duels today')),
+            _num('${_i(s['packs_today'])}', t('paquets ouverts aujourd\'hui', 'packs opened today'),
+                onTap: () => _statList(context, 'packs', t('Paquets ouverts aujourd\'hui', 'Packs opened today'))),
+            _num('${_i(s['sales_today'])}', t('ventes Bourse aujourd\'hui', 'market sales today'),
+                onTap: () => _statList(context, 'sales', t('Ventes Bourse aujourd\'hui', 'Market sales today'))),
+            _num('${_i(s['duels_today'])}', t('duels aujourd\'hui', 'duels today'), onTap: () => _statList(context, 'duels', t('Duels aujourd\'hui', 'Duels today'))),
           ]),
           const SizedBox(height: 10),
           _box(
@@ -600,10 +627,13 @@ class _StatsTab extends StatelessWidget {
               line(t('pièces en jeu', 'coins in game'),
                   '${fmt(_i(s['coins']))} 🪙${players > 0 ? t(' (moyenne ${fmt(_i(s['coins']) ~/ players)})', ' (avg ${fmt(_i(s['coins']) ~/ players)})') : ''}'),
               line(t('pixels en jeu', 'pixels in game'), '${fmt(_i(s['pixels']))} ▦'),
-              line(t('offres en Bourse', 'market offers'), '${_i(s['market_open'])}'),
+              line(t('offres en Bourse', 'market offers'), '${_i(s['market_open'])}',
+                  () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminMarketPage()))),
               line(t('cartes de saga sorties', 'saga cards pulled'), '${_i(s['saga'])}'),
               line(t('joueurs (au moins 1 paquet)', 'players (1+ pack)'), '$players'),
-              for (final (k, r) in rich.indexed) line(k == 0 ? t('plus riches', 'richest') : '', '${r['name']} · ${fmt(_i(r['coins']))} 🪙'),
+              for (final (k, r) in rich.indexed)
+                line(k == 0 ? t('plus riches', 'richest') : '', '${r['name']} · ${fmt(_i(r['coins']))} 🪙',
+                    r['pid'] == null ? null : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => AdminPlayerPage(pid: r['pid'].toString())))),
             ]),
           ),
           _box(
@@ -639,6 +669,79 @@ class _StatsTab extends StatelessWidget {
           ),
         ]);
       },
+    );
+  }
+
+  /// Liste derrière une case des stats, en bas d'écran ; toucher une ligne ouvre la fiche du joueur
+  static void _statList(BuildContext context, String kind, String title) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: kBg,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(18))),
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.65,
+        maxChildSize: 0.95,
+        builder: (ctx, scroll) => FutureBuilder<List<Map<String, dynamic>>>(
+          future: RcServer.adminStatList(kind),
+          builder: (ctx, snap) {
+            final rows = snap.data ?? const <Map<String, dynamic>>[];
+            return ListView(controller: scroll, padding: const EdgeInsets.fromLTRB(12, 10, 12, 20), children: [
+              Center(child: Container(width: 38, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
+              const SizedBox(height: 10),
+              Text('$title${snap.hasData ? ' · ${rows.length}' : ''}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+              Text(
+                  kind == 'packs'
+                      ? t('Par joueur · compté depuis la mise à jour du serveur', 'Per player · counted since the server update')
+                      : t('Toucher une ligne ouvre la fiche du joueur', 'Tap a row to open the player file'),
+                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              const SizedBox(height: 8),
+              if (snap.hasError) Text(errText(snap.error!), style: const TextStyle(color: _red)),
+              if (!snap.hasData && !snap.hasError) const Padding(padding: EdgeInsets.all(30), child: Center(child: CircularProgressIndicator())),
+              if (snap.hasData && rows.isEmpty) Padding(padding: const EdgeInsets.all(20), child: Text(t('Rien pour l\'instant', 'Nothing yet'), style: const TextStyle(color: Colors.white54))),
+              for (final r in rows) _statRow(ctx, kind, r),
+            ]);
+          },
+        ),
+      ),
+    );
+  }
+
+  static Widget _statRow(BuildContext context, String kind, Map<String, dynamic> r) {
+    String packKinds(dynamic m) => m is Map
+        ? m.entries.map((e) => '${e.value} ${switch (e.key) { 'free' => t('gratuit', 'free'), 'mixte' => t('mixte', 'mixed'), 'console' => 'console', 'premium' => 'premium', 'mystery' => t('mystère', 'mystery'), 'gift' => t('cadeau', 'gift'), 'lot' => t('lot', 'bundle'), 'star' => t('Étoile', 'Star'), 'sconsole' => 'Console+', 'gold' => t('Rétro d\'or', 'Retro Gold'), _ => e.key }}').join(' · ')
+        : '';
+    final at = _d(r['at']);
+    final (right, sub) = switch (kind) {
+      'active7' || 'today' => (kind == 'today' && at != null ? '${_two(at.hour)}:${_two(at.minute)}' : _ago(at), t('${_i(r['n'])} paquets · ${fmt(_i(r['coins']))} 🪙', '${_i(r['n'])} packs · ${fmt(_i(r['coins']))} 🪙')),
+      'new7' => (_date(at), [t('${_i(r['n'])} paquets', '${_i(r['n'])} packs'), if (r['ref'] != null) t('parrain : ${r['ref']}', 'referrer: ${r['ref']}')].join(' · ')),
+      'packs' => ('${_i(r['n'])}', packKinds(r['kinds'])),
+      'sales' => ('${_i(r['price'])} 🪙', '${_cardName(r['card'])}${_finish(r['f'])} → ${r['other'] ?? '?'}'),
+      'duels' => (
+          at == null ? '' : '${_two(at.hour)}:${_two(at.minute)}',
+          '${r['game'] == 'bs' ? 'Console Wars' : t('4 en ligne', 'Connect 4')} ${t('contre', 'vs')} ${r['other'] ?? '?'} · ${switch (_i(r['winner'])) { 1 => t('gagne', 'wins'), 2 => t('perd', 'loses'), _ => t('nul', 'draw') }}'
+        ),
+      _ => ('', ''),
+    };
+    return InkWell(
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => AdminPlayerPage(pid: r['pid'].toString()))),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Colors.white10))),
+        child: Row(children: [
+          avatarWidget(_i(r['avatar']), size: 30),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(r['name']?.toString() ?? '?', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5)),
+              if (sub.isNotEmpty) Text(sub, style: const TextStyle(color: Colors.white60, fontSize: 11.5)),
+            ]),
+          ),
+          Text(right, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: Colors.white70)),
+          const Icon(Icons.chevron_right, size: 18, color: kGold),
+        ]),
+      ),
     );
   }
 

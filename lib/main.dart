@@ -665,7 +665,10 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             if (open) Notifs.i.refresh();
           },
           body: SafeArea(
-            child: wide ? Row(children: [_rail(), Expanded(child: stack)]) : stack,
+            child: Column(children: [
+              const _InfoBanner(), // bandeau d'info (page admin)
+              Expanded(child: wide ? Row(children: [_rail(), Expanded(child: stack)]) : stack),
+            ]),
           ),
         );
       }),
@@ -984,6 +987,35 @@ class TabHeader extends StatelessWidget {
           ),
           const SizedBox(width: 8),
         ]),
+      );
+}
+
+/// Bandeau d'info réglé depuis la page admin (texte défilant si trop long), jusqu'à sa date de fin
+class _InfoBanner extends StatelessWidget {
+  const _InfoBanner();
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<Map<String, dynamic>?>(
+        valueListenable: rcBanner,
+        builder: (context, b, _) {
+          final until = DateTime.tryParse(b?['until']?.toString() ?? '');
+          if (b == null || (until != null && until.isBefore(DateTime.now()))) return const SizedBox.shrink();
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [kGold.withOpacity(0.28), kGold.withOpacity(0.12)]),
+              border: const Border(bottom: BorderSide(color: kGold, width: 1)),
+            ),
+            child: Row(children: [
+              const Text('📢', style: TextStyle(fontSize: 14)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(b['text']?.toString() ?? '',
+                    maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: Color(0xFFFFE2A8))),
+              ),
+            ]),
+          );
+        },
       );
 }
 

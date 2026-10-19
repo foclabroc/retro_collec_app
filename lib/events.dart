@@ -6,11 +6,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'audio.dart';
 import 'cards.dart';
+import 'catalog.dart';
 import 'packs.dart';
 import 'game.dart';
 import 'layout.dart';
 import 'main.dart';
+import 'notifs.dart';
 import 'retro_theme.dart';
+import 'rewards.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -35,7 +38,7 @@ class Events extends ChangeNotifier {
   static bool _claimable(Map e) {
     if (e['live'] != true) return false;
     if (e['kind'] == 'goal') return _reachable(e) > 0;
-    return e['got'] != true && ((e['coins'] as num? ?? 0) > 0 || (e['pixels'] as num? ?? 0) > 0);
+    return e['got'] != true && (e['kind'] ?? 'info') == 'info' && rewardAny(rewardOf(e));
   }
 
   /// Défi : nombre de paliers atteints pas encore récupérés
@@ -131,8 +134,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       RcAudio.sfx('coin');
       RcAudio.sfx('powerup');
       final c = (r['gain_coins'] as num? ?? 0).toInt(), p = (r['gain_pixels'] as num? ?? 0).toInt();
-      toast(t('Récompense : ${[if (c > 0) '+$c pièces', if (p > 0) '+$p pixels'].join(' · ')}',
-          'Reward: ${[if (c > 0) '+$c coins', if (p > 0) '+$p pixels'].join(' · ')}'));
+      final g = r['gain'] is Map ? r['gain'] as Map : {'coins': c, 'pixels': p};
+      toast(t('Récompense : ${rewardText(g, icons: false)}', 'Reward: ${rewardText(g, icons: false)}') +
+          (rewardHasPacks(g) ? t(' · paquets dans tes cadeaux', ' · packs in your gifts') : ''));
+      Notifs.i.refresh(); // paquets offerts : pastille « Cadeaux »
       await Events.i.refresh();
     } catch (err) {
       toast(errText(err));
@@ -177,7 +182,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   String _body(Map e) => ((rcFrench ? e['body'] : (e['body_en'] ?? e['body'])) as String?) ?? '';
   int _n(Map e, String k) => (e[k] as num? ?? 0).toInt();
 
-  bool _hasGift(Map e) => (e['kind'] ?? 'info') == 'info' && (_n(e, 'coins') > 0 || _n(e, 'pixels') > 0);
+  bool _hasGift(Map e) => (e['kind'] ?? 'info') == 'info' && rewardAny(rewardOf(e));
 
   /// L'événement phare : en cours, cadeau pas encore récupéré d'abord, puis celui qui se termine le plus tôt
   Map<String, dynamic>? _hero(List<Map<String, dynamic>> live) {
@@ -193,10 +198,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     return l.first;
   }
 
-  String _reward(int coins, int pixels) => [
-        if (coins > 0) t('$coins pièces', '$coins coins'),
-        if (pixels > 0) t('$pixels pixels', '$pixels pixels'),
-      ].join(' + ');
+  String _reward(Map e) => rewardText(rewardOf(e), icons: false);
 
   // ── écran ──
   @override
@@ -404,10 +406,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     final goal = e['kind'] == 'goal';
     final got = !goal && e['got'] == true;
     final label = got
-        ? t('✓ Récupéré (${_reward(_n(e, 'coins'), _n(e, 'pixels'))})', '✓ Claimed (${_reward(_n(e, 'coins'), _n(e, 'pixels'))})')
+        ? t('✓ Récupéré (${_reward(e)})', '✓ Claimed (${_reward(e)})')
         : goal
             ? (Events._reachable(e) > 1 ? t('Récupérer ${Events._reachable(e)} paliers', 'Claim ${Events._reachable(e)} steps') : t('Récupérer le palier', 'Claim the step'))
-            : t('Récupérer ${_reward(_n(e, 'coins'), _n(e, 'pixels'))}', 'Claim ${_reward(_n(e, 'coins'), _n(e, 'pixels'))}');
+            : t('Récupérer ${_reward(e)}', 'Claim ${_reward(e)}');
     if (got) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -559,7 +561,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                 child: Text(
                     [
                       '🔒 ${start == null ? '' : t('Disponible le ${two(start.day)}/${two(start.month)} à ${two(start.hour)}:${two(start.minute)}', 'Available on ${start.month}/${start.day} at ${two(start.hour)}:${two(start.minute)}')}',
-                      if (_hasGift(e)) '· ${_reward(_n(e, 'coins'), _n(e, 'pixels'))}',
+                      if (_hasGift(e)) '· ${_reward(e)}',
                     ].join(' '),
                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: Colors.white70)),
               )
@@ -583,6 +585,12 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     final (big, text) = switch (e['effect']) {
       'pixels_x2' => ('×$v', t('Chaque booster ouvert rapporte $v pixels au lieu d\'1.', 'Every booster you open gives $v pixels instead of 1.')),
       'free_fast' => ('$v h', t('Le paquet gratuit revient toutes les $v heures au lieu de 6.', 'The free pack comes back every $v hours instead of 6.')),
+      'promo' => ('-$v %', t('${_promoTarget(e['arg'])} : $v % de réduction dans la boutique.', '${_promoTarget(e['arg'])}: $v% off in the shop.')),
+      'holo_x' => ('×$v', t('Cartes brillantes et dorées $v fois plus fréquentes.', 'Holo and gold cards $v times more frequent.')),
+      'rare_x' => ('×$v', t('Cartes épiques et légendaires $v fois plus fréquentes.', 'Epic and legendary cards $v times more frequent.')),
+      'recycle_x' => ('×$v', t('Le recyclage des doublons rapporte $v fois plus de pièces.', 'Recycling duplicates gives $v times more coins.')),
+      'duel_x' => ('×$v', t('Les duels rapportent $v fois plus de pièces.', 'Duels give $v times more coins.')),
+      'lot_free' => ('🎁', t('Le lot de 5 paquets mixtes est gratuit (une fois par jour).', 'The bundle of 5 mixed packs is free (once a day).')),
       _ => ('★', ''),
     };
     return Container(
@@ -611,9 +619,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       'c4_wins' => t('Parties de 4 en ligne gagnées', 'Connect 4 games won'),
       'bs_wins' => t('Parties de Console Wars gagnées', 'Console Wars games won'),
       'gamedle' => t('Gamedle trouvés', 'Gamedles solved'),
-      _ => t('Progression', 'Progress'),
+      _ => goalLabel(e['goal']?.toString(), e['arg']?.toString()),
     };
-    String reward(Map s) => [if (_n(s, 'coins') > 0) '${s['coins']} 🪙', if (_n(s, 'pixels') > 0) '${s['pixels']} ▦'].join(' + ');
+    String reward(Map s) => rewardText(rewardOf(s));
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Row(children: [
         Expanded(child: Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12, fontWeight: FontWeight.w800))),
@@ -813,3 +821,28 @@ class _Decor extends StatelessWidget {
     );
   }
 }
+
+String _promoTarget(dynamic arg) => switch (arg?.toString() ?? '') {
+      'mixte' => t('Paquet mixte', 'Mixed pack'),
+      'console' => t('Paquet console', 'Console pack'),
+      'premium' => t('Paquet premium', 'Premium pack'),
+      'mystery' => t('Paquet mystère', 'Mystery pack'),
+      'lot' => t('Lot de 5 paquets', 'Bundle of 5 packs'),
+      _ => t('Tous les paquets', 'All packs'),
+    };
+
+/// Libellé d'un objectif de défi (aussi utilisé par la page admin)
+String goalLabel(String? goal, [String? arg]) => switch (goal) {
+      'packs' => t('Boosters ouverts', 'Boosters opened'),
+      'c4_wins' => t('Parties de 4 en ligne gagnées', 'Connect 4 games won'),
+      'bs_wins' => t('Parties de Console Wars gagnées', 'Console Wars games won'),
+      'gamedle' => t('Gamedle trouvés', 'Gamedles solved'),
+      'sales' => t('Ventes en Bourse', 'Market sales'),
+      'trades' => t('Échanges faits', 'Trades done'),
+      'recycle' => t('Doublons recyclés', 'Duplicates recycled'),
+      'epics' => t('Paquets avec une épique ou mieux', 'Packs with an epic or better'),
+      'gifts_sent' => t('Paquets offerts', 'Packs given'),
+      'quiz' => t('Bonnes réponses au quiz', 'Correct quiz answers'),
+      'console' => t('Cartes ${Catalog.system(arg ?? '')?.name ?? arg ?? ''} obtenues', '${Catalog.system(arg ?? '')?.name ?? arg ?? ''} cards obtained'),
+      _ => t('Progression', 'Progress'),
+    };

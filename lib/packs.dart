@@ -90,6 +90,11 @@ class _PacksScreenState extends State<PacksScreen> {
 
   /// Paquet entamé (on a quitté le choix des boosters sans déchirer) : il reste dans le stock
   Future<void> loadPending() async {
+    // prix et promos en direct (un événement « promo » a pu commencer)
+    RcServer.appConfig().then((c) {
+      applyLive(c['live']);
+      if (mounted) setState(() {});
+    }).catchError((_) {});
     final p = await Game.i.pendingChoice();
     if (mounted) setState(() => pending = p);
   }
@@ -191,7 +196,7 @@ class _PacksScreenState extends State<PacksScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(free ? t('Lot gratuit du samedi !', 'Free Saturday bundle!') : t('Acheter ce lot ?', 'Buy this bundle?'),
+            Text(free ? t('Lot gratuit aujourd\'hui !', 'Free bundle today!') : t('Acheter ce lot ?', 'Buy this bundle?'),
                 textAlign: TextAlign.center, style: pixelStyle(size: 11)),
             const SizedBox(height: 18),
             const _LotArt(width: 120),
@@ -205,10 +210,10 @@ class _PacksScreenState extends State<PacksScreen> {
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 CoinChip(coins),
                 const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Icon(Icons.arrow_forward, color: Colors.white54, size: 18)),
-                CoinChip(coins - kLotPrice),
+                CoinChip(coins - lotPrice),
               ]),
               const SizedBox(height: 6),
-              Text('-$kLotPrice ${t('pièces', 'coins')}', style: const TextStyle(color: Color(0xFFFF8A80), fontWeight: FontWeight.w700)),
+              Text('-$lotPrice ${t('pièces', 'coins')}', style: const TextStyle(color: Color(0xFFFF8A80), fontWeight: FontWeight.w700)),
             ],
             const SizedBox(height: 16),
             Row(children: [
@@ -419,7 +424,7 @@ class _PacksScreenState extends State<PacksScreen> {
                 );
               }),
               const SizedBox(height: 10),
-              _LotTile(free: n.lotFree, afford: g.coins >= kLotPrice, enabled: !busy && (n.lotFree || g.coins >= kLotPrice), onTap: _buyLot),
+              _LotTile(free: n.lotFree, afford: g.coins >= lotPrice, enabled: !busy && (n.lotFree || g.coins >= lotPrice), onTap: _buyLot),
               const SizedBox(height: 14),
               // garantie épique : jauge sur 30 paquets
               Container(
@@ -1996,7 +2001,8 @@ Widget _countBadge(int n) => Container(
 class _PriceChip extends StatelessWidget {
   final int price;
   final bool ok;
-  const _PriceChip(this.price, {required this.ok});
+  final int? base; // prix avant promo (barré)
+  const _PriceChip(this.price, {required this.ok, this.base});
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -2008,6 +2014,10 @@ class _PriceChip extends StatelessWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.monetization_on, color: ok ? const Color(0xFFFAC775) : const Color(0xFFFF8A80), size: 15),
           const SizedBox(width: 4),
+          if (base != null && base! > price) ...[
+            Text(fmt(base!), style: const TextStyle(color: Colors.white54, fontSize: 11.5, decoration: TextDecoration.lineThrough)),
+            const SizedBox(width: 4),
+          ],
           Text(fmt(price), style: TextStyle(color: ok ? const Color(0xFFFAC775) : const Color(0xFFFF8A80), fontWeight: FontWeight.w800)),
         ]),
       );
@@ -2150,7 +2160,17 @@ class _ShopTile extends StatelessWidget {
                 ),
               ),
               child: Column(children: [
-                _MiniBooster(kind: kind, label: label, color: color, width: 58),
+                if ((kPackPromo[kind] ?? 0) > 0)
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(color: const Color(0xFFE24B4A), borderRadius: BorderRadius.circular(6)),
+                      child: Text('-${kPackPromo[kind]} %', style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w900, color: Colors.white)),
+                    ),
+                  ),
+                _MiniBooster(kind: kind, label: label, color: color, width: (kPackPromo[kind] ?? 0) > 0 ? 50 : 58),
                 const SizedBox(height: 8),
                 Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5)),
                 const SizedBox(height: 2),
@@ -2161,7 +2181,7 @@ class _ShopTile extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Color(0xFFC5C9E6), fontSize: 11, height: 1.25)),
                 ),
-                _PriceChip(price, ok: afford),
+                _PriceChip(price, ok: afford, base: (kPackPromo[kind] ?? 0) > 0 ? kPackBase[kind] : null),
               ]),
             ),
           ),
@@ -2200,13 +2220,13 @@ class _LotTile extends StatelessWidget {
                   Text(t('Lot de 5 paquets mixtes', '5 mixed packs bundle'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
                   const SizedBox(height: 3),
                   Text(
-                    free ? t('🎉 GRATUIT aujourd\'hui (samedi) ! 25 cartes', '🎉 FREE today (Saturday)! 25 cards') : t('25 cartes · gratuit chaque samedi', '25 cards · free every Saturday'),
+                    free ? t('🎉 GRATUIT aujourd\'hui ! 25 cartes', '🎉 FREE today! 25 cards') : t('25 cartes · gratuit chaque samedi', '25 cards · free every Saturday'),
                     style: TextStyle(color: free ? const Color(0xFF9FE0C4) : const Color(0xFFC5C9E6), fontSize: 12, fontWeight: free ? FontWeight.w800 : FontWeight.w500),
                   ),
                   const SizedBox(height: 8),
                   free
                       ? Text(t('GRATUIT', 'FREE'), style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w900))
-                      : _PriceChip(kLotPrice, ok: afford),
+                      : _PriceChip(lotPrice, ok: afford, base: (kPackPromo['lot'] ?? 0) > 0 ? kLotPrice : null),
                 ]),
               ),
             ]),

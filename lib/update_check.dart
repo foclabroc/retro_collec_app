@@ -84,6 +84,16 @@ int _compare(String a, String b) {
 /// Accès à la vérification depuis les Réglages du jeu.
 final updateGateKey = GlobalKey<UpdateGateState>();
 
+/// Bandeau d'info réglé depuis la page admin : {text, until} (null = aucun)
+final ValueNotifier<Map<String, dynamic>?> rcBanner = ValueNotifier(null);
+
+/// Applique la config publique du serveur : réglages en direct et bandeau
+void applyAppConfig(Map<String, dynamic> cfg) {
+  applyLive(cfg['live']);
+  final b = cfg['banner'];
+  rcBanner.value = b is Map && (b['text']?.toString() ?? '').isNotEmpty ? Map<String, dynamic>.from(b) : null;
+}
+
 /// Enveloppe l'écran d'accueil : vérifie une fois au lancement et propose la mise à jour.
 class UpdateGate extends StatefulWidget {
   final Widget child;
@@ -128,8 +138,9 @@ class UpdateGateState extends State<UpdateGate> {
     String min;
     try {
       final cfg = await RcServer.appConfig();
-      applyLive(cfg['live']);
+      applyAppConfig(cfg);
       min = cfg['min_version']?.toString() ?? '1.0.0';
+      if (cfg['maintenance'] is Map && await _maintenance(cfg['maintenance'] as Map)) return true;
     } catch (_) {
       return false; // hors ligne : on laisse jouer
     }
@@ -178,8 +189,75 @@ class UpdateGateState extends State<UpdateGate> {
     return true;
   }
 
+  /// Mode maintenance (page admin) : fenêtre bloquante, sauf pour les admins. Vrai si on a bloqué.
+  Future<bool> _maintenance(Map m) async {
+    if (m['on'] != true) return false;
+    try {
+      if (await RcServer.adminCheck()) return false; // l'admin passe
+    } catch (_) {}
+    if (!mounted) return true;
+    final fr = widget.french;
+    final msg = (m['msg']?.toString() ?? '').trim();
+    await showDialog<void>(
+      context: context,
+      useRootNavigator: true,
+      barrierDismissible: false,
+      builder: (ctx) => PopScope(
+        canPop: false,
+        child: _MaintenanceDialog(french: fr, msg: msg),
+      ),
+    );
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+/// Fenêtre « maintenance en cours » : se ferme toute seule quand le mode est coupé
+class _MaintenanceDialog extends StatefulWidget {
+  final bool french;
+  final String msg;
+  const _MaintenanceDialog({required this.french, required this.msg});
+  @override
+  State<_MaintenanceDialog> createState() => _MaintenanceDialogState();
+}
+
+class _MaintenanceDialogState extends State<_MaintenanceDialog> {
+  bool busy = false;
+
+  Future<void> _retry() async {
+    setState(() => busy = true);
+    try {
+      final cfg = await RcServer.appConfig();
+      applyAppConfig(cfg);
+      final m = cfg['maintenance'];
+      if (!(m is Map && m['on'] == true)) {
+        if (mounted) Navigator.of(context).pop();
+        return;
+      }
+    } catch (_) {}
+    if (mounted) setState(() => busy = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fr = widget.french;
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1C2230),
+      title: Text(fr ? '🛠 Maintenance en cours' : '🛠 Maintenance in progress', style: const TextStyle(color: Colors.white, fontSize: 16)),
+      content: Text(
+          widget.msg.isNotEmpty ? widget.msg : (fr ? 'Le jeu revient très vite, merci de ta patience !' : 'The game will be back very soon, thanks for your patience!'),
+          style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.3)),
+      actions: [
+        ElevatedButton.icon(
+          onPressed: busy ? null : _retry,
+          icon: const Icon(Icons.refresh_rounded, size: 18),
+          label: Text(fr ? 'Réessayer' : 'Retry'),
+        ),
+      ],
+    );
+  }
 }
 
 // ─── Fenêtre de mise à jour : téléchargement dans l'appli + installateur Android ───

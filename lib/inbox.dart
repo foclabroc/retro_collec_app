@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'audio.dart';
 import 'game.dart';
+import 'notifs.dart';
+import 'rewards.dart';
 import 'server.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -57,13 +59,16 @@ class _MailDialogState extends State<_MailDialog> {
   String? error;
 
   Map<String, dynamic> get m => widget.mail;
-  bool get gift => _n(m['coins']) > 0 || _n(m['pixels']) > 0 || _n(m['packs']) > 0;
+  /// Récompense complète : anciens champs (pièces, pixels, paquets premium) + « reward »
+  Map<String, dynamic> get rw => rewardAdd(rewardOf(m), {'packs': {'premium': _n(m['packs'])}});
+  bool get gift => rewardAny(rw);
 
   Future<void> _ok() async {
     setState(() => busy = true);
     try {
       await RcServer.mailRead(_n(m['id']));
       if (gift) RcAudio.sfx('coin');
+      if (rewardHasPacks(rw)) Notifs.i.refresh();
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
@@ -77,7 +82,6 @@ class _MailDialogState extends State<_MailDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final coins = _n(m['coins']), pixels = _n(m['pixels']), packs = _n(m['packs']);
     final body = (m['body'] as String? ?? '').trim();
     return PopScope(
       canPop: false,
@@ -94,11 +98,9 @@ class _MailDialogState extends State<_MailDialog> {
           if (gift) ...[
             const SizedBox(height: 14),
             Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
-              if (coins > 0) _chip('+$coins 🪙'),
-              if (pixels > 0) _chip('+$pixels ▦'),
-              if (packs > 0) _chip(t('+$packs paquet${packs > 1 ? 's' : ''} premium', '+$packs premium pack${packs > 1 ? 's' : ''}')),
+              for (final p in rewardParts(rw)) _chip('+$p'),
             ]),
-            if (packs > 0)
+            if (rewardHasPacks(rw))
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(t('Les paquets arrivent dans tes cadeaux.', 'Packs go to your gifts.'),
