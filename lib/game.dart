@@ -481,3 +481,48 @@ String errText(Object e) {
   }
   return e.toString();
 }
+
+
+/// Pastille rouge qui pulse doucement (« À toi de jouer », « Invitation »…), bien visible sur une case
+class PulsePill extends StatefulWidget {
+  final String text;
+  final Color color;
+  const PulsePill(this.text, {super.key, this.color = const Color(0xFFE24B4A)});
+  @override
+  State<PulsePill> createState() => _PulsePillState();
+}
+
+class _PulsePillState extends State<PulsePill> with SingleTickerProviderStateMixin {
+  late final AnimationController c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.maybeOf(context)?.disableAnimations ?? false) {
+      c.stop();
+    } else if (!c.isAnimating) {
+      c.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: c,
+        builder: (_, child) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+          decoration: BoxDecoration(
+            color: widget.color,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [BoxShadow(color: widget.color.withOpacity(0.35 + 0.45 * c.value), blurRadius: 6 + 8 * c.value)],
+          ),
+          child: child,
+        ),
+        child: Text(widget.text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 0.3)),
+      );
+}

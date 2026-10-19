@@ -150,9 +150,26 @@ class _BattleTileState extends State<BattleTile> {
   int myTurn = 0, invites = 0, online = 0;
   bool ready = true;
 
+  int _lastBadge = -1;
+
   @override
   void initState() {
     super.initState();
+    _load();
+    DuelWatch.i.addListener(_onWatch);
+  }
+
+  @override
+  void dispose() {
+    DuelWatch.i.removeListener(_onWatch);
+    super.dispose();
+  }
+
+  /// Une invitation ou un tour vient d'arriver (ou de partir) : on recharge la case
+  void _onWatch() {
+    final b = DuelWatch.i.badge;
+    if (b == _lastBadge) return;
+    _lastBadge = b;
     _load();
   }
 
@@ -174,11 +191,8 @@ class _BattleTileState extends State<BattleTile> {
   @override
   Widget build(BuildContext context) {
     const blue = Color(0xFF3EC7FF);
-    final status = [
-      if (myTurn > 0) t('$myTurn à toi de jouer', '$myTurn your turn'),
-      if (invites > 0) t('$invites invitation${invites > 1 ? 's' : ''}', '$invites invitation${invites > 1 ? 's' : ''}'),
-      if (online > 0) t('$online en ligne', '$online online'),
-    ].join(' · ');
+    final status = online > 0 ? t('$online en ligne', '$online online') : '';
+    final alert = myTurn + invites > 0;
     return Opacity(
       opacity: ready ? 1 : 0.5,
       child: Material(
@@ -198,7 +212,7 @@ class _BattleTileState extends State<BattleTile> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               gradient: LinearGradient(colors: [blue.withOpacity(0.16), Colors.transparent]),
-              boxShadow: [BoxShadow(color: blue.withOpacity(0.25), blurRadius: 18, spreadRadius: -6)],
+              boxShadow: [BoxShadow(color: alert ? const Color(0xFFE24B4A).withOpacity(0.6) : blue.withOpacity(0.25), blurRadius: alert ? 22 : 18, spreadRadius: alert ? 0 : -6)],
             ),
             foregroundDecoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: blue.withOpacity(0.75), width: 2)),
             child: IntrinsicHeight(
@@ -234,6 +248,13 @@ class _BattleTileState extends State<BattleTile> {
                         const SizedBox(height: 4),
                         Text(status, style: const TextStyle(color: blue, fontSize: 12, fontWeight: FontWeight.w800)),
                       ],
+                      if (alert) ...[
+                        const SizedBox(height: 6),
+                        Wrap(spacing: 6, runSpacing: 4, children: [
+                          if (myTurn > 0) PulsePill(t('🎮 À toi de jouer${myTurn > 1 ? ' ($myTurn)' : ''}', '🎮 Your turn${myTurn > 1 ? ' ($myTurn)' : ''}')),
+                          if (invites > 0) PulsePill(t('⚔ $invites invitation${invites > 1 ? 's' : ''}', '⚔ $invites invitation${invites > 1 ? 's' : ''}')),
+                        ]),
+                      ],
                     ]),
                   ),
                 ),
@@ -242,6 +263,8 @@ class _BattleTileState extends State<BattleTile> {
                   child: Center(
                     child: Badge(
                       isLabelVisible: myTurn + invites > 0,
+                      largeSize: 22,
+                      textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
                       label: Text('${myTurn + invites}'),
                       child: const Icon(Icons.play_arrow_rounded, color: blue, size: 32),
                     ),

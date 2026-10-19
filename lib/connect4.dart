@@ -122,9 +122,26 @@ class Connect4Tile extends StatefulWidget {
 class _Connect4TileState extends State<Connect4Tile> {
   int myTurn = 0, invites = 0, online = 0;
 
+  int _lastBadge = -1;
+
   @override
   void initState() {
     super.initState();
+    _load();
+    DuelWatch.i.addListener(_onWatch);
+  }
+
+  @override
+  void dispose() {
+    DuelWatch.i.removeListener(_onWatch);
+    super.dispose();
+  }
+
+  /// Une invitation ou un tour vient d'arriver (ou de partir) : on recharge la case
+  void _onWatch() {
+    final b = DuelWatch.i.badge;
+    if (b == _lastBadge) return;
+    _lastBadge = b;
     _load();
   }
 
@@ -142,11 +159,8 @@ class _Connect4TileState extends State<Connect4Tile> {
 
   @override
   Widget build(BuildContext context) {
-    final status = [
-      if (myTurn > 0) t('$myTurn à toi de jouer', '$myTurn your turn'),
-      if (invites > 0) t('$invites invitation${invites > 1 ? 's' : ''}', '$invites invitation${invites > 1 ? 's' : ''}'),
-      if (online > 0) t('$online en ligne', '$online online'),
-    ].join(' · ');
+    final status = online > 0 ? t('$online en ligne', '$online online') : '';
+    final alert = myTurn + invites > 0;
     return Material(
       color: kPanel,
       borderRadius: BorderRadius.circular(14),
@@ -160,7 +174,7 @@ class _Connect4TileState extends State<Connect4Tile> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             gradient: LinearGradient(colors: [_kRed.withOpacity(0.16), Colors.transparent]),
-            boxShadow: [BoxShadow(color: _kRed.withOpacity(0.25), blurRadius: 18, spreadRadius: -6)],
+            boxShadow: [BoxShadow(color: alert ? const Color(0xFFE24B4A).withOpacity(0.6) : _kRed.withOpacity(0.25), blurRadius: alert ? 22 : 18, spreadRadius: alert ? 0 : -6)],
           ),
           // bordure dessinée par-dessus le panneau du plateau (sinon il mange les coins arrondis)
           foregroundDecoration: BoxDecoration(
@@ -188,6 +202,13 @@ class _Connect4TileState extends State<Connect4Tile> {
                       const SizedBox(height: 4),
                       Text(status, style: const TextStyle(color: _kRed, fontSize: 12, fontWeight: FontWeight.w800)),
                     ],
+                    if (alert) ...[
+                      const SizedBox(height: 6),
+                      Wrap(spacing: 6, runSpacing: 4, children: [
+                        if (myTurn > 0) PulsePill(t('🎮 À toi de jouer${myTurn > 1 ? ' ($myTurn)' : ''}', '🎮 Your turn${myTurn > 1 ? ' ($myTurn)' : ''}')),
+                        if (invites > 0) PulsePill(t('⚔ $invites invitation${invites > 1 ? 's' : ''}', '⚔ $invites invitation${invites > 1 ? 's' : ''}')),
+                      ]),
+                    ],
                   ]),
                 ),
               ),
@@ -196,6 +217,8 @@ class _Connect4TileState extends State<Connect4Tile> {
                 child: Center(
                   child: Badge(
                     isLabelVisible: myTurn + invites > 0,
+                    largeSize: 22,
+                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
                     label: Text('${myTurn + invites}'),
                     child: const Icon(Icons.play_arrow_rounded, color: _kRed, size: 32),
                   ),

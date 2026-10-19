@@ -128,8 +128,11 @@ class WheelTile extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(gold ? t('Roue en or ✨', 'Golden wheel ✨') : t('Roue de la fortune', 'Wheel of fortune'),
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                    Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, runSpacing: 4, children: [
+                      Text(gold ? t('Roue en or ✨', 'Golden wheel ✨') : t('Roue de la fortune', 'Wheel of fortune'),
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                      if (can) PulsePill(t('🎁 Tour gratuit', '🎁 Free spin')),
+                    ]),
                     const SizedBox(height: 3),
                     Text(
                         gold
