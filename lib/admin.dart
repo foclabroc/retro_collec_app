@@ -122,15 +122,22 @@ Widget _box({required Widget child, Color? border, VoidCallback? onTap}) => Padd
       ),
     );
 
-Widget _num(String value, String label) => Expanded(
-      child: Container(
-        margin: const EdgeInsets.all(3),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(12)),
-        child: Column(children: [
-          Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-          Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11)),
-        ]),
+Widget _num(String value, String label, {VoidCallback? onTap, bool on = false}) => Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.all(3),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          decoration: BoxDecoration(
+            color: kPanel,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: on ? _org : (onTap != null ? Colors.white24 : Colors.transparent), width: 1.5),
+          ),
+          child: Column(children: [
+            Text(value, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: on ? _org : null)),
+            Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+          ]),
+        ),
       ),
     );
 
@@ -195,7 +202,11 @@ List<_Tag> _accountTags(Map<String, dynamic> p) {
   final given = _i(p['trade_given']), got = _i(p['trade_got']);
   if (given - got >= 150) tags.add(_Tag(t('donne ${given - got} de valeur sans contrepartie', 'gave away ${given - got} in value'), _red));
   if (_i(p['overpaid']) > 0) tags.add(_Tag(t('${_i(p['overpaid'])} achat(s) à 5× le prix moyen', '${_i(p['overpaid'])} buy(s) at 5× avg price'), _red));
-  if (_i(p['gifts_out']) >= 3) tags.add(_Tag(t('${_i(p['gifts_out'])} cadeaux offerts', '${_i(p['gifts_out'])} gifts sent'), _org));
+  // cadeaux : seulement si la plupart vont au même joueur (au moins 3 et 60 %)
+  final gOut = _i(p['gifts_out']), gTop = _i(p['gifts_top']);
+  if (gTop >= 3 && gTop * 10 >= gOut * 6) {
+    tags.add(_Tag(t('$gTop cadeaux sur $gOut à ${p['gifts_top_name'] ?? '?'}', '$gTop of $gOut gifts to ${p['gifts_top_name'] ?? '?'}'), _org));
+  }
   if (p['blocked'] == true) tags.add(_Tag(t('⛔ compte bloqué', '⛔ account blocked'), _red));
   if (p['chat_banned'] == true) tags.add(_Tag(t('chat interdit', 'chat banned'), _org));
   if (age < 72 && tags.isNotEmpty) tags.add(_Tag(t('compte récent', 'new account'), _org));
@@ -217,6 +228,7 @@ class _AccountsTabState extends State<_AccountsTab> with AutomaticKeepAliveClien
   String _q = '';
   List<Map<String, dynamic>>? _rows;
   String? _error;
+  bool _onlyFlagged = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -298,7 +310,8 @@ class _AccountsTabState extends State<_AccountsTab> with AutomaticKeepAliveClien
           Row(children: [
             _num('${rows.length}', t('nouveaux · 7 j', 'new · 7 d')),
             _num('$active', t('vus aujourd\'hui', 'seen today')),
-            _num('$flagged', t('à vérifier', 'to check')),
+            _num('$flagged', _onlyFlagged ? t('à vérifier ✓', 'to check ✓') : t('à vérifier', 'to check'),
+                on: _onlyFlagged, onTap: () => setState(() => _onlyFlagged = !_onlyFlagged)),
           ]),
         const SizedBox(height: 6),
         if (rows == null)
@@ -312,7 +325,8 @@ class _AccountsTabState extends State<_AccountsTab> with AutomaticKeepAliveClien
             child: Center(child: Text(t('Aucun compte', 'No account'), style: const TextStyle(color: Colors.white60))),
           )
         else
-          for (final p in rows) _accountRow(context, p),
+          for (final p in rows)
+            if (!_onlyFlagged || _level(_accountTags(p)) != null) _accountRow(context, p),
       ]),
     );
   }
