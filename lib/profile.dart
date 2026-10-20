@@ -129,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context, _) {
         final g = Game.i;
         final total = Catalog.cards.length;
-        return TabPage(children: [
+        return Column(children: [
           TabHeader(widget.embedded ? '' : t('Profil', 'Profile'), icon: 'profile', actions: [
             IconButton(
               tooltip: t('Son (musique et bruitages)', 'Sound (music and effects)'),

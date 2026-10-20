@@ -148,7 +148,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final g = Game.i;
         final systems = _sortedSystems(g);
         final sagaList = [for (final s in kSagas) if (Catalog.bySys[s.sys] != null) s];
-        return TabPage(children: [
+        return Column(children: [
           TabHeader(t('Collection', 'Collection'), icon: 'collection', actions: [
             IconButton(
               tooltip: t('Toutes mes cartes : recherche, filtres, tri', 'All my cards: search, filters, sort'),

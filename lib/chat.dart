@@ -183,7 +183,7 @@ class MessagesScreenState extends State<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return TabPage(children: [
+    return Column(children: [
       TabHeader(t('Messages', 'Messages'), icon: 'messages'),
       Padding(
         padding: const EdgeInsets.fromLTRB(18, 0, 18, 4),

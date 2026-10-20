@@ -46,7 +46,6 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - Avatars (dans `game.dart`) : 30 images `assets/avatars/avatar_NN.webp` 256 × 256 détourées (fond transparent), liseré = `kAvatars` (ne pas réordonner). `avatarWidget` (rond, fond blanc, partout), `AvatarFloat` (sans fond, flotte : écran des bornes), `AvatarPulseSquare` (carré dégradé aléatoire qui pulse : profils).
 - `server.dart` : tous les appels RPC.
 - `retro_theme.dart` : 12 thèmes de fond colorés (`kThemes`, `RcMotif`) ; seuls les motifs de `kAnimatedMotifs` sont animés, les autres ne sont dessinés qu'au changement de thème. `bg` = `surface` (fond foncé des feuilles et dialogues).
-  **Toute l'appli à 93 % d'opacité** (choix de l'utilisateur, ne pas redescendre) : panneaux (`panel` / `kPanel`), menu latéral, barres, colonnes larges, chips, boutons à contour ; dialogues et feuilles pleins. Onglets : racine `TabPage` (`main.dart`), qui pose tout ce qui précède le premier `Expanded` (titre, raccourcis, lignes d'info) dans un bandeau `kPanel`.
 - Bornes du Voisinage : `assets/arcade/<id>.webp` en 360 × 594, fond transparent, écran noir à la même place sur toutes (zone écran / fronton dans `arcade.dart`). Générées avec Gemini en retouchant la borne « pierre » (une image par discussion).
 - `packs.dart` : onglet Paquets (mosaïque : stock, paquet gratuit, boutique, lot), ouverture animée, cadeaux.
 - `cards.dart` (rendu `CardView`), `catalog.dart` (catalogue, sagas), `sagas.dart`, `library.dart` / `album.dart` (Collection).

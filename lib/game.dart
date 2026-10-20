@@ -124,7 +124,7 @@ int get lotPrice => kLotPrice * (100 - (kPackPromo['lot'] ?? 0)) ~/ 100;
 const kGold = Color(0xFFEF9F27);
 // Couleurs de fond selon le thème d'interface choisi (retro_theme.dart)
 Color get kBg => rcTheme.bg; // fond des feuilles et dialogues
-Color get kPanel => rcTheme.panel; // panneaux à 93 % d'opacité sur le fond animé
+Color get kPanel => rcTheme.panel; // panneaux semi-transparents sur le fond animé
 Color get kPanel2 => rcTheme.panel2;
 
 /// Avatars : 30 images (assets/avatars/avatar_NN.webp, 256 × 256, détourées, fond transparent).

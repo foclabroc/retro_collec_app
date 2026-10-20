@@ -250,7 +250,7 @@ class _SplitCardDetailState extends State<SplitCardDetail> {
           Container(
             width: 420,
             decoration: BoxDecoration(
-              color: kBg.withOpacity(0.93),
+              color: kBg.withOpacity(0.55),
               border: const Border(left: BorderSide(color: Colors.white12)),
             ),
             child: sel == null
