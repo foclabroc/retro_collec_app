@@ -32,6 +32,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - Défis de la semaine : réservoir `rc__wpool` (id, type, objectif, récompense ; ne pas renuméroter), 6 tirés chaque lundi par `rc__wsel` (mêmes pour tous), suivis par `rc__wbump(device, type, n)`. Types : open, gift, trade, win, gamedle, epic, play, new, quiz, sale, free, premium (texte et icône dans `defis.dart`).
 - Trophées : paliers dans `rc__tpool` (bronze / argent / or), compteurs `rc_trophy_n` (via `rc__tbump`, branché dans `rc__give`, `rc__wbump`, `rc_fuse`, `rc_trade_answer`, `rc_week_claim`), paquets / cartes / consoles lus en direct (`rc__tn`), paliers récupérés `rc_trophy_got`, vitrine choisie `rc_players.trophies` (« wins,,cards »), cases vides remplies par les meilleurs paliers (`rc__tshow_k`), envoyée avec les paliers par `rc__tshow` (`rc_board`, `rc_profile`). Textes et icônes : `lib/trophies.dart`.
 - Cadeau de passage de version : `rc_upgrade_got` (device, ver), versé dans `rc_trophies` (seule la 1.0.13+ l'appelle) ; pour une prochaine version, appeler la même logique depuis une fonction que seule la nouvelle version utilise.
+- Journal d'activité (admin) : table `rc_activity` (30 jours, sans le chat), remplie **uniquement par déclencheurs** (`rc__act_*` sur `rc_players`, `rc_pending`, `rc_market`, `rc_trades`, `rc_gifts`, `rc_c4` / `rc_bs`, `rc_gamedle`, `rc_*_got`, `rc_milestones`, `rc_trophy_n`) via `rc__act` : une ligne par joueur et par transaction (libellé le plus précis gagne, deux actions connues = deux lignes), avec ± pièces / pixels ; mouvement inconnu = `coins`. Lecture : `rc_admin_activity` (groupe, pseudo, pagination par id). Page `AdminActivityPage` dans `admin_tools.dart`. Nouvelle action à journaliser : ajouter un déclencheur, pas toucher aux fonctions du jeu.
 - Voisinage : joueurs vus dans les **7 derniers jours** (`rc_board`, `rc_rank`, `rc_my_floor`). Le champ `house` d'un joueur = numéro de son habillage de borne (index de `kFloorThemes` dans `arcade.dart`, ne pas réordonner).
 
 ## Fichiers Flutter (lib/)
@@ -48,7 +49,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - `connect4.dart`, `battleship.dart` (Console Wars), `duel_watch.dart`, `duel_msg.dart`.
 - `trophies.dart` (trophées : `MyTrophies` au profil, `OtherTrophies`, `TrophyMedal`, `myTrophyShow` pour la borne).
 - `events.dart` (événements, effets, défis à paliers), `defis.dart` (défis de la semaine), `rewards.dart` (récompenses + éditeur admin).
-- `admin.dart` + `admin_tools.dart` : page admin (Comptes, Liens, Stats cliquables, Chat, Outils : courrier / cadeau ciblé, sondage, événements, bandeau, maintenance, réglages en direct, version minimale, Bourse, recherche de carte, journal).
+- `admin.dart` + `admin_tools.dart` : page admin (Comptes, Liens, Stats cliquables, Chat, Outils : courrier / cadeau ciblé, sondage, événements, bandeau, maintenance, réglages en direct, version minimale, Bourse, recherche de carte, activité des joueurs, journal admin).
 - `audio.dart` (`RcAudio`) : musique et bruitages ; réglage `rc_track2` = n° de morceau, -1 aléatoire, -2 aucune (`homeTrackNone` bloque toute musique, bruitages gardés).
 - `inbox.dart` (courrier / sondage à l'ouverture), `update_check.dart` (mise à jour, version minimale, maintenance), `notifs.dart`, `push.dart`.
 
@@ -57,4 +58,3 @@ Web : https://foclabroc.github.io/retro_collec_app/
 1. Bourse : pouvoir sélectionner plusieurs cartes à l'achat (achat groupé).
 2. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
 3. Ajouter 2 sagas (en plus de Mario, Sonic, Zelda, Pokémon). Sagas à choisir.
-4. Admin : journal de tout ce qui se passe dans l'appli (ouvertures, achats, ventes, échanges, duels, cadeaux…).
