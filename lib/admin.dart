@@ -10,7 +10,7 @@ import 'events.dart' show goalLabel;
 import 'profile.dart';
 import 'rewards.dart';
 import 'server.dart';
-import 'tower.dart';
+import 'arcade.dart';
 import 'update_check.dart';
 
 part 'admin_tools.dart';

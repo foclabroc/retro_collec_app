@@ -40,7 +40,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - `packs.dart` : onglet Paquets (mosaïque : stock, paquet gratuit, boutique, lot), ouverture animée, cadeaux.
 - `cards.dart` (rendu `CardView`), `catalog.dart` (catalogue, sagas), `sagas.dart`, `library.dart` / `album.dart` (Collection).
 - `market.dart` / `bourse.dart` (Bourse), `trades.dart`.
-- `tower.dart` (immeuble du Voisinage), `neighbors.dart`, `profile.dart`, `house.dart`.
+- `arcade.dart` (Voisinage « Pixel Arcade » : `ArcadeCabinet`, habillages `kFloorThemes` → `assets/arcade/*.webp`, `FloorData`, page d'habillage), `neighbors.dart` (salle : podium + rangées de 3), `profile.dart`, `house.dart`.
 - `connect4.dart`, `battleship.dart` (Console Wars), `duel_watch.dart`, `duel_msg.dart`.
 - `events.dart` (événements, effets, défis à paliers), `defis.dart` (défis de la semaine), `rewards.dart` (récompenses + éditeur admin).
 - `admin.dart` + `admin_tools.dart` : page admin (Comptes, Liens, Stats cliquables, Chat, Outils : courrier / cadeau ciblé, sondage, événements, bandeau, maintenance, réglages en direct, version minimale, Bourse, recherche de carte, journal).

@@ -13,7 +13,7 @@ import 'cards.dart';
 import 'catalog.dart';
 import 'layout.dart';
 import 'game.dart';
-import 'tower.dart';
+import 'arcade.dart';
 import 'main.dart';
 import 'server.dart';
 import 'trades.dart';
@@ -997,19 +997,8 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
           : p == null
               ? const Center(child: CircularProgressIndicator(color: kGold))
               : ListView(padding: const EdgeInsets.all(16), children: [
-                  // son étage dans l'immeuble
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 420),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: DecoratedBox(
-                          decoration: const BoxDecoration(border: Border.symmetric(vertical: BorderSide(color: Color(0xFFEFE2C3), width: 8))),
-                          child: TowerFloor(d: FloorData.of(p!), level: 0, shaft: false),
-                        ),
-                      ),
-                    ),
-                  ),
+                  // sa borne dans la salle d'arcade
+                  Center(child: ArcadeCabinet(d: FloorData.of(p!), width: 150)),
                   const SizedBox(height: 12),
                   Row(children: [
                     avatarWidget((p!['avatar'] as num? ?? 0).toInt(), size: 60),

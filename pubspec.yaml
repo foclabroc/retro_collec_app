@@ -37,6 +37,7 @@ flutter:
     - assets/tabs/
     - assets/sagas/
     - assets/houses/
+    - assets/arcade/
     - assets/avatars/
     - assets/bs/
     - assets/card_back.jpg

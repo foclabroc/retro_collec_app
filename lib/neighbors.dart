@@ -4,16 +4,16 @@ import 'audio.dart';
 import 'connect4.dart';
 import 'game.dart';
 import 'packs.dart';
-import 'tower.dart';
+import 'arcade.dart';
 import 'main.dart';
 import 'notifs.dart';
 import 'profile.dart';
 import 'server.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Voisinage : l'immeuble « Pixel Tower », un étage par joueur classé par score
-// (thème de l'étage au choix). Toucher un étage : profil et album du joueur ;
-// 🎁 : offrir un paquet. Mon étage, mon thème et mon profil en haut.
+// Voisinage : la salle « Pixel Arcade », une borne par joueur classée par score
+// (habillage au choix). Toucher une borne : profil et album du joueur ;
+// 🎁 : offrir un paquet. Ma borne, mon habillage et mon profil en haut.
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Offre le paquet du jour à un joueur (avec confirmation). Vrai si offert.
@@ -60,12 +60,12 @@ class NeighborsScreen extends StatefulWidget {
   State<NeighborsScreen> createState() => NeighborsScreenState();
 }
 
-/// Voisinage en immeuble : un étage par joueur (classement), le n°1 au penthouse.
+/// Voisinage en salle d'arcade : une borne par joueur (classement), podium pour les 3 premiers.
 class NeighborsScreenState extends State<NeighborsScreen> {
   static NeighborsScreenState? current;
-  static String? pendingPid; // étage à montrer dès que l'immeuble est chargé (liste « En ligne » du menu)
+  static String? pendingPid; // borne à montrer dès que la salle est chargée (liste « En ligne » du menu)
   List<Map<String, dynamic>>? rows;
-  Map<String, dynamic>? mine; // mon étage si je ne suis pas dans les 100 premiers
+  Map<String, dynamic>? mine; // ma borne si je ne suis pas dans les 100 premiers
   String query = '';
   bool searching = false;
   String? error;
@@ -124,17 +124,29 @@ class NeighborsScreenState extends State<NeighborsScreen> {
     return list;
   }
 
-  /// Fait défiler l'immeuble jusqu'à mon étage
+  /// Fait défiler la salle jusqu'à ma borne
   void goMe({bool animate = true}) => goTo(Game.i.pid, animate: animate);
 
-  /// Fait défiler l'immeuble jusqu'à l'étage d'un joueur
+  // géométrie de la salle (calculée au rendu) pour retrouver une borne
+  double _podiumH = 0, _rowH = 0;
+
+  /// Rangées de 3 après le podium : les 6 suivants par allée
+  static const _cols = 3, _rowsPerAisle = 2;
+
+  /// Fait défiler la salle jusqu'à la borne d'un joueur
   void goTo(String pid, {bool animate = true}) {
     final floors = _floors;
     final i = floors.indexWhere((f) => f.pid == pid);
-    if (i < 0 || !scroll.hasClients) return;
-    final pent = query.trim().isEmpty && floors.isNotEmpty;
-    var y = kRoofH + (i == 0 ? 0 : (pent ? kPentH + kCorniceH : kFloorH + kCorniceH) + (i - 1) * (kFloorH + kCorniceH));
-    y = (y - scroll.position.viewportDimension / 3).clamp(0.0, scroll.position.maxScrollExtent);
+    if (i < 0 || !scroll.hasClients || _rowH == 0) return;
+    final podium = _hasPodium(floors);
+    double y;
+    if (podium && i < 3) {
+      y = kSignH;
+    } else {
+      final row = (i - (podium ? 3 : 0)) ~/ _cols;
+      y = kSignH + _podiumH + row * _rowH + (row ~/ _rowsPerAisle + 1) * kAisleH;
+    }
+    y = (y - scroll.position.viewportDimension / 4).clamp(0.0, scroll.position.maxScrollExtent);
     if (animate) {
       scroll.animateTo(y, duration: const Duration(milliseconds: 700), curve: Curves.easeInOutCubic);
     } else {
@@ -165,7 +177,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
               _onlineButton(),
               const SizedBox(width: 6),
               for (final (icon, label, onTap) in <(IconData, String, VoidCallback)>[
-                (Icons.my_location, t('Mon étage', 'My floor'), () => goMe()),
+                (Icons.my_location, t('Ma borne', 'My cabinet'), () => goMe()),
                 (Icons.format_paint, t('Thème', 'Theme'), () => _editTheme()),
                 (Icons.person, t('Profil', 'Profile'), () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyProfilePage()))),
               ]) ...[
@@ -194,8 +206,8 @@ class NeighborsScreenState extends State<NeighborsScreen> {
               Expanded(
                 child: Text(
                   Notifs.i.canGift
-                      ? t('Encore ${Notifs.i.giftsLeft} paquet(s) à offrir aujourd\'hui : « 🎁 Offrir » sur un étage',
-                          '${Notifs.i.giftsLeft} pack(s) left to give today: « 🎁 Give » on a floor')
+                      ? t('Encore ${Notifs.i.giftsLeft} paquet(s) à offrir aujourd\'hui : touche 🎁 sur une borne',
+                          '${Notifs.i.giftsLeft} pack(s) left to give today: tap 🎁 on a cabinet')
                       : t('3 paquets offerts aujourd\'hui · reviens demain', '3 packs given today · come back tomorrow'),
                   style: TextStyle(color: Notifs.i.canGift ? kGold : Colors.white38, fontSize: 12),
                 ),
@@ -231,13 +243,13 @@ class NeighborsScreenState extends State<NeighborsScreen> {
                 },
               ),
             ),
-          Expanded(child: _tower()),
+          Expanded(child: _room()),
         ]);
       },
     );
   }
 
-  /// « 🟢 3 en ligne » : la liste des joueurs connectés (défier, aller à leur étage)
+  /// « 🟢 3 en ligne » : la liste des joueurs connectés (défier, aller à leur borne)
   Widget _onlineButton() {
     final on = _floors.where((f) => f.online && !f.me).toList();
     const teal = Color(0xFF5DCAA5);
@@ -260,63 +272,130 @@ class NeighborsScreenState extends State<NeighborsScreen> {
 
   void _showOnline(List<FloorData> on) => _onlineSheet(context, on, goTo);
 
-  Widget _tower() {
+  bool _hasPodium(List<FloorData> floors) => query.trim().isEmpty && floors.isNotEmpty;
+
+  Widget _room() {
     if (error != null) {
       return Center(child: TextButton(onPressed: load, child: Text('$error\n${t('Réessayer', 'Retry')}', textAlign: TextAlign.center)));
     }
     if (rows == null) return const Center(child: CircularProgressIndicator(color: kGold));
     final floors = _floors;
-    final ranked = query.trim().isEmpty;
-    final n = floors.length;
-    Widget frame(Widget child, {bool pilasters = true}) => Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 460),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: pilasters
-                  ? DecoratedBox(
-                      decoration: const BoxDecoration(border: Border.symmetric(vertical: BorderSide(color: Color(0xFFEFE2C3), width: 8))),
-                      child: child,
-                    )
-                  : child,
-            ),
-          ),
-        );
-    return RefreshIndicator(
-      onRefresh: load,
-      child: ListView.builder(
-        controller: scroll,
-        padding: const EdgeInsets.only(top: 8),
-        itemCount: n + 2,
-        itemBuilder: (_, i) {
-          if (i == 0) return frame(const TowerRoof(), pilasters: false);
-          if (i == n + 1) {
-            return frame(
-              TowerLobby(
-                gifts: Notifs.i.gifts,
-                onGifts: () {
-                  if (Notifs.i.gifts > 0) {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GiftsPage()));
-                  } else {
-                    toast(t('Aucun cadeau pour le moment', 'No gifts right now'));
-                  }
-                },
-                onSearch: () => setState(() => searching = true),
+    final podium = _hasPodium(floors);
+    final top = podium ? floors.take(3).toList() : <FloorData>[];
+    final rest = podium ? floors.skip(3).toList() : floors;
+    final nRows = (rest.length + _cols - 1) ~/ _cols;
+    void open(FloorData f) => _open(f);
+    VoidCallback? gift(FloorData f) => f.me ? null : () => giftPack(context, f.pid, f.name).then((_) {
+          if (mounted) setState(() {});
+        });
+
+    return LayoutBuilder(builder: (context, box) {
+      const pad = 14.0, gap = 12.0;
+      final cw = (box.maxWidth > 480 ? 480.0 : box.maxWidth) - 2 * pad;
+      final cellW = (cw - gap * (_cols - 1)) / _cols;
+      _rowH = cellW / kCabRatio + kTagH + 16;
+      // podium : le n°1 au centre, plus grand
+      final bigW = cw * 0.36, sideW = cw * 0.28;
+      const steps = [54.0, 38.0, 26.0];
+      _podiumH = podium ? bigW / kCabRatio + kTagH + steps[0] + 22 : 0;
+
+      Widget podiumView() {
+        Widget slot(int k, double w) {
+          if (k >= top.length) return SizedBox(width: w);
+          final f = top[k];
+          return SizedBox(
+            width: w,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              ArcadeCabinet(d: f, width: w * 0.92, onTap: () => open(f), onGift: gift(f)),
+              CabinetTag(d: f),
+              PodiumStep(place: k + 1, height: steps[k]),
+            ]),
+          );
+        }
+
+        return SizedBox(
+          height: _podiumH,
+          child: Stack(alignment: Alignment.bottomCenter, children: [
+            // projecteur sur le n°1
+            Positioned(
+              top: 0,
+              left: cw * 0.2,
+              right: cw * 0.2,
+              height: _podiumH * 0.6,
+              child: const DecoratedBox(
+                decoration: BoxDecoration(gradient: RadialGradient(center: Alignment.topCenter, radius: 1, colors: [Color(0x55FFD166), Color(0x00FFD166)])),
               ),
-            );
+            ),
+            Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              slot(1, sideW),
+              slot(0, bigW),
+              slot(2, sideW),
+            ]),
+          ]),
+        );
+      }
+
+      Widget rowView(int r) {
+        final cells = rest.skip(r * _cols).take(_cols).toList();
+        final first = (podium ? 4 : 1) + r * _cols;
+        return Column(mainAxisSize: MainAxisSize.min, children: [
+          if (r % _rowsPerAisle == 0)
+            ArcadeAisle(podium
+                ? t('RANGÉE ${r ~/ _rowsPerAisle + 1} · #$first À #${(first + _cols * _rowsPerAisle - 1).clamp(first, floors.length)}',
+                    'ROW ${r ~/ _rowsPerAisle + 1} · #$first TO #${(first + _cols * _rowsPerAisle - 1).clamp(first, floors.length)}')
+                : t('RANGÉE ${r ~/ _rowsPerAisle + 1}', 'ROW ${r ~/ _rowsPerAisle + 1}')),
+          SizedBox(
+            height: _rowH,
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              for (var k = 0; k < _cols; k++) ...[
+                if (k > 0) const SizedBox(width: gap),
+                SizedBox(
+                  width: cellW,
+                  child: k < cells.length
+                      ? Column(children: [
+                          const SizedBox(height: 8),
+                          ArcadeCabinet(d: cells[k], width: cellW, onTap: () => open(cells[k]), onGift: gift(cells[k])),
+                          CabinetTag(d: cells[k]),
+                        ])
+                      : null,
+                ),
+              ],
+            ]),
+          ),
+        ]);
+      }
+
+      final counter = ArcadeCounter(
+        gifts: Notifs.i.gifts,
+        onGifts: () {
+          if (Notifs.i.gifts > 0) {
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GiftsPage()));
+          } else {
+            toast(t('Aucun cadeau pour le moment', 'No gifts right now'));
           }
-          final f = floors[i - 1];
-          return frame(TowerFloor(
-            d: f,
-            level: n - (i - 1),
-            penthouse: ranked && i == 1,
-            index: i,
-            onTap: () => _open(f),
-            onGift: f.me ? null : () => giftPack(context, f.pid, f.name),
-          ));
         },
-      ),
-    );
+        onSearch: () => setState(() => searching = true),
+      );
+
+      return Stack(children: [
+        Positioned.fill(child: CustomPaint(painter: ArcadeCarpet())),
+        RefreshIndicator(
+          onRefresh: load,
+          child: ListView.builder(
+            controller: scroll,
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: 3 + nRows,
+            itemBuilder: (_, i) {
+              Widget frame(Widget c) => Center(child: SizedBox(width: cw, child: c));
+              if (i == 0) return frame(ArcadeSign(ranked: podium));
+              if (i == 1) return podium ? frame(podiumView()) : const SizedBox.shrink();
+              if (i == 2 + nRows) return frame(counter);
+              return frame(rowView(i - 2));
+            },
+          ),
+        ),
+      ]);
+    });
   }
 }
 
@@ -334,7 +413,7 @@ class MyProfilePage extends StatelessWidget {
       );
 }
 
-/// Une ligne de la liste « En ligne » : défier (4 en ligne ou Console Wars) ou aller à son étage
+/// Une ligne de la liste « En ligne » : défier (4 en ligne ou Console Wars) ou aller à sa borne
 class _OnlineRow extends StatefulWidget {
   final FloorData f;
   final VoidCallback onFloor;
@@ -388,7 +467,7 @@ class _OnlineRowState extends State<_OnlineRow> {
           OutlinedButton(
             style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
             onPressed: widget.onFloor,
-            child: Text(t('Étage', 'Floor')),
+            child: Text(t('Borne', 'Cabinet')),
           ),
         ]),
         if (pick)
@@ -417,7 +496,7 @@ class _OnlineRowState extends State<_OnlineRow> {
   }
 }
 
-/// Joueurs en ligne (gardés 60 s pour ne pas recharger l'immeuble à chaque ouverture du menu)
+/// Joueurs en ligne (gardés 60 s pour ne pas recharger la salle à chaque ouverture du menu)
 class OnlineNow {
   static DateTime? _at;
   static List<FloorData>? _list;
@@ -432,7 +511,7 @@ class OnlineNow {
   }
 }
 
-/// Liste « En ligne » ouverte depuis le panneau latéral ; « Étage » ouvre le Voisinage à son étage
+/// Liste « En ligne » ouverte depuis le panneau latéral ; « Borne » ouvre le Voisinage à sa borne
 Future<void> showOnlinePlayers(BuildContext context) async {
   List<FloorData> on;
   try {

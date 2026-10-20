@@ -636,7 +636,7 @@ class RcServer {
 
   static Future<List<Map<String, dynamic>>> find(String query) async => _list(await _rpc('rc_find', {'p_query': query}));
 
-  /// Mon étage dans l'immeuble (avec mon rang), si je ne suis pas dans les 100 premiers
+  /// Ma borne dans la salle d'arcade (avec mon rang), si je ne suis pas dans les 100 premiers
   static Future<Map<String, dynamic>?> myFloor() async {
     final d = await deviceId();
     final r = await _rpc('rc_my_floor', {'p_device': d});
