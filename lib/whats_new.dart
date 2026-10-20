@@ -12,6 +12,15 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🕹', 'Voisinage : la salle d\'arcade « Pixel Arcade » remplace l\'immeuble, une borne par joueur avec podium pour les 3 premiers',
+      'Neighbors: the "Pixel Arcade" hall replaces the tower, one arcade cabinet per player with a podium for the top 3'),
+  ('📺', 'Écran allumé (PLAYING) quand le joueur est en ligne, OFFLINE sinon ; pseudo qui défile sur le fronton',
+      'Screen lit (PLAYING) when the player is online, OFFLINE otherwise; name scrolling on the marquee'),
+  ('🎨', '16 habillages de borne à débloquer avec tes cartes (« Thème » en haut du Voisinage)',
+      '16 cabinet skins to unlock with your cards ("Theme" at the top of Neighbors)'),
+  ('🔴', '4 en ligne : nouvelle grille façon borne d\'arcade, pion fantôme fléché et victoire illuminée',
+      'Connect 4: new arcade-style grid, arrowed ghost disc and lit-up victory'),
+  ('#', 'Aussi depuis la 1.0.12', 'Also since 1.0.12'),
   ('💬', 'Duels : ajoute un petit mot à tes défis et revanches, et réponds aux défis reçus (« J\'arrive ! », « Dans 5 minutes »…)',
       'Duels: add a short message to your challenges and rematches, and reply to challenges ("Coming!", "In 5 minutes"…)'),
   ('🔥', 'Réactions en grand au milieu du plateau, et phrases rapides en partie (« Bien joué ! », « GG 🤝 »…)',
