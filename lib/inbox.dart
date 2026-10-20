@@ -211,7 +211,7 @@ class _PollDialogState extends State<_PollDialog> {
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: opq(Colors.white10),
+        color: kCellHi,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: mine ? kGold : Colors.transparent, width: 1.5),
       ),

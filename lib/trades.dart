@@ -644,7 +644,7 @@ class TradeDetailPage extends StatelessWidget {
           Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: opq(Colors.black26), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: kCell, borderRadius: BorderRadius.circular(12)),
             child: Text.rich(
               TextSpan(children: [
                 TextSpan(text: t('Valeur : tu reçois ', 'Value: you get ')),

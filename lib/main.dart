@@ -123,7 +123,7 @@ class _WebFrame extends StatelessWidget {
     final w = math.min(460.0, math.max(360.0, h * 0.52));
     return Stack(children: [
       const Positioned.fill(child: RetroBackground()),
-      Positioned.fill(child: ColoredBox(color: opq(Colors.black.withOpacity(0.35)))),
+      Positioned.fill(child: ColoredBox(color: kVeil)),
       Center(
         child: Container(
           width: w,

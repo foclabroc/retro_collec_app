@@ -108,7 +108,7 @@ class StatsPanel extends StatelessWidget {
                   value: totalByR[r] == 0 ? 0 : ownByR[r] / totalByR[r],
                   minHeight: 7,
                   color: kRarityColor[r],
-                  backgroundColor: opq(Colors.white10),
+                  backgroundColor: kCellHi,
                 ),
               ),
             ),

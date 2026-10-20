@@ -93,7 +93,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         );
     return Container(
       padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(color: opq(Colors.black.withOpacity(0.3)), borderRadius: BorderRadius.circular(13)),
+      decoration: BoxDecoration(color: kCell, borderRadius: BorderRadius.circular(13)),
       child: Row(children: [b(false, t('🎮 Consoles', '🎮 Systems')), b(true, t('🌈 Sagas', '🌈 Sagas'))]),
     );
   }
@@ -235,7 +235,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(3),
-                child: LinearProgressIndicator(value: total == 0 ? 0 : mine / total, minHeight: 6, color: color, backgroundColor: opq(Colors.white10)),
+                child: LinearProgressIndicator(value: total == 0 ? 0 : mine / total, minHeight: 6, color: color, backgroundColor: kCellHi),
               ),
             ),
             SizedBox(width: 52, child: Text('$mine/$total', textAlign: TextAlign.right, style: const TextStyle(fontSize: 10.5, color: Colors.white70))),
@@ -269,7 +269,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
     Widget action(String icon, String value, String label, Color color, VoidCallback? onTap) => Expanded(
           child: Material(
-            color: opq(Colors.black.withOpacity(0.18)),
+            color: kCell,
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
@@ -296,7 +296,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             height: 92,
             child: Stack(alignment: Alignment.center, children: [
               SizedBox.expand(
-                child: CircularProgressIndicator(value: pct, strokeWidth: 8, color: kGold, backgroundColor: opq(Colors.white12), strokeCap: StrokeCap.round),
+                child: CircularProgressIndicator(value: pct, strokeWidth: 8, color: kGold, backgroundColor: kCellHi, strokeCap: StrokeCap.round),
               ),
               Column(mainAxisSize: MainAxisSize.min, children: [
                 Text('${(pct * 100).floor()} %', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 19, color: kGold)),
@@ -331,7 +331,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           value: totalByR[r] == 0 ? 0 : ownByR[r] / totalByR[r],
                           minHeight: 6,
                           color: kRarityColor[r],
-                          backgroundColor: opq(Colors.white10),
+                          backgroundColor: kCellHi,
                         ),
                       ),
                     ),
@@ -408,7 +408,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   height: 46,
                   child: Stack(alignment: Alignment.center, children: [
                     SizedBox.expand(
-                      child: CircularProgressIndicator(value: pct, strokeWidth: 5, color: kGold, backgroundColor: opq(Colors.white12), strokeCap: StrokeCap.round),
+                      child: CircularProgressIndicator(value: pct, strokeWidth: 5, color: kGold, backgroundColor: kCellHi, strokeCap: StrokeCap.round),
                     ),
                     Text('${(pct * 100).floor()}%', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: kGold)),
                   ]),
@@ -738,7 +738,7 @@ class _ConsoleTileState extends State<_ConsoleTile> with SingleTickerProviderSta
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                       decoration: BoxDecoration(
-                        color: opq(Colors.black38),
+                        color: kCell,
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(color: kGold, width: 2.5),
                       ),

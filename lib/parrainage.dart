@@ -138,7 +138,7 @@ class _ReferralPageState extends State<ReferralPage> {
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 13),
-              decoration: BoxDecoration(color: opq(Colors.black38), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: kCell, borderRadius: BorderRadius.circular(10)),
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text(my, style: pixelStyle(size: 15, color: const Color(0xFFFAC775))),
                 const SizedBox(width: 10),
@@ -204,7 +204,7 @@ class _ReferralPageState extends State<ReferralPage> {
                 hintText: t('Code de ton parrain (PT-…)', 'Your sponsor\'s code (PT-…)'),
                 isDense: true,
                 filled: true,
-                fillColor: opq(Color(0x33000000)),
+                fillColor: kCell,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
               onSubmitted: (_) => _enter(),

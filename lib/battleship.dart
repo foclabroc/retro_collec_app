@@ -1124,7 +1124,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
               width: 44,
               height: 44,
               child: Stack(alignment: Alignment.center, children: [
-                SizedBox.expand(child: CircularProgressIndicator(value: frac, strokeWidth: 3, color: warn ? _kRed : ring, backgroundColor: opq(Colors.white10))),
+                SizedBox.expand(child: CircularProgressIndicator(value: frac, strokeWidth: 3, color: warn ? _kRed : ring, backgroundColor: kCellHi)),
                 avatarWidget(avatar, size: 34),
               ]),
             ),
@@ -1228,7 +1228,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
                     width: (boardW - 8) / 2,
                     padding: const EdgeInsets.fromLTRB(8, 7, 8, 6),
                     decoration: BoxDecoration(
-                      color: opq(Colors.white.withOpacity(0.05)),
+                      color: kCellHi,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white.withOpacity(0.15)),
                     ),
@@ -1416,7 +1416,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
             tooltip: t('Son', 'Sound'),
             onPressed: () => setState(() => RcAudio.enabled = !RcAudio.enabled),
             icon: Icon(RcAudio.enabled ? Icons.volume_up : Icons.volume_off, color: Colors.white70),
-            style: IconButton.styleFrom(backgroundColor: opq(Colors.white10)),
+            style: IconButton.styleFrom(backgroundColor: kCellHi),
           ),
         ]),
       ),

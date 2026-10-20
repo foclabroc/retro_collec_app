@@ -220,7 +220,7 @@ class MessagesScreenState extends State<MessagesScreen> {
                 counterText: '',
                 isDense: true,
                 filled: true,
-                fillColor: opq(Color(0x33000000)),
+                fillColor: kCell,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
               ),
             ),

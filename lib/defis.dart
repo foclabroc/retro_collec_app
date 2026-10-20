@@ -356,7 +356,7 @@ class _ChallengeRow extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: f,
                       minHeight: 7,
-                      backgroundColor: opq(Colors.white.withOpacity(0.12)),
+                      backgroundColor: kCellHi,
                       color: done ? const Color(0xFF5DCAA5) : rcTheme.accent,
                     ),
                   ),

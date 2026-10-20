@@ -761,7 +761,7 @@ class _MyShowcaseState extends State<_MyShowcase> {
         minChildSize: 0.4,
         builder: (ctx, scroll) => Column(children: [
           const SizedBox(height: 10),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: opq(Colors.white24), borderRadius: BorderRadius.circular(2))),
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: kHandle, borderRadius: BorderRadius.circular(2))),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 6, 4),
             child: Row(children: [

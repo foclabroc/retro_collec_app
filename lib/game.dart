@@ -128,6 +128,14 @@ Color get kPanel => rcTheme.panel; // panneaux opaques sur le fond animé
 Color get kPanel2 => rcTheme.panel2;
 /// Rend opaque une couleur semi-transparente en la posant sur le panneau du thème (aucun fond visible à travers)
 Color opq(Color c) => Color.alphaBlend(c, rcTheme.panel);
+// Jetons d'opacité (à utiliser partout) :
+//  - opaques : panneaux, barres, feuilles, cases → kCell / kCellHi
+//  - transparents exprès : voiles (kVeil), étiquettes posées sur une image (kOnImg)
+Color get kCell => opq(Colors.black.withOpacity(0.22)); // case foncée (ligne, encadré, chip)
+Color get kCellHi => opq(Colors.white.withOpacity(0.07)); // case claire
+const kVeil = Color(0x8C000000); // voile sombre au-dessus du fond animé (55 %)
+const kOnImg = Color(0xA6000000); // étiquette sur une image de carte / borne (65 %)
+const kHandle = Colors.white24; // poignée des feuilles du bas
 
 /// Avatars : 30 images (assets/avatars/avatar_NN.webp, 256 × 256, détourées, fond transparent).
 /// 00-19 : Bowser Jr, Bowser, Cappy, Deadpool, Dragon, Donkey Kong, Eggman, Fleur de feu, Kirby, Lara Croft,

@@ -187,7 +187,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: opq(Colors.black.withOpacity(0.25)),
+                      backgroundColor: kCell,
                     ),
                     onPressed: onTap,
                     icon: Icon(icon, size: 16),
@@ -235,7 +235,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
                   hintText: t('Chercher un voisin', 'Search a neighbor'),
                   isDense: true,
                   filled: true,
-                  fillColor: opq(Color(0x33000000)),
+                  fillColor: kCell,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                 ),
                 onChanged: (v) {
@@ -438,7 +438,7 @@ class _OnlineRowState extends State<_OnlineRow> {
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(color: opq(Colors.white.withOpacity(0.05)), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: kCellHi, borderRadius: BorderRadius.circular(12)),
       child: Column(children: [
         Row(children: [
           Container(
@@ -637,7 +637,7 @@ void _onlineSheet(BuildContext context, List<FloorData> on, void Function(String
         child: Padding(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: opq(Colors.white24), borderRadius: BorderRadius.circular(2)))),
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: kHandle, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 10),
             Text(t('🟢 En ligne maintenant', '🟢 Online now'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
             const SizedBox(height: 8),

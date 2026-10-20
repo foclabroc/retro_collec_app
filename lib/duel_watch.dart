@@ -259,7 +259,7 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: opq(Colors.black26), borderRadius: BorderRadius.circular(13)),
+              decoration: BoxDecoration(color: kCell, borderRadius: BorderRadius.circular(13)),
               child: Row(children: [
                 Icon(bs ? Icons.directions_boat : Icons.grid_on, color: col, size: 30),
                 const SizedBox(width: 10),
@@ -282,7 +282,7 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
               width: 64,
               height: 64,
               child: Stack(alignment: Alignment.center, children: [
-                SizedBox.expand(child: CircularProgressIndicator(value: left / 120, strokeWidth: 5, color: col, backgroundColor: opq(Colors.white12))),
+                SizedBox.expand(child: CircularProgressIndicator(value: left / 120, strokeWidth: 5, color: col, backgroundColor: kCellHi)),
                 Text('${left ~/ 60}:${(left % 60).toString().padLeft(2, '0')}', style: pixelStyle(size: 10, color: Colors.white, shadow: false)),
               ]),
             ),

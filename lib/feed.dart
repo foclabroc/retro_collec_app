@@ -331,7 +331,7 @@ class _FeedTile extends StatelessWidget {
                         child: Container(
                           margin: const EdgeInsets.only(left: 5),
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                          decoration: BoxDecoration(color: opq(Colors.black38), borderRadius: BorderRadius.circular(8)),
+                          decoration: BoxDecoration(color: kCell, borderRadius: BorderRadius.circular(8)),
                           child: Text(prize, style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.w900, fontSize: 12)),
                         ),
                       ),
