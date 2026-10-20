@@ -3,7 +3,7 @@
 ## Prochaine version
 
 - **Voisinage : la salle « Pixel Arcade »** remplace l'immeuble. Chaque joueur a sa borne d'arcade : pseudo sur le fronton,
-  avatar et score à l'écran (PLAYING qui clignote s'il est en ligne, GAME OVER sinon), 🎁 pour offrir un paquet, badge 1P sur la sienne.
+  avatar et score à l'écran (allumé avec PLAYING qui clignote s'il est en ligne, OFFLINE sinon), pseudo qui défile s'il est trop long, 🎁 pour offrir un paquet, badge 1P sur la sienne.
   Podium pour les 3 premiers (projecteur sur le n°1), puis rangées de 3 bornes ; comptoir en bas (cadeaux, recherche).
 - **16 habillages de borne** dessinés (pierre, brique, bois, lierre, néon, art déco, verre, château, japonais, arcade, spatial,
   sous-marin, plage, neige, Halloween, or), mêmes paliers de cartes que les anciens thèmes d'étage (rien à changer côté serveur).

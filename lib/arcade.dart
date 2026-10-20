@@ -13,7 +13,7 @@ import 'server.dart';
 // Voisinage « Pixel Arcade » : chaque joueur a sa borne d'arcade (habillage au
 // choix, débloqué au nombre de cartes), rangées par classement : podium pour
 // les 3 premiers puis des rangées de 3 bornes. Écran allumé (PLAYING) si le
-// joueur est en ligne, GAME OVER sinon. Comptoir en bas : cadeaux, recherche.
+// joueur est en ligne, OFFLINE sinon. Comptoir en bas : cadeaux, recherche.
 // Images des bornes : assets/arcade/<id>.webp (360 x 594, fond transparent).
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -167,21 +167,76 @@ class _BlinkState extends State<_Blink> {
   Widget build(BuildContext context) => Opacity(opacity: on ? 1 : 0, child: widget.child);
 }
 
+/// Texte d'afficheur : immobile s'il tient, sinon il défile en boucle de droite à gauche
+class MarqueeText extends StatefulWidget {
+  final String text;
+  final TextStyle style;
+  const MarqueeText(this.text, {super.key, required this.style});
+  @override
+  State<MarqueeText> createState() => _MarqueeTextState();
+}
+
+class _MarqueeTextState extends State<MarqueeText> with SingleTickerProviderStateMixin {
+  AnimationController? _c;
+
+  @override
+  void dispose() {
+    _c?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, box) {
+      final tp = TextPainter(text: TextSpan(text: widget.text, style: widget.style), maxLines: 1, textDirection: TextDirection.ltr)..layout();
+      if (tp.width <= box.maxWidth) {
+        _c?.stop();
+        return Text(widget.text, maxLines: 1, softWrap: false, style: widget.style);
+      }
+      final gap = tp.height * 4;
+      final dist = tp.width + gap;
+      // vitesse constante (≈ 2,5 hauteurs de texte par seconde), comme un afficheur à LED
+      final ms = (dist / (tp.height * 2.5) * 1000).round();
+      final c = _c ??= AnimationController(vsync: this, duration: Duration(milliseconds: ms));
+      if (c.duration!.inMilliseconds != ms) c.duration = Duration(milliseconds: ms);
+      if (!c.isAnimating) c.repeat();
+      final label = Text(widget.text, maxLines: 1, softWrap: false, style: widget.style);
+      return SizedBox(
+        width: box.maxWidth,
+        height: tp.height,
+        child: ClipRect(
+          child: AnimatedBuilder(
+            animation: c,
+            builder: (_, child) => Transform.translate(offset: Offset(-c.value * dist, 0), child: child),
+            child: OverflowBox(
+              alignment: Alignment.centerLeft,
+              maxWidth: double.infinity,
+              child: Row(mainAxisSize: MainAxisSize.min, children: [label, SizedBox(width: gap), label, SizedBox(width: gap)]),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
 class _Scanlines extends CustomPainter {
+  final double dark;
+  _Scanlines(this.dark);
   @override
   void paint(Canvas c, Size s) {
-    final p = Paint()..color = Colors.black.withOpacity(0.22);
+    final p = Paint()..color = Colors.black.withOpacity(dark);
     for (var y = 0.0; y < s.height; y += 3) {
       c.drawRect(Rect.fromLTWH(0, y + 2, s.width, 1), p);
     }
   }
 
   @override
-  bool shouldRepaint(_Scanlines o) => false;
+  bool shouldRepaint(_Scanlines o) => o.dark != dark;
 }
 
 /// Une borne d'arcade : image de l'habillage, pseudo sur le fronton, écran avec
-/// avatar / score / PLAYING ou GAME OVER, 🎁 et badge 1P.
+/// avatar / score / PLAYING ou OFFLINE, 🎁 et badge 1P.
 class ArcadeCabinet extends StatelessWidget {
   final FloorData d;
   final double width;
@@ -204,9 +259,9 @@ class ArcadeCabinet extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(w * 0.04),
         gradient: on
-            ? const RadialGradient(colors: [Color(0xFF1E4A70), Color(0xFF071526)], radius: 0.9)
+            ? const RadialGradient(colors: [Color(0xFF4F9AD0), Color(0xFF1C4C78), Color(0xFF0C2440)], stops: [0, 0.6, 1], radius: 0.95)
             : const RadialGradient(colors: [Color(0xFF15151C), Color(0xFF050508)], radius: 0.9),
-        boxShadow: on ? [BoxShadow(color: const Color(0xFF28E0FF).withOpacity(0.35), blurRadius: w * 0.08)] : null,
+        boxShadow: on ? [BoxShadow(color: const Color(0xFF6FE8FF).withOpacity(0.6), blurRadius: w * 0.12, spreadRadius: w * 0.01)] : null,
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(children: [
@@ -221,11 +276,11 @@ class ArcadeCabinet extends StatelessWidget {
               if (on)
                 _Blink(child: Text(d.me ? '1P READY' : 'PLAYING', style: pixelStyle(size: 5.5 * g, color: const Color(0xFF7DFFB0), shadow: false)))
               else
-                Text('GAME OVER', style: pixelStyle(size: 5.5 * g, color: const Color(0xFFFF5A6A), shadow: false)),
+                Text('OFFLINE', style: pixelStyle(size: 5.5 * g, color: const Color(0xFFFF5A6A), shadow: false)),
             ]),
           ),
         ),
-        Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _Scanlines()))),
+        Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _Scanlines(on ? 0.12 : 0.22)))),
       ]),
     );
 
@@ -256,14 +311,11 @@ class ArcadeCabinet extends StatelessWidget {
               rect: mr,
               child: Center(
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: w * 0.04, vertical: h * 0.006),
+                  constraints: BoxConstraints(maxWidth: mr.width * 0.94),
+                  padding: EdgeInsets.symmetric(horizontal: w * 0.03, vertical: h * 0.006),
                   decoration: BoxDecoration(color: Colors.black.withOpacity(0.62), borderRadius: BorderRadius.circular(w * 0.03)),
-                  child: FittedBox(
-                    child: Text(d.name.toUpperCase(),
-                        maxLines: 1,
-                        style: pixelStyle(size: 7 * g, color: Colors.white, shadow: false)
-                            .copyWith(shadows: [Shadow(color: skin.glow, blurRadius: 6)])),
-                  ),
+                  child: MarqueeText(d.name.toUpperCase(),
+                      style: pixelStyle(size: 7 * g, color: Colors.white, shadow: false).copyWith(shadows: [Shadow(color: skin.glow, blurRadius: 6)])),
                 ),
               ),
             ),
