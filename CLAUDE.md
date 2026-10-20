@@ -47,7 +47,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - `server.dart` : tous les appels RPC.
 - `retro_theme.dart` : 12 thèmes de fond colorés (`kThemes`, `RcMotif`) ; seuls les motifs de `kAnimatedMotifs` sont animés, les autres ne sont dessinés qu'au changement de thème. `bg` = `surface` (fond foncé des feuilles et dialogues).
 - Bornes du Voisinage : `assets/arcade/<id>.webp` en 360 × 594, fond transparent, écran noir à la même place sur toutes (zone écran / fronton dans `arcade.dart`). Générées avec Gemini en retouchant la borne « pierre » (une image par discussion).
-- `packs.dart` : onglet Paquets (mosaïque : stock, paquet gratuit, boutique, lot), ouverture animée, cadeaux.
+- `packs.dart` : onglet Paquets (mosaïque : stock, paquet gratuit, boutique, lot), ouverture animée, cadeaux. Bouton « Cadeau suivant / Déchirer le suivant / Ouvrir un autre » protégé contre le double appui (`_againBusy`).
 - `cards.dart` (rendu `CardView`), `catalog.dart` (catalogue, sagas), `sagas.dart`, `library.dart` / `album.dart` (Collection).
 - `market.dart` / `bourse.dart` (Bourse), `trades.dart`.
 - `arcade.dart` (Voisinage « Pixel Arcade » : `ArcadeCabinet` (effets de lumière des bornes en ligne : une animation de 6 s par borne, `_lit`), habillages `kFloorThemes` → `assets/arcade/*.webp`, `FloorData`, page d'habillage, fond `ArcadeCarpet` « salle d'arcade la nuit » : mur teinté par `surface` + lueur `line`, néon `accent2` à 58 % de la hauteur, damier en perspective), `neighbors.dart` (salle : podium + rangées de 3), `profile.dart`, `house.dart`.
