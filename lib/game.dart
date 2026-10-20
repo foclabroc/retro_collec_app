@@ -127,15 +127,17 @@ Color get kBg => rcTheme.bg; // fond des feuilles et dialogues
 Color get kPanel => rcTheme.panel; // panneaux semi-transparents sur le fond animé
 Color get kPanel2 => rcTheme.panel2;
 
-/// Avatars : 30 personnages pixel art originaux (assets/avatars/avatar_NN.webp, 128 × 128).
-/// Ordre : Chevalier, Astronaute, Robot, Sorcière, Pirate, Viking, Samouraï, Squelette, Vampire, Zombie, Fantôme, Chat, Renard, Hibou, Pingouin, Grenouille, Panda, Tricératops, Dragon, Alien, Pieuvre, Chef, Punk, Cowboy, Scaphandrier, Momie, Clown, Abeille, Gamer, Lion.
+/// Avatars : 30 images (assets/avatars/avatar_NN.webp, 256 × 256, recadrées, fond d'origine).
+/// 00-19 : Bowser Jr, Bowser, Cappy, Deadpool, Dragon, Donkey Kong, Eggman, Fleur de feu, Kirby, Lara Croft,
+/// Licorne, Link BotW, Link, Link Cartoon, Luigi, Mario chat, Mario, Samus, Champignon, Peach.
+/// 20-29 : provisoires (pixel art de tools/avatars), à remplacer.
 /// La couleur sert de liseré autour de l'avatar. Ne pas réordonner (index stocké côté serveur).
 const kAvatars = <Color>[
-  Color(0xFF9AA2B0), Color(0xFF3BA7E8), Color(0xFF2EC4B6), Color(0xFF9C5FD0), Color(0xFFD9483B), Color(0xFFE8C35A),
-  Color(0xFFC0392B), Color(0xFFB0B4BE), Color(0xFF8E1B2E), Color(0xFF6E9A2E), Color(0xFF7FD1F0), Color(0xFFE8863A),
+  Color(0xFF8BC34A), Color(0xFFE8A33A), Color(0xFFE8E8F0), Color(0xFFC8202A), Color(0xFFD64032), Color(0xFF8A4A20),
+  Color(0xFFD9202A), Color(0xFFF28A20), Color(0xFFF28AB0), Color(0xFF6A5040), Color(0xFFB07AE8), Color(0xFF3BA7E8),
+  Color(0xFF3E8A28), Color(0xFF6CBF3A), Color(0xFF2E9A3A), Color(0xFFF2C230), Color(0xFFD9202A), Color(0xFFE8763A),
+  Color(0xFFD9202A), Color(0xFFF28AB0), Color(0xFF8E1B2E), Color(0xFF6E9A2E), Color(0xFF7FD1F0), Color(0xFFE8863A),
   Color(0xFFE0662A), Color(0xFF8A5A3B), Color(0xFF3E6FC2), Color(0xFF4E9A4A), Color(0xFF5A6378), Color(0xFF7B55C7),
-  Color(0xFFD64032), Color(0xFF39E07A), Color(0xFFED93B1), Color(0xFFE8E8F0), Color(0xFFED4FA0), Color(0xFFC8735A),
-  Color(0xFFC88A3A), Color(0xFFD8CCA4), Color(0xFFF2C230), Color(0xFFFFD84A), Color(0xFF2E9A5A), Color(0xFFE8A84A),
 ];
 
 Widget avatarWidget(int a, {double size = 40}) {
@@ -145,7 +147,7 @@ Widget avatarWidget(int a, {double size = 40}) {
     width: size,
     height: size,
     decoration: BoxDecoration(
-      color: const Color(0xFF14204F),
+      color: Colors.white,
       shape: BoxShape.circle,
       border: Border.all(color: color, width: size >= 40 ? 2 : 1.5),
     ),
@@ -153,7 +155,7 @@ Widget avatarWidget(int a, {double size = 40}) {
       child: Image.asset(
         'assets/avatars/avatar_${i.toString().padLeft(2, '0')}.webp',
         fit: BoxFit.cover,
-        filterQuality: FilterQuality.none, // pixel art net
+        filterQuality: FilterQuality.medium, // images lissées
         errorBuilder: (_, __, ___) => Icon(Icons.person, color: color, size: size * 0.55),
       ),
     ),
