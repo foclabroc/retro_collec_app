@@ -456,6 +456,30 @@ class PodiumStep extends StatelessWidget {
   }
 }
 
+/// Faisceau de projecteur au-dessus du n°1 (cône flou qui s'efface vers le bas)
+class ArcadeSpotlight extends CustomPainter {
+  @override
+  void paint(Canvas c, Size s) {
+    c.clipRect(Offset.zero & s);
+    final beam = Path()
+      ..moveTo(s.width * 0.42, 0)
+      ..lineTo(s.width * 0.58, 0)
+      ..lineTo(s.width * 0.85, s.height)
+      ..lineTo(s.width * 0.15, s.height)
+      ..close();
+    c.drawPath(
+      beam,
+      Paint()
+        ..shader = const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x55FFD166), Color(0x00FFD166)])
+            .createShader(Offset.zero & s)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, s.width * 0.05),
+    );
+  }
+
+  @override
+  bool shouldRepaint(ArcadeSpotlight o) => false;
+}
+
 /// Allée entre deux rangées
 const kAisleH = 26.0;
 
@@ -528,6 +552,7 @@ class ArcadeCounter extends StatelessWidget {
 class ArcadeCarpet extends CustomPainter {
   @override
   void paint(Canvas c, Size s) {
+    c.clipRect(Offset.zero & s); // le motif ne doit pas déborder sur le menu
     c.drawRect(Offset.zero & s, Paint()..color = const Color(0xFF120A26));
     final stripe = Paint()..color = const Color(0xFF170D30);
     for (var x = -s.height; x < s.width; x += 28) {

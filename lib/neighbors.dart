@@ -319,12 +319,10 @@ class NeighborsScreenState extends State<NeighborsScreen> {
             // projecteur sur le n°1
             Positioned(
               top: 0,
-              left: cw * 0.2,
-              right: cw * 0.2,
-              height: _podiumH * 0.6,
-              child: const DecoratedBox(
-                decoration: BoxDecoration(gradient: RadialGradient(center: Alignment.topCenter, radius: 1, colors: [Color(0x55FFD166), Color(0x00FFD166)])),
-              ),
+              left: cw * 0.15,
+              right: cw * 0.15,
+              height: _podiumH * 0.75,
+              child: IgnorePointer(child: CustomPaint(painter: ArcadeSpotlight())),
             ),
             Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               slot(1, sideW),
@@ -378,7 +376,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
       );
 
       return Stack(children: [
-        Positioned.fill(child: CustomPaint(painter: ArcadeCarpet())),
+        Positioned.fill(child: ClipRect(child: CustomPaint(painter: ArcadeCarpet()))),
         RefreshIndicator(
           onRefresh: load,
           child: ListView.builder(
