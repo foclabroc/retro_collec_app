@@ -1555,7 +1555,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                                       : null,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Column(children: [
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                                   for (var r = 0; r < 6; r++)
                                     Expanded(child: Padding(padding: const EdgeInsets.all(4), child: _cell(board[r * 7 + c], r * 7 + c, win.contains(r * 7 + c)))),
                                 ]),
@@ -1636,7 +1636,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
     if (win) disc = _WinPulse(child: disc);
     // pion posé : il remplit tout le trou (un peu plus grand que le trou vide), avec une ombre
     final placed = Transform.scale(
-            scale: 1.16,
+            scale: 1.08,
             child: DecoratedBox(
               decoration: const BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Color(0x66000000), blurRadius: 4, offset: Offset(0, 2))]),
               child: disc,
