@@ -210,6 +210,7 @@ class MyTrophies extends StatefulWidget {
 }
 
 class _MyTrophiesState extends State<MyTrophies> {
+  bool open = false; // liste complète des trophées dépliée
   List<_Tro> list = [];
   String show = '';
   bool loaded = false, failed = false, busy = false;
@@ -301,12 +302,52 @@ class _MyTrophiesState extends State<MyTrophies> {
           Flexible(child: SizedBox(width: 112, child: _slot(context, i, slots))),
         ],
       ]),
-      const SizedBox(height: 12),
-      LayoutBuilder(builder: (ctx, c) {
-        final cols = max(3, ((c.maxWidth + 8) / 104).floor());
-        final w = (c.maxWidth - (cols - 1) * 8) / cols;
-        return Wrap(spacing: 8, runSpacing: 8, children: [for (final x in list) SizedBox(width: w, child: _cell(context, x))]);
-      }),
+      const SizedBox(height: 10),
+      // tous les trophées : dans un déroulant (fermé par défaut)
+      InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => setState(() => open = !open),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: ready > 0 ? kGold.withOpacity(0.10) : Colors.black.withOpacity(0.18),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: ready > 0 ? kGold : Colors.white12),
+          ),
+          child: Row(children: [
+            const Text('🏆', style: TextStyle(fontSize: 15)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                ready > 0
+                    ? t('Tous les trophées · $ready à récupérer', 'All trophies · $ready to claim')
+                    : t('Tous les trophées (${list.length})', 'All trophies (${list.length})'),
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: ready > 0 ? kGold : Colors.white),
+              ),
+            ),
+            AnimatedRotation(
+              turns: open ? 0.5 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: Icon(Icons.expand_more, color: ready > 0 ? kGold : Colors.white70),
+            ),
+          ]),
+        ),
+      ),
+      AnimatedSize(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        alignment: Alignment.topCenter,
+        child: !open
+            ? const SizedBox(width: double.infinity)
+            : Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: LayoutBuilder(builder: (ctx, c) {
+                  final cols = max(3, ((c.maxWidth + 8) / 104).floor());
+                  final w = (c.maxWidth - (cols - 1) * 8) / cols;
+                  return Wrap(spacing: 8, runSpacing: 8, children: [for (final x in list) SizedBox(width: w, child: _cell(context, x))]);
+                }),
+              ),
+      ),
     ]);
   }
 
