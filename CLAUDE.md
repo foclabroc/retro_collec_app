@@ -61,4 +61,5 @@ Web : https://foclabroc.github.io/retro_collec_app/
 
 ## À faire
 
-1. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
+1. Revoir les thèmes de fond (`retro_theme.dart`) : l'utilisateur n'aime pas le rendu actuel. Lui demander ce qui ne va pas (captures), proposer une maquette HTML avant de coder. (Essai d'opacité à 93 % partout refusé et annulé le 20/10.)
+2. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
