@@ -3,6 +3,7 @@
 ## v1.0.13
 _Version 1.0.13+14._
 
+- Défis de la semaine : « Recycler 30 doublons » remplacé par **« Envoyer 9 cadeaux »** (🎁, +100 pièces).
 - **Nouveaux avatars : 30 personnages de jeux vidéo** (Mario, Luigi, Peach, Bowser, Yoshi, Toad, Link, Samus, Kirby, Sonic, Tails,
   Fox, Donkey Kong, Lara Croft, Deadpool…), détourés (fond transparent). Ils remplacent les 18 anciens
   (les joueurs gardent leur numéro d'avatar, seule l'image change).

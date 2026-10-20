@@ -25,5 +25,6 @@ begin
   insert into public.rc_gifts (receiver, giver, giver_name) values (dest.device, p_device, v.name);
   update public.rc_players set gift_day = public.rc__today(), gift_n = n + 1 where device = p_device;
   perform public.rc__ev_bump(p_device, 'gifts_sent', 1);  -- défi : paquets offerts
+  perform public.rc__wbump(p_device, 2, 1);  -- défi de la semaine : cadeaux envoyés
   return true;
 end $function$;

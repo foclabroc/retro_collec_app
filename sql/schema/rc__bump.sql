@@ -5,7 +5,9 @@ create or replace function public.rc__bump(p_dev text, p_kind text, p_n integer)
  set search_path to 'public'
 as $function$
 begin
-  perform public.rc__wbump(p_dev, case p_kind when 'open' then 1 when 'recycle' then 2 else 3 end, p_n);
+  if p_kind <> 'recycle' then  -- le recyclage ne compte plus pour les défis de la semaine
+    perform public.rc__wbump(p_dev, case p_kind when 'open' then 1 else 3 end, p_n);
+  end if;
   if p_kind = 'open' then
     perform public.rc__ref_check(p_dev);  -- parrainage
     insert into public.rc_daily (day, packs) values (public.rc__today(), p_n)

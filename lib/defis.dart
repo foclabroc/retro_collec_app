@@ -26,11 +26,11 @@ class DefisScreenState extends State<DefisScreen> {
   int? busy; // défi en cours de récupération
   Timer? _tick;
 
-  static const _icons = ['📦', '♻️', '🤝', '⚔️', '🟨', '💜'];
+  static const _icons = ['📦', '🎁', '🤝', '⚔️', '🟨', '💜'];
 
   static String _label(int i, int goal) => switch (i) {
         0 => t('Ouvrir $goal paquets', 'Open $goal packs'),
-        1 => t('Recycler $goal doublons', 'Recycle $goal duplicates'),
+        1 => t('Envoyer $goal cadeaux', 'Send $goal gifts'),
         2 => t('Faire $goal échanges, achats ou ventes', 'Make $goal trades, purchases or sales'),
         3 => t('Gagner $goal duels (4 en ligne ou Console Wars)', 'Win $goal duels (Connect 4 or Console Wars)'),
         4 => t('Réussir $goal Gamedle', 'Solve $goal Gamedles'),
