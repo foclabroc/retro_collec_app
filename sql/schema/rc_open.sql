@@ -9,7 +9,7 @@ declare
   price int := public.rc__pack_price(p_kind);
   scope text := case when p_kind = 'console' then p_sys else null end;
   n int := 5; x float;
-  i int; r int; f int; c text; sg text; is_new boolean; got_epic boolean := false;
+  i int; r int; f int; c text; sg text; is_new boolean; got_epic boolean := false; nnew int := 0;
   res jsonb := '[]'::jsonb; ev jsonb := '[]'::jsonb; gid bigint;
 begin
   perform public.rc__check(p_sig, p_device || '|open|' || coalesce(p_kind, '') || '|' || coalesce(p_sys, ''));
@@ -59,6 +59,7 @@ begin
     sg := public.rc__saga_roll();  -- carte de saga
     if sg is not null then c := sg; r := 3; f := 0; got_epic := true; end if;
     is_new := not exists (select 1 from public.rc_owned where device = p_device and card = c);
+    if is_new then nnew := nnew + 1; end if;
     perform public.rc__give(p_device, c, f, 1);
     res := res || jsonb_build_object('c', c, 'f', f, 'r', r, 'n', is_new);
     c := null;
@@ -68,7 +69,12 @@ begin
          pixels = pixels + 1
    where device = p_device;
   ev := ev || public.rc__bump(p_device, 'open', 1);
-  if got_epic then perform public.rc__wbump(p_device, 6, 1); end if;  -- défi : carte épique ou mieux
+  if got_epic then  -- défi : carte épique ou mieux
+    perform public.rc__wbump(p_device, 'epic', 1);
+    perform public.rc__ev_bump(p_device, 'epics', 1);
+  end if;
+  perform public.rc__wbump(p_device, 'new', nnew);  -- défi : nouvelles cartes
+  if p_kind in ('free', 'premium') then perform public.rc__wbump(p_device, p_kind, 1); end if;  -- défis : paquet gratuit, premium
   ev := ev || public.rc__milestones(p_device);
   perform public.rc__rescore(p_device);
   select * into v from public.rc_players where device = p_device;

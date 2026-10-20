@@ -7,7 +7,7 @@ as $function$
 declare
   v public.rc_players;
   pd public.rc_pending;
-  e jsonb; c text; f int; r int; is_new boolean; got_epic boolean := false; s text;
+  e jsonb; c text; f int; r int; is_new boolean; got_epic boolean := false; nnew int := 0; s text;
   res jsonb := '[]'::jsonb; ev jsonb := '[]'::jsonb; miss jsonb; miss_b int;
 begin
   perform public.rc__check(p_sig, p_device || '|pick|' || p_choice);
@@ -23,6 +23,7 @@ begin
     c := e ->> 'c'; f := (e ->> 'f')::int; r := (e ->> 'r')::int;
     if r >= 3 then got_epic := true; end if;
     is_new := not exists (select 1 from public.rc_owned where device = p_device and card = c);
+    if is_new then nnew := nnew + 1; end if;
     perform public.rc__give(p_device, c, f, 1);
     res := res || jsonb_build_object('c', c, 'f', f, 'r', r, 'n', is_new);
     select sys into s from public.rc_cards where id = c;
@@ -47,7 +48,11 @@ begin
          pixels = pixels + case when public.rc__special_cost(pd.kind) is null then 1 else 0 end
    where device = p_device;
   ev := ev || public.rc__bump(p_device, 'open', 1);
-  if got_epic then perform public.rc__wbump(p_device, 6, 1); end if;  -- défi : carte épique ou mieux
+  if got_epic then  -- défi : carte épique ou mieux
+    perform public.rc__wbump(p_device, 'epic', 1);
+    perform public.rc__ev_bump(p_device, 'epics', 1);
+  end if;
+  perform public.rc__wbump(p_device, 'new', nnew);  -- défi : nouvelles cartes
   ev := ev || public.rc__milestones(p_device);
   perform public.rc__rescore(p_device);
   select * into v from public.rc_players where device = p_device;

@@ -1,12 +1,16 @@
-create or replace function public.rc__wbump(p_dev text, p_i integer, p_n integer)
+create or replace function public.rc__wbump(p_dev text, p_kind text, p_n integer)
  returns void
  language plpgsql
  security definer
  set search_path to 'public'
 as $function$
+declare k text[];
 begin
-  if p_dev is null or p_n <= 0 then return; end if;
+  if p_dev is null or coalesce(p_n, 0) <= 0 then return; end if;
+  k := public.rc__wkinds();
+  if not (p_kind = any(k)) then return; end if;  -- pas au programme cette semaine
   perform public.rc__wk(p_dev);
-  update public.rc_players set w_prog[p_i] = least(coalesce(w_prog[p_i], 0) + p_n, 9999) where device = p_dev;
-  if p_i = 6 then perform public.rc__ev_bump(p_dev, 'epics', p_n); end if;  -- paquet avec une épique ou mieux
+  update public.rc_players set w_prog[array_position(k, p_kind)] =
+         least(coalesce(w_prog[array_position(k, p_kind)], 0) + p_n, 9999)
+   where device = p_dev;
 end $function$;

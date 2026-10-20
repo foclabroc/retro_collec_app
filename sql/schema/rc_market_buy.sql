@@ -23,6 +23,8 @@ begin
   ev := ev || public.rc__bump(p_device, 'trade', 1) || public.rc__milestones(p_device);
   perform public.rc__bump(m.seller, 'trade', 1);
   perform public.rc__ev_bump(m.seller, 'sales', 1);  -- défi : ventes en Bourse
+  perform public.rc__wbump(m.seller, 'sale', 1);
+  if is_new then perform public.rc__wbump(p_device, 'new', 1); end if;
   perform public.rc__rescore(p_device);
   return jsonb_build_object('card', m.card, 'f', m.finish, 'n', is_new,
                             'coins', (select coins from public.rc_players where device = p_device), 'events', ev);

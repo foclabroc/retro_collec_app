@@ -27,7 +27,7 @@ begin
     reward := (array[100, 80, 60, 45, 30, 20])[tries];
     update public.rc_players set coins = coins + reward where device = p_device;
     perform public.rc__feed_add(p_device, 'gamedle', ans, null, null, tries);
-    perform public.rc__wbump(p_device, 5, 1);
+    perform public.rc__wbump(p_device, 'gamedle', 1);
   end if;
   return public.rc__gamedle_json(p_device) || jsonb_build_object('ok', ok, 'reward', reward, 'answer', case when ok or tries >= 6 then ans end);
 end $function$

@@ -26,16 +26,45 @@ class DefisScreenState extends State<DefisScreen> {
   int? busy; // défi en cours de récupération
   Timer? _tick;
 
-  static const _icons = ['📦', '🎁', '🤝', '⚔️', '🟨', '💜'];
+  // défis tirés chaque semaine dans un réservoir (rc__wpool côté serveur) : icône et texte selon leur type
+  static const _old = ['open', 'gift', 'trade', 'win', 'gamedle', 'epic']; // ancien serveur sans « kinds »
 
-  static String _label(int i, int goal) => switch (i) {
-        0 => t('Ouvrir $goal paquets', 'Open $goal packs'),
-        1 => t('Envoyer $goal cadeaux', 'Send $goal gifts'),
-        2 => t('Faire $goal échanges, achats ou ventes', 'Make $goal trades, purchases or sales'),
-        3 => t('Gagner $goal duels (4 en ligne ou Console Wars)', 'Win $goal duels (Connect 4 or Console Wars)'),
-        4 => t('Réussir $goal Gamedle', 'Solve $goal Gamedles'),
+  static String _icon(String k) => switch (k) {
+        'open' => '📦',
+        'gift' => '🎁',
+        'trade' => '🤝',
+        'win' => '⚔️',
+        'gamedle' => '🟨',
+        'epic' => '💜',
+        'play' => '🕹️',
+        'new' => '✨',
+        'quiz' => '❓',
+        'sale' => '💰',
+        'free' => '📅',
+        'premium' => '⭐',
+        _ => '🏆',
+      };
+
+  static String _label(String k, int goal) => switch (k) {
+        'open' => t('Ouvrir $goal paquets', 'Open $goal packs'),
+        'gift' => t('Envoyer $goal cadeaux', 'Send $goal gifts'),
+        'trade' => t('Faire $goal échanges, achats ou ventes', 'Make $goal trades, purchases or sales'),
+        'win' => t('Gagner $goal duels (4 en ligne ou Console Wars)', 'Win $goal duels (Connect 4 or Console Wars)'),
+        'gamedle' => t('Réussir $goal Gamedle', 'Solve $goal Gamedles'),
+        'play' => t('Jouer $goal duels (gagnés ou perdus)', 'Play $goal duels (won or lost)'),
+        'new' => t('Obtenir $goal nouvelles cartes', 'Get $goal new cards'),
+        'quiz' => t('Donner $goal bonnes réponses au quiz', 'Give $goal right quiz answers'),
+        'sale' => t('Vendre $goal cartes à la Bourse', 'Sell $goal cards on the market'),
+        'free' => t('Ouvrir le paquet gratuit $goal jours', 'Open the free pack on $goal days'),
+        'premium' => t('Ouvrir $goal paquets premium', 'Open $goal premium packs'),
         _ => goal == 1 ? t('Obtenir une carte épique ou mieux', 'Get an epic card or better') : t('Obtenir $goal cartes épiques ou mieux', 'Get $goal epic cards or better'),
       };
+
+  String _kind(int i) {
+    final k = data?['kinds'];
+    if (k is List && i < k.length) return '${k[i]}';
+    return i < _old.length ? _old[i] : '';
+  }
 
   @override
   void initState() {
@@ -138,8 +167,8 @@ class DefisScreenState extends State<DefisScreen> {
       ),
       for (var i = 0; i < n; i++)
         _ChallengeRow(
-          icon: _icons[i % _icons.length],
-          label: _label(i, goals[i]),
+          icon: _icon(_kind(i)),
+          label: _label(_kind(i), goals[i]),
           cur: i < prog.length ? prog[i] : 0,
           goal: goals[i],
           reward: i < rewards.length ? rewards[i] : 0,

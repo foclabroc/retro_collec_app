@@ -20,5 +20,6 @@ begin
    where device = p_device
   returning coins into v.coins;
   perform public.rc__ev_bump(p_device, 'quiz', gain / 5);  -- défi : bonnes réponses (dans la limite du jour)
+  perform public.rc__wbump(p_device, 'quiz', gain / 5);
   return jsonb_build_object('gain', gain, 'left', greatest(0, 100 - already - gain), 'coins', v.coins);
 end $function$;
