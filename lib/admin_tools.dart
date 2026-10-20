@@ -235,6 +235,15 @@ class _ToolsTab extends StatelessWidget {
               label: Text(t('Chercher', 'Search')),
             ),
           ]),
+          _section(t('🔎 Activité des joueurs', '🔎 Player activity'),
+              t('Tout ce qui se passe dans le jeu (30 derniers jours) : paquets, Bourse, échanges, cadeaux, duels, récompenses, pièces.',
+                'Everything happening in the game (last 30 days): packs, market, trades, gifts, duels, rewards, coins.'), [
+            ElevatedButton.icon(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminActivityPage())),
+              icon: const Icon(Icons.manage_search),
+              label: Text(t('Voir l\'activité', 'See activity')),
+            ),
+          ]),
           _section(t('📜 Journal admin', '📜 Admin log'), t('Tes 200 dernières actions : cadeaux, blocages, renommages, réglages, événements.', 'Your last 200 actions: gifts, blocks, renames, settings, events.'), [
             ElevatedButton.icon(
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminLogPage())),
@@ -919,6 +928,208 @@ class AdminLogPage extends StatelessWidget {
               ),
           ]),
         ),
+      );
+}
+
+// ─── Activité des joueurs ───────────────────────────────────────────────────
+
+class AdminActivityPage extends StatefulWidget {
+  const AdminActivityPage({super.key});
+  @override
+  State<AdminActivityPage> createState() => _AdminActivityPageState();
+}
+
+class _AdminActivityPageState extends State<AdminActivityPage> {
+  List<(String, String)> get _groups => [
+    ('', t('Tout', 'All')),
+    ('packs', t('📦 Paquets', '📦 Packs')),
+    ('bourse', t('💱 Bourse', '💱 Market')),
+    ('trades', t('🔄 Échanges', '🔄 Trades')),
+    ('gifts', t('🎁 Cadeaux', '🎁 Gifts')),
+    ('duels', t('⚔ Duels', '⚔ Duels')),
+    ('rewards', t('🏆 Récompenses', '🏆 Rewards')),
+    ('coins', t('💰 Pièces', '💰 Coins')),
+    ('login', t('👋 Connexions', '👋 Logins')),
+  ];
+
+  final _search = TextEditingController();
+  Timer? _debounce;
+  String _group = '';
+  final List<Map<String, dynamic>> _rows = [];
+  bool _loading = false, _end = false;
+  String? _error;
+  int _req = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _load(reset: true);
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load({bool reset = false}) async {
+    final req = ++_req;
+    if (reset) {
+      _rows.clear();
+      _end = false;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final before = _rows.isEmpty ? 0 : (_rows.last['id'] as num).toInt();
+      final got = await RcServer.adminActivity(_group, _search.text.trim(), before);
+      if (!mounted || req != _req) return;
+      setState(() {
+        _rows.addAll(got);
+        _end = got.length < 80;
+      });
+    } catch (e) {
+      if (mounted && req == _req) setState(() => _error = errText(e));
+    } finally {
+      if (mounted && req == _req) setState(() => _loading = false);
+    }
+  }
+
+  static String _icon(String k) => switch (k) {
+        'join' => '🆕',
+        'login' => '👋',
+        'pack' || 'open' || 'lot' => '📦',
+        'sell' || 'unsell' => '🏷',
+        'buy' => '🛒',
+        'sold' => '💸',
+        'trade_offer' || 'trade_ok' || 'trade_no' => '🔄',
+        'gift' || 'gift_in' => '🎁',
+        'duel' => '⚔',
+        'gamedle' => '🧩',
+        'wheel' => '🎡',
+        'week' => '🎯',
+        'quiz' => '❓',
+        'reward' => '🏆',
+        'recycle' => '♻',
+        'fuse' => '🔀',
+        _ => '💰',
+      };
+
+  // « (nes) » → « (NES) » avec le vrai nom de la console
+  static String _sys(String s) => s.replaceAllMapped(RegExp(r'\(([a-z0-9_]+)\)'), (m) => '(${Catalog.system(m[1]!)?.name ?? m[1]})');
+
+  Widget _delta(int n, String unit, Color c) => Padding(
+        padding: const EdgeInsets.only(left: 6),
+        child: Text('${n > 0 ? '+' : '−'}${n.abs()} $unit',
+            style: TextStyle(color: n > 0 ? c : const Color(0xFFE24B4A), fontSize: 12, fontWeight: FontWeight.w800)),
+      );
+
+  Widget _row(Map<String, dynamic> r) {
+    final name = r['name']?.toString() ?? '?';
+    final other = r['other']?.toString();
+    final card = r['card']?.toString();
+    final f = (r['f'] as num?)?.toInt();
+    final c = (r['c'] as num?)?.toInt() ?? 0, p = (r['p'] as num?)?.toInt() ?? 0;
+    final kind = r['kind']?.toString() ?? '';
+    final txt = kind == 'coins' ? t('pièces / pixels sans action connue', 'coins / pixels, no known action') : _sys(r['txt']?.toString() ?? '');
+    return InkWell(
+      onTap: () {
+        _search.text = name;
+        _load(reset: true);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Colors.white10))),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(width: 84, child: Text(_date(_d(r['at'])), style: const TextStyle(color: Colors.white54, fontSize: 12))),
+          Expanded(
+            child: Text.rich(
+              TextSpan(style: const TextStyle(fontSize: 12.5, height: 1.3), children: [
+                TextSpan(text: '${_icon(kind)} '),
+                TextSpan(text: name, style: const TextStyle(fontWeight: FontWeight.w800, color: kGold)),
+                TextSpan(text: ' $txt'),
+                if (other != null) TextSpan(text: ' $other', style: const TextStyle(fontWeight: FontWeight.w800)),
+                if (card != null)
+                  TextSpan(
+                      text: ' — ${_cardName(card)}${f != null && f > 0 ? ' (${finishName(f).toLowerCase()})' : ''}',
+                      style: const TextStyle(color: Color(0xFF7FD8FF))),
+              ]),
+            ),
+          ),
+          if (c != 0) _delta(c, t('pièces', 'coins'), const Color(0xFFFFD166)),
+          if (p != 0) _delta(p, 'px', const Color(0xFF5DCAA5)),
+        ]),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: kBg,
+        appBar: AppBar(backgroundColor: kBg, title: Text(t('Activité des joueurs', 'Player activity'))),
+        body: Column(children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
+            child: TextField(
+              controller: _search,
+              decoration: InputDecoration(
+                hintText: t('Pseudo (vide = tous)…', 'Name (empty = everyone)…'),
+                prefixIcon: const Icon(Icons.search),
+                isDense: true,
+                suffixIcon: _search.text.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          _search.clear();
+                          _load(reset: true);
+                        }),
+              ),
+              onChanged: (_) {
+                _debounce?.cancel();
+                _debounce = Timer(const Duration(milliseconds: 500), () => _load(reset: true));
+              },
+            ),
+          ),
+          SizedBox(
+            height: 42,
+            child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 8), children: [
+              for (final g in _groups)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
+                  child: ChoiceChip(
+                    label: Text(g.$2, style: const TextStyle(fontSize: 12)),
+                    selected: _group == g.$1,
+                    onSelected: (_) {
+                      _group = g.$1;
+                      _load(reset: true);
+                    },
+                  ),
+                ),
+            ]),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => _load(reset: true),
+              child: ListView(padding: const EdgeInsets.all(10), children: [
+                if (_error != null) Padding(padding: const EdgeInsets.all(12), child: Text(_error!, style: const TextStyle(color: Color(0xFFE24B4A)))),
+                if (_rows.isEmpty && !_loading && _error == null)
+                  Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(t('Rien pour l\'instant (compté depuis la mise à jour du serveur)', 'Nothing yet (counted since the server update)'),
+                          style: const TextStyle(color: Colors.white54))),
+                for (final r in _rows) _row(r),
+                if (_loading)
+                  const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()))
+                else if (!_end && _rows.isNotEmpty)
+                  Center(child: TextButton(onPressed: _load, child: Text(t('Voir plus', 'Load more')))),
+              ]),
+            ),
+          ),
+        ]),
       );
 }
 

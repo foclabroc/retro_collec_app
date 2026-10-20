@@ -774,6 +774,10 @@ class RcServer {
   /// Journal des actions admin (200 dernières)
   static Future<List<Map<String, dynamic>>> adminLog() async => _list(await _admin('rc_admin_log_list', 'log'));
 
+  /// Activité des joueurs (80 lignes) : groupe ('' = tout), bout de pseudo, avant la ligne n° before (0 = début)
+  static Future<List<Map<String, dynamic>>> adminActivity(String group, String who, int before) async =>
+      _list(await _admin('rc_admin_activity', 'act|$group|$who|$before', {'p_group': group, 'p_who': who, 'p_before': before}));
+
   // ── Courrier de l'admin et sondage (à l'ouverture du jeu) ────────────────
   static Future<List<Map<String, dynamic>>> mailList() async {
     final d = await deviceId();
