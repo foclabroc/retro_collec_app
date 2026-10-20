@@ -783,6 +783,10 @@ class RcServer {
   static Future<List<Map<String, dynamic>>> adminLog() async => _list(await _admin('rc_admin_log_list', 'log'));
 
   /// Activité des joueurs (80 lignes) : groupe ('' = tout), bout de pseudo, avant la ligne n° before (0 = début)
+  /// Journal de tous les joueurs (150 lignes, plus récentes d'abord) ; [before] = `at` de la dernière ligne reçue, '' = début.
+  static Future<List<Map<String, dynamic>>> adminFeed(String before) async =>
+      _list(await _admin('rc_admin_feed', 'feed|$before', {'p_before': before}));
+
   static Future<List<Map<String, dynamic>>> adminActivity(String group, String who, int before) async =>
       _list(await _admin('rc_admin_activity', 'act|$group|$who|$before', {'p_group': group, 'p_who': who, 'p_before': before}));
 

@@ -39,7 +39,7 @@ class AdminPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Scaffold(
         backgroundColor: kBg,
         appBar: AppBar(
@@ -63,6 +63,7 @@ class AdminPage extends StatelessWidget {
             labelStyle: const TextStyle(fontWeight: FontWeight.w900),
             tabs: [
               Tab(text: t('Comptes', 'Accounts')),
+              Tab(text: t('Journal', 'Log')),
               Tab(text: t('Liens', 'Links')),
               const Tab(text: 'Stats'),
               const Tab(text: 'Chat'),
@@ -70,7 +71,7 @@ class AdminPage extends StatelessWidget {
             ],
           ),
         ),
-        body: const TabBarView(children: [_AccountsTab(), _LinksTab(), _StatsTab(), _ChatTab(), _ToolsTab()]),
+        body: const TabBarView(children: [_AccountsTab(), _FeedTab(), _LinksTab(), _StatsTab(), _ChatTab(), _ToolsTab()]),
       ),
     );
   }
@@ -240,6 +241,13 @@ class _AccountsTabState extends State<_AccountsTab> with AutomaticKeepAliveClien
     return s != null && s.year == n.year && s.month == n.month && s.day == n.day;
   }
 
+  /// « vus aujourd'hui » : le dernier vu en premier
+  List<Map<String, dynamic>> _bySeen(List<Map<String, dynamic>> rows) {
+    final l = [...rows];
+    l.sort((a, b) => (_d(b['seen_at']) ?? DateTime(2000)).compareTo(_d(a['seen_at']) ?? DateTime(2000)));
+    return l;
+  }
+
   @override
   bool get wantKeepAlive => true;
 
@@ -334,7 +342,7 @@ class _AccountsTabState extends State<_AccountsTab> with AutomaticKeepAliveClien
             child: Center(child: Text(t('Aucun compte', 'No account'), style: const TextStyle(color: Colors.white60))),
           )
         else
-          for (final p in rows)
+          for (final p in (_filter == 1 && _q.isEmpty ? _bySeen(rows) : rows))
             if (_q.isNotEmpty || _filter == 0 || (_filter == 1 && _seenToday(p)) || (_filter == 2 && _level(_accountTags(p)) != null))
               _accountRow(context, p),
       ]),
@@ -433,7 +441,7 @@ class AdminPlayerPage extends StatelessWidget {
   }
 
   Widget _eventLine(Map<String, dynamic> e) {
-    final (text, color) = _event(e);
+    final (text, color) = _adminEvent(e);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6),
       decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Colors.white10))),
@@ -444,76 +452,188 @@ class AdminPlayerPage extends StatelessWidget {
     );
   }
 
-  (String, Color?) _event(Map<String, dynamic> e) {
-    final other = e['other']?.toString() ?? '?';
-    final card = '${_cardName(e['card'])}${_finish(e['f'])}';
-    final price = _i(e['price']), avg = e['avg'] == null ? null : _i(e['avg']);
-    final avgTxt = avg == null ? '' : t(' (moyenne : $avg 🪙)', ' (avg: $avg 🪙)');
-    final over = avg != null && price >= 100 && price > 5 * avg;
-    switch (e['kind']) {
-      case 'listing':
-        return (t('$card en vente $price 🪙 (pas vendue)', '$card for sale $price 🪙 (not sold)'), Colors.white70);
-      case 'sold':
-        return (t('vend $card à $other : $price 🪙$avgTxt', 'sold $card to $other: $price 🪙$avgTxt'), over ? _red : null);
-      case 'bought':
-        return (t('achète $card à $other : $price 🪙$avgTxt', 'bought $card from $other: $price 🪙$avgTxt'), over ? _red : null);
-      case 'trade':
-        final gave = parseItems(e['gave']?.toString() ?? ''), got = parseItems(e['got']?.toString() ?? '');
-        final gv = _i(e['gave_v']), gt = _i(e['got_v']);
-        final st = switch (e['status']) {
-          'accepted' => t('accepté', 'accepted'),
-          'refused' => t('refusé', 'declined'),
-          'cancelled' => t('annulé', 'cancelled'),
-          'pending' => t('en attente', 'pending'),
-          _ => e['status']?.toString() ?? '',
-        };
-        String list(List<(String, int)> l) => l.isEmpty ? t('rien', 'nothing') : l.map((x) => _cardName(x.$1)).join(', ');
-        final lopsided = gv - gt >= 150;
-        return (
-          t('échange $st avec $other : donne ${list(gave)} ($gv) ↔ reçoit ${list(got)} ($gt)',
-              'trade $st with $other: gives ${list(gave)} ($gv) ↔ gets ${list(got)} ($gt)'),
-          lopsided ? (e['status'] == 'accepted' ? _red : _org) : null
-        );
-      case 'pack':
-        final k = e['pack']?.toString() ?? '';
-        final name = switch (k) {
-          'free' => t('gratuit', 'free'),
-          'mixte' => t('mixte', 'mixed'),
-          'console' => 'console',
-          'premium' => 'premium',
-          'mystery' => t('mystère', 'mystery'),
-          'gift' => t('cadeau', 'gift'),
-          'lot' => t('du lot', 'from bundle'),
-          'star' => t('Étoile', 'Star'),
-          'sconsole' => 'Console+',
-          'gold' => t('Rétro d\'or', 'Retro Gold'),
-          _ => k,
-        };
-        final sys = e['sys'] == null ? '' : ' · ${Catalog.system(e['sys'].toString())?.name ?? e['sys']}';
-        return (t('📦 ouvre un paquet $name$sys', '📦 opens a $name pack$sys'), Colors.white70);
-      case 'gift_out':
-        return (t('🎁 cadeau offert à $other', '🎁 gift sent to $other'), null);
-      case 'gift_in':
-        return (t('🎁 cadeau reçu de $other', '🎁 gift from $other'), null);
-      case 'duel':
-        final game = e['game'] == 'bs' ? t('Bataille navale', 'Battleship') : t('4 en ligne', 'Connect 4');
-        final res = switch (e['result']) {
-          'win' => t('victoire', 'win'),
-          'loss' => t('défaite', 'loss'),
-          'draw' => t('nul', 'draw'),
-          _ => e['reason']?.toString() ?? e['status']?.toString() ?? '',
-        };
-        return ('$game ${t('contre', 'vs')} $other : $res', Colors.white70);
-      case 'chat':
-        final rep = _i(e['reports']);
-        return (
-          '💬 « ${e['msg']} »${e['hidden'] == true ? t(' (masqué)', ' (hidden)') : ''}${rep > 0 ? t(' · signalé $rep fois', ' · reported $rep×') : ''}',
-          rep > 0 || e['hidden'] == true ? _org : Colors.white70
-        );
+}
+
+/// Texte (et couleur d'alerte) d'une ligne d'activité : fiche joueur et journal de tous les joueurs.
+(String, Color?) _adminEvent(Map<String, dynamic> e) {
+  final other = e['other']?.toString() ?? '?';
+  final card = '${_cardName(e['card'])}${_finish(e['f'])}';
+  final price = _i(e['price']), avg = e['avg'] == null ? null : _i(e['avg']);
+  final avgTxt = avg == null ? '' : t(' (moyenne : $avg 🪙)', ' (avg: $avg 🪙)');
+  final over = avg != null && price >= 100 && price > 5 * avg;
+  switch (e['kind']) {
+    case 'listing':
+      return (t('$card en vente $price 🪙 (pas vendue)', '$card for sale $price 🪙 (not sold)'), Colors.white70);
+    case 'sold':
+      return (t('vend $card à $other : $price 🪙$avgTxt', 'sold $card to $other: $price 🪙$avgTxt'), over ? _red : null);
+    case 'bought':
+      return (t('achète $card à $other : $price 🪙$avgTxt', 'bought $card from $other: $price 🪙$avgTxt'), over ? _red : null);
+    case 'trade':
+      final gave = parseItems(e['gave']?.toString() ?? ''), got = parseItems(e['got']?.toString() ?? '');
+      final gv = _i(e['gave_v']), gt = _i(e['got_v']);
+      final st = switch (e['status']) {
+        'accepted' => t('accepté', 'accepted'),
+        'refused' => t('refusé', 'declined'),
+        'cancelled' => t('annulé', 'cancelled'),
+        'pending' => t('en attente', 'pending'),
+        _ => e['status']?.toString() ?? '',
+      };
+      String list(List<(String, int)> l) => l.isEmpty ? t('rien', 'nothing') : l.map((x) => _cardName(x.$1)).join(', ');
+      final lopsided = gv - gt >= 150;
+      return (
+        t('échange $st avec $other : donne ${list(gave)} ($gv) ↔ reçoit ${list(got)} ($gt)',
+            'trade $st with $other: gives ${list(gave)} ($gv) ↔ gets ${list(got)} ($gt)'),
+        lopsided ? (e['status'] == 'accepted' ? _red : _org) : null
+      );
+    case 'pack':
+      final k = e['pack']?.toString() ?? '';
+      final name = switch (k) {
+        'free' => t('gratuit', 'free'),
+        'mixte' => t('mixte', 'mixed'),
+        'console' => 'console',
+        'premium' => 'premium',
+        'mystery' => t('mystère', 'mystery'),
+        'gift' => t('cadeau', 'gift'),
+        'lot' => t('du lot', 'from bundle'),
+        'star' => t('Étoile', 'Star'),
+        'sconsole' => 'Console+',
+        'gold' => t('Rétro d\'or', 'Retro Gold'),
+        _ => k,
+      };
+      final sys = e['sys'] == null ? '' : ' · ${Catalog.system(e['sys'].toString())?.name ?? e['sys']}';
+      return (t('📦 ouvre un paquet $name$sys', '📦 opens a $name pack$sys'), Colors.white70);
+    case 'gift_out':
+      return (t('🎁 cadeau offert à $other', '🎁 gift sent to $other'), null);
+    case 'gift_in':
+      return (t('🎁 cadeau reçu de $other', '🎁 gift from $other'), null);
+    case 'duel':
+      final game = e['game'] == 'bs' ? t('Bataille navale', 'Battleship') : t('4 en ligne', 'Connect 4');
+      final res = switch (e['result']) {
+        'win' => t('victoire', 'win'),
+        'loss' => t('défaite', 'loss'),
+        'draw' => t('nul', 'draw'),
+        _ => e['reason']?.toString() ?? e['status']?.toString() ?? '',
+      };
+      return ('$game ${t('contre', 'vs')} $other : $res', Colors.white70);
+    case 'chat':
+      final rep = _i(e['reports']);
+      return (
+        '💬 « ${e['msg']} »${e['hidden'] == true ? t(' (masqué)', ' (hidden)') : ''}${rep > 0 ? t(' · signalé $rep fois', ' · reported $rep×') : ''}',
+        rep > 0 || e['hidden'] == true ? _org : Colors.white70
+      );
+  }
+  return (e['kind']?.toString() ?? '?', null);
+}
+
+
+// ─── Journal : activité de tous les joueurs ───────────────────────────────
+
+class _FeedTab extends StatefulWidget {
+  const _FeedTab();
+  @override
+  State<_FeedTab> createState() => _FeedTabState();
+}
+
+class _FeedTabState extends State<_FeedTab> with AutomaticKeepAliveClientMixin {
+  List<Map<String, dynamic>>? _rows;
+  String? _error;
+  bool _more = true, _busy = false;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load(reset: true);
+  }
+
+  Future<void> _load({bool reset = false}) async {
+    if (_busy) return;
+    _busy = true;
+    try {
+      final before = reset || _rows == null || _rows!.isEmpty ? '' : _rows!.last['at'].toString();
+      final r = await RcServer.adminFeed(before);
+      if (mounted) {
+        setState(() {
+          _rows = reset ? r : [...?_rows, ...r];
+          _more = r.length >= 150;
+          _error = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = errText(e));
     }
-    return (e['kind']?.toString() ?? '?', null);
+    _busy = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final rows = _rows;
+    if (rows == null) {
+      return Center(child: _error == null ? const CircularProgressIndicator() : Text(_error!));
+    }
+    String? lastDay;
+    final items = <Widget>[];
+    for (final e in rows) {
+      final d = _d(e['at']);
+      final day = d == null ? '' : '${_two(d.day)}/${_two(d.month)}';
+      if (day != lastDay) {
+        lastDay = day;
+        items.add(Padding(
+          padding: const EdgeInsets.fromLTRB(4, 14, 4, 4),
+          child: Text(day, style: TextStyle(color: kGold, fontWeight: FontWeight.w900, fontSize: 13)),
+        ));
+      }
+      items.add(_line(e, d));
+    }
+    return RefreshIndicator(
+      onRefresh: () => _load(reset: true),
+      child: ListView(padding: const EdgeInsets.fromLTRB(10, 0, 10, 20), children: [
+        if (rows.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(30),
+            child: Center(child: Text(t('Rien pour l\'instant', 'Nothing yet'), style: const TextStyle(color: Colors.white54))),
+          ),
+        ...items,
+        if (_more && rows.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Center(
+              child: OutlinedButton(onPressed: _busy ? null : () => _load(), child: Text(t('Plus ancien', 'Older'))),
+            ),
+          ),
+        if (_error != null) Padding(padding: const EdgeInsets.all(8), child: Text(_error!, style: const TextStyle(color: Colors.redAccent))),
+      ]),
+    );
+  }
+
+  Widget _line(Map<String, dynamic> e, DateTime? d) {
+    final (text, color) = _adminEvent(e);
+    final pid = e['pid']?.toString();
+    return InkWell(
+      onTap: pid == null ? null : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => AdminPlayerPage(pid: pid))),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Colors.white10))),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(
+            width: 44,
+            child: Text(d == null ? '' : '${_two(d.hour)}:${_two(d.minute)}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+          ),
+          SizedBox(
+            width: 110,
+            child: Text(e['name']?.toString() ?? '?',
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
+          ),
+          Expanded(child: Text(text, style: TextStyle(color: color ?? Colors.white, fontSize: 12.5, height: 1.3))),
+        ]),
+      ),
+    );
   }
 }
+
 
 // ─── Liens suspects ─────────────────────────────────────────────────────────
 
