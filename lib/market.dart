@@ -245,6 +245,8 @@ class MarketGroupsState extends State<MarketGroups> {
   int? finish; // null : toutes
   int sort = 0; // 0 récents, 1 moins chers, 2 plus rares, 3 bonnes affaires
   (String, int)? sel; // mode large : carte dont les offres sont affichées à droite
+  bool picking = false; // achat groupé : sélection de plusieurs cartes
+  final picks = <(String, int), Map<String, dynamic>>{};
   final _offersScroll = ScrollController();
 
   @override
@@ -266,10 +268,138 @@ class MarketGroupsState extends State<MarketGroups> {
     if (error != null) setState(() => error = null);
     try {
       final r = await RcServer.marketBrowse();
-      if (mounted) setState(() => rows = r);
+      if (mounted) {
+        setState(() {
+          rows = r;
+          // garde la sélection à jour (prix, cartes plus en vente)
+          final now = {for (final x in r) (x['card'] as String, (x['finish'] as num).toInt()): x};
+          picks.removeWhere((k, _) => !now.containsKey(k));
+          for (final k in picks.keys.toList()) {
+            picks[k] = now[k]!;
+          }
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => error = errText(e));
     }
+  }
+
+  // ── Achat groupé ───────────────────────────────────────────────────────────
+  static const _kMaxPicks = 30;
+
+  int get _picksTotal => picks.values.fold(0, (a, r) => a + _price(r));
+
+  void _toggle(Map<String, dynamic> r) {
+    final k = (r['card'] as String, (r['finish'] as num).toInt());
+    setState(() {
+      picking = true;
+      if (picks.remove(k) == null) {
+        if (picks.length >= _kMaxPicks) {
+          toast(t('$_kMaxPicks cartes maximum par achat', '$_kMaxPicks cards max per purchase'));
+        } else {
+          picks[k] = r;
+        }
+      }
+    });
+  }
+
+  void _stopPicking() => setState(() {
+        picking = false;
+        picks.clear();
+      });
+
+  Future<void> _buyPicks() async {
+    final items = picks.values.toList();
+    final total = _picksTotal;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t('Acheter ${items.length} cartes ?', 'Buy ${items.length} cards?')),
+        content: SizedBox(
+          width: 340,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 260),
+              child: SingleChildScrollView(
+                child: Wrap(spacing: 4, runSpacing: 4, alignment: WrapAlignment.center, children: [
+                  for (final r in items)
+                    SizedBox(width: 58, child: CardView(card: Catalog.cards[r['card']]!, finish: (r['finish'] as num).toInt())),
+                ]),
+              ),
+            ),
+            const SizedBox(height: 12),
+            CoinChip(total),
+            const SizedBox(height: 8),
+            Text(t('L\'offre la moins chère de chaque carte. Si une carte part avant toi ou change de prix, elle est passée.',
+                    'The cheapest offer of each card. A card sold meanwhile or repriced is skipped.'),
+                textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+          ]),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
+          ElevatedButton(onPressed: Game.i.coins >= total ? () => Navigator.pop(ctx, true) : null, child: Text(t('Acheter', 'Buy'))),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    try {
+      final r = await RcServer.marketBuyMany([for (final x in items) (x['card'] as String, (x['finish'] as num).toInt(), _price(x))]);
+      final bought = (r['bought'] as List? ?? const []).cast<Map>();
+      final skipped = (r['skipped'] as List? ?? const []).length;
+      var best = -1, fresh = 0;
+      for (final b in bought) {
+        final c = Catalog.cards[b['card']];
+        if (c == null) continue;
+        Game.i.addRecent(c.id, (b['f'] as num).toInt());
+        if (c.rarity > best) best = c.rarity;
+        if (b['n'] == true) fresh++;
+      }
+      Game.i.emit(r['events']);
+      if (best >= 0) Game.i.playSound(best);
+      final n = bought.length;
+      toast([
+        n == 0 ? t('Aucune carte achetée', 'No card bought') : t('$n carte${n > 1 ? 's' : ''} achetée${n > 1 ? 's' : ''}', '$n card${n > 1 ? 's' : ''} bought'),
+        if (fresh > 0) t('$fresh nouvelle${fresh > 1 ? 's' : ''}', '$fresh new'),
+        if (skipped > 0) t('$skipped passée${skipped > 1 ? 's' : ''} (vendue ou prix changé)', '$skipped skipped (sold or repriced)'),
+      ].join(' · '));
+      if (mounted) _stopPicking();
+      await Game.i.sync();
+    } catch (e) {
+      toast(errText(e));
+    }
+    BourseScreenState.current?.reload();
+    load();
+  }
+
+  Widget _pickBar() {
+    final total = _picksTotal, n = picks.length;
+    final short = total - Game.i.coins;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 8, 12, 10),
+      decoration: BoxDecoration(
+        color: kPanel,
+        border: Border(top: BorderSide(color: kGold.withOpacity(0.6))),
+        boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, -2))],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(children: [
+          IconButton(icon: const Icon(Icons.close), tooltip: t('Annuler la sélection', 'Cancel selection'), onPressed: _stopPicking),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(n == 0 ? t('Touche les cartes à acheter', 'Tap the cards to buy') : '${t('$n carte${n > 1 ? 's' : ''}', '$n card${n > 1 ? 's' : ''}')} · 🪙 $total',
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+              if (n > 0 && short > 0)
+                Text(t('Il te manque $short pièces', 'You need $short more coins'), style: const TextStyle(color: Color(0xFFFF5A5F), fontSize: 12)),
+            ]),
+          ),
+          FilledButton(
+            onPressed: n > 0 && short <= 0 ? _buyPicks : null,
+            child: Text(t('Acheter', 'Buy'), style: const TextStyle(fontWeight: FontWeight.w900)),
+          ),
+        ]),
+      ),
+    );
   }
 
   bool get _filtered => query.isNotEmpty || sys.isNotEmpty || missing || rarities.isNotEmpty || finish != null || sort != 0;
@@ -317,7 +447,11 @@ class MarketGroupsState extends State<MarketGroups> {
     return out;
   }
 
-  Future<void> _open(Map r) async {
+  Future<void> _open(Map<String, dynamic> r) async {
+    if (picking) {
+      _toggle(r);
+      return;
+    }
     final c = r['card'] as String, f = (r['finish'] as num).toInt();
     if (isWide(context)) {
       setState(() => sel = (c, f));
@@ -476,6 +610,7 @@ class MarketGroupsState extends State<MarketGroups> {
       SizedBox(
         height: 44,
         child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.fromLTRB(12, 6, 12, 2), children: [
+          _pill(t('☑ Plusieurs', '☑ Several'), picking, () => picking ? _stopPicking() : setState(() => picking = true)),
           _pill(t('🎯 Manquantes', '🎯 Missing'), missing, () => setState(() => missing = !missing)),
           _pill('🎮 ${sysName ?? t('Console', 'System')} ▾', sys.isNotEmpty, _filters),
           _pill('💎 ${rarities.isEmpty ? t('Rareté', 'Rarity') : rarities.map(rarityName).join(', ')} ▾', rarities.isNotEmpty, _filters),
@@ -484,6 +619,7 @@ class MarketGroupsState extends State<MarketGroups> {
         ]),
       ),
       Expanded(child: _body()),
+      if (picking) _pickBar(),
     ]);
   }
 
@@ -492,9 +628,11 @@ class MarketGroupsState extends State<MarketGroups> {
     final c = Catalog.cards[r['card']]!;
     final f = (r['finish'] as num).toInt();
     final lots = (r['lots'] as num).toInt();
-    final selected = sel == (c.id, f);
+    final picked = picks.containsKey((c.id, f));
+    final selected = picked || (!picking && sel == (c.id, f));
     return GestureDetector(
       onTap: () => _open(r),
+      onLongPress: () => _toggle(r),
       child: Padding(
         padding: const EdgeInsets.only(top: 7, right: 3, left: 3),
         child: Stack(clipBehavior: Clip.none, children: [
@@ -529,6 +667,21 @@ class MarketGroupsState extends State<MarketGroups> {
               child: Text('🪙 ${_price(r)}', style: const TextStyle(color: Color(0xFFFFD166), fontSize: 11, fontWeight: FontWeight.w900)),
             ),
           ),
+          if (picking)
+            Positioned(
+              right: 4,
+              bottom: 30,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: picked ? kGold : Colors.black.withOpacity(0.55),
+                  border: Border.all(color: picked ? Colors.white : Colors.white70, width: 1.5),
+                ),
+                child: picked ? const Icon(Icons.check, size: 15, color: Color(0xFF2A1800)) : null,
+              ),
+            ),
           if (tag != null)
             Positioned(
               left: -3,

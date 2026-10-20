@@ -534,6 +534,13 @@ class RcServer {
     return r == null ? null : _map(r);
   }
 
+  /// Achat groupé : [(carte, finition, prix max)] → {bought:[{card,f,n,price}], skipped:[{card,f,why}], events, coins}
+  static Future<Map<String, dynamic>> marketBuyMany(List<(String, int, int)> items) async {
+    final d = await deviceId();
+    final s = items.map((x) => '${x.$1}:${x.$2}:${x.$3}').join(',');
+    return _map(await _rpc('rc_market_buy_many', {'p_device': d, 'p_items': s, 'p_sig': _sig('$d|buymany|$s')}));
+  }
+
   /// Marché groupé : [{card, finish, lots, min_price, last_at}]
   /// Toutes les cartes en vente (une ligne par carte et finition) avec le prix moyen sur 30 jours
   static Future<List<Map<String, dynamic>>> marketBrowse() async {
