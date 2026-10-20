@@ -49,6 +49,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - `trophies.dart` (trophées : `MyTrophies` au profil, `OtherTrophies`, `TrophyMedal`, `myTrophyShow` pour la borne).
 - `events.dart` (événements, effets, défis à paliers), `defis.dart` (défis de la semaine), `rewards.dart` (récompenses + éditeur admin).
 - `admin.dart` + `admin_tools.dart` : page admin (Comptes, Liens, Stats cliquables, Chat, Outils : courrier / cadeau ciblé, sondage, événements, bandeau, maintenance, réglages en direct, version minimale, Bourse, recherche de carte, journal).
+- `audio.dart` (`RcAudio`) : musique et bruitages ; réglage `rc_track2` = n° de morceau, -1 aléatoire, -2 aucune (`homeTrackNone` bloque toute musique, bruitages gardés).
 - `inbox.dart` (courrier / sondage à l'ouverture), `update_check.dart` (mise à jour, version minimale, maintenance), `notifs.dart`, `push.dart`.
 
 ## À faire
@@ -56,5 +57,4 @@ Web : https://foclabroc.github.io/retro_collec_app/
 1. Bourse : pouvoir sélectionner plusieurs cartes à l'achat (achat groupé).
 2. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
 3. Ajouter 2 sagas (en plus de Mario, Sonic, Zelda, Pokémon). Sagas à choisir.
-4. Musique : ajouter « Aucune » dans la liste des musiques (coupe la musique, garde les sons de l'appli).
-5. Admin : journal de tout ce qui se passe dans l'appli (ouvertures, achats, ventes, échanges, duels, cadeaux…).
+4. Admin : journal de tout ce qui se passe dans l'appli (ouvertures, achats, ventes, échanges, duels, cadeaux…).
