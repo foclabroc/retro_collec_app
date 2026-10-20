@@ -34,6 +34,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - Cadeau de passage de version : `rc_upgrade_got` (device, ver), versé dans `rc_trophies` (seule la 1.0.13+ l'appelle) ; pour une prochaine version, appeler la même logique depuis une fonction que seule la nouvelle version utilise.
 - Journal d'activité (admin) : table `rc_activity` (30 jours, sans le chat), remplie **uniquement par déclencheurs** (`rc__act_*` sur `rc_players`, `rc_pending`, `rc_market`, `rc_trades`, `rc_gifts`, `rc_c4` / `rc_bs`, `rc_gamedle`, `rc_*_got`, `rc_milestones`, `rc_trophy_n`) via `rc__act` : une ligne par joueur et par transaction (libellé le plus précis gagne, deux actions connues = deux lignes), avec ± pièces / pixels ; mouvement inconnu = `coins`. Lecture : `rc_admin_activity` (groupe, pseudo, pagination par id). Page `AdminActivityPage` dans `admin_tools.dart`. Nouvelle action à journaliser : ajouter un déclencheur, pas toucher aux fonctions du jeu.
 - Bourse, achat groupé : `rc_market_buy_many(device, "card:f:prixmax,…", sig)` (30 max, offre la moins chère, cartes vendues / plus chères / trop chères passées) → `rc__market_buy1` (même logique que `rc_market_buy`, sans signature : à garder synchronisées). Côté appli : mode « ☑ Plusieurs » / appui long dans `MarketGroupsState` (`picks`, `_pickBar`).
+- Sagas (6) : Mario, Sonic, Zelda, Pokémon, Resident Evil (`re`), Castlevania. Définies dans `kSagas` (`catalog.dart` : 10 cartes d'origine + 3 de l'affiche + couleurs), logo `assets/sagas/<id>.webp`, cartes serveur `sg_<id>_NN` (rareté 3, `saga` = id) ajoutées par copie de la carte d'origine (voir `sql/2026-10-20_sagas_re_castlevania.sql` pour en ajouter une).
 - Voisinage : joueurs vus dans les **7 derniers jours** (`rc_board`, `rc_rank`, `rc_my_floor`). Le champ `house` d'un joueur = numéro de son habillage de borne (index de `kFloorThemes` dans `arcade.dart`, ne pas réordonner).
 
 ## Fichiers Flutter (lib/)
@@ -57,4 +58,4 @@ Web : https://foclabroc.github.io/retro_collec_app/
 ## À faire
 
 1. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
-2. Ajouter 2 sagas (en plus de Mario, Sonic, Zelda, Pokémon). Sagas à choisir.
+2. Trophée « Sagas » : paliers 1 / 2 / 4 (or à passer à 6 maintenant qu'il y a 6 sagas ? à décider).
