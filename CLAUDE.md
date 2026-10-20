@@ -11,7 +11,6 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - Fichiers SQL **relançables** (`create or replace`, `if not exists`), rangés dans `sql/AAAA-MM-JJ_sujet.sql`.
 - **Maquette HTML : toujours demander d'abord** (« je te fais une maquette ? »), ne jamais en lancer une sans accord. Pour une petite retouche, coder directement.
 - **Économiser** : réponses courtes, ne lire que les parties utiles des fichiers, pas de gros affichages inutiles. Une conversation par chantier.
-- **Modèle selon la difficulté** : pour une tâche simple (texte, couleur, petite retouche), proposer de passer sur un modèle plus léger ; garder le plus puissant pour le SQL serveur et les gros chantiers.
 - Ne jamais commiter la clé de signature (keystore, `key.properties`) : elle est dans le secret GitHub `DEBUG_KEYSTORE_B64`.
 - Commits terminés par les lignes `Co-Authored-By` / `Claude-Session`.
 - **Après chaque push réussi : mettre à jour ce `CLAUDE.md`** (« À faire », carte des fichiers, règles) pour qu'il reste juste.
@@ -50,4 +49,3 @@ Web : https://foclabroc.github.io/retro_collec_app/
 ## À faire
 
 1. Avatars : refaire avec de nouveaux assets.
-2. Cartes de saga : le nom est coupé quand il est trop long.
