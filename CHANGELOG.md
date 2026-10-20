@@ -2,6 +2,10 @@
 
 ## Prochaine version
 
+- **Nouveaux avatars : 30 personnages pixel art originaux** (chevalier, astronaute, robot, sorcière, pirate, viking, samouraï,
+  squelette, vampire, zombie, fantôme, chat, renard, hibou, pingouin, grenouille, panda, tricératops, dragon, alien, pieuvre, chef,
+  punk, cowboy, scaphandrier, momie, clown, abeille, gamer, lion), en buste sur fond bleu nuit avec halo coloré. Ils remplacent les 18 anciens
+  (les joueurs gardent leur numéro d'avatar, seule l'image change).
 - Cartes de saga : un nom trop long passe sur 2 lignes (police un peu réduite) au lieu d'être coupé.
 
 ## v1.0.13

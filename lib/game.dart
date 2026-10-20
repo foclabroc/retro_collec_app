@@ -127,12 +127,15 @@ Color get kBg => rcTheme.bg; // fond des feuilles et dialogues
 Color get kPanel => rcTheme.panel; // panneaux semi-transparents sur le fond animé
 Color get kPanel2 => rcTheme.panel2;
 
-/// Avatars : 18 personnages pixel art (assets/avatars/avatar_NN.webp).
-/// La couleur sert de liseré autour de l'avatar.
+/// Avatars : 30 personnages pixel art originaux (assets/avatars/avatar_NN.webp, 128 × 128).
+/// Ordre : Chevalier, Astronaute, Robot, Sorcière, Pirate, Viking, Samouraï, Squelette, Vampire, Zombie, Fantôme, Chat, Renard, Hibou, Pingouin, Grenouille, Panda, Tricératops, Dragon, Alien, Pieuvre, Chef, Punk, Cowboy, Scaphandrier, Momie, Clown, Abeille, Gamer, Lion.
+/// La couleur sert de liseré autour de l'avatar. Ne pas réordonner (index stocké côté serveur).
 const kAvatars = <Color>[
-  Color(0xFF378ADD), Color(0xFF639922), Color(0xFF3E6FC2), Color(0xFF5A6378), Color(0xFFED93B1), Color(0xFFD9483B),
-  Color(0xFF2E2E38), Color(0xFF8A8F9C), Color(0xFFB0B4BE), Color(0xFFE8863A), Color(0xFF4E9A4A), Color(0xFF6E9A2E),
-  Color(0xFF3BA7E8), Color(0xFF4F6B4A), Color(0xFF7B55C7), Color(0xFF9C5FD0), Color(0xFFC8735A), Color(0xFF8A5A3B),
+  Color(0xFF9AA2B0), Color(0xFF3BA7E8), Color(0xFF2EC4B6), Color(0xFF9C5FD0), Color(0xFFD9483B), Color(0xFFE8C35A),
+  Color(0xFFC0392B), Color(0xFFB0B4BE), Color(0xFF8E1B2E), Color(0xFF6E9A2E), Color(0xFF7FD1F0), Color(0xFFE8863A),
+  Color(0xFFE0662A), Color(0xFF8A5A3B), Color(0xFF3E6FC2), Color(0xFF4E9A4A), Color(0xFF5A6378), Color(0xFF7B55C7),
+  Color(0xFFD64032), Color(0xFF39E07A), Color(0xFFED93B1), Color(0xFFE8E8F0), Color(0xFFED4FA0), Color(0xFFC8735A),
+  Color(0xFFC88A3A), Color(0xFFD8CCA4), Color(0xFFF2C230), Color(0xFFFFD84A), Color(0xFF2E9A5A), Color(0xFFE8A84A),
 ];
 
 Widget avatarWidget(int a, {double size = 40}) {
