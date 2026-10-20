@@ -717,37 +717,72 @@ class ArcadeCounter extends StatelessWidget {
 }
 
 /// Fond de la salle (moquette d'arcade)
-/// Moquette de la salle : couleurs tirées du thème choisi (version assombrie), pour rester raccord avec le reste de l'appli.
+/// Fond de la salle « arcade la nuit » : mur sombre teinté par le thème (lueur au centre),
+/// néon au ras du sol (accent2 du thème) et carrelage en damier en perspective.
+/// Dessiné une seule fois (repeint seulement au changement de thème).
 class ArcadeCarpet extends CustomPainter {
-  final Color base;
-  ArcadeCarpet() : base = rcTheme.surface;
+  final Color base, neon, line;
+  ArcadeCarpet()
+      : base = rcTheme.surface,
+        neon = rcTheme.accent2,
+        line = rcTheme.line;
+
+  Color _dk(double t) => Color.lerp(base, Colors.black, t)!;
+
   @override
   void paint(Canvas c, Size s) {
     c.clipRect(Offset.zero & s); // le motif ne doit pas déborder sur le menu
-    c.drawRect(Offset.zero & s, Paint()..color = Color.lerp(base, Colors.black, 0.45)!);
-    final stripe = Paint()..color = Color.lerp(base, Colors.black, 0.3)!;
-    for (var x = -s.height; x < s.width; x += 28) {
-      c.drawPath(
-          Path()
-            ..moveTo(x, s.height)
-            ..lineTo(x + 14, s.height)
-            ..lineTo(x + 14 + s.height, 0)
-            ..lineTo(x + s.height, 0)
-            ..close(),
-          stripe);
-    }
-    const dots = [Color(0x40FF3DF0), Color(0x4028E0FF), Color(0x40FFD166)];
-    var i = 0;
-    for (var y = 20.0; y < s.height; y += 60) {
-      for (var x = 12.0 + (i.isEven ? 0 : 30); x < s.width; x += 60) {
-        c.drawCircle(Offset(x, y), 2.2, Paint()..color = dots[(i + x ~/ 60) % 3]);
+    final w = s.width, h = s.height;
+    final hz = h * 0.58; // ligne du néon (mur / sol)
+
+    // mur : dégradé vertical + lueur douce au centre
+    c.drawRect(Rect.fromLTWH(0, 0, w, hz),
+        Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [_dk(0.45), _dk(0.2)]).createShader(Rect.fromLTWH(0, 0, w, hz)));
+    final glow = Rect.fromCenter(center: Offset(w / 2, hz * 0.3), width: w * 1.2, height: hz * 1.4);
+    c.drawRect(Rect.fromLTWH(0, 0, w, hz),
+        Paint()..shader = RadialGradient(colors: [line.withOpacity(0.22), line.withOpacity(0)], stops: const [0, 0.7]).createShader(glow));
+
+    // sol : fond + cases sombres d'un damier projeté (point de fuite au centre)
+    final floor = Rect.fromLTWH(0, hz, w, h - hz);
+    c.drawRect(floor, Paint()..color = _dk(0.55));
+    final sq = Paint()..color = _dk(0.15);
+    const camH = 1.0, tile = 0.55;
+    final f = w * 0.55; // focale
+    final cx = w / 2;
+    final zNear = f * camH / math.max(1.0, h - hz) * 0.9;
+    Offset pr(double x, double z) => Offset(cx + f * x / z, hz + f * camH / z);
+    for (var r = 0; r < 40; r++) {
+      final z0 = zNear + r * tile, z1 = z0 + tile;
+      if (f * camH / z1 < 1) break; // trop loin : sous le pixel
+      final half = (cx * z0 / f / tile).ceil() + 1;
+      for (var k = -half; k < half; k++) {
+        if ((k + r).isOdd) continue;
+        final x0 = k * tile, x1 = x0 + tile;
+        c.drawPath(
+            Path()
+              ..moveTo(pr(x0, z0).dx, pr(x0, z0).dy)
+              ..lineTo(pr(x1, z0).dx, pr(x1, z0).dy)
+              ..lineTo(pr(x1, z1).dx, pr(x1, z1).dy)
+              ..lineTo(pr(x0, z1).dx, pr(x0, z1).dy)
+              ..close(),
+            sq);
       }
-      i++;
     }
+    // ombre près du mur : le sol s'enfonce dans le noir
+    final fade = Rect.fromLTWH(0, hz, w, (h - hz) * 0.6);
+    c.drawRect(fade,
+        Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.black.withOpacity(0.55), Colors.black.withOpacity(0)]).createShader(fade));
+
+    // néon au ras du sol
+    final strip = Rect.fromLTWH(0, hz - 1.5, w, 3);
+    c.drawRect(strip.inflate(6), Paint()
+      ..color = neon.withOpacity(0.45)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
+    c.drawRect(strip, Paint()..color = neon);
   }
 
   @override
-  bool shouldRepaint(ArcadeCarpet o) => o.base != base;
+  bool shouldRepaint(ArcadeCarpet o) => o.base != base || o.neon != neon || o.line != line;
 }
 
 // ─── Choix de l'habillage de ma borne ─────────────────────────────────────
