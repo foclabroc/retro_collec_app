@@ -1,6 +1,7 @@
 # Pixel Trade — Changelog
 
-## Prochaine version
+## v1.0.13
+_Version 1.0.13+14._
 
 - **Nouveaux avatars : 30 personnages de jeux vidéo** (Mario, Luigi, Peach, Bowser, Yoshi, Toad, Link, Samus, Kirby, Sonic, Tails,
   Fox, Donkey Kong, Lara Croft, Deadpool…), détourés (fond transparent). Ils remplacent les 18 anciens
@@ -8,10 +9,6 @@
   Sur l'écran des bornes, l'avatar flotte sans fond (va-et-vient et légère bascule, plus calme si la borne est éteinte).
   Au profil, l'avatar passe dans un carré arrondi au dégradé de couleurs tiré au hasard, qui pulse.
 - Cartes de saga : un nom trop long passe sur 2 lignes (police un peu réduite) au lieu d'être coupé.
-
-## v1.0.13
-_Version 1.0.13+14._
-
 - **Voisinage : la salle « Pixel Arcade »** remplace l'immeuble. Chaque joueur a sa borne d'arcade : pseudo sur le fronton,
   avatar et score à l'écran (allumé avec PLAYING qui clignote s'il est en ligne, OFFLINE sinon), pseudo qui défile s'il est trop long, 🎁 pour offrir un paquet, badge 1P sur la sienne.
   Podium pour les 3 premiers (projecteur sur le n°1), puis rangées de 3 bornes ; comptoir en bas (cadeaux, recherche).
