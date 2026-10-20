@@ -3,8 +3,10 @@
 ## Prochaine version
 
 - **Nouveaux avatars : 30 personnages de jeux vidéo** (Mario, Luigi, Peach, Bowser, Yoshi, Toad, Link, Samus, Kirby, Sonic, Tails,
-  Fox, Donkey Kong, Lara Croft, Deadpool…), en images recadrées sur fond blanc. Ils remplacent les 18 anciens
+  Fox, Donkey Kong, Lara Croft, Deadpool…), détourés (fond transparent). Ils remplacent les 18 anciens
   (les joueurs gardent leur numéro d'avatar, seule l'image change).
+  Sur l'écran des bornes, l'avatar flotte sans fond (va-et-vient et légère bascule, plus calme si la borne est éteinte).
+  Au profil, l'avatar passe dans un carré arrondi au dégradé de couleurs tiré au hasard, qui pulse.
 - Cartes de saga : un nom trop long passe sur 2 lignes (police un peu réduite) au lieu d'être coupé.
 
 ## v1.0.13

@@ -1,4 +1,4 @@
-import 'dart:math' show Random;
+import 'dart:math' show Random, sin, pi;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -127,7 +127,7 @@ Color get kBg => rcTheme.bg; // fond des feuilles et dialogues
 Color get kPanel => rcTheme.panel; // panneaux semi-transparents sur le fond animé
 Color get kPanel2 => rcTheme.panel2;
 
-/// Avatars : 30 images (assets/avatars/avatar_NN.webp, 256 × 256, recadrées, fond d'origine).
+/// Avatars : 30 images (assets/avatars/avatar_NN.webp, 256 × 256, détourées, fond transparent).
 /// 00-19 : Bowser Jr, Bowser, Cappy, Deadpool, Dragon, Donkey Kong, Eggman, Fleur de feu, Kirby, Lara Croft,
 /// Licorne, Link BotW, Link, Link Cartoon, Luigi, Mario chat, Mario, Samus, Champignon, Peach.
 /// 20-29 : Sonic, Inkling, Super étoile, Fox, Tails, Tom Nook, Capitaine Toad, Toad, Toadette, Yoshi.
@@ -139,6 +139,117 @@ const kAvatars = <Color>[
   Color(0xFFD9202A), Color(0xFFF28AB0), Color(0xFF2E5ED8), Color(0xFF5ADC3A), Color(0xFFF2C230), Color(0xFFC8783A),
   Color(0xFFF2A030), Color(0xFF8A5A2B), Color(0xFFF2C230), Color(0xFFD9202A), Color(0xFFED6AA8), Color(0xFF4EBF3A),
 ];
+
+String avatarAsset(int a) => 'assets/avatars/avatar_${(a.abs() % kAvatars.length).toString().padLeft(2, '0')}.webp';
+
+/// Image de l'avatar seule, sans fond (détourée).
+Widget avatarImage(int a, {double size = 40}) => Image.asset(
+      avatarAsset(a),
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (_, __, ___) => Icon(Icons.person, color: kAvatars[a.abs() % kAvatars.length], size: size * 0.6),
+    );
+
+/// Avatar sans fond qui flotte doucement (écran des bornes) : léger va-et-vient, bascule et respiration.
+/// Chaque borne part avec une phase et une vitesse différentes ; plus calme si la borne est éteinte.
+class AvatarFloat extends StatefulWidget {
+  final int avatar;
+  final double size;
+  final bool on;
+  const AvatarFloat(this.avatar, {super.key, required this.size, this.on = true});
+  @override
+  State<AvatarFloat> createState() => _AvatarFloatState();
+}
+
+class _AvatarFloatState extends State<AvatarFloat> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: Duration(milliseconds: 2400 + Random().nextInt(900)))
+    ..value = Random().nextDouble()
+    ..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.size;
+    final k = widget.on ? 1.0 : 0.35;
+    return SizedBox(
+      width: s,
+      height: s,
+      child: AnimatedBuilder(
+        animation: _c,
+        child: avatarImage(widget.avatar, size: s),
+        builder: (_, child) {
+          final t = _c.value * 2 * pi;
+          return Transform.translate(
+            offset: Offset(0, sin(t) * s * 0.045 * k),
+            child: Transform.rotate(
+              angle: sin(t + pi / 2) * 0.035 * k,
+              child: Transform.scale(scale: 1 + sin(t * 2) * 0.015 * k, child: child),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Avatar du profil : carré arrondi, dégradé de couleurs tirées au hasard qui pulse.
+class AvatarPulseSquare extends StatefulWidget {
+  final int avatar;
+  final double size;
+  const AvatarPulseSquare(this.avatar, {super.key, this.size = 64});
+  @override
+  State<AvatarPulseSquare> createState() => _AvatarPulseSquareState();
+}
+
+class _AvatarPulseSquareState extends State<AvatarPulseSquare> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400))..repeat(reverse: true);
+  static final _rnd = Random();
+  late final double _h = _rnd.nextDouble() * 360;
+  late final Color _a = HSVColor.fromAHSV(1, _h, 0.75, 0.95).toColor();
+  late final Color _b = HSVColor.fromAHSV(1, (_h + 50 + _rnd.nextDouble() * 70) % 360, 0.85, 0.55).toColor();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.size;
+    final r = BorderRadius.circular(s * 0.18);
+    return AnimatedBuilder(
+      animation: _c,
+      child: ClipRRect(borderRadius: r, child: avatarImage(widget.avatar, size: s * 0.92)),
+      builder: (_, child) {
+        final v = Curves.easeInOut.transform(_c.value);
+        return Container(
+          width: s,
+          height: s,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: r,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color.lerp(_a, Colors.white, 0.2 * v)!, Color.lerp(_b, _a, 0.25 * v)!],
+            ),
+            border: Border.all(color: Colors.white.withOpacity(0.25 + 0.35 * v), width: 1.5),
+            boxShadow: [BoxShadow(color: _a.withOpacity(0.25 + 0.35 * v), blurRadius: s * (0.12 + 0.18 * v), spreadRadius: s * 0.02 * v)],
+          ),
+          child: child,
+        );
+      },
+    );
+  }
+}
 
 Widget avatarWidget(int a, {double size = 40}) {
   final i = a.abs() % kAvatars.length;
@@ -153,7 +264,7 @@ Widget avatarWidget(int a, {double size = 40}) {
     ),
     child: ClipOval(
       child: Image.asset(
-        'assets/avatars/avatar_${i.toString().padLeft(2, '0')}.webp',
+        avatarAsset(i),
         fit: BoxFit.cover,
         filterQuality: FilterQuality.medium, // images lissées
         errorBuilder: (_, __, ___) => Icon(Icons.person, color: color, size: size * 0.55),

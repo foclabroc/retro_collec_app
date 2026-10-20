@@ -274,7 +274,7 @@ class ArcadeCabinet extends StatelessWidget {
                 flex: 58,
                 child: Opacity(
                   opacity: on ? 1 : 0.55,
-                  child: FittedBox(child: avatarWidget(d.avatar, size: sr.height * 0.6)),
+                  child: FittedBox(child: AvatarFloat(d.avatar, size: sr.height * 0.6, on: on)),
                 ),
               ),
               Expanded(

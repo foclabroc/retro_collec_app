@@ -146,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
               child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: [
                 Row(children: [
-                  GestureDetector(onTap: _editAvatar, child: avatarWidget(g.avatar, size: 64)),
+                  GestureDetector(onTap: _editAvatar, child: AvatarPulseSquare(g.avatar, size: 64)),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1001,7 +1001,7 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                   Center(child: ArcadeCabinet(d: FloorData.of(p!), width: 150)),
                   const SizedBox(height: 12),
                   Row(children: [
-                    avatarWidget((p!['avatar'] as num? ?? 0).toInt(), size: 60),
+                    AvatarPulseSquare((p!['avatar'] as num? ?? 0).toInt(), size: 60),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
