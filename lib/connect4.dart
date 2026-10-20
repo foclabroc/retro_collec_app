@@ -438,6 +438,8 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
     } catch (e) {
       RcAudio.wrong();
       toast(errText(e));
+      // joueur parti entre-temps : on recharge le salon pour qu'il disparaisse de la liste
+      if (mounted) _load().catchError((_) {});
     }
     if (mounted) setState(() => busy = false);
   }
