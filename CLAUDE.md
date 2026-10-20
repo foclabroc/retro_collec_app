@@ -29,6 +29,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - Tables clés : `rc_players`, `rc_cards`, `rc_owned`, `rc_market`, `rc_trades`, `rc_gifts`, `rc_events` (+ `rc_events_prog`, `rc_events_got`), `rc_c4` / `rc_bs` (duels), `rc_chat`, `rc_config` (`min_version`, `live`, `banner`, `maintenance`), `rc_mail` (+ `rc_mail_to`, `rc_mail_got`), `rc_polls`, `rc_pending`, `rc_pack_log`, `rc_daily`.
 - Code actuel des fonctions : `sql/schema/` (un fichier par fonction). **Le lire avant de modifier une fonction** ; le tenir à jour après chaque nouveau fichier SQL.
 - Récompenses (événements, paliers, courrier) en JSON : `{"coins":500,"pixels":5,"lots":1,"packs":{"premium":1,"star":1},"cards":{"3":1}}` → `rc__grant` côté serveur, `lib/rewards.dart` côté appli. Paquets possibles : mixte, premium, mystery, star, gold (pas console : il faut choisir la console).
+- Défis de la semaine : réservoir `rc__wpool` (id, type, objectif, récompense ; ne pas renuméroter), 6 tirés chaque lundi par `rc__wsel` (mêmes pour tous), suivis par `rc__wbump(device, type, n)`. Types : open, gift, trade, win, gamedle, epic, play, new, quiz, sale, free, premium (texte et icône dans `defis.dart`).
 - Voisinage : joueurs vus dans les **7 derniers jours** (`rc_board`, `rc_rank`, `rc_my_floor`). Le champ `house` d'un joueur = numéro de son habillage de borne (index de `kFloorThemes` dans `arcade.dart`, ne pas réordonner).
 
 ## Fichiers Flutter (lib/)
@@ -49,4 +50,4 @@ Web : https://foclabroc.github.io/retro_collec_app/
 
 ## À faire
 
-Rien en attente pour l'instant.
+- Trophées au profil (badges débloqués en jouant), pour la v1.0.13 (pas encore buildée).
