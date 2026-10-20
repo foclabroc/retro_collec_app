@@ -42,7 +42,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 ## Fichiers Flutter (lib/)
 
 - `main.dart` : coque, menu latéral, onglets (0 Collection, 1 Paquets, 2 Bonus, 3 Bourse, 4 Messages, 5 Voisinage, 6 Actu, 7 Défis), `TabHeader` (pièces / pixels cliquables → Paquets), bandeau d'info.
-- `game.dart` : état du joueur, `opq(c)` (rend opaque une couleur en la posant sur `panel`), constantes, prix (`kPackPrice`, `kPackBase`, `kPackPromo`, `lotPrice`), `applyLive`, `rcLive`.
+- `game.dart` : état du joueur, opacité : `opq(c)` (rend opaque en posant sur `panel`), cases `kCell` (foncée) / `kCellHi` (claire), transparents exprès `kVeil` (voile sur le fond animé), `kOnImg` (étiquette sur image), `kHandle` (poignée de feuille) — **règle : rien de semi-transparent directement sur le fond animé, utiliser ces jetons** ; constantes, prix (`kPackPrice`, `kPackBase`, `kPackPromo`, `lotPrice`), `applyLive`, `rcLive`.
 - Avatars (dans `game.dart`) : 30 images `assets/avatars/avatar_NN.webp` 256 × 256 détourées (fond transparent), liseré = `kAvatars` (ne pas réordonner). `avatarWidget` (rond, fond blanc, partout), `AvatarFloat` (sans fond, flotte : écran des bornes), `AvatarPulseSquare` (carré dégradé aléatoire qui pulse : profils).
 - `server.dart` : tous les appels RPC.
 - `retro_theme.dart` : 12 thèmes de fond colorés (`kThemes`, `RcMotif`) ; seuls les motifs de `kAnimatedMotifs` sont animés, les autres ne sont dessinés qu'au changement de thème. `bg` = `surface` (fond foncé des feuilles et dialogues).
@@ -61,5 +61,5 @@ Web : https://foclabroc.github.io/retro_collec_app/
 
 ## À faire
 
-1. Revoir les thèmes de fond (`retro_theme.dart`) : l'utilisateur n'aime pas le rendu actuel. Lui demander ce qui ne va pas (captures), proposer une maquette HTML avant de coder. (Essai d'opacité à 93 % partout refusé et annulé le 20/10. En test depuis le 20/10 (commit 1d67e42) : tout à 100 % opaque, `panel` en 0xFF, barres/puces/boutons contour et `kBg.withOpacity` retirés ; puis commit e97a3e4 : ~110 fonds de cases semi-transparents passés par `opq()` (`game.dart`, couleur posée sur `panel`), sauf étiquettes sur images (cards/sagas/arcade) et animations ; si refusé → `git revert e97a3e4 1d67e42`.)
+1. Revoir les thèmes de fond (`retro_theme.dart`) : l'utilisateur n'aime pas le rendu actuel. Lui demander ce qui ne va pas (captures), proposer une maquette HTML avant de coder. (Essai d'opacité à 93 % partout refusé et annulé le 20/10. En test depuis le 20/10 (commit 1d67e42) : tout à 100 % opaque, `panel` en 0xFF, barres/puces/boutons contour et `kBg.withOpacity` retirés ; puis commit e97a3e4 : ~110 fonds de cases semi-transparents passés par `opq()` (`game.dart`, couleur posée sur `panel`), sauf étiquettes sur images (cards/sagas/arcade) et animations ; puis 458fb77 : opacité harmonisée par jetons ; si refusé → `git revert 458fb77 e97a3e4 1d67e42`.)
 2. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
