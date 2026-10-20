@@ -123,7 +123,7 @@ Future<String?> pickDuelMessage(BuildContext context, String title) {
   return showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: kBg.withOpacity(0.98),
+    backgroundColor: kBg,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (_) => _MsgSheet(title: title),
   );

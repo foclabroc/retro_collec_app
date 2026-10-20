@@ -264,7 +264,7 @@ class _WheelPanelState extends State<WheelPanel> with TickerProviderStateMixin {
     await showDialog<void>(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: kBg.withOpacity(0.95),
+        backgroundColor: kBg,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: kGold, width: level >= 2 ? 3 : 2)),
         clipBehavior: Clip.antiAlias,
         child: Stack(children: [

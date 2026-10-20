@@ -143,7 +143,7 @@ class _PacksScreenState extends State<PacksScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: kBg.withOpacity(0.95),
+        backgroundColor: kBg,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: color, width: 2)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
@@ -191,7 +191,7 @@ class _PacksScreenState extends State<PacksScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: kBg.withOpacity(0.95),
+        backgroundColor: kBg,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: color, width: 2)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
@@ -249,7 +249,7 @@ class _PacksScreenState extends State<PacksScreen> {
     final sys = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: kBg.withOpacity(0.95),
+      backgroundColor: kBg,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => DraggableScrollableSheet(
         expand: false,

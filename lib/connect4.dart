@@ -448,7 +448,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
     final p = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: kBg.withOpacity(0.97),
+      backgroundColor: kBg,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => const _PlayerPicker(),
     );
@@ -660,7 +660,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
                 tooltip: t('Répondre', 'Reply'),
                 onPressed: () => showModalBottomSheet<void>(
                   context: context,
-                  backgroundColor: kBg.withOpacity(0.98),
+                  backgroundColor: kBg,
                   builder: (ctx) => SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.all(16),

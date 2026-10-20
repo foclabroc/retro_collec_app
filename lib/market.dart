@@ -472,7 +472,7 @@ class MarketGroupsState extends State<MarketGroups> {
       Container(
         width: 430,
         decoration: BoxDecoration(
-          color: kBg.withOpacity(0.55),
+          color: kBg,
           border: const Border(left: BorderSide(color: Colors.white12)),
         ),
         child: s == null
