@@ -14,6 +14,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - **Modèle selon la difficulté** : pour une tâche simple (texte, couleur, petite retouche), proposer de passer sur un modèle plus léger ; garder le plus puissant pour le SQL serveur et les gros chantiers.
 - Ne jamais commiter la clé de signature (keystore, `key.properties`) : elle est dans le secret GitHub `DEBUG_KEYSTORE_B64`.
 - Commits terminés par les lignes `Co-Authored-By` / `Claude-Session`.
+- **Après chaque push réussi : mettre à jour ce `CLAUDE.md`** (« À faire », carte des fichiers, règles) pour qu'il reste juste.
 
 ## Compiler et publier
 
@@ -47,7 +48,6 @@ Web : https://foclabroc.github.io/retro_collec_app/
 
 ## À faire
 
-1. Grille du 4 en ligne (`connect4.dart`) : moins fade.
-2. Voisinage : remplacer la tour par un autre système.
-3. Avatars : refaire avec de nouveaux assets.
-4. Cartes de saga : le nom est coupé quand il est trop long.
+1. Voisinage : remplacer la tour par un autre système.
+2. Avatars : refaire avec de nouveaux assets.
+3. Cartes de saga : le nom est coupé quand il est trop long.
