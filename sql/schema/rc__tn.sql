@@ -10,6 +10,9 @@ as $function$
                      when 'cards' then p.cards
                      when 'consoles' then (select count(*)::int from public.rc_milestones m
                                             where m.device = p_dev and m.step = 100 and m.sys not like 'sg\_%')
+                     when 'sagas' then (select count(*)::int from public.rc_milestones m
+                                         where m.device = p_dev and m.step = 100 and m.sys like 'sg\_%')
+                     when 'days' then p.days
                      else coalesce(c.n, 0) end,
          coalesce(g.tier, 0), array[k.t1, k.t2, k.t3], k.ord
     from public.rc__tpool() k

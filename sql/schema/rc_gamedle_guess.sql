@@ -28,6 +28,7 @@ begin
     update public.rc_players set coins = coins + reward where device = p_device;
     perform public.rc__feed_add(p_device, 'gamedle', ans, null, null, tries);
     perform public.rc__wbump(p_device, 'gamedle', 1);
+    if tries = 1 then perform public.rc__tbump(p_device, 'firsttry', 1); end if;  -- trophée : du premier coup
   end if;
   return public.rc__gamedle_json(p_device) || jsonb_build_object('ok', ok, 'reward', reward, 'answer', case when ok or tries >= 6 then ans end);
 end $function$

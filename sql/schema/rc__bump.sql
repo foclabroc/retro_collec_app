@@ -12,6 +12,7 @@ begin
     on conflict (day) do update set packs = public.rc_daily.packs + p_n;  -- stats admin
   elsif p_kind = 'recycle' then
     perform public.rc__ev_bump(p_dev, 'recycle', p_n);
+    perform public.rc__tbump(p_dev, 'recycle', p_n);  -- trophée : doublons recyclés
   end if;
   return '[]'::jsonb;
 end $function$;

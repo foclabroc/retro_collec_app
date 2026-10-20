@@ -24,6 +24,7 @@ begin
   perform public.rc__bump(m.seller, 'trade', 1);
   perform public.rc__ev_bump(m.seller, 'sales', 1);  -- défi : ventes en Bourse
   perform public.rc__wbump(m.seller, 'sale', 1);
+  perform public.rc__tbump(p_device, 'buys', 1);  -- trophée : achats à la Bourse
   if is_new then perform public.rc__wbump(p_device, 'new', 1); end if;
   perform public.rc__rescore(p_device);
   return jsonb_build_object('card', m.card, 'f', m.finish, 'n', is_new,

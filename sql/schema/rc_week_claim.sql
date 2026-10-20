@@ -16,6 +16,7 @@ begin
     if v.w_prog[p_i] < (public.rc__wgoals())[p_i] then raise exception 'défi pas terminé'; end if;
     gain := (public.rc__wrewards())[p_i];
     update public.rc_players set w_claim = w_claim | bit, coins = coins + gain where device = p_device;
+    perform public.rc__tbump(p_device, 'defis', 1);  -- trophée : défis de la semaine réussis
   elsif p_i = 7 then
     if (v.w_claim & 64) <> 0 then raise exception 'coffre déjà ouvert'; end if;
     if (v.w_claim & 63) <> 63 then raise exception 'coffre fermé'; end if;

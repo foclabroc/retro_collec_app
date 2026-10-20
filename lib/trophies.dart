@@ -16,24 +16,37 @@ import 'server.dart';
 
 class TrophyDef {
   final String k, icon, fr, en, dfr, den; // # = seuil du palier
-  const TrophyDef(this.k, this.icon, this.fr, this.en, this.dfr, this.den);
+  final List<int> s; // seuils bronze, argent, or (les mêmes que rc__tpool)
+  const TrophyDef(this.k, this.icon, this.fr, this.en, this.dfr, this.den, this.s);
   String get name => t(fr, en);
   String desc(int n) => t(dfr, den).replaceAll('#', '$n');
 }
 
 const kTrophies = [
-  TrophyDef('packs', '📦', 'Ouvreur de paquets', 'Pack opener', 'Ouvrir # paquets', 'Open # packs'),
-  TrophyDef('cards', '🗂️', 'Collectionneur', 'Collector', 'Avoir # cartes différentes', 'Own # different cards'),
-  TrophyDef('consoles', '🎮', 'Console complète', 'Full system', 'Terminer # console(s) à 100 %', 'Complete # system(s) at 100%'),
-  TrophyDef('legend', '👑', 'Légendes', 'Legends', 'Obtenir # carte(s) légendaire(s)', 'Get # legendary card(s)'),
-  TrophyDef('fullart', '🖼️', 'Full art', 'Full art', 'Obtenir # carte(s) Full art', 'Get # Full art card(s)'),
-  TrophyDef('fuse', '⚗️', 'Alchimiste', 'Alchemist', 'Faire # fusions', 'Make # fusions'),
-  TrophyDef('wins', '⚔️', 'Gladiateur', 'Gladiator', 'Gagner # duels', 'Win # duels'),
-  TrophyDef('gifts', '🎁', 'Père Noël', 'Santa', 'Envoyer # cadeaux', 'Send # gifts'),
-  TrophyDef('sales', '💰', 'Marchand', 'Merchant', 'Vendre # cartes à la Bourse', 'Sell # cards on the market'),
-  TrophyDef('trades', '🤝', 'Négociateur', 'Negotiator', 'Réussir # échanges', 'Complete # trades'),
-  TrophyDef('gamedle', '🟨', 'Détective', 'Detective', 'Réussir # Gamedle', 'Solve # Gamedles'),
-  TrophyDef('chest', '🏆', 'Semaine parfaite', 'Perfect week', 'Ouvrir # fois le coffre des défis', 'Open the challenge chest # times'),
+  TrophyDef('packs', '📦', 'Ouvreur de paquets', 'Pack opener', 'Ouvrir # paquets', 'Open # packs', [25, 100, 500]),
+  TrophyDef('cards', '🗂️', 'Collectionneur', 'Collector', 'Avoir # cartes différentes', 'Own # different cards', [100, 400, 1000]),
+  TrophyDef('consoles', '🎮', 'Console complète', 'Full system', 'Terminer # console(s) à 100 %', 'Complete # system(s) at 100%', [1, 5, 14]),
+  TrophyDef('legend', '👑', 'Légendes', 'Legends', 'Obtenir # carte(s) légendaire(s)', 'Get # legendary card(s)', [1, 10, 50]),
+  TrophyDef('fullart', '🖼️', 'Full art', 'Full art', 'Obtenir # carte(s) Full art', 'Get # Full art card(s)', [1, 10, 30]),
+  TrophyDef('fuse', '⚗️', 'Alchimiste', 'Alchemist', 'Faire # fusions', 'Make # fusions', [5, 25, 100]),
+  TrophyDef('wins', '⚔️', 'Gladiateur', 'Gladiator', 'Gagner # duels', 'Win # duels', [10, 50, 200]),
+  TrophyDef('gifts', '🎁', 'Père Noël', 'Santa', 'Envoyer # cadeaux', 'Send # gifts', [10, 50, 200]),
+  TrophyDef('sales', '💰', 'Marchand', 'Merchant', 'Vendre # cartes à la Bourse', 'Sell # cards on the market', [5, 25, 100]),
+  TrophyDef('trades', '🤝', 'Négociateur', 'Negotiator', 'Réussir # échanges', 'Complete # trades', [5, 25, 100]),
+  TrophyDef('gamedle', '🟨', 'Détective', 'Detective', 'Réussir # Gamedle', 'Solve # Gamedles', [10, 50, 200]),
+  TrophyDef('chest', '🏆', 'Semaine parfaite', 'Perfect week', 'Ouvrir # fois le coffre des défis', 'Open the challenge chest # times', [1, 5, 20]),
+  TrophyDef('sagas', '📖', 'Sagas', 'Sagas', 'Terminer # saga(s) à 100 %', 'Complete # saga(s) at 100%', [1, 2, 4]),
+  TrophyDef('days', '📅', 'Fidèle', 'Loyal', 'Se connecter # jours', 'Log in on # days', [7, 30, 100]),
+  TrophyDef('epics', '💜', 'Épiques', 'Epics', 'Obtenir # cartes épiques', 'Get # epic cards', [10, 50, 200]),
+  TrophyDef('holo', '✨', 'Brillant', 'Shiny', 'Obtenir # cartes brillantes', 'Get # holo cards', [10, 50, 200]),
+  TrophyDef('gold', '🥇', 'Doré', 'Golden', 'Obtenir # cartes dorées', 'Get # gold cards', [5, 25, 100]),
+  TrophyDef('recycle', '♻️', 'Recycleur', 'Recycler', 'Recycler # doublons', 'Recycle # duplicates', [50, 250, 1000]),
+  TrophyDef('quiz', '❓', 'Incollable', 'Know-it-all', 'Donner # bonnes réponses au quiz', 'Give # right quiz answers', [50, 250, 1000]),
+  TrophyDef('played', '🕹️', 'Joueur', 'Player', 'Jouer # duels', 'Play # duels', [20, 100, 400]),
+  TrophyDef('defis', '📋', 'Relevé !', 'Challenger', 'Réussir # défis de la semaine', 'Complete # weekly challenges', [10, 50, 200]),
+  TrophyDef('premium', '⭐', 'Premium', 'Premium', 'Ouvrir # paquets premium', 'Open # premium packs', [5, 25, 100]),
+  TrophyDef('buys', '🛒', 'Acheteur', 'Buyer', 'Acheter # cartes à la Bourse', 'Buy # cards on the market', [5, 25, 100]),
+  TrophyDef('firsttry', '🎯', 'Du premier coup', 'First try', 'Trouver # Gamedle du premier coup', 'Solve # Gamedles on the first try', [1, 5, 20]),
 ];
 
 TrophyDef? trophyDef(String k) {
@@ -277,18 +290,18 @@ class _MyTrophiesState extends State<MyTrophies> {
         ),
       ]),
       const SizedBox(height: 4),
-      Text(t('Touche une case pour choisir les 3 trophées affichés sur ton profil et ta borne', 'Tap a slot to pick the 3 trophies shown on your profile and cabinet'),
+      Text(t('Tes 3 meilleurs s\'affichent sur ton profil et ta borne · touche une case pour en choisir un autre', 'Your 3 best show on your profile and cabinet · tap a slot to pick another'),
           style: const TextStyle(color: Colors.white38, fontSize: 12)),
       const SizedBox(height: 8),
       Row(children: [
         for (var i = 0; i < 3; i++) ...[
           if (i > 0) const SizedBox(width: 8),
-          Expanded(child: _slot(context, i, slots)),
+          Flexible(child: SizedBox(width: 112, child: _slot(context, i, slots))),
         ],
       ]),
       const SizedBox(height: 12),
       LayoutBuilder(builder: (ctx, c) {
-        final cols = c.maxWidth < 330 ? 3 : 4;
+        final cols = max(3, ((c.maxWidth + 8) / 104).floor());
         final w = (c.maxWidth - (cols - 1) * 8) / cols;
         return Wrap(spacing: 8, runSpacing: 8, children: [for (final x in list) SizedBox(width: w, child: _cell(context, x))]);
       }),
@@ -310,11 +323,11 @@ class _MyTrophiesState extends State<MyTrophies> {
         ),
         child: Column(children: [
           if (has)
-            TrophyMedal(x.k, x.got, size: 56)
+            TrophyMedal(x.k, x.got, size: 48)
           else
             Container(
-              width: 56,
-              height: 56,
+              width: 48,
+              height: 48,
               alignment: Alignment.center,
               decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white24, width: 2)),
               child: const Icon(Icons.add, color: Colors.white38),
@@ -522,7 +535,7 @@ class _MyTrophiesState extends State<MyTrophies> {
                           _setShow(s);
                           Navigator.pop(ctx);
                         },
-                  child: Text(t('Vider la case', 'Clear slot')),
+                  child: Text(t('Automatique', 'Automatic')),
                 ),
               ),
               const SizedBox(width: 8),
@@ -582,10 +595,6 @@ class OtherTrophies extends StatelessWidget {
   }
 
   void _info(BuildContext context, String k, int tier) {
-    const seuils = {
-      'packs': [25, 100, 500], 'cards': [100, 400, 1000], 'consoles': [1, 5, 14], 'legend': [1, 10, 50], 'fullart': [1, 10, 30], 'fuse': [5, 25, 100],
-      'wins': [10, 50, 200], 'gifts': [10, 50, 200], 'sales': [5, 25, 100], 'trades': [5, 25, 100], 'gamedle': [10, 50, 200], 'chest': [1, 5, 20],
-    };
     final d = trophyDef(k)!;
     showDialog(
       context: context,
@@ -596,7 +605,7 @@ class OtherTrophies extends StatelessWidget {
           const SizedBox(height: 10),
           Text(d.name.toUpperCase(), textAlign: TextAlign.center, style: pixelStyle(size: 11, color: kGold)),
           const SizedBox(height: 8),
-          Text('${tierName(tier)} : ${d.desc(seuils[k]![tier - 1])}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+          Text('${tierName(tier)} : ${d.desc(d.s[tier - 1])}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
         ]),
         actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Fermer', 'Close')))],
       ),
