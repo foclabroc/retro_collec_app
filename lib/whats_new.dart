@@ -168,7 +168,7 @@ class _WhatsNewDialogState extends State<_WhatsNewDialog> {
                     margin: const EdgeInsets.symmetric(vertical: 3),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     decoration: BoxDecoration(
-                      color: i == 0 ? kGold.withAlpha(46) : Colors.white.withAlpha(13),
+                      color: opq(i == 0 ? kGold.withAlpha(46) : Colors.white.withAlpha(13)),
                       borderRadius: BorderRadius.circular(10),
                       border: i == 0 ? Border.all(color: kGold.withAlpha(153)) : null,
                     ),

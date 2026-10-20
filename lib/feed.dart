@@ -331,7 +331,7 @@ class _FeedTile extends StatelessWidget {
                         child: Container(
                           margin: const EdgeInsets.only(left: 5),
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                          decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(8)),
+                          decoration: BoxDecoration(color: opq(Colors.black38), borderRadius: BorderRadius.circular(8)),
                           child: Text(prize, style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.w900, fontSize: 12)),
                         ),
                       ),
@@ -414,7 +414,7 @@ class _ReactsState extends State<_Reacts> {
         Padding(
           padding: const EdgeInsets.only(left: 4),
           child: Material(
-            color: m == j ? rcTheme.accent.withOpacity(0.3) : Colors.white.withOpacity(0.05),
+            color: opq(m == j ? rcTheme.accent.withOpacity(0.3) : Colors.white.withOpacity(0.05)),
             shape: StadiumBorder(side: BorderSide(color: m == j ? rcTheme.accent : Colors.white24)),
             child: InkWell(
               customBorder: const StadiumBorder(),

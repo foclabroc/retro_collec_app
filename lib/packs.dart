@@ -261,7 +261,7 @@ class _PacksScreenState extends State<PacksScreen> {
             SliverToBoxAdapter(
               child: Column(children: [
                 const SizedBox(height: 10),
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: opq(Colors.white24), borderRadius: BorderRadius.circular(2))),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
                   child: Text(kind == 'sconsole' ? t('BOOSTER CONSOLE+', 'CONSOLE+ BOOSTER') : t('PAQUET CONSOLE', 'CONSOLE PACK'), style: pixelStyle(size: 13)),
@@ -441,7 +441,7 @@ class _PacksScreenState extends State<PacksScreen> {
                   const SizedBox(height: 7),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(value: (g.pity / 30).clamp(0.0, 1.0), minHeight: 7, color: const Color(0xFFB04FE0), backgroundColor: Colors.white10),
+                    child: LinearProgressIndicator(value: (g.pity / 30).clamp(0.0, 1.0), minHeight: 7, color: const Color(0xFFB04FE0), backgroundColor: opq(Colors.white10)),
                   ),
                 ]),
               ),
@@ -529,7 +529,7 @@ class _ConsolePick extends StatelessWidget {
                 Expanded(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(3),
-                    child: LinearProgressIndicator(value: owned / total, minHeight: 5, color: brand, backgroundColor: Colors.white12),
+                    child: LinearProgressIndicator(value: owned / total, minHeight: 5, color: brand, backgroundColor: opq(Colors.white12)),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -993,7 +993,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       },
       child: TiltScope(
       child: Scaffold(
-        backgroundColor: const Color(0xB3060A1E), // fond animé assombri pendant l'ouverture
+        backgroundColor: opq(Color(0xB3060A1E)), // fond animé assombri pendant l'ouverture
         body: SafeArea(
           child: Column(children: [
             Row(children: [
@@ -1582,7 +1582,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.3),
+          color: opq(Colors.black.withOpacity(0.3)),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: b.glow.withOpacity(0.8)),
         ),
@@ -1990,7 +1990,7 @@ class _Section extends StatelessWidget {
         child: Row(children: [
           Text(label, style: pixelStyle(size: 9, color: const Color(0xFFFFD166), shadow: false)),
           const SizedBox(width: 8),
-          Expanded(child: Container(height: 1, color: const Color(0x40FFD166))),
+          Expanded(child: Container(height: 1, color: opq(Color(0x40FFD166)))),
         ]),
       );
 }
@@ -2267,7 +2267,7 @@ class PixelChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-        decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: opq(Colors.black.withOpacity(0.3)), borderRadius: BorderRadius.circular(20)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           const PixelIcon(size: 13),
           const SizedBox(width: 6),
@@ -2305,7 +2305,7 @@ class _PixelsGauge extends StatelessWidget {
               width: 40,
               height: 4,
               margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: opq(Colors.white24), borderRadius: BorderRadius.circular(2)),
             ),
           ),
         Row(children: [
@@ -2332,11 +2332,11 @@ class _PixelsGauge extends StatelessWidget {
                 height: 10,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(value: (pixels / top).clamp(0.0, 1.0), color: const Color(0xFFFFD166), backgroundColor: Colors.white10),
+                  child: LinearProgressIndicator(value: (pixels / top).clamp(0.0, 1.0), color: const Color(0xFFFFD166), backgroundColor: opq(Colors.white10)),
                 ),
               ),
               for (final p in kSpecialPrice.values) ...[
-                Positioned(left: w * p / top - 1.5, top: 0, width: 3, height: 18, child: Container(color: Colors.white70)),
+                Positioned(left: w * p / top - 1.5, top: 0, width: 3, height: 18, child: Container(color: opq(Colors.white70))),
                 Positioned(
                   left: w * p / top - 20,
                   width: 40,
@@ -2401,7 +2401,7 @@ class _PixelsRow extends StatelessWidget {
                 const SizedBox(height: 5),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(value: (pixels / top).clamp(0.0, 1.0), minHeight: 6, color: const Color(0xFFFFD166), backgroundColor: Colors.white10),
+                  child: LinearProgressIndicator(value: (pixels / top).clamp(0.0, 1.0), minHeight: 6, color: const Color(0xFFFFD166), backgroundColor: opq(Colors.white10)),
                 ),
                 const SizedBox(height: 4),
                 Text(

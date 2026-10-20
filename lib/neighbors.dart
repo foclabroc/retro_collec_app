@@ -187,7 +187,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: Colors.black.withOpacity(0.25),
+                      backgroundColor: opq(Colors.black.withOpacity(0.25)),
                     ),
                     onPressed: onTap,
                     icon: Icon(icon, size: 16),
@@ -235,7 +235,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
                   hintText: t('Chercher un voisin', 'Search a neighbor'),
                   isDense: true,
                   filled: true,
-                  fillColor: const Color(0x33000000),
+                  fillColor: opq(Color(0x33000000)),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                 ),
                 onChanged: (v) {
@@ -259,7 +259,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         visualDensity: VisualDensity.compact,
         side: const BorderSide(color: teal, width: 1.5),
-        backgroundColor: teal.withOpacity(0.14),
+        backgroundColor: opq(teal.withOpacity(0.14)),
         foregroundColor: const Color(0xFF9FE0C4),
       ),
       onPressed: () => _showOnline(on),
@@ -438,7 +438,7 @@ class _OnlineRowState extends State<_OnlineRow> {
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: opq(Colors.white.withOpacity(0.05)), borderRadius: BorderRadius.circular(12)),
       child: Column(children: [
         Row(children: [
           Container(
@@ -605,7 +605,7 @@ class _OnlineMenuTileState extends State<OnlineMenuTile> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
       child: Material(
-        color: teal.withOpacity(0.12),
+        color: opq(teal.withOpacity(0.12)),
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
@@ -637,7 +637,7 @@ void _onlineSheet(BuildContext context, List<FloorData> on, void Function(String
         child: Padding(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: opq(Colors.white24), borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 10),
             Text(t('🟢 En ligne maintenant', '🟢 Online now'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
             const SizedBox(height: 8),

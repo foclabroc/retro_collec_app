@@ -391,7 +391,7 @@ class _UpdateDialogState extends State<_UpdateDialog> {
           if (_step == 1) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(value: pct, minHeight: 8, backgroundColor: Colors.white10, color: red),
+              child: LinearProgressIndicator(value: pct, minHeight: 8, backgroundColor: opq(Colors.white10), color: red),
             ),
             const SizedBox(height: 6),
             Text(pct == null

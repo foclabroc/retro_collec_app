@@ -525,7 +525,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 3),
             padding: const EdgeInsets.symmetric(vertical: 7),
-            decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: opq(Colors.black.withOpacity(0.3)), borderRadius: BorderRadius.circular(10)),
             child: Column(children: [
               FittedBox(child: Text(v, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: c))),
               Text(label, style: const TextStyle(fontSize: 10.5, color: Colors.white54)),
@@ -614,7 +614,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
         );
     return Container(
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(13)),
+      decoration: BoxDecoration(color: opq(Colors.black.withOpacity(0.3)), borderRadius: BorderRadius.circular(13)),
       child: Row(children: [
         tabBtn(0, t('En direct', 'Live'), t(k.liveSub, k.liveSub), liveCount, _kTeal),
         const SizedBox(width: 4),
@@ -739,7 +739,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
                   padding: const EdgeInsets.only(top: 5, right: 6),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(value: w + l == 0 ? 0 : w / (w + l), minHeight: 4, color: _kTeal, backgroundColor: Colors.white10),
+                    child: LinearProgressIndicator(value: w + l == 0 ? 0 : w / (w + l), minHeight: 4, color: _kTeal, backgroundColor: opq(Colors.white10)),
                   ),
                 ),
               ],
@@ -911,7 +911,7 @@ class _Countdown extends StatelessWidget {
         width: 36,
         height: 36,
         child: Stack(alignment: Alignment.center, children: [
-          CircularProgressIndicator(value: (left.inSeconds / total).clamp(0.0, 1.0), strokeWidth: 3, color: _kNeon, backgroundColor: Colors.white12),
+          CircularProgressIndicator(value: (left.inSeconds / total).clamp(0.0, 1.0), strokeWidth: 3, color: _kNeon, backgroundColor: opq(Colors.white12)),
           FittedBox(child: Padding(padding: const EdgeInsets.all(5), child: Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900)))),
         ]),
       );
@@ -988,7 +988,7 @@ class _WaitDialogState extends State<_WaitDialog> {
             width: 76,
             height: 76,
             child: Stack(alignment: Alignment.center, children: [
-              SizedBox.expand(child: CircularProgressIndicator(value: s / 120, strokeWidth: 6, color: _kCyan, backgroundColor: Colors.white12)),
+              SizedBox.expand(child: CircularProgressIndicator(value: s / 120, strokeWidth: 6, color: _kCyan, backgroundColor: opq(Colors.white12))),
               Text('${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}', style: pixelStyle(size: 11, color: _kCyan, shadow: false)),
             ]),
           ),
@@ -1075,7 +1075,7 @@ class _PlayerPickerState extends State<_PlayerPicker> {
       builder: (context, scroll) => SafeArea(
         child: Column(children: [
           const SizedBox(height: 10),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: opq(Colors.white24), borderRadius: BorderRadius.circular(2))),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Text(t('Contre qui ?', 'Against whom?'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
@@ -1088,7 +1088,7 @@ class _PlayerPickerState extends State<_PlayerPicker> {
                 hintText: t('Chercher un joueur', 'Search a player'),
                 isDense: true,
                 filled: true,
-                fillColor: const Color(0x33000000),
+                fillColor: opq(Color(0x33000000)),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
               onChanged: (v) {
@@ -1406,7 +1406,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                 width: 50,
                 height: 50,
                 child: Stack(alignment: Alignment.center, children: [
-                  SizedBox.expand(child: CircularProgressIndicator(value: on ? frac : 1, strokeWidth: 3.5, color: warn ? _kRed : color, backgroundColor: Colors.white10)),
+                  SizedBox.expand(child: CircularProgressIndicator(value: on ? frac : 1, strokeWidth: 3.5, color: warn ? _kRed : color, backgroundColor: opq(Colors.white10))),
                   avatarWidget(avatar, size: 40),
                   Positioned(
                     right: right ? null : 0,
@@ -1585,7 +1585,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                       setState(() {});
                     },
                     icon: Icon(RcAudio.soundOn ? Icons.volume_up : Icons.volume_off, color: Colors.white70),
-                    style: IconButton.styleFrom(backgroundColor: Colors.white10),
+                    style: IconButton.styleFrom(backgroundColor: opq(Colors.white10)),
                   ),
                 ]),
               ),

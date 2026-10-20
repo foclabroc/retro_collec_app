@@ -272,7 +272,7 @@ class _ChestState extends State<_Chest> with SingleTickerProviderStateMixin {
                         height: 7,
                         margin: EdgeInsets.only(right: i < w.total - 1 ? 4 : 0),
                         decoration: BoxDecoration(
-                          color: i < w.got ? const Color(0xFFFAC775) : Colors.white.withOpacity(0.15),
+                          color: opq(i < w.got ? Color(0xFFFAC775) : Colors.white.withOpacity(0.15)),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -356,7 +356,7 @@ class _ChallengeRow extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: f,
                       minHeight: 7,
-                      backgroundColor: Colors.white.withOpacity(0.12),
+                      backgroundColor: opq(Colors.white.withOpacity(0.12)),
                       color: done ? const Color(0xFF5DCAA5) : rcTheme.accent,
                     ),
                   ),

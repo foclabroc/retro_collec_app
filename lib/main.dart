@@ -123,7 +123,7 @@ class _WebFrame extends StatelessWidget {
     final w = math.min(460.0, math.max(360.0, h * 0.52));
     return Stack(children: [
       const Positioned.fill(child: RetroBackground()),
-      Positioned.fill(child: ColoredBox(color: Colors.black.withOpacity(0.35))),
+      Positioned.fill(child: ColoredBox(color: opq(Colors.black.withOpacity(0.35)))),
       Center(
         child: Container(
           width: w,
@@ -337,7 +337,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
 
   Widget _news(String text, Color c) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(color: c.withOpacity(0.14), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(color: opq(c.withOpacity(0.14)), borderRadius: BorderRadius.circular(8)),
         child: Text(text, style: TextStyle(color: c, fontWeight: FontWeight.w800, fontSize: 11.5)),
       );
 
@@ -1090,7 +1090,7 @@ class _SoundButtonState extends State<_SoundButton> with SingleTickerProviderSta
         child: child,
       ),
       child: Material(
-        color: const Color(0xB30A0E32),
+        color: opq(Color(0xB30A0E32)),
         shape: StadiumBorder(side: BorderSide(color: widget.needsTap ? neon : Colors.white24, width: 1.5)),
         child: InkWell(
           customBorder: const StadiumBorder(),

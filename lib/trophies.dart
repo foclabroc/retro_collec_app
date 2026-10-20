@@ -310,7 +310,7 @@ class _MyTrophiesState extends State<MyTrophies> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
           decoration: BoxDecoration(
-            color: ready > 0 ? kGold.withOpacity(0.10) : Colors.black.withOpacity(0.18),
+            color: opq(ready > 0 ? kGold.withOpacity(0.10) : Colors.black.withOpacity(0.18)),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: ready > 0 ? kGold : Colors.white12),
           ),
@@ -360,7 +360,7 @@ class _MyTrophiesState extends State<MyTrophies> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.2),
+          color: opq(Colors.black.withOpacity(0.2)),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white12),
         ),
@@ -396,7 +396,7 @@ class _MyTrophiesState extends State<MyTrophies> {
       child: Container(
         padding: const EdgeInsets.fromLTRB(2, 8, 2, 7),
         decoration: BoxDecoration(
-          color: x.ready ? kGold.withOpacity(0.08) : Colors.black.withOpacity(0.18),
+          color: opq(x.ready ? kGold.withOpacity(0.08) : Colors.black.withOpacity(0.18)),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: x.ready ? kGold : Colors.transparent),
         ),
@@ -417,7 +417,7 @@ class _MyTrophiesState extends State<MyTrophies> {
                 widthFactor: 0.8,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(value: pct, minHeight: 4, backgroundColor: Colors.white12, color: rcTheme.accent),
+                  child: LinearProgressIndicator(value: pct, minHeight: 4, backgroundColor: opq(Colors.white12), color: rcTheme.accent),
                 ),
               ),
             const SizedBox(height: 5),
@@ -427,7 +427,7 @@ class _MyTrophiesState extends State<MyTrophies> {
                   width: 8,
                   height: 8,
                   margin: const EdgeInsets.symmetric(horizontal: 2),
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: k <= x.got ? _tierColors[k][0] : Colors.white12),
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: opq(k <= x.got ? _tierColors[k][0] : Colors.white12)),
                 ),
             ]),
           ]),
@@ -510,7 +510,7 @@ class _MyTrophiesState extends State<MyTrophies> {
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(color: Colors.black.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: opq(Colors.black.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
       child: Row(children: [
         TrophyMedal(x.k, i < x.got ? i + 1 : 0, size: 34),
         const SizedBox(width: 10),
@@ -621,7 +621,7 @@ class OtherTrophies extends StatelessWidget {
                       onTap: () => _info(context, items[i].$1, items[i].$2),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                        decoration: BoxDecoration(color: Colors.black.withOpacity(0.2), borderRadius: BorderRadius.circular(14)),
+                        decoration: BoxDecoration(color: opq(Colors.black.withOpacity(0.2)), borderRadius: BorderRadius.circular(14)),
                         child: Column(children: [
                           TrophyMedal(items[i].$1, items[i].$2, size: 52),
                           const SizedBox(height: 6),

@@ -127,7 +127,7 @@ class _MailDialogState extends State<_MailDialog> {
 
   Widget _chip(String s) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(color: kGold.withOpacity(0.18), borderRadius: BorderRadius.circular(20), border: Border.all(color: kGold)),
+        decoration: BoxDecoration(color: opq(kGold.withOpacity(0.18)), borderRadius: BorderRadius.circular(20), border: Border.all(color: kGold)),
         child: Text(s, style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFFD08A))),
       );
 }
@@ -211,13 +211,13 @@ class _PollDialogState extends State<_PollDialog> {
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.white10,
+        color: opq(Colors.white10),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: mine ? kGold : Colors.transparent, width: 1.5),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(children: [
-        FractionallySizedBox(widthFactor: f, heightFactor: 1, child: Container(color: kGold.withOpacity(0.35))),
+        FractionallySizedBox(widthFactor: f, heightFactor: 1, child: Container(color: opq(kGold.withOpacity(0.35)))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(children: [

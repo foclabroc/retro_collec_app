@@ -131,7 +131,7 @@ class _CardOffersState extends State<_CardOffers> {
     if (c == null) return const SizedBox();
     final known = Game.i.has(c.id);
     return ListView(controller: widget.scroll, padding: const EdgeInsets.fromLTRB(16, 10, 16, 24), children: [
-      Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
+      Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: opq(Colors.white24), borderRadius: BorderRadius.circular(2)))),
       const SizedBox(height: 12),
       Row(children: [
         // carte en vente : toujours montrée en entier (même si on ne l'a pas), dans la finition de l'offre la moins chère
@@ -530,7 +530,7 @@ class MarketGroupsState extends State<MarketGroups> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
+              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: opq(Colors.white24), borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 8),
               Row(children: [
                 Text(t('Filtres', 'Filters'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
@@ -602,7 +602,7 @@ class MarketGroupsState extends State<MarketGroups> {
                   ),
             isDense: true,
             filled: true,
-            fillColor: const Color(0x33000000),
+            fillColor: opq(Color(0x33000000)),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
           ),
         ),
@@ -649,7 +649,7 @@ class MarketGroupsState extends State<MarketGroups> {
               bottom: 30,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                decoration: BoxDecoration(color: Colors.black.withOpacity(0.75), borderRadius: BorderRadius.circular(6)),
+                decoration: BoxDecoration(color: opq(Colors.black.withOpacity(0.75)), borderRadius: BorderRadius.circular(6)),
                 child: Text('×$lots', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
               ),
             ),
@@ -893,7 +893,7 @@ class MyListingsState extends State<MyListings> {
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(value: open / kMaxListings, minHeight: 5, color: kGold, backgroundColor: Colors.white12),
+              child: LinearProgressIndicator(value: open / kMaxListings, minHeight: 5, color: kGold, backgroundColor: opq(Colors.white12)),
             ),
           ),
           const SizedBox(width: 10),
@@ -1245,7 +1245,7 @@ class _SellPickerPageState extends State<SellPickerPage> {
               prefixIcon: const Icon(Icons.search, color: Colors.white54),
               isDense: true,
               filled: true,
-              fillColor: const Color(0x33000000),
+              fillColor: opq(Color(0x33000000)),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             ),
           ),
@@ -1307,7 +1307,7 @@ class _SellPickerPageState extends State<SellPickerPage> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(color: kGold, width: 3),
-                                color: kGold.withOpacity(0.18),
+                                color: opq(kGold.withOpacity(0.18)),
                               ),
                               child: const Center(child: Icon(Icons.check_circle, color: kGold, size: 36)),
                             ),

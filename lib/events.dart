@@ -347,7 +347,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                     width: 50,
                     margin: const EdgeInsets.only(right: 6),
                     padding: const EdgeInsets.symmetric(vertical: 5),
-                    decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(color: opq(Colors.black38), borderRadius: BorderRadius.circular(8)),
                     child: Column(children: [
                       Text(l == t('jours', 'days') ? '${max(0, v)}' : max(0, v).toString().padLeft(2, '0'), style: pixelStyle(size: 11, color: Colors.white, shadow: false)),
                       const SizedBox(height: 2),
@@ -364,7 +364,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
               if (e['kind'] == 'goal' && Events._reachable(e) > 0) _claimButton(e),
               if (action != null)
                 OutlinedButton(
-                  style: OutlinedButton.styleFrom(backgroundColor: Colors.black26, side: const BorderSide(color: Colors.white54)),
+                  style: OutlinedButton.styleFrom(backgroundColor: opq(Colors.black26), side: const BorderSide(color: Colors.white54)),
                   onPressed: () => _go(action),
                   child: Text(t('Y aller ›', 'Go ›'), style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
                 ),
@@ -413,7 +413,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     if (got) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(color: const Color(0x335DCAA5), borderRadius: BorderRadius.circular(11)),
+        decoration: BoxDecoration(color: opq(Color(0x335DCAA5)), borderRadius: BorderRadius.circular(11)),
         child: Text(label, style: const TextStyle(color: Color(0xFF5DCAA5), fontWeight: FontWeight.w900)),
       );
     }
@@ -475,7 +475,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           return Container(
             width: 46,
             decoration: BoxDecoration(
-              color: i == 0 ? const Color(0x26FFD166) : Colors.white.withOpacity(0.05),
+              color: opq(i == 0 ? Color(0x26FFD166) : Colors.white.withOpacity(0.05)),
               borderRadius: BorderRadius.circular(12),
               border: i == 0 ? Border.all(color: const Color(0xFFFFD166), width: 1.5) : null,
             ),
@@ -524,7 +524,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
               width: 50,
               height: 50,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white24, width: 2)),
+              decoration: BoxDecoration(color: opq(Colors.black26), borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white24, width: 2)),
               child: Text(e['icon'] as String? ?? '🎉', style: const TextStyle(fontSize: 26)),
             ),
             const SizedBox(width: 12),
@@ -542,7 +542,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-              decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(5)),
+              decoration: BoxDecoration(color: opq(Colors.black38), borderRadius: BorderRadius.circular(5)),
               child: Text(px(upcoming ? t('BIENTÔT', 'SOON') : tag), style: pixelStyle(size: 6.5, color: Colors.white, shadow: false)),
             ),
           ]),
@@ -557,7 +557,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
               // pas encore utilisable : récompense visible, verrouillée jusqu'au début
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.06), borderRadius: BorderRadius.circular(11), border: Border.all(color: Colors.white24)),
+                decoration: BoxDecoration(color: opq(Colors.white.withOpacity(0.06)), borderRadius: BorderRadius.circular(11), border: Border.all(color: Colors.white24)),
                 child: Text(
                     [
                       '🔒 ${start == null ? '' : t('Disponible le ${two(start.day)}/${two(start.month)} à ${two(start.hour)}:${two(start.minute)}', 'Available on ${start.month}/${start.day} at ${two(start.hour)}:${two(start.minute)}')}',
@@ -595,7 +595,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: opq(Colors.black26), borderRadius: BorderRadius.circular(12)),
       child: Row(children: [
         AnimatedBuilder(
           animation: anim,
@@ -633,7 +633,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
         return SizedBox(
           height: 56,
           child: Stack(clipBehavior: Clip.none, children: [
-            Positioned(left: 15, right: 15, top: 12, height: 7, child: Container(decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(4)))),
+            Positioned(left: 15, right: 15, top: 12, height: 7, child: Container(decoration: BoxDecoration(color: opq(Colors.white12), borderRadius: BorderRadius.circular(4)))),
             Positioned(
               left: 15,
               top: 12,
@@ -708,7 +708,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             width: 44,
             height: 44,
             alignment: Alignment.center,
-            decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white24, width: 2)),
+            decoration: BoxDecoration(color: opq(Colors.black26), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white24, width: 2)),
             child: Text('?', style: pixelStyle(size: 16, color: Colors.white, shadow: false)),
           ),
         ),
@@ -737,7 +737,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.04), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: opq(Colors.white.withOpacity(0.04)), borderRadius: BorderRadius.circular(12)),
       child: Row(children: [
         Text(e['icon'] as String? ?? '🎉', style: const TextStyle(fontSize: 18)),
         const SizedBox(width: 10),

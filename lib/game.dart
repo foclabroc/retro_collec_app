@@ -126,6 +126,8 @@ const kGold = Color(0xFFEF9F27);
 Color get kBg => rcTheme.bg; // fond des feuilles et dialogues
 Color get kPanel => rcTheme.panel; // panneaux opaques sur le fond animé
 Color get kPanel2 => rcTheme.panel2;
+/// Rend opaque une couleur semi-transparente en la posant sur le panneau du thème (aucun fond visible à travers)
+Color opq(Color c) => Color.alphaBlend(c, rcTheme.panel);
 
 /// Avatars : 30 images (assets/avatars/avatar_NN.webp, 256 × 256, détourées, fond transparent).
 /// 00-19 : Bowser Jr, Bowser, Cappy, Deadpool, Dragon, Donkey Kong, Eggman, Fleur de feu, Kirby, Lara Croft,
