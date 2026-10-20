@@ -1,5 +1,9 @@
 # Pixel Trade — Changelog
 
+## Prochaine version
+
+- **Musique « Aucune »** (Profil → Musique) : coupe toute la musique, les bruitages restent. Le bouton son de l'écran titre suit le réglage son, plus la musique seule.
+
 ## v1.0.13
 _Version 1.0.13+14._
 

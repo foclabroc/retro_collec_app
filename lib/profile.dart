@@ -380,7 +380,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ListTile(
                       leading: const Icon(Icons.library_music),
                       title: Text(t('Musique', 'Music')),
-                      subtitle: Text(RcAudio.homeTrackRandom ? '${t('Aléatoire', 'Random')} · ${RcAudio.kTracks[RcAudio.homeTrack]}' : RcAudio.kTracks[RcAudio.homeTrack], style: const TextStyle(fontSize: 12, color: Colors.white54)),
+                      subtitle: Text(RcAudio.homeTrackNone ? t('Aucune', 'None') : RcAudio.homeTrackRandom ? '${t('Aléatoire', 'Random')} · ${RcAudio.kTracks[RcAudio.homeTrack]}' : RcAudio.kTracks[RcAudio.homeTrack], style: const TextStyle(fontSize: 12, color: Colors.white54)),
                       trailing: const Icon(Icons.chevron_right, color: Colors.white38),
                       onTap: () async {
                         final i = await showDialog<int>(
@@ -389,8 +389,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             title: Text(t('Musique', 'Music')),
                             children: [
                               RadioListTile<int>(
+                                value: -2,
+                                groupValue: RcAudio.homeTrackNone ? -2 : RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
+                                activeColor: kGold,
+                                title: Text(t('🔇 Aucune', '🔇 None')),
+                                subtitle: Text(t('Pas de musique, les bruitages restent', 'No music, sound effects stay on'),
+                                    style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                                onChanged: (v) => Navigator.pop(ctx, v),
+                              ),
+                              RadioListTile<int>(
                                 value: -1,
-                                groupValue: RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
+                                groupValue: RcAudio.homeTrackNone ? -2 : RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
                                 activeColor: kGold,
                                 title: Text(t('🎲 Aléatoire', '🎲 Random')),
                                 subtitle: Text(t('Un morceau différent à chaque lancement', 'A different track at each launch'),
@@ -400,7 +409,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               for (var k = 0; k < RcAudio.kTracks.length; k++)
                                 RadioListTile<int>(
                                   value: k,
-                                  groupValue: RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
+                                  groupValue: RcAudio.homeTrackNone ? -2 : RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
                                   activeColor: kGold,
                                   title: Text(RcAudio.kTracks[k]),
                                   onChanged: (v) => Navigator.pop(ctx, v),

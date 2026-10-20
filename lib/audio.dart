@@ -54,8 +54,11 @@ class RcAudio {
 
   /// Morceau choisi dans les réglages (index dans kTracks, même ordre que MainActivity.kt)
   static const kTracks = ['Pixel Quest', 'Block World', 'Level Up', 'Game On', 'Retro Wave', 'Lo-fi Gaming', 'Study Time', 'Game Show'];
-  static const _kTrackKey = 'rc_track2'; // -1 = aléatoire (par défaut, nouvelles musiques)
+  static const _kTrackKey = 'rc_track2'; // -1 = aléatoire (par défaut), -2 = aucune
   static int homeTrack = 0;
+
+  /// « Aucune » : pas de musique du tout (les bruitages restent)
+  static bool homeTrackNone = false;
 
   /// « Aléatoire » : un morceau différent à chaque lancement
   static bool homeTrackRandom = true;
@@ -68,14 +71,19 @@ class RcAudio {
     return i;
   }
 
-  /// [i] = -1 : aléatoire
+  /// [i] = -1 : aléatoire, -2 : aucune
   static Future<void> setHomeTrack(int i) async {
-    homeTrackRandom = i < 0;
-    homeTrack = homeTrackRandom ? _randomTrack(homeTrack) : i;
-    if (_music) musicStart(homeTrack);
+    homeTrackNone = i == -2;
+    if (homeTrackNone) {
+      _invoke('musicStop');
+    } else {
+      homeTrackRandom = i < 0;
+      homeTrack = homeTrackRandom ? _randomTrack(homeTrack) : i;
+      if (_music) musicStart(homeTrack);
+    }
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_kTrackKey, i < 0 ? -1 : i);
+      await prefs.setInt(_kTrackKey, i < -1 ? -2 : (i < 0 ? -1 : i));
       await prefs.setInt('rc_track_last', homeTrack);
     } catch (_) {}
   }
@@ -98,6 +106,7 @@ class RcAudio {
       _music = prefs.getBool(_kMusicKey) ?? true;
       _enabled = prefs.getBool(_kSfxKey) ?? true;
       final v = prefs.getInt(_kTrackKey) ?? -1;
+      homeTrackNone = v == -2;
       homeTrackRandom = v < 0;
       if (homeTrackRandom) {
         homeTrack = _randomTrack((prefs.getInt('rc_track_last') ?? -1));
@@ -114,7 +123,7 @@ class RcAudio {
     _musicLoaded = true;
     if (!v) {
       _invoke('musicStop');
-    } else if (_track != null) {
+    } else if (_track != null && !homeTrackNone) {
       musicStart(_track!);
     }
     try {
@@ -126,7 +135,7 @@ class RcAudio {
   /// Lance la musique [track] en boucle (0 = Rétro Jump, 1 = Breakout).
   static Future<void> musicStart(int track) async {
     _track = track;
-    if (!_music) return;
+    if (!_music || homeTrackNone) return;
     await _invoke('musicStart', {'track': track});
   }
 
@@ -136,7 +145,7 @@ class RcAudio {
   }
   static Future<void> musicPause() => _invoke('musicPause');
   static Future<void> musicResume() async {
-    if (!_music) return;
+    if (!_music || homeTrackNone) return;
     await _invoke('musicResume');
   }
 

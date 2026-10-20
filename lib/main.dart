@@ -250,7 +250,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
   }
 
   void _tap() {
-    if (!_soundOn && RcAudio.musicEnabled) {
+    if (!_soundOn && RcAudio.soundOn) {
       _unlockSound();
       return;
     }
@@ -456,7 +456,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
               FadeTransition(
                 opacity: blink,
                 child: Text(
-                    !_soundOn && RcAudio.musicEnabled ? t('▶ TOUCHE POUR LE SON', '▶ TAP FOR SOUND') : t('▶ TOUCHE POUR JOUER', '▶ TAP TO PLAY'),
+                    !_soundOn && RcAudio.soundOn ? t('▶ TOUCHE POUR LE SON', '▶ TAP FOR SOUND') : t('▶ TOUCHE POUR JOUER', '▶ TAP TO PLAY'),
                     textAlign: TextAlign.center,
                     style: pixelStyle(size: 11, color: Colors.white)),
               ),
@@ -475,7 +475,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
             alignment: Alignment.topRight,
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: _SoundButton(on: _soundOn && RcAudio.musicEnabled, needsTap: !_soundOn && RcAudio.musicEnabled, onTap: _toggleSound),
+              child: _SoundButton(on: _soundOn && RcAudio.soundOn, needsTap: !_soundOn && RcAudio.soundOn, onTap: _toggleSound),
             ),
           ),
         ),
