@@ -49,7 +49,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - `market.dart` / `bourse.dart` (Bourse), `trades.dart`.
 - `arcade.dart` (Voisinage « Pixel Arcade » : `ArcadeCabinet`, habillages `kFloorThemes` → `assets/arcade/*.webp`, `FloorData`, page d'habillage), `neighbors.dart` (salle : podium + rangées de 3), `profile.dart`, `house.dart`.
 - `connect4.dart`, `battleship.dart` (Console Wars), `duel_watch.dart`, `duel_msg.dart`.
-- `trophies.dart` (trophées : `MyTrophies` au profil, `OtherTrophies`, `TrophyMedal`, `myTrophyShow` pour la borne).
+- `trophies.dart` (trophées : `MyTrophies` au profil (vitrine + liste complète dans un déroulant `open`), `OtherTrophies`, `TrophyMedal`, `myTrophyShow` pour la borne).
 - `events.dart` (événements, effets, défis à paliers), `defis.dart` (défis de la semaine), `rewards.dart` (récompenses + éditeur admin).
 - `admin.dart` + `admin_tools.dart` : page admin (Comptes, Liens, Stats cliquables, Chat, Outils : courrier / cadeau ciblé, sondage, événements, bandeau, maintenance, réglages en direct, version minimale, Bourse, recherche de carte, activité des joueurs, journal admin).
 - `audio.dart` (`RcAudio`) : musique et bruitages ; réglage `rc_track2` = n° de morceau, -1 aléatoire, -2 aucune (`homeTrackNone` bloque toute musique, bruitages gardés).
