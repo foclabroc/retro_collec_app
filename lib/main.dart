@@ -503,6 +503,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
   void goTo(int i) => _select(i);
 
+  bool _away = false; // appli en arrière-plan / onglet caché (vérifications coupées)
+
   void _openEvents() => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EventsPage()));
 
   @override
@@ -548,13 +550,18 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Retour dans l'appli : nouveau jour → bonus et paquet gratuit
     if (state == AppLifecycleState.resumed) {
+      if (!_away) return; // simple perte de focus (fenêtre web) : rien n'a été coupé
+      _away = false;
       Game.i.sync();
-      Notifs.i.refresh();
+      Notifs.i.start(); // relance les vérifications (et en fait une tout de suite)
       Events.i.refresh();
       DuelWatch.i.start();
       showInbox(context);
-    } else if (state == AppLifecycleState.paused) {
-      DuelWatch.i.stop(); // pas de requêtes appli en arrière-plan
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      // appli en arrière-plan ou onglet web caché : plus aucune requête régulière
+      _away = true;
+      DuelWatch.i.stop();
+      Notifs.i.stop();
     }
   }
 

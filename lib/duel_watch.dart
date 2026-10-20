@@ -34,7 +34,11 @@ class DuelWatch extends ChangeNotifier {
 
   void start() {
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) => refresh());
+    // toutes les 10 s s'il y a une partie ou un défi en cours, sinon toutes les 20 s (moins de charge serveur)
+    var n = 0;
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (live.isNotEmpty || badge > 0 || inGame > 0 || (n++).isEven) refresh();
+    });
     refresh();
   }
 

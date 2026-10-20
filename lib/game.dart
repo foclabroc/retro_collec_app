@@ -306,6 +306,7 @@ class Game extends ChangeNotifier {
   Map<String, dynamic> missions = {};
   Set<String> milestones = {};
   Map<String, List<int>> owned = {};
+  String? ownedHash; // empreinte serveur de [owned] (rc_me ne renvoie la collection que si elle a changé)
 
   /// Événements à afficher (bonus de connexion, missions, paliers…)
   final events = StreamController<Map<String, dynamic>>.broadcast();
@@ -395,7 +396,10 @@ class Game extends ChangeNotifier {
     if (m['milestones'] is List) {
       milestones = {for (final x in m['milestones'] as List) if (x is List) '${x[0]}:${x[1]}'};
     }
-    if (m.containsKey('owned')) owned = parseOwned(m['owned']);
+    if (m.containsKey('owned')) {
+      owned = parseOwned(m['owned']);
+      ownedHash = m['oh'] as String?; // empreinte valable seulement si elle vient avec la collection
+    }
   }
 
   final _pending = <Map<String, dynamic>>[]; // événements reçus avant l'écran principal (écran titre)
@@ -422,7 +426,7 @@ class Game extends ChangeNotifier {
 
   /// Recharge tout depuis le serveur. Lève RcError hors ligne.
   Future<void> refresh() async {
-    final m = await RcServer.me();
+    final m = await RcServer.me(have: ownedHash);
     _apply(m);
     ready = true;
     notifyListeners();

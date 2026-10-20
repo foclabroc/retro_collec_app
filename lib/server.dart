@@ -152,9 +152,10 @@ class RcServer {
   // ── Joueur ──────────────────────────────────────────────────────────────
   /// État complet : pid, name, avatar, coins, score, cards, packs, pity, streak,
   /// free, showcase, missions, milestones, owned [[carte, finition, qté]], events.
-  static Future<Map<String, dynamic>> me() async {
+  /// [have] : empreinte de la collection déjà connue (elle n'est renvoyée que si elle a changé)
+  static Future<Map<String, dynamic>> me({String? have}) async {
     final d = await deviceId();
-    return _map(await _rpc('rc_me', {'p_device': d, 'p_sig': _sig('$d|me')}));
+    return _map(await _rpc('rc_me', {'p_device': d, 'p_sig': _sig('$d|me'), if (have != null) 'p_have': have}));
   }
 
   /// 'ok', 'taken' (pseudo pris) ou 'showcase' (carte de vitrine non possédée).

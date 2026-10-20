@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.rc_me(p_device text, p_sig text)
+create or replace function public.rc_me(p_device text, p_sig text, p_have text default null)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -10,6 +10,8 @@ declare
   v_name text;
   ev jsonb := '[]'::jsonb;
   bonus int;
+  v_owned jsonb;
+  v_oh text;
 begin
   perform public.rc__check(p_sig, p_device || '|me');
   if length(coalesce(p_device, '')) <> 32 then raise exception 'invalide'; end if;
@@ -33,6 +35,8 @@ begin
     on conflict (day) do update set players = public.rc_daily.players + 1;  -- stats admin
   end if;
   select * into v from public.rc_players where device = p_device;
+  v_owned := public.rc__owned_json(p_device);
+  v_oh := md5(v_owned::text);
   return jsonb_build_object(
     'pid', v.pid, 'name', v.name, 'avatar', v.avatar, 'coins', v.coins, 'score', v.score,
     'cards', v.cards, 'packs', v.packs, 'pity', v.pity, 'streak', v.streak,
@@ -41,6 +45,8 @@ begin
     'missions', jsonb_build_object('open', v.d_open, 'recycle', v.d_recycle, 'trade', v.d_trade, 'done', v.d_done),
     'milestones', (select coalesce(jsonb_agg(jsonb_build_array(sys, step)), '[]'::jsonb)
                      from public.rc_milestones where device = p_device),
-    'owned', public.rc__owned_json(p_device),
-    'events', ev);
+    'oh', v_oh,
+    'events', ev)
+    -- collection envoyée seulement si elle a changé depuis la dernière fois (p_have = son empreinte)
+    || case when p_have is distinct from v_oh then jsonb_build_object('owned', v_owned) else '{}'::jsonb end;
 end $function$
