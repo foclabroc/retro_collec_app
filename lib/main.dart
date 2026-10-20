@@ -734,7 +734,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         return Container(
           width: 96,
           decoration: BoxDecoration(
-            color: kBg.withOpacity(0.72),
+            color: kBg.withOpacity(0.93),
             border: const Border(right: BorderSide(color: Colors.white12)),
           ),
           child: Column(children: [
@@ -786,7 +786,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   /// Panneau latéral gauche : profil en haut, puis tous les onglets avec leurs pastilles
   Widget _menu() {
     return Drawer(
-      backgroundColor: kBg.withOpacity(0.95),
+      backgroundColor: kBg.withOpacity(0.93),
       width: 270,
       child: SafeArea(
         child: ListenableBuilder(

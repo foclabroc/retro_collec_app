@@ -83,7 +83,7 @@ Future<void> showCardOffers(BuildContext context, String cardId, {int? finish}) 
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: kBg,
+    backgroundColor: kBg.withOpacity(0.93),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(18))),
     builder: (_) => DraggableScrollableSheet(
       expand: false,
@@ -472,7 +472,7 @@ class MarketGroupsState extends State<MarketGroups> {
       Container(
         width: 430,
         decoration: BoxDecoration(
-          color: kBg.withOpacity(0.55),
+          color: kBg.withOpacity(0.93),
           border: const Border(left: BorderSide(color: Colors.white12)),
         ),
         child: s == null
@@ -508,7 +508,7 @@ class MarketGroupsState extends State<MarketGroups> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: kBg,
+      backgroundColor: kBg.withOpacity(0.93),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => StatefulBuilder(builder: (ctx, setS) {
         void upd(VoidCallback f) {
