@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -244,7 +245,7 @@ class _Scanlines extends CustomPainter {
 
 /// Une borne d'arcade : image de l'habillage, pseudo sur le fronton, écran avec
 /// avatar / score / PLAYING ou OFFLINE, 🎁 et badge 1P.
-class ArcadeCabinet extends StatelessWidget {
+class ArcadeCabinet extends StatefulWidget {
   final FloorData d;
   final double width;
   final VoidCallback? onTap, onGift;
@@ -252,7 +253,57 @@ class ArcadeCabinet extends StatelessWidget {
   const ArcadeCabinet({super.key, required this.d, required this.width, this.onTap, this.onGift, this.showName = true});
 
   @override
+  State<ArcadeCabinet> createState() => _ArcadeCabinetState();
+}
+
+/// Effets de lumière (bornes en ligne seulement) : une seule animation de 6 s par borne,
+/// décalée selon le joueur pour que la salle ne clignote pas en même temps.
+///  · halo de la couleur de l'habillage autour de la borne · fronton rétroéclairé qui respire
+///  · écran qui pulse + reflet qui balaie la vitre · lumière de l'écran sur le panneau · lueur au sol
+class _ArcadeCabinetState extends State<ArcadeCabinet> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(seconds: 6));
+
+  @override
+  void initState() {
+    super.initState();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(covariant ArcadeCabinet old) {
+    super.didUpdateWidget(old);
+    _sync();
+  }
+
+  void _sync() {
+    if (widget.d.online) {
+      if (!_c.isAnimating) {
+        _c.value = (widget.d.pid.hashCode.abs() % 1000) / 1000;
+        _c.repeat();
+      }
+    } else if (_c.isAnimating) {
+      _c.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  /// Respiration 0 → 1 → 0, deux fois par tour
+  double get _breath => 0.5 - 0.5 * math.cos(_c.value * 4 * math.pi);
+
+  /// Position du reflet sur l'écran (-1 = pas de reflet)
+  double get _sweep => _c.value < 0.3 ? _c.value / 0.3 : -1;
+
+  Widget _lit(Widget Function(double b) f) =>
+      IgnorePointer(child: RepaintBoundary(child: AnimatedBuilder(animation: _c, builder: (_, __) => f(_breath))));
+
+  @override
   Widget build(BuildContext context) {
+    final d = widget.d, width = widget.width, onTap = widget.onTap, onGift = widget.onGift, showName = widget.showName;
     final skin = kFloorThemes[d.theme];
     final w = width, h = width / kCabRatio;
     final sr = Rect.fromLTRB(_kScreen.left * w, _kScreen.top * h, _kScreen.right * w, _kScreen.bottom * h);
@@ -269,7 +320,6 @@ class ArcadeCabinet extends StatelessWidget {
         gradient: on
             ? const RadialGradient(colors: [Color(0xFF4F9AD0), Color(0xFF1C4C78), Color(0xFF0C2440)], stops: [0, 0.6, 1], radius: 0.95)
             : const RadialGradient(colors: [Color(0xFF15151C), Color(0xFF050508)], radius: 0.9),
-        boxShadow: on ? [BoxShadow(color: const Color(0xFF6FE8FF).withOpacity(0.6), blurRadius: w * 0.12, spreadRadius: w * 0.01)] : null,
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(children: [
@@ -302,6 +352,31 @@ class ArcadeCabinet extends StatelessWidget {
           ),
         ),
         Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _Scanlines(on ? 0.12 : 0.22)))),
+        // reflet qui balaie la vitre
+        if (on)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _c,
+                  builder: (_, __) {
+                    final x = _sweep;
+                    if (x < 0) return const SizedBox.shrink();
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment(-1.0 + x * 2.6 - 0.5, -1),
+                          end: Alignment(-1.0 + x * 2.6 + 0.5, 1),
+                          colors: [Colors.white.withOpacity(0), Colors.white.withOpacity(0.16), Colors.white.withOpacity(0)],
+                          stops: const [0.35, 0.5, 0.65],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
       ]),
     );
 
@@ -311,21 +386,77 @@ class ArcadeCabinet extends StatelessWidget {
         width: w,
         height: h,
         child: Stack(clipBehavior: Clip.none, children: [
-          // lueur au sol quand le joueur est en ligne
+          // halo de la couleur de l'habillage autour de la borne
+          if (on)
+            Positioned(
+              left: w * 0.12,
+              right: w * 0.12,
+              top: h * 0.06,
+              bottom: h * 0.08,
+              child: _lit((b) => DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(w * 0.2),
+                      boxShadow: [BoxShadow(color: skin.glow.withOpacity(0.18 + 0.17 * b), blurRadius: w * 0.22, spreadRadius: w * 0.03)],
+                    ),
+                  )),
+            ),
+          // lueur au sol
           if (on)
             Positioned(
               left: w * 0.1,
               right: w * 0.1,
               bottom: -h * 0.02,
               height: h * 0.05,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(h),
-                  boxShadow: [BoxShadow(color: skin.glow.withOpacity(0.55), blurRadius: w * 0.15, spreadRadius: w * 0.02)],
-                ),
-              ),
+              child: _lit((b) => DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(h),
+                      boxShadow: [BoxShadow(color: skin.glow.withOpacity(0.4 + 0.3 * b), blurRadius: w * (0.13 + 0.05 * b), spreadRadius: w * 0.02)],
+                    ),
+                  )),
             ),
           Positioned.fill(child: Image.asset(skin.asset, fit: BoxFit.fill, filterQuality: FilterQuality.medium)),
+          // fronton rétroéclairé qui respire
+          if (on)
+            Positioned.fromRect(
+              rect: mr,
+              child: _lit((b) => DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(w * 0.03),
+                      gradient: RadialGradient(
+                        radius: 1.2,
+                        colors: [skin.glow.withOpacity(0.10 + 0.16 * b), skin.glow.withOpacity(0)],
+                      ),
+                    ),
+                  )),
+            ),
+          // lumière de l'écran qui tombe sur le panneau de commandes
+          if (on)
+            Positioned(
+              left: sr.left - w * 0.03,
+              width: sr.width + w * 0.06,
+              top: sr.bottom,
+              height: h * 0.14,
+              child: _lit((b) => DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [const Color(0xFF6FE8FF).withOpacity(0.10 + 0.08 * b), const Color(0xFF6FE8FF).withOpacity(0)],
+                      ),
+                    ),
+                  )),
+            ),
+          // l'écran éclaire autour de lui (lueur qui déborde sur le cadre)
+          if (on)
+            Positioned.fromRect(
+              rect: sr,
+              child: _lit((b) => DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(w * 0.04),
+                      boxShadow: [BoxShadow(color: const Color(0xFF6FE8FF).withOpacity(0.35 + 0.3 * b), blurRadius: w * (0.10 + 0.05 * b), spreadRadius: w * 0.01)],
+                    ),
+                  )),
+            ),
           Positioned.fromRect(rect: sr, child: screen),
           // vitrine de trophées sous l'écran
           if (tro.isNotEmpty)
