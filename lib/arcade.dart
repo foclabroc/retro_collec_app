@@ -364,7 +364,7 @@ class ArcadeCabinet extends StatelessWidget {
                   ),
                   child: gifted
                       ? const Icon(Icons.check, size: 15, color: Colors.white70)
-                      : const Text('🎁', style: TextStyle(fontSize: 13)),
+                      : Icon(Icons.card_giftcard, size: 15 * g.clamp(0.9, 1.4), color: Colors.white),
                 ),
               ),
             ),
