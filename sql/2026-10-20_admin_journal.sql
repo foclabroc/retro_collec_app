@@ -35,8 +35,10 @@ begin
             from public.rc_trades t
            where coalesce(t.done_at, t.created_at) < b
           union all
-          -- cadeaux, vus de celui qui offre
-          select g.created_at, g.giver, g.receiver, jsonb_build_object('kind', 'gift_out', 'other', g.giver_name)
+          -- cadeaux, vus de celui qui offre ; cadeau du jeu (sans donneur : défis, courrier, parrainage…) vu de celui qui le reçoit
+          select g.created_at, coalesce(g.giver, g.receiver), case when g.giver is null then null else g.receiver end,
+                 jsonb_build_object('kind', case when g.giver is null then 'gift_in' else 'gift_out' end,
+                                    'other', case when g.giver is null then g.giver_name end)
             from public.rc_gifts g
            where g.created_at < b
           union all
