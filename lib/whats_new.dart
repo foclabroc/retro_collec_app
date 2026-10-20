@@ -13,6 +13,7 @@ import 'update_check.dart';
 
 const _kNews = <(String, String, String)>[
   ('🏆', 'Pastille sur le profil quand un palier de trophée est à récupérer', 'Badge on the profile when a trophy tier is ready to claim'),
+  ('🪙', 'Les pièces et pixels des autres joueurs sont de nouveau visibles (borne et profil)', 'Other players\' coins and pixels are visible again (cabinet and profile)'),
   ('🔇', 'Musique : nouvelle option « Aucune » (les bruitages restent)', 'Music: new "None" option (sound effects stay on)'),
   ('#', 'Aussi depuis la 1.0.13', 'Also since 1.0.13'),
   ('🏆', 'Trophées : 24 trophées à 3 paliers (bronze, argent, or) dans ton profil, chaque palier rapporte des pièces (et des pixels pour l\'or)',

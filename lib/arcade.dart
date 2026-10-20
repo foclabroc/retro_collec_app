@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'catalog.dart';
+import 'packs.dart';
 import 'game.dart';
 import 'main.dart';
 import 'notifs.dart';
@@ -57,7 +58,7 @@ int floorThemeOf(String? house, String pid) {
 
 class FloorData {
   final String pid, name;
-  final int avatar, score, cards, coins, theme;
+  final int avatar, score, cards, coins, pixels, theme;
   final int? rank;
   final bool online, me;
   final DateTime? seenAt; // dernière connexion
@@ -71,6 +72,7 @@ class FloorData {
     required this.score,
     required this.cards,
     required this.coins,
+    this.pixels = 0,
     required this.theme,
     required this.online,
     required this.me,
@@ -87,6 +89,7 @@ class FloorData {
       score: me ? Game.i.score : (p['score'] as num? ?? 0).toInt(),
       cards: me ? Game.i.cards : (p['cards'] as num? ?? 0).toInt(),
       coins: me ? Game.i.coins : (p['coins'] as num? ?? 0).toInt(),
+      pixels: me ? Game.i.pixels : (p['pixels'] as num? ?? 0).toInt(),
       theme: floorThemeOf(me ? Game.i.house : p['house'] as String?, pid),
       online: me || p['online'] == true,
       me: me,
@@ -397,7 +400,7 @@ class ArcadeCabinet extends StatelessWidget {
 }
 
 /// Étiquette sous une borne : rang, score, collection, dernière connexion
-const kTagH = 46.0;
+const kTagH = 62.0;
 
 class CabinetTag extends StatelessWidget {
   final FloorData d;
@@ -420,6 +423,13 @@ class CabinetTag extends StatelessWidget {
         FittedBox(
           child: Text('${pctOf(d.cards)} · ${t('${d.cards} cartes', '${d.cards} cards')}',
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF9FE0C4))),
+        ),
+        FittedBox(
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text('🪙 ${d.coins}   ', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFFFD166))),
+            const PixelIcon(size: 10),
+            Text(' ${d.pixels}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFFFD166))),
+          ]),
         ),
         if (status.isNotEmpty)
           FittedBox(
@@ -632,7 +642,7 @@ class _FloorThemePageState extends State<FloorThemePage> {
     final ok = g.cards >= th.need;
     final current = floorThemeOf(g.house, g.pid);
     final unlocked = kFloorThemes.where((x) => g.cards >= x.need).length;
-    final me = FloorData(pid: g.pid, name: g.name, avatar: g.avatar, score: g.score, cards: g.cards, coins: g.coins, theme: sel, online: true, me: true);
+    final me = FloorData(pid: g.pid, name: g.name, avatar: g.avatar, score: g.score, cards: g.cards, coins: g.coins, pixels: g.pixels, theme: sel, online: true, me: true);
     return Scaffold(
       appBar: AppBar(title: Text(t('Habillage de ma borne', 'My cabinet skin'))),
       body: ListView(padding: const EdgeInsets.fromLTRB(12, 8, 12, 24), children: [

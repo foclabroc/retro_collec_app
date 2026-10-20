@@ -9,6 +9,7 @@ import 'admin.dart';
 
 import 'album.dart';
 import 'audio.dart';
+import 'packs.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'layout.dart';
@@ -1020,7 +1021,13 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                         Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                         Text(t('Score ${p!['score']} · ${p!['cards']} cartes · ${p!['packs']} paquets', 'Score ${p!['score']} · ${p!['cards']} cards · ${p!['packs']} packs'),
                             style: const TextStyle(color: kGold, fontSize: 13)),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 4),
+                        Row(mainAxisSize: MainAxisSize.min, children: [
+                          CoinChip((p!['coins'] as num? ?? 0).toInt()),
+                          const SizedBox(width: 6),
+                          PixelChip((p!['pixels'] as num? ?? 0).toInt()),
+                        ]),
+                        const SizedBox(height: 4),
                         p!['online'] == true
                             ? Text(t('● En ligne', '● Online'), style: const TextStyle(color: Color(0xFF5DCAA5), fontSize: 12, fontWeight: FontWeight.w800))
                             : Text(t('🕒 Dernière connexion : ', '🕒 Last seen: ') + _lastSeen(p!),

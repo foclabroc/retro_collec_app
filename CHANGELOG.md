@@ -4,6 +4,7 @@
 _Version 1.0.14+15._
 
 - **Pastille trophées** : une pastille sur le profil (menu) signale les paliers de trophées à récupérer.
+- **Pièces et pixels des autres joueurs** de nouveau visibles : sous leur borne au Voisinage et en haut de leur profil.
 - **Musique « Aucune »** (Profil → Musique) : coupe toute la musique, les bruitages restent. Le bouton son de l'écran titre suit le réglage son, plus la musique seule.
 
 ## v1.0.13
