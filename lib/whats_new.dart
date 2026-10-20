@@ -12,6 +12,14 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🧟', 'Nouvelles sagas Resident Evil et Castlevania : cartes holo et albums dans la Collection',
+      'New Resident Evil and Castlevania sagas: holo cards and albums in the Collection'),
+  ('🛒', 'Bourse : achète plusieurs cartes d\'un coup (sélection groupée)', 'Market: buy several cards at once (multi-select)'),
+  ('💡', 'Voisinage : bornes illuminées (halo, fronton, écran qui pulse, lueur au sol)', 'Neighbors: lit-up cabinets (glow, marquee, pulsing screen, floor light)'),
+  ('🏆', 'Profil : tous les trophées dans un déroulant, doré quand un palier est à récupérer ; trophée Sagas en 1 / 3 / 6',
+      'Profile: all trophies in a drop-down, gold when a tier is ready; Sagas trophy now 1 / 3 / 6'),
+  ('⚡', 'Appli plus légère pour le serveur : moins de vérifications en arrière-plan', 'Lighter on the server: fewer background checks'),
+  ('#', 'Aussi depuis la 1.0.14', 'Also since 1.0.14'),
   ('🏆', 'Pastille sur le profil quand un palier de trophée est à récupérer', 'Badge on the profile when a trophy tier is ready to claim'),
   ('🪙', 'Les pièces et pixels des autres joueurs sont de nouveau visibles (borne et profil)', 'Other players\' coins and pixels are visible again (cabinet and profile)'),
   ('🔇', 'Musique : nouvelle option « Aucune » (les bruitages restent)', 'Music: new "None" option (sound effects stay on)'),

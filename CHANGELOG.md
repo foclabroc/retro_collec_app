@@ -1,5 +1,17 @@
 # Pixel Trade — Changelog
 
+## v1.0.15
+_Version 1.0.15+16._
+
+- **Sagas Resident Evil et Castlevania** : 2 nouvelles sagas de cartes holo, avec leurs albums et logos dans la Collection.
+- **Bourse : achat groupé** : sélection de plusieurs cartes et achat en une fois (`rc_market_buy_many`).
+- **Bornes illuminées** au Voisinage : halo, fronton, écran qui pulse, reflet, lueur au sol.
+- **Trophées** : tous dans un déroulant au profil (fermé par défaut, doré s'il y a des paliers à récupérer) ;
+  trophée Sagas en 1 / 3 / 6 (or = les 6 sagas), paliers déjà gagnés conservés.
+- **Serveur moins sollicité** : `rc_me` ne renvoie la collection que si elle a changé, vérifications coupées
+  en arrière-plan / onglet caché, défis vérifiés toutes les 20 s au repos.
+- **Admin** : journal d'activité des joueurs (Outils → Activité).
+
 ## v1.0.14
 _Version 1.0.14+15._
 

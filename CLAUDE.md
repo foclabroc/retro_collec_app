@@ -59,4 +59,3 @@ Web : https://foclabroc.github.io/retro_collec_app/
 ## À faire
 
 1. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
-2. Trophée « Sagas » : paliers 1 / 2 / 4 (or à passer à 6 maintenant qu'il y a 6 sagas ? à décider).
