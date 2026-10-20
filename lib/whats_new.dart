@@ -12,6 +12,12 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🏆', 'Trophées : 24 trophées à 3 paliers (bronze, argent, or) dans ton profil, chaque palier rapporte des pièces (et des pixels pour l\'or)',
+      'Trophies: 24 trophies with 3 tiers (bronze, silver, gold) in your profile, each tier pays coins (and pixels for gold)'),
+  ('🥇', 'Tes 3 meilleurs trophées s\'affichent sur ton profil et sous l\'écran de ta borne (ou ceux que tu choisis)',
+      'Your 3 best trophies show on your profile and under your cabinet screen (or the ones you pick)'),
+  ('🎯', 'Défis de la semaine tournants : chaque lundi, 6 défis tirés parmi 12 (cadeaux, nouvelles cartes, quiz, ventes…)',
+      'Rotating weekly challenges: every Monday, 6 challenges drawn from 12 (gifts, new cards, quiz, sales…)'),
   ('🕹', 'Voisinage : la salle d\'arcade « Pixel Arcade » remplace l\'immeuble, une borne par joueur avec podium pour les 3 premiers',
       'Neighbors: the "Pixel Arcade" hall replaces the tower, one arcade cabinet per player with a podium for the top 3'),
   ('📺', 'Écran allumé (PLAYING) quand le joueur est en ligne, OFFLINE sinon ; pseudo qui défile sur le fronton',
