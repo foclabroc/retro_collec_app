@@ -717,12 +717,15 @@ class ArcadeCounter extends StatelessWidget {
 }
 
 /// Fond de la salle (moquette d'arcade)
+/// Moquette de la salle : couleurs tirées du thème choisi (version assombrie), pour rester raccord avec le reste de l'appli.
 class ArcadeCarpet extends CustomPainter {
+  final Color base;
+  ArcadeCarpet() : base = rcTheme.surface;
   @override
   void paint(Canvas c, Size s) {
     c.clipRect(Offset.zero & s); // le motif ne doit pas déborder sur le menu
-    c.drawRect(Offset.zero & s, Paint()..color = const Color(0xFF120A26));
-    final stripe = Paint()..color = const Color(0xFF170D30);
+    c.drawRect(Offset.zero & s, Paint()..color = Color.lerp(base, Colors.black, 0.45)!);
+    final stripe = Paint()..color = Color.lerp(base, Colors.black, 0.3)!;
     for (var x = -s.height; x < s.width; x += 28) {
       c.drawPath(
           Path()
@@ -744,7 +747,7 @@ class ArcadeCarpet extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(ArcadeCarpet o) => false;
+  bool shouldRepaint(ArcadeCarpet o) => o.base != base;
 }
 
 // ─── Choix de l'habillage de ma borne ─────────────────────────────────────
