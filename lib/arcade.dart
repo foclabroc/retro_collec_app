@@ -265,18 +265,31 @@ class ArcadeCabinet extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(children: [
+        // contenu de l'écran agrandi au maximum : avatar en grand, score et statut sur toute la largeur
         Positioned.fill(
           child: Padding(
-            padding: EdgeInsets.all(w * 0.03),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Opacity(opacity: on ? 1 : 0.55, child: avatarWidget(d.avatar, size: sr.height * 0.46)),
-              SizedBox(height: sr.height * 0.04),
-              FittedBox(child: Text('${d.score}', style: pixelStyle(size: 8 * g, color: on ? kGold : const Color(0xFF8A7A50), shadow: false))),
-              SizedBox(height: sr.height * 0.04),
-              if (on)
-                _Blink(child: Text(d.me ? '1P READY' : 'PLAYING', style: pixelStyle(size: 5.5 * g, color: const Color(0xFF7DFFB0), shadow: false)))
-              else
-                Text('OFFLINE', style: pixelStyle(size: 5.5 * g, color: const Color(0xFFFF5A6A), shadow: false)),
+            padding: EdgeInsets.symmetric(horizontal: sr.width * 0.06, vertical: sr.height * 0.05),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Expanded(
+                flex: 58,
+                child: Opacity(
+                  opacity: on ? 1 : 0.55,
+                  child: FittedBox(child: avatarWidget(d.avatar, size: sr.height * 0.6)),
+                ),
+              ),
+              Expanded(
+                flex: 22,
+                child: FittedBox(child: Text('${d.score}', style: pixelStyle(size: 20, color: on ? kGold : const Color(0xFF8A7A50), shadow: false))),
+              ),
+              SizedBox(height: sr.height * 0.03),
+              Expanded(
+                flex: 15,
+                child: FittedBox(
+                  child: on
+                      ? _Blink(child: Text(d.me ? '1P READY' : 'PLAYING', style: pixelStyle(size: 20, color: const Color(0xFF7DFFB0), shadow: false)))
+                      : Text('OFFLINE', style: pixelStyle(size: 20, color: const Color(0xFFFF5A6A), shadow: false)),
+                ),
+              ),
             ]),
           ),
         ),
