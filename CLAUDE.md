@@ -53,4 +53,8 @@ Web : https://foclabroc.github.io/retro_collec_app/
 
 ## À faire
 
-Rien en attente pour l'instant.
+1. Bourse : pouvoir sélectionner plusieurs cartes à l'achat (achat groupé).
+2. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
+3. Ajouter 2 sagas (en plus de Mario, Sonic, Zelda, Pokémon). Sagas à choisir.
+4. Musique : ajouter « Aucune » dans la liste des musiques (coupe la musique, garde les sons de l'appli).
+5. Admin : journal de tout ce qui se passe dans l'appli (ouvertures, achats, ventes, échanges, duels, cadeaux…).
