@@ -740,7 +740,11 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: const BoxDecoration(shape: BoxShape.circle, color: kGold),
-                  child: avatarWidget(g.avatar, size: 50),
+                  child: Badge(
+                    isLabelVisible: n.trophies > 0,
+                    label: Text(n.trophies > 99 ? '99+' : '${n.trophies}'),
+                    child: avatarWidget(g.avatar, size: 50),
+                  ),
                 ),
               ),
             ),
@@ -840,7 +844,11 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 12, 10),
                   child: Row(children: [
-                    avatarWidget(g.avatar, size: 42),
+                    Badge(
+                      isLabelVisible: n.trophies > 0,
+                      label: Text(n.trophies > 99 ? '99+' : '${n.trophies}'),
+                      child: avatarWidget(g.avatar, size: 42),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

@@ -19,6 +19,7 @@ as $function$
     'gifts_left', (select 3 - case when gift_day = public.rc__today() then gift_n else 0 end from public.rc_players where device = p_device),
     'can_gift', (select gift_day is distinct from public.rc__today() or gift_n < 3 from public.rc_players where device = p_device),
     'week', coalesce(public.rc__wk_ready(p_device), 0),
+    'trophies', coalesce(public.rc__tro_ready(p_device), 0),
     'reacts', coalesce(public.rc__reacts_new(p_device), 0),
     'lots', (select lots from public.rc_players where device = p_device),
     'free', public.rc__free_in(p_device) = 0,

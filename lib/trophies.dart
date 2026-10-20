@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'audio.dart';
 import 'game.dart';
 import 'main.dart';
+import 'notifs.dart';
 import 'retro_theme.dart';
 import 'server.dart';
 
@@ -251,6 +252,7 @@ class _MyTrophiesState extends State<MyTrophies> {
           ? t('🏆 ${trophyDef(x.k)!.name} ${tierName(tier)} : +$gain pièces et +$px pixels !', '🏆 ${trophyDef(x.k)!.name} ${tierName(tier)}: +$gain coins and +$px pixels!')
           : t('🏆 ${trophyDef(x.k)!.name} ${tierName(tier)} : +$gain pièces !', '🏆 ${trophyDef(x.k)!.name} ${tierName(tier)}: +$gain coins!'));
       if (mounted) setState(() => _apply(r));
+      Notifs.i.refresh(); // pastille du profil
     } catch (_) {
       toast(t('Impossible de récupérer pour l\'instant', 'Could not claim right now'));
       load();
