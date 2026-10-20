@@ -450,16 +450,18 @@ class _OnlineRowState extends State<_OnlineRow> {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(f.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-              Text(
-                  rich
-                      ? t('${f.rank == null ? '' : '#${f.rank} · '}${f.score} pts', '${f.rank == null ? '' : '#${f.rank} · '}${f.score} pts')
-                      : t('Moins de 50 pièces : ne peut pas être défié', 'Under 50 coins: can\'t be challenged'),
-                  style: const TextStyle(fontSize: 11.5, color: Colors.white60)),
+              f.busy
+                  ? Text(t('⚔ En partie', '⚔ In a game'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Color(0xFFFFB347)))
+                  : Text(
+                      rich
+                          ? t('${f.rank == null ? '' : '#${f.rank} · '}${f.score} pts', '${f.rank == null ? '' : '#${f.rank} · '}${f.score} pts')
+                          : t('Moins de 50 pièces : ne peut pas être défié', 'Under 50 coins: can\'t be challenged'),
+                      style: const TextStyle(fontSize: 11.5, color: Colors.white60)),
             ]),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800), visualDensity: VisualDensity.compact),
-            onPressed: rich ? () => setState(() => pick = !pick) : null,
+            onPressed: rich && !f.busy ? () => setState(() => pick = !pick) : null,
             child: Text(t('⚔ Défier', '⚔ Challenge'), style: const TextStyle(fontWeight: FontWeight.w900)),
           ),
           const SizedBox(width: 6),
@@ -653,8 +655,8 @@ void _onlineSheet(BuildContext context, List<FloorData> on, void Function(String
               ]),
             ),
             const SizedBox(height: 6),
-            Text(t('Connectés il y a moins de 10 min · « Défier » lance un défi en direct (gratuit, le gagnant gagne 150 pièces)',
-                    'Seen less than 10 min ago · « Challenge » sends a live challenge (free, the winner gets 150 coins)'),
+            Text(t('Connectés il y a moins d\'1 min · « Défier » lance un défi en direct (gratuit, le gagnant gagne 150 pièces)',
+                    'Seen less than 1 min ago · « Challenge » sends a live challenge (free, the winner gets 150 coins)'),
                 style: const TextStyle(color: Colors.white54, fontSize: 11.5)),
           ]),
         ),

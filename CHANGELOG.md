@@ -13,6 +13,9 @@ _Version 1.0.15+16._
 - **Serveur moins sollicité** : `rc_me` ne renvoie la collection que si elle a changé, vérifications coupées
   en arrière-plan / onglet caché, défis vérifiés toutes les 20 s au repos.
 - **Admin** : journal d'activité des joueurs (Outils → Activité).
+- **Joueurs en ligne** : en ligne = vu il y a moins de 75 s (au lieu de 10 min), compteur du menu mis à jour toutes les 10-20 s ;
+  « ⚔ En partie » dans la liste et IN GAME sur la borne pendant un duel en direct (bouton Défier grisé) ;
+  salon des duels rechargé si le joueur défié est parti.
 
 ## v1.0.14
 _Version 1.0.14+15._

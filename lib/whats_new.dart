@@ -12,6 +12,8 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🟢', 'Joueurs en ligne à jour en temps réel ; un joueur en partie affiche « En partie » (IN GAME sur sa borne) et ne peut plus être défié',
+      'Online players updated in real time; a player in a game shows "In a game" (IN GAME on their cabinet) and can\'t be challenged'),
   ('🎨', '12 nouveaux thèmes colorés (Envahisseurs, Blocs, Cerise, Lagon, Citron, Menthe…), motif fixe ou animation douce',
       '12 new colorful themes (Invaders, Blocks, Cherry, Lagoon, Lemon, Mint…), still pattern or gentle animation'),
   ('🧟', 'Nouvelles sagas Resident Evil et Castlevania : cartes holo et albums dans la Collection',
