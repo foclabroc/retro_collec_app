@@ -1,7 +1,9 @@
 # Pixel Trade — Changelog
 
-## Prochaine version
+## v1.0.14
+_Version 1.0.14+15._
 
+- **Pastille trophées** : une pastille sur le profil (menu) signale les paliers de trophées à récupérer.
 - **Musique « Aucune »** (Profil → Musique) : coupe toute la musique, les bruitages restent. Le bouton son de l'écran titre suit le réglage son, plus la musique seule.
 
 ## v1.0.13

@@ -12,6 +12,9 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🏆', 'Pastille sur le profil quand un palier de trophée est à récupérer', 'Badge on the profile when a trophy tier is ready to claim'),
+  ('🔇', 'Musique : nouvelle option « Aucune » (les bruitages restent)', 'Music: new "None" option (sound effects stay on)'),
+  ('#', 'Aussi depuis la 1.0.13', 'Also since 1.0.13'),
   ('🏆', 'Trophées : 24 trophées à 3 paliers (bronze, argent, or) dans ton profil, chaque palier rapporte des pièces (et des pixels pour l\'or)',
       'Trophies: 24 trophies with 3 tiers (bronze, silver, gold) in your profile, each tier pays coins (and pixels for gold)'),
   ('🥇', 'Tes 3 meilleurs trophées s\'affichent sur ton profil et sous l\'écran de ta borne (ou ceux que tu choisis)',
