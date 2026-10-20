@@ -16,7 +16,10 @@ import 'game.dart';
 // Thèmes épurés : un dégradé sombre, deux lueurs de la couleur du thème qui
 // dérivent lentement et un motif discret qui défile (étoiles, grille, vagues…).
 
-enum RcMotif { stars, grid, pix, waves, diamonds, lines, fire, hex, bubbles, cross }
+enum RcMotif { invaders, blocks, dots, stripes, waves, crosses, checker, cards, bubbles, clouds, diamonds, scanlines }
+
+/// Motifs animés (les autres sont fixes : le fond n'est redessiné qu'au changement de thème)
+const kAnimatedMotifs = {RcMotif.invaders, RcMotif.blocks, RcMotif.waves, RcMotif.cards, RcMotif.bubbles, RcMotif.clouds};
 
 class RcThemeData {
   final String fr, en, motifFr, motifEn;
@@ -34,42 +37,48 @@ class RcThemeData {
       required this.panel2,
       required this.surface,
       required this.line})
-      : bg = top;
+      : bg = surface;
   String get name => t(fr, en);
   String get motifName => t(motifFr, motifEn);
 }
 
 const kThemes = <RcThemeData>[
-  RcThemeData('Minuit', 'Midnight', RcMotif.stars, 'Étoiles', 'Stars',
-      top: Color(0xFF0B1030), bottom: Color(0xFF141A44), accent: Color(0xFF6EA8FF), accent2: Color(0xFF9A7DFF), onAccent: Color(0xFF08142E),
-      panel: Color(0xD1161C40), panel2: Color(0xFF26306B), surface: Color(0xFF161C40), line: Color(0xFF2C3770)),
-  RcThemeData('Arcade', 'Arcade', RcMotif.grid, 'Grille pixel', 'Pixel grid',
-      top: Color(0xFF120A24), bottom: Color(0xFF1E0F3A), accent: Color(0xFFFF5EC4), accent2: Color(0xFF3EE6FF), onAccent: Color(0xFF2B0420),
-      panel: Color(0xD11E123A), panel2: Color(0xFF3A2560), surface: Color(0xFF1E123A), line: Color(0xFF3E2A70)),
-  RcThemeData('Game Boy', 'Game Boy', RcMotif.pix, 'Petits pixels', 'Little pixels',
-      top: Color(0xFF0E1F12), bottom: Color(0xFF173020), accent: Color(0xFF9BDC5A), accent2: Color(0xFF5AC48A), onAccent: Color(0xFF0E2208),
-      panel: Color(0xD6142818), panel2: Color(0xFF2A4A30), surface: Color(0xFF142818), line: Color(0xFF2E5A3A)),
-  RcThemeData('Océan', 'Ocean', RcMotif.waves, 'Vagues', 'Waves',
-      top: Color(0xFF06202E), bottom: Color(0xFF0B3448), accent: Color(0xFF3EC7E6), accent2: Color(0xFF2F8FD6), onAccent: Color(0xFF05222B),
-      panel: Color(0xD10A2838), panel2: Color(0xFF1D4A60), surface: Color(0xFF0A2838), line: Color(0xFF1D5068)),
-  RcThemeData('Or', 'Gold', RcMotif.diamonds, 'Losanges', 'Diamonds',
-      top: Color(0xFF17120A), bottom: Color(0xFF271D10), accent: Color(0xFFEFB54A), accent2: Color(0xFFD27A2A), onAccent: Color(0xFF2A1800),
-      panel: Color(0xD6261E12), panel2: Color(0xFF4A3A22), surface: Color(0xFF261E12), line: Color(0xFF4A3A20)),
-  RcThemeData('Couchant', 'Sunset', RcMotif.lines, 'Lignes rétro', 'Retro lines',
-      top: Color(0xFF1E0C2A), bottom: Color(0xFF3A1430), accent: Color(0xFFFF8A5B), accent2: Color(0xFFFF5EA8), onAccent: Color(0xFF2B0B06),
-      panel: Color(0xD12C122C), panel2: Color(0xFF52244A), surface: Color(0xFF2C122C), line: Color(0xFF5A2A50)),
-  RcThemeData('Forêt', 'Forest', RcMotif.fire, 'Lucioles', 'Fireflies',
-      top: Color(0xFF0A1A12), bottom: Color(0xFF10281C), accent: Color(0xFF5FD39A), accent2: Color(0xFFD8FF7A), onAccent: Color(0xFF06281B),
-      panel: Color(0xD610241A), panel2: Color(0xFF24452F), surface: Color(0xFF10241A), line: Color(0xFF24452F)),
-  RcThemeData('Ardoise', 'Slate', RcMotif.hex, 'Hexagones', 'Hexagons',
-      top: Color(0xFF14171D), bottom: Color(0xFF1E222B), accent: Color(0xFFE6E9EF), accent2: Color(0xFF8A93A3), onAccent: Color(0xFF14171C),
-      panel: Color(0xDB1E222A), panel2: Color(0xFF3A404D), surface: Color(0xFF1E222A), line: Color(0xFF3A404D)),
-  RcThemeData('Prune', 'Plum', RcMotif.bubbles, 'Bulles', 'Bubbles',
-      top: Color(0xFF1A0F24), bottom: Color(0xFF2A1838), accent: Color(0xFFC08BFF), accent2: Color(0xFFFF7AB8), onAccent: Color(0xFF1F0B33),
-      panel: Color(0xD1281834), panel2: Color(0xFF4A3060), surface: Color(0xFF281834), line: Color(0xFF4A3060)),
-  RcThemeData('Néon', 'Neon', RcMotif.cross, 'Croix', 'Crosses',
-      top: Color(0xFF05060A), bottom: Color(0xFF0E1016), accent: Color(0xFF3EF5C0), accent2: Color(0xFFFF4FD8), onAccent: Color(0xFF032018),
-      panel: Color(0xDB12141C), panel2: Color(0xFF2A2E3A), surface: Color(0xFF12141C), line: Color(0xFF2A2E3A)),
+  RcThemeData('Envahisseurs', 'Invaders', RcMotif.invaders, 'Envahisseurs', 'Invaders',
+      top: Color(0xFF0F7A62), bottom: Color(0xFF0A4A3C), accent: Color(0xFFC6FF5A), accent2: Color(0xFFFFE04A), onAccent: Color(0xFF123000),
+      panel: Color(0xCC062C22), panel2: Color(0xFF135846), surface: Color(0xFF07352A), line: Color(0xFF2A9A7A)),
+  RcThemeData('Blocs', 'Blocks', RcMotif.blocks, 'Blocs qui tombent', 'Falling blocks',
+      top: Color(0xFF2457E0), bottom: Color(0xFF173AA6), accent: Color(0xFFFFD23F), accent2: Color(0xFFFF7AD0), onAccent: Color(0xFF2A1C00),
+      panel: Color(0xCC0C1E5A), panel2: Color(0xFF244299), surface: Color(0xFF0F256A), line: Color(0xFF4A78F0)),
+  RcThemeData('Cerise', 'Cherry', RcMotif.dots, 'Pois', 'Dots',
+      top: Color(0xFFE0306A), bottom: Color(0xFFA81848), accent: Color(0xFFFFE7A0), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF4A0A1C),
+      panel: Color(0xB8500820), panel2: Color(0xFF982E50), surface: Color(0xFF610D29), line: Color(0xFFFF6A98)),
+  RcThemeData('Mandarine', 'Tangerine', RcMotif.stripes, 'Rayures', 'Stripes',
+      top: Color(0xFFFF8A24), bottom: Color(0xFFE0520C), accent: Color(0xFFFFF2C0), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF4A1C00),
+      panel: Color(0xB25A1E00), panel2: Color(0xFFA15A2A), surface: Color(0xFF6E2B04), line: Color(0xFFFFB070)),
+  RcThemeData('Lagon', 'Lagoon', RcMotif.waves, 'Vagues', 'Waves',
+      top: Color(0xFF16B4C4), bottom: Color(0xFF0A7C8E), accent: Color(0xFFFFF07A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF2A2400),
+      panel: Color(0xBD00323E), panel2: Color(0xFF217682), surface: Color(0xFF03424E), line: Color(0xFF5AD8E4)),
+  RcThemeData('Raisin', 'Grape', RcMotif.crosses, 'Croix', 'Crosses',
+      top: Color(0xFF8A44E6), bottom: Color(0xFF5A24B0), accent: Color(0xFFFFD1F0), accent2: Color(0xFF7AFFD8), onAccent: Color(0xFF3A0A50),
+      panel: Color(0xB8280A50), panel2: Color(0xFF5F3699), surface: Color(0xFF341162), line: Color(0xFFB07AFF)),
+  RcThemeData('Citron', 'Lemon', RcMotif.checker, 'Damier', 'Checker',
+      top: Color(0xFFF6CC22), bottom: Color(0xFFE09A0A), accent: Color(0xFFFFF07A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF3A2000),
+      panel: Color(0xBD462800), panel2: Color(0xFF94752A), surface: Color(0xFF5B3C04), line: Color(0xFFFFE070)),
+  RcThemeData('Menthe', 'Mint', RcMotif.cards, 'Esquisses de cartes', 'Card sketches',
+      top: Color(0xFF2CCC84), bottom: Color(0xFF169A5C), accent: Color(0xFFFFFFFF), accent2: Color(0xFFFFEF7A), onAccent: Color(0xFF0A3A22),
+      panel: Color(0xB8043820), panel2: Color(0xFF2B8158), surface: Color(0xFF094A2C), line: Color(0xFF6AE8AA)),
+  RcThemeData('Corail', 'Coral', RcMotif.bubbles, 'Bulles', 'Bubbles',
+      top: Color(0xFFFF6A5E), bottom: Color(0xFFD8384A), accent: Color(0xFFFFF2B0), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF4A0A10),
+      panel: Color(0xB25A0E18), panel2: Color(0xFFA14647), surface: Color(0xFF6E1920), line: Color(0xFFFF9A90)),
+  RcThemeData('Ciel', 'Sky', RcMotif.clouds, 'Nuages pixel', 'Pixel clouds',
+      top: Color(0xFF46A8FF), bottom: Color(0xFF2A70E0), accent: Color(0xFFFFE04A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF2A2000),
+      panel: Color(0xB80A2864), panel2: Color(0xFF3868A7), surface: Color(0xFF113777), line: Color(0xFF80C4FF)),
+  RcThemeData('Bonbon', 'Candy', RcMotif.diamonds, 'Losanges', 'Diamonds',
+      top: Color(0xFFFF5AB8), bottom: Color(0xFFC42A88), accent: Color(0xFFFFF2A0), accent2: Color(0xFF7AE8FF), onAccent: Color(0xFF4A0A30),
+      panel: Color(0xB8500834), panel2: Color(0xFF9B3C75), surface: Color(0xFF651244), line: Color(0xFFFF8AD0)),
+  RcThemeData('Rétro gris', 'Retro grey', RcMotif.scanlines, 'Lignes d\'écran', 'Scanlines',
+      top: Color(0xFF8A8EA0), bottom: Color(0xFF5E6276), accent: Color(0xFFFF4F6A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFFFFFFFF),
+      panel: Color(0xBD1E202C), panel2: Color(0xFF5A5C6A), surface: Color(0xFF2B2D3A), line: Color(0xFFB0B4C4)),
 ];
 /// Thème choisi (réglages, mémorisé)
 final rcThemeIndex = ValueNotifier<int>(0);
@@ -216,7 +225,9 @@ class _RetroBackgroundState extends State<RetroBackground> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _ticker = createTicker((d) => time.value = d.inMicroseconds / 1e6)..start();
+    _ticker = createTicker((d) {
+      if (kAnimatedMotifs.contains(rcTheme.motif)) time.value = d.inMicroseconds / 1e6;
+    })..start();
   }
 
   @override
@@ -247,7 +258,9 @@ class _ThemePreviewState extends State<ThemePreview> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _ticker = createTicker((d) => time.value = 3 + d.inMicroseconds / 1e6)..start();
+    _ticker = createTicker((d) {
+      if (kAnimatedMotifs.contains(kThemes[widget.index.clamp(0, kThemes.length - 1)].motif)) time.value = 3 + d.inMicroseconds / 1e6;
+    })..start();
   }
 
   @override
@@ -283,12 +296,19 @@ class _BgPainter extends CustomPainter {
     return q - q.floorToDouble();
   }
 
+  // sprites pixel
+  static const _inv = ['00100000100', '00010001000', '00111111100', '01101110110', '11111111111', '10111111101', '10100000101', '00011011000'];
+  static const _tetro = [
+    [[0, 0], [1, 0], [2, 0], [3, 0]], [[0, 0], [1, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [2, 0], [1, 1]], [[0, 0], [0, 1], [1, 1], [2, 1]],
+    [[2, 0], [0, 1], [1, 1], [2, 1]], [[1, 0], [2, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [1, 1], [2, 1]],
+  ];
+  static const _blockCols = [Color(0xFFFFD23F), Color(0xFFFF7AD0), Color(0xFF5CE08A), Colors.white, Color(0xFFFF9F43), Color(0xFF4FE0FF), Color(0xFFC9A2FF)];
+
   @override
   void paint(Canvas canvas, Size size) {
     final t = time.value;
-    final w = size.width, h = size.height, s = w / 340;
+    final w = size.width, h = size.height, s = w / 360;
     final th = themeIndex == null ? rcTheme : kThemes[themeIndex!.clamp(0, kThemes.length - 1)];
-    final acc = th.accent, acc2 = th.accent2;
     canvas.save();
     canvas.clipRect(Offset.zero & size);
     final p = Paint();
@@ -296,135 +316,149 @@ class _BgPainter extends CustomPainter {
     // dégradé
     p.shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [th.top, th.bottom]).createShader(Offset.zero & size);
     canvas.drawRect(Offset.zero & size, p);
-
-    // deux lueurs qui dérivent lentement
-    void glow(Color c, double x, double y) {
-      final o = Offset(w * x, h * y);
-      p.shader = RadialGradient(colors: [c.withOpacity(0.22), c.withOpacity(0)]).createShader(Rect.fromCircle(center: o, radius: w * 0.8));
-      canvas.drawRect(Offset.zero & size, p);
-    }
-
-    glow(acc, 0.25 + 0.15 * sin(t * 0.15), 0.15 + 0.1 * cos(t * 0.12));
-    glow(acc2, 0.8 + 0.1 * cos(t * 0.1), 0.85 + 0.08 * sin(t * 0.13));
     p.shader = null;
 
-    // motif
-    Color a([double k = 1]) => acc.withOpacity((0.13 * k).clamp(0.0, 1.0));
-    final st = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = max(1.0, s)
-      ..color = a();
-    final off = t * 8 * s;
+    final white = Colors.white;
+    final st = Paint()..style = PaintingStyle.stroke;
+    double rnd(int k, int salt) => _hash(k * 12.9898 + salt * 78.233);
+
     switch (th.motif) {
-      case RcMotif.stars:
-        for (var k = 0; k < 70; k++) {
-          final x = _hash(k * 12.9898) * w;
-          final y = ((_hash(k * 78.233) + t * 0.004 * (1 + k % 3)) % 1) * h;
-          final al = 0.25 + 0.75 * sin(t * 0.8 + k * 2.7).abs();
-          p.color = (k % 7 != 0 ? Colors.white : acc).withOpacity(al);
-          final z = (k % 3 == 0 ? 2 : 1) * s * 1.3;
-          canvas.drawRect(Rect.fromLTWH(x, y, z, z), p);
-        }
-      case RcMotif.grid:
-        final g = 26 * s, o = off % g;
-        for (var x = o - g; x < w; x += g) {
-          canvas.drawLine(Offset(x, 0), Offset(x, h), st);
-        }
-        for (var y = o - g; y < h; y += g) {
-          canvas.drawLine(Offset(0, y), Offset(w, y), st);
-        }
-        p.color = acc.withOpacity(0.22);
-        final f = (t * 0.7).floor();
-        for (var k = 0; k < 6; k++) {
-          final i = ((k * 7 + f) * 13) % 12, j = ((k * 5 + f) * 7) % 26;
-          canvas.drawRect(Rect.fromLTWH(i * g + o + 1, j * g + o + 1, g - 2, g - 2), p);
-        }
-      case RcMotif.pix:
-        final g = 22 * s, o = (off * 0.6) % g;
-        for (var i = 0; i < w / g + 1; i++) {
-          for (var j = -1; j < h / g + 1; j++) {
-            final v = sin(i * 1.7 + j * 2.3 + t * 0.6);
-            if (v <= 0.6) continue;
-            p.color = a((v - 0.6) * 1.6);
-            canvas.drawRect(Rect.fromLTWH(i * g, j * g + o, g * 0.42, g * 0.42), p);
+      case RcMotif.invaders:
+        final px = 3 * s, sw = 11 * px, gap = 18 * s, rowH = 8 * px + 26 * s;
+        final cols = (w / (sw + gap)).floor();
+        final off = sin(t * 0.4) * 14 * s, frame = t.floor() % 2, drop = (t * 4 * s) % rowH;
+        for (var row = -1; row < h / rowH + 1; row++) {
+          p.color = (row % 3 == 0 ? th.accent2 : th.accent).withOpacity(0.25);
+          for (var col = 0; col < cols; col++) {
+            final x = col * (sw + gap) + gap / 2 + off + (row.isOdd ? 12 * s : 0), y = row * rowH + drop;
+            for (var yy = 0; yy < 8; yy++) {
+              for (var xx = 0; xx < 11; xx++) {
+                final b = (frame == 1 && yy >= 6) ? _inv[yy][10 - xx] : _inv[yy][xx];
+                if (b == '1') canvas.drawRect(Rect.fromLTWH(x + xx * px, y + yy * px, px, px), p);
+              }
+            }
           }
         }
+      case RcMotif.blocks:
+        final cs = 18 * s;
+        for (var i = 0; i < 12; i++) {
+          final k = (rnd(i, 1) * 7).floor() % 7, sp = (8 + rnd(i, 2) * 10) * s;
+          final x = (rnd(i, 3) * (w / cs)).floor() * cs;
+          final y = ((t * sp + rnd(i, 4) * h * 1.4) % (h + 80 * s)) - 60 * s;
+          final yy = (y / cs).floor() * cs;
+          p.color = _blockCols[k].withOpacity(0.3);
+          for (final d in _tetro[k]) {
+            canvas.drawRect(Rect.fromLTWH(x + d[0] * cs + 1, yy + d[1] * cs + 1, cs - 2, cs - 2), p);
+          }
+        }
+      case RcMotif.dots:
+        final g = 22 * s, z = 4 * s;
+        p.color = white.withOpacity(0.18);
+        for (var j = 0; j * g < h + g; j++) {
+          for (var x = j.isOdd ? g / 2 : 0.0; x < w + g; x += g) {
+            canvas.drawRect(Rect.fromCenter(center: Offset(x, j * g), width: z, height: z), p);
+          }
+        }
+      case RcMotif.stripes:
+        st
+          ..strokeWidth = 10 * s
+          ..color = white.withOpacity(0.14);
+        for (var x = -h; x < w + h; x += 36 * s) {
+          canvas.drawLine(Offset(x, 0), Offset(x + h, h), st);
+        }
       case RcMotif.waves:
-        for (var k = 0; k < 12; k++) {
-          final y0 = k * h / 11;
-          final path = Path()..moveTo(0, y0 + 7 * s * sin(t * 0.6 + k));
-          for (double x = 4 * s; x <= w + 4 * s; x += 4 * s) {
-            path.lineTo(x, y0 + 7 * s * sin(x / (40 * s) + t * 0.6 + k));
+        st
+          ..strokeWidth = 3 * s
+          ..color = white.withOpacity(0.16);
+        for (var y = 20 * s; y < h; y += 34 * s) {
+          final path = Path();
+          for (double x = 0; x <= w; x += 6 * s) {
+            final yy = y + sin(x / s * 0.04 + t * 0.6 + y) * 6 * s;
+            x == 0 ? path.moveTo(x, yy) : path.lineTo(x, yy);
           }
           canvas.drawPath(path, st);
         }
-      case RcMotif.diamonds:
-        final g = 34 * s, o = (off * 0.5) % g, d = 6 * s;
-        for (var i = -1; i < w / g + 1; i++) {
-          for (var j = -1; j < h / g + 1; j++) {
-            final x = i * g + (j.isOdd ? g / 2 : 0), y = j * g + o;
-            st.color = a(0.5 + 0.5 * sin(t * 0.8 + i + j * 1.3));
-            canvas.drawPath(
-                Path()
-                  ..moveTo(x, y - d)
-                  ..lineTo(x + d, y)
-                  ..lineTo(x, y + d)
-                  ..lineTo(x - d, y)
-                  ..close(),
-                st);
+      case RcMotif.crosses:
+        final g = 28 * s;
+        p.color = white.withOpacity(0.12);
+        for (var j = 0; j * g < h + g; j++) {
+          for (var x = j.isOdd ? g / 2 : 0.0; x < w + g; x += g) {
+            final y = j * g;
+            canvas.drawRect(Rect.fromLTWH(x - s, y - 6 * s, 2 * s, 12 * s), p);
+            canvas.drawRect(Rect.fromLTWH(x - 6 * s, y - s, 12 * s, 2 * s), p);
           }
         }
-      case RcMotif.lines:
-        final g = 18 * s;
-        for (var y = (off * 0.7) % g; y < h; y += g) {
-          p.color = a(y / h * 0.9 + 0.1);
-          canvas.drawRect(Rect.fromLTWH(0, y, w, max(1.0, 2 * s)), p);
+      case RcMotif.checker:
+        final g = 24 * s;
+        p.color = white.withOpacity(0.18);
+        for (var j = 0; j * g < h; j++) {
+          for (var x = j.isOdd ? g : 0.0; x < w; x += g * 2) {
+            canvas.drawRect(Rect.fromLTWH(x, j * g, g, g), p);
+          }
         }
-      case RcMotif.fire:
-        for (var k = 0; k < 26; k++) {
-          final c = Offset((sin(t * 0.25 + k * 2.1) * 0.5 + 0.5) * w, (cos(t * 0.2 + k * 1.7) * 0.5 + 0.5) * h);
-          final al = 0.25 + 0.75 * sin(t * 1.4 + k).abs();
-          p.shader = RadialGradient(colors: [acc2.withOpacity(0.9 * al), acc2.withOpacity(0)]).createShader(Rect.fromCircle(center: c, radius: 6 * s));
-          canvas.drawCircle(c, 6 * s, p);
-        }
-        p.shader = null;
-      case RcMotif.hex:
-        final r = 16 * s, hh = r * sqrt(3), o = (off * 0.4) % hh;
-        for (var i = -1; i < w / (r * 1.5) + 1; i++) {
-          for (var j = -1; j < h / hh + 1; j++) {
-            final x = i * r * 1.5, y = j * hh + (i.isOdd ? hh / 2 : 0) + o;
-            st.color = a(0.45 + 0.55 * max(0.0, sin(t * 0.5 - i * 0.4 - j * 0.3)));
-            final path = Path();
-            for (var q = 0; q < 6; q++) {
-              final an = q * pi / 3;
-              final pt = Offset(x + r * 0.85 * cos(an), y + r * 0.85 * sin(an));
-              if (q == 0) {
-                path.moveTo(pt.dx, pt.dy);
-              } else {
-                path.lineTo(pt.dx, pt.dy);
-              }
-            }
-            canvas.drawPath(path..close(), st);
+      case RcMotif.cards:
+        // esquisses de cartes qui montent lentement
+        final cw = 30 * s, ch = 40 * s, gx = 22 * s, gy = 22 * s, rowH = ch + gy, rise = (t * 6 * s) % rowH;
+        final cols = (w / (cw + gx)).ceil() + 1;
+        st
+          ..strokeWidth = 2 * s
+          ..color = white.withOpacity(0.2);
+        p.color = white.withOpacity(0.12);
+        for (var row = -1; row < h / rowH + 2; row++) {
+          for (var col = -1; col < cols; col++) {
+            final cx = col * (cw + gx) + gx / 2 + (row.isOdd ? (cw + gx) / 2 : 0) + cw / 2;
+            final cy = row * rowH - rise + ch / 2;
+            canvas.save();
+            canvas.translate(cx, cy);
+            canvas.rotate((((row * 7 + col * 3) % 5) - 2) * 0.06);
+            final r = Rect.fromCenter(center: Offset.zero, width: cw, height: ch);
+            canvas.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(4 * s)), st);
+            canvas.drawRect(Rect.fromLTWH(r.left + 4 * s, r.top + 4 * s, cw - 8 * s, ch * 0.55), p);
+            canvas.drawRect(Rect.fromLTWH(r.left + 4 * s, r.top + ch * 0.55 + 8 * s, cw * 0.6, 2.5 * s), p);
+            canvas.drawRect(Rect.fromLTWH(r.left + 4 * s, r.top + ch * 0.55 + 13 * s, cw * 0.4, 2.5 * s), p);
+            canvas.restore();
           }
         }
       case RcMotif.bubbles:
-        for (var k = 0; k < 20; k++) {
-          final r = (4 + k % 5 * 4) * s;
-          final x = ((k * 0.618) % 1) * w + sin(t * 0.5 + k) * 8 * s;
-          final y = h + r - ((t * (6 + k % 4 * 3) * s + k * 61 * s) % (h + 2 * r));
+        st
+          ..strokeWidth = 2 * s
+          ..color = white.withOpacity(0.22);
+        p.color = white.withOpacity(0.25);
+        for (var i = 0; i < 18; i++) {
+          final r = (8 + rnd(i, 1) * 22) * s, sp = (6 + rnd(i, 2) * 10) * s;
+          final x = rnd(i, 3) * w + sin(t * 0.5 + i) * 10 * s;
+          final y = h + r - ((t * sp + rnd(i, 4) * h * 1.4) % (h + r * 2));
           canvas.drawCircle(Offset(x, y), r, st);
+          canvas.drawRect(Rect.fromLTWH(x - r * 0.45, y - r * 0.5, 4 * s, 4 * s), p);
         }
-      case RcMotif.cross:
-        final g = 30 * s, o = (off * 0.5) % g, d = 4 * s;
-        for (var i = 0; i < w / g + 1; i++) {
-          for (var j = -1; j < h / g + 1; j++) {
-            final x = i * g, y = j * g + o;
-            final on = sin(t * 0.9 + i * 1.9 + j * 1.1) > 0.75;
-            st.color = on ? (j.isOdd ? acc2 : acc).withOpacity(0.55) : a();
-            canvas.drawLine(Offset(x - d, y), Offset(x + d, y), st);
-            canvas.drawLine(Offset(x, y - d), Offset(x, y + d), st);
+      case RcMotif.clouds:
+        final q = 6 * s;
+        p.color = white.withOpacity(0.35);
+        for (var i = 0; i < 7; i++) {
+          final n = 4 + (rnd(i, 1) * 4).floor();
+          final x = ((rnd(i, 2) * w * 1.5 + t * (5 + i * 2) * s) % (w + 160 * s)) - 80 * s;
+          final y = 30 * s + rnd(i, 3) * (h - 80 * s);
+          final X = (x / q).round() * q, Y = (y / q).round() * q;
+          canvas.drawRect(Rect.fromLTWH(X, Y, n * q * 3, q * 3), p);
+          canvas.drawRect(Rect.fromLTWH(X + q * 2, Y - q * 2, n * q * 1.6, q * 2), p);
+        }
+      case RcMotif.diamonds:
+        final g = 30 * s, d = 9 * s;
+        p.color = white.withOpacity(0.14);
+        for (var j = 0; j * g < h + g; j++) {
+          for (var x = j.isOdd ? g / 2 : 0.0; x < w + g; x += g) {
+            final y = j * g;
+            canvas.drawPath(Path()..moveTo(x, y - d)..lineTo(x + d, y)..lineTo(x, y + d)..lineTo(x - d, y)..close(), p);
           }
         }
+      case RcMotif.scanlines:
+        p.color = Colors.black.withOpacity(0.1);
+        for (var y = 0.0; y < h; y += 4 * s) {
+          canvas.drawRect(Rect.fromLTWH(0, y, w, 2 * s), p);
+        }
+        p.color = white.withOpacity(0.12);
+        canvas.drawRect(Rect.fromLTWH(0, h * 0.12, w, 6 * s), p);
+        canvas.drawRect(Rect.fromLTWH(0, h * 0.12 + 12 * s, w, 3 * s), p);
     }
     canvas.restore();
   }

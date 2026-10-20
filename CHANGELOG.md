@@ -3,6 +3,8 @@
 ## v1.0.15
 _Version 1.0.15+16._
 
+- **Thèmes refaits** : 12 nouveaux fonds colorés (Envahisseurs, Blocs, Cerise, Mandarine, Lagon, Raisin, Citron,
+  Menthe, Corail, Ciel, Bonbon, Rétro gris). Motif fixe ou animation lente ; les fonds fixes ne sont plus redessinés en continu.
 - **Sagas Resident Evil et Castlevania** : 2 nouvelles sagas de cartes holo, avec leurs albums et logos dans la Collection.
 - **Bourse : achat groupé** : sélection de plusieurs cartes et achat en une fois (`rc_market_buy_many`).
 - **Bornes illuminées** au Voisinage : halo, fronton, écran qui pulse, reflet, lueur au sol.

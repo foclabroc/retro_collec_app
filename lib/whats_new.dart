@@ -12,6 +12,8 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎨', '12 nouveaux thèmes colorés (Envahisseurs, Blocs, Cerise, Lagon, Citron, Menthe…), motif fixe ou animation douce',
+      '12 new colorful themes (Invaders, Blocks, Cherry, Lagoon, Lemon, Mint…), still pattern or gentle animation'),
   ('🧟', 'Nouvelles sagas Resident Evil et Castlevania : cartes holo et albums dans la Collection',
       'New Resident Evil and Castlevania sagas: holo cards and albums in the Collection'),
   ('🛒', 'Bourse : achète plusieurs cartes d\'un coup (sélection groupée)', 'Market: buy several cards at once (multi-select)'),
