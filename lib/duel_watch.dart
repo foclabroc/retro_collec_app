@@ -23,6 +23,7 @@ class DuelWatch extends ChangeNotifier {
   static final i = DuelWatch();
   Timer? _timer;
   int invites = 0, turns = 0;
+  int? online; // joueurs en ligne (hors moi), renvoyé par rc_duel_ping
   String? lastFrom;
   List<Map<String, dynamic>> live = [];
   final _handled = <String>{}; // défis déjà montrés (jeu:id)
@@ -53,6 +54,7 @@ class DuelWatch extends ChangeNotifier {
       live = [for (final x in (r['live'] as List? ?? const [])) Map<String, dynamic>.from(x as Map)];
       invites = (r['invites'] as num? ?? 0).toInt();
       turns = (r['turns'] as num? ?? 0).toInt();
+      online = (r['online'] as num?)?.toInt();
       lastFrom = r['last_from'] as String?;
       PushWatch.seenDuels(invites, turns); // déjà visible dans l'appli : pas de notification
       notifyListeners();

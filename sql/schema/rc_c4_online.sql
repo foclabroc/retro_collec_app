@@ -17,6 +17,6 @@ begin
                               and p.device in (g.p1, g.p2) and now() <= g.move_at + interval '60 seconds'))
            order by p.seen_at desc)
       from (select * from public.rc_players q
-             where q.device <> p_device and q.packs > 0 and q.seen_at > now() - interval '2 minutes'
+             where q.device <> p_device and q.packs > 0 and q.seen_at > now() - interval '75 seconds'
              order by q.seen_at desc limit 50) p), '[]'::jsonb);
 end $function$

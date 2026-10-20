@@ -5,7 +5,7 @@ create or replace function public.rc_find(p_query text)
  set search_path to 'public'
 as $function$
   select p.pid, p.name, p.avatar, p.score, p.cards, p.house, p.coins,
-         coalesce(p.seen_at > now() - interval '10 minutes', false),
+         coalesce(p.seen_at > now() - interval '75 seconds', false),
          coalesce(p.seen_at, (p.last_login::timestamp + interval '12 hours') at time zone 'Europe/Paris')
     from public.rc_players p
    where p.name_key like public.rc__name_key(p_query) || '%'

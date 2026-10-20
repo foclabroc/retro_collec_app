@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'audio.dart';
 import 'connect4.dart';
+import 'duel_watch.dart';
 import 'game.dart';
 import 'packs.dart';
 import 'arcade.dart';
@@ -501,7 +502,7 @@ class OnlineNow {
   static List<FloorData>? get cached => _list;
 
   static Future<List<FloorData>> get({bool force = false}) async {
-    if (!force && _list != null && _at != null && DateTime.now().difference(_at!) < const Duration(seconds: 60)) return _list!;
+    if (!force && _list != null && _at != null && DateTime.now().difference(_at!) < const Duration(seconds: 15)) return _list!;
     final r = await RcServer.board();
     _list = [for (var i = 0; i < r.length; i++) FloorData.of(r[i], rank: i + 1)].where((f) => f.online && !f.me).toList();
     _at = DateTime.now();
@@ -545,9 +546,26 @@ class _OnlineMenuTileState extends State<OnlineMenuTile> {
   @override
   void initState() {
     super.initState();
-    OnlineNow.get().then((l) {
-      if (mounted) setState(() => n = l.length);
-    }).catchError((_) {});
+    // le nombre arrive avec le ping des duels (toutes les 10-20 s) ; la liste complète seulement au départ
+    DuelWatch.i.addListener(_ping);
+    if (DuelWatch.i.online != null) {
+      n = DuelWatch.i.online;
+    } else {
+      OnlineNow.get().then((l) {
+        if (mounted && DuelWatch.i.online == null) setState(() => n = l.length);
+      }).catchError((_) {});
+    }
+  }
+
+  void _ping() {
+    final v = DuelWatch.i.online;
+    if (v != null && v != n && mounted) setState(() => n = v);
+  }
+
+  @override
+  void dispose() {
+    DuelWatch.i.removeListener(_ping);
+    super.dispose();
   }
 
   @override

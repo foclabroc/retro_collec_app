@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION public.rc_duel_ping(p_device text, p_bg boolean DEFAU
  SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
-declare live jsonb; inv int; trn int; last_from text; replies jsonb;
+declare live jsonb; inv int; trn int; last_from text; replies jsonb; onl int;
 begin
   if not p_bg then update public.rc_players set seen_at = now() where device = p_device; end if;
   select coalesce(jsonb_agg(x order by x->>'created_at'), '[]'::jsonb) into live from (
@@ -46,5 +46,8 @@ begin
           select 'bs', id, p2, reply, mode from public.rc_bs
            where p1 = p_device and status = 'invite' and reply is not null and created_at > now() - interval '24 hours') r
     join public.rc_players o on o.device = r.p2;
-  return jsonb_build_object('live', live, 'invites', inv, 'turns', trn, 'last_from', last_from, 'replies', replies);
+  -- joueurs en ligne (même règle que rc_board : vus il y a moins de 75 s), pour le compteur du menu
+  select count(*) into onl from public.rc_players
+   where device <> p_device and packs > 0 and seen_at > now() - interval '75 seconds';
+  return jsonb_build_object('online', onl, 'live', live, 'invites', inv, 'turns', trn, 'last_from', last_from, 'replies', replies);
 end $function$

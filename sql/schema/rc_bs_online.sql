@@ -17,6 +17,6 @@ begin
                      and ((g.p1 = p.device and g.winner = 2) or (g.p2 = p.device and g.winner = 1))))
            order by p.seen_at desc)
       from (select * from public.rc_players q
-             where q.device <> p_device and q.packs > 0 and q.seen_at > now() - interval '2 minutes'
+             where q.device <> p_device and q.packs > 0 and q.seen_at > now() - interval '75 seconds'
              order by q.seen_at desc limit 50) p), '[]'::jsonb);
 end $function$

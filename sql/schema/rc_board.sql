@@ -5,7 +5,7 @@ create or replace function public.rc_board()
  set search_path to 'public'
 as $function$
   select p.pid, p.name, p.avatar, p.score, p.cards, p.showcase, p.house, p.coins, coalesce(p.pixels, 0)::bigint,
-         coalesce(p.seen_at > now() - interval '10 minutes', false),
+         coalesce(p.seen_at > now() - interval '75 seconds', false),
          coalesce(p.seen_at, (p.last_login::timestamp + interval '12 hours') at time zone 'Europe/Paris'),
          public.rc__tshow(p.device)
     from public.rc_players p
