@@ -29,7 +29,7 @@ int _int(dynamic v) => (v as num).toInt();
 class RcCard {
   final String id, sys, title, dev, pub, genre, img, desc, genreEn, descEn;
   final String? shot;
-  final String? saga; // carte de saga : 'mario', 'sonic', 'zelda' ou 'pokemon' (sinon null)
+  final String? saga; // carte de saga : id de kSagas ('mario', 'sonic', 'zelda', 'pokemon', 're', 'castlevania'), sinon null
   final String? baseSys; // carte de saga : console de la carte d'origine (images)
   final String? base; // carte de saga : id de la carte d'origine
   final int num, rarity;
@@ -157,6 +157,12 @@ const kSagas = [
   RcSaga('pokemon', 'Pokémon', Color(0xFFE0A100), Color(0xFF3DD9FF), Color(0xFF3A2400),
       ['gbc_062', 'gbc_061', 'n64_058', 'n64_057', 'gba_073', 'gba_071', 'gba_072', 'gamecube_063', 'switch_065', 'switch_056'],
       ['gbc_061', 'gba_071', 'gbc_062']),
+  RcSaga('re', 'Resident Evil', Color(0xFF9E1B1B), Color(0xFF7BE07F), Color(0xFF1C0505),
+      ['psx_064', 'psx_065', 'psx_066', 'n64_065', 'gbc_071', 'gamecube_073', 'gamecube_067', 'gamecube_071', 'ps2_038', 'switch_067'],
+      ['psx_065', 'gamecube_071', 'psx_064']),
+  RcSaga('castlevania', 'Castlevania', Color(0xFF5B2A86), Color(0xFFE8C26A), Color(0xFF14061F),
+      ['nes_013', 'nes_014', 'nes_015', 'snes_069', 'megadrive_009', 'psx_020', 'n64_011', 'gba_014', 'gba_013', 'ps2_008'],
+      ['nes_013', 'gba_013', 'psx_020']),
 ];
 
 RcSaga? sagaById(String? id) {

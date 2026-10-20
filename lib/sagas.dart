@@ -7,7 +7,7 @@ import 'catalog.dart';
 import 'game.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Sagas (Mario, Sonic, Zelda, Pokémon) : 10 cartes chacune, en version holo.
+// Sagas (Mario, Sonic, Zelda, Pokémon, Resident Evil, Castlevania) : 10 cartes chacune, en version holo.
 // Une carte de saga est une copie d'une carte existante (même jaquette) rangée
 // UNIQUEMENT dans l'album de sa saga (« console » sg_<saga>, voir catalog.dart).
 // Chaque carte tirée a 3,2 % de chance d'être une carte de saga (patch_sagas.sql).
