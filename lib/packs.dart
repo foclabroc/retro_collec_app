@@ -1557,7 +1557,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
               ),
               if (again != 'console' || widget.sys != null)
                 ElevatedButton(
-                  onPressed: Game.i.coins >= price ? () => _again(again) : null,
+                  onPressed: Game.i.coins >= price && !_againBusy ? () => _again(again) : null,
                   child: Text(againLabel),
                 ),
             ]),
@@ -1609,7 +1609,11 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     );
   }
 
+  bool _againBusy = false; // évite le double appui sur « Cadeau suivant » / « Ouvrir un autre »
+
   Future<void> _again(String kind) async {
+    if (_againBusy) return;
+    setState(() => _againBusy = true);
     try {
       final sys = kind == 'console' ? widget.sys : null; // cadeau suivant : le plus ancien
       final r = await Game.i.openChoice(kind, sys);
@@ -1622,6 +1626,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       ));
     } catch (e) {
       toast(errText(e));
+      if (mounted) setState(() => _againBusy = false);
     }
   }
 }
