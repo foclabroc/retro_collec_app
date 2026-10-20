@@ -169,7 +169,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
     return ListenableBuilder(
       listenable: Listenable.merge([Game.i, Notifs.i]),
       builder: (context, _) {
-        return Column(children: [
+        return TabPage(children: [
           TabHeader(t('Voisinage', 'Neighbors'), icon: 'neighbors'),
           // raccourcis sous le titre (le titre garde toute sa taille)
           Padding(

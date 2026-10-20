@@ -919,6 +919,29 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 }
 
 /// En-tête commun des onglets : titre + pièces
+/// Page d'onglet : tout ce qui précède le premier `Expanded` / `Flexible` (titre, raccourcis, lignes d'info)
+/// est posé dans un bandeau du thème à 93 % d'opacité, pour que le fond animé ne se voie plus derrière.
+class TabPage extends StatelessWidget {
+  final List<Widget> children;
+  const TabPage({super.key, required this.children});
+  @override
+  Widget build(BuildContext context) {
+    var i = children.indexWhere((w) => w is Flexible);
+    if (i < 0) i = children.length;
+    return Column(children: [
+      Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: kPanel,
+          border: Border(bottom: BorderSide(color: rcTheme.line.withOpacity(0.5))),
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: children.sublist(0, i)),
+      ),
+      ...children.sublist(i),
+    ]);
+  }
+}
+
 class TabHeader extends StatelessWidget {
   final String title;
   final List<Widget> actions;

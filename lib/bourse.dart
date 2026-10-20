@@ -74,7 +74,7 @@ class BourseScreenState extends State<BourseScreen> with SingleTickerProviderSta
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
+    return TabPage(children: [
       TabHeader(t('Bourse', 'Exchange'), icon: 'market', actions: [
         IconButton(icon: const Icon(Icons.refresh), onPressed: reload),
       ]),

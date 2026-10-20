@@ -61,7 +61,7 @@ class BonusScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
+    return TabPage(children: [
       TabHeader(t('Bonus / Jeux', 'Bonus / Games'), icon: 'bonus'),
       Expanded(
         child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: const [

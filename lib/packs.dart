@@ -359,7 +359,7 @@ class _PacksScreenState extends State<PacksScreen> {
           );
         }
 
-        return Column(children: [
+        return TabPage(children: [
           TabHeader(t('Paquets', 'Packs'), icon: 'packs'),
           Expanded(
             child: ListView(controller: _scroll, padding: const EdgeInsets.fromLTRB(14, 4, 14, 24), children: [

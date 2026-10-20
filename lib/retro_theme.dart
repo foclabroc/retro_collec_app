@@ -177,7 +177,7 @@ ThemeData retroTheme() {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: Colors.white,
-        backgroundColor: navy.withOpacity(0.4),
+        backgroundColor: navy.withOpacity(0.93),
         side: BorderSide(color: line, width: 2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

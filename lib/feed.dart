@@ -112,7 +112,7 @@ class FeedScreenState extends State<FeedScreen> {
       }
       rows.add(e);
     }
-    return Column(children: [
+    return TabPage(children: [
       TabHeader(t('Actualités', 'News'), icon: 'news', actions: [
         IconButton(onPressed: load, icon: const Icon(Icons.refresh), tooltip: t('Actualiser', 'Refresh')),
       ]),

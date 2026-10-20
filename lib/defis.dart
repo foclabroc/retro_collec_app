@@ -136,7 +136,7 @@ class DefisScreenState extends State<DefisScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
+    return TabPage(children: [
       TabHeader(t('Défis', 'Challenges'), icon: 'defis'),
       Expanded(
         child: data == null
