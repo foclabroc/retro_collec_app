@@ -55,7 +55,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - `connect4.dart`, `battleship.dart` (Console Wars), `duel_watch.dart`, `duel_msg.dart`.
 - `trophies.dart` (trophées : `MyTrophies` au profil (vitrine + liste complète dans un déroulant `open`), `OtherTrophies`, `TrophyMedal`, `myTrophyShow` pour la borne).
 - `events.dart` (événements, effets, défis à paliers), `defis.dart` (défis de la semaine), `rewards.dart` (récompenses + éditeur admin).
-- `admin.dart` + `admin_tools.dart` : page admin (Comptes, Liens, Stats cliquables, Chat, Outils : courrier / cadeau ciblé, sondage, événements, bandeau, maintenance, réglages en direct, version minimale, Bourse, recherche de carte, activité des joueurs, journal admin).
+- `admin.dart` + `admin_tools.dart` : page admin (Comptes (« vus aujourd'hui » triés du dernier vu), Journal (`_FeedTab` : activité de tous les joueurs via `rc_admin_feed(before)`, 150 lignes par page, mêmes textes que la fiche joueur via `_adminEvent`, une ligne par action vue de l'initiateur), Liens, Stats cliquables, Chat, Outils : courrier / cadeau ciblé, sondage, événements, bandeau, maintenance, réglages en direct, version minimale, Bourse, recherche de carte, activité des joueurs, journal admin).
 - `audio.dart` (`RcAudio`) : musique et bruitages ; réglage `rc_track2` = n° de morceau, -1 aléatoire, -2 aucune (`homeTrackNone` bloque toute musique, bruitages gardés).
 - `inbox.dart` (courrier / sondage à l'ouverture), `update_check.dart` (mise à jour, version minimale, maintenance), `notifs.dart`, `push.dart`.
 
