@@ -649,6 +649,34 @@ Widget _setRow(String name, int mine, int total) => Padding(
       ]),
     );
 
+/// Vitrine (6 cases) : 3 par ligne sur téléphone, les 6 sur une ligne en grand écran,
+/// cartes limitées à 150 px de large pour ne pas devenir géantes sur le web.
+const _kShowcaseMaxW = 150.0;
+double showcaseCardW(double maxWidth) {
+  final cols = maxWidth >= 6 * 110 + 40 ? 6 : 3;
+  return min((maxWidth - 8 * (cols - 1)) / cols, _kShowcaseMaxW);
+}
+
+Widget showcaseGrid(double maxWidth, List<Widget> slots) {
+  final cols = maxWidth >= 6 * 110 + 40 ? 6 : 3;
+  final w = showcaseCardW(maxWidth);
+  return Align(
+    alignment: Alignment.centerLeft,
+    child: SizedBox(
+      width: cols * w + 8 * (cols - 1),
+      child: GridView.count(
+        crossAxisCount: cols,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        childAspectRatio: 5 / 7,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        children: slots,
+      ),
+    ),
+  );
+}
+
 class _Showcase extends StatelessWidget {
   final List<(String, int)> items;
   final Map<String, List<int>>? owned; // collection affichée (autre joueur) pour ouvrir les fiches
@@ -658,14 +686,7 @@ class _Showcase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final valid = [for (final e in items) if (Catalog.cards[e.$1] != null) e];
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 5 / 7,
-      crossAxisSpacing: 8,
-      mainAxisSpacing: 8,
-      children: [
+    return LayoutBuilder(builder: (context, box) => showcaseGrid(box.maxWidth, [
         for (var i = 0; i < 6; i++)
           if (i < valid.length)
             GestureDetector(
@@ -680,8 +701,7 @@ class _Showcase extends StatelessWidget {
               ),
               child: const Icon(Icons.star_border, color: Colors.white12),
             ),
-      ],
-    );
+      ]));
   }
 }
 
@@ -799,7 +819,7 @@ class _MyShowcaseState extends State<_MyShowcase> {
       builder: (context, _) {
         final items = [for (final e in Game.i.showcaseItems) if (Catalog.cards[e.$1] != null) e];
         return LayoutBuilder(builder: (context, box) {
-          final w = (box.maxWidth - 16) / 3;
+          final w = showcaseCardW(box.maxWidth);
           Widget slot(int i) {
             if (i >= items.length) {
               // case vide : « + »
@@ -844,15 +864,7 @@ class _MyShowcaseState extends State<_MyShowcase> {
             );
           }
 
-          return GridView.count(
-            crossAxisCount: 3,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 5 / 7,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            children: [for (var i = 0; i < 6; i++) slot(i)],
-          );
+          return showcaseGrid(box.maxWidth, [for (var i = 0; i < 6; i++) slot(i)]);
         });
       },
     );
