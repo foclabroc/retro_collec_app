@@ -51,6 +51,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - `cards.dart` (rendu `CardView`), `catalog.dart` (catalogue, sagas), `sagas.dart`, `library.dart` / `album.dart` (Collection).
 - `market.dart` / `bourse.dart` (Bourse), `trades.dart`.
 - `arcade.dart` (Voisinage « Pixel Arcade » : `ArcadeCabinet` (effets de lumière des bornes en ligne : une animation de 6 s par borne, `_lit`), habillages `kFloorThemes` → `assets/arcade/*.webp`, `FloorData`, page d'habillage), `neighbors.dart` (salle : podium + rangées de 3), `profile.dart`, `house.dart`.
+- Vitrine du profil (`profile.dart`) : `showcaseGrid` / `showcaseCardW`, cartes de 150 px max, 3 par ligne sur téléphone, les 6 sur une ligne en grand écran.
 - `connect4.dart`, `battleship.dart` (Console Wars), `duel_watch.dart`, `duel_msg.dart`.
 - `trophies.dart` (trophées : `MyTrophies` au profil (vitrine + liste complète dans un déroulant `open`), `OtherTrophies`, `TrophyMedal`, `myTrophyShow` pour la borne).
 - `events.dart` (événements, effets, défis à paliers), `defis.dart` (défis de la semaine), `rewards.dart` (récompenses + éditeur admin).
