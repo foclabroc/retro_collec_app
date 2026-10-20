@@ -173,10 +173,15 @@ class _SagaFaceState extends State<SagaFace> with SingleTickerProviderStateMixin
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Text(
                   owned ? widget.card.title : '???',
-                  maxLines: 1,
+                  // nom long : passe sur 2 lignes, police un peu réduite
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: max(7.5, w * 0.058), fontWeight: FontWeight.w900, color: owned ? Colors.white : Colors.white38),
+                  style: TextStyle(
+                      fontSize: max(7.0, w * (widget.card.title.length > 18 ? 0.05 : 0.058)),
+                      height: 1.1,
+                      fontWeight: FontWeight.w900,
+                      color: owned ? Colors.white : Colors.white38),
                 ),
                 if (!small)
                   Text(t('CARTE SAGA', 'SAGA CARD'),

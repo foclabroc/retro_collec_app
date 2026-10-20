@@ -2,6 +2,8 @@
 
 ## Prochaine version
 
+- Cartes de saga : un nom trop long passe sur 2 lignes (police un peu réduite) au lieu d'être coupé.
+
 ## v1.0.13
 _Version 1.0.13+14._
 
