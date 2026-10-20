@@ -17,6 +17,21 @@ _Version 1.0.13+14._
 - **4 en ligne : nouvelle grille** façon borne d'arcade : double cadre néon (cyan et rose), rivets, reflet vitré,
   pieds ; trous creusés ; pion fantôme translucide avec flèche dorée qui bouge et colonne surlignée en doré ;
   à la victoire, les 4 pions clignotent et un trait lumineux les relie.
+- **Paquets : vue en mosaïque** (stock, paquet gratuit en grand, boutique en grille) ; les pièces et pixels du bandeau
+  ouvrent la boutique / les boosters Pixels. Un paquet entamé (choix du booster quitté) reste dans le stock et se reprend
+  d'un toucher ; plus d'erreur « aucun booster à choisir ».
+- **Retour Android** : chaque appui ouvre ou ferme le panneau latéral.
+- **Notifications Android** : icône du jeu (silhouette blanche dans la barre d'état, icône en couleur dans la notification).
+- **Sagas** : cartes numérotées (#01…#10), sagas dans les filtres de console (Bourse, échanges) et dans les séries du profil.
+- **Duels** : message quand l'adversaire répond à ton défi ; Entrée envoie le défi / la revanche.
+- **Bourse** : nouvelles ventes mises en avant dans « Vendre » (pastille rouge) ; sur PC / écran large, acheter une carte
+  ne ferme plus l'écran principal.
+- **Profil** : dernière connexion connue (au jour près) quand l'heure exacte manque.
+- **Web** : la musique repart bien du début à la fin du morceau.
+- **Voisinage** : bouton cadeau des bornes en icône ; sur le web, moquette qui ne déborde plus sur le menu et projecteur du
+  podium en faisceau flou.
+- **Page admin** (réservée aux admins) : comptes, liens suspects, stats cliquables, chat signalé, courrier et cadeau ciblé,
+  sondage, événements, bandeau, maintenance, réglages en direct, version minimale, offres de la Bourse, recherche de carte, journal.
 
 ## v1.0.12
 _Version 1.0.12+13._
