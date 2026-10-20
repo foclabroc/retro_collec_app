@@ -447,6 +447,24 @@ class RcServer {
     return _map(await _rpc('rc_week', {'p_device': d, 'p_sig': _sig('$d|week')}));
   }
 
+  /// Trophées : {list: [{k, n, got, t: [bronze, argent, or]}], show, ready}
+  static Future<Map<String, dynamic>> trophies() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_trophies', {'p_device': d, 'p_sig': _sig('$d|trophies')}));
+  }
+
+  /// Récupère le palier suivant d'un trophée : l'état mis à jour + {coins, pixels, gain, px, tier}
+  static Future<Map<String, dynamic>> trophyClaim(String kind) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_trophy_claim', {'p_device': d, 'p_kind': kind, 'p_sig': _sig('$d|tclaim|$kind')}));
+  }
+
+  /// Vitrine de 3 trophées (« wins,,cards ») : l'état mis à jour
+  static Future<Map<String, dynamic>> trophyShow(String list) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_trophy_show', {'p_device': d, 'p_list': list, 'p_sig': _sig('$d|tshow|$list')}));
+  }
+
   /// Récupère un défi (1..6) ou le coffre (7) : l'état mis à jour + {gain}
   static Future<Map<String, dynamic>> weekClaim(int i) async {
     final d = await deviceId();

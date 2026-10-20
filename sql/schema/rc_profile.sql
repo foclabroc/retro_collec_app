@@ -9,5 +9,6 @@ as $function$
                             'coins', p.coins, 'online', coalesce(p.seen_at > now() - interval '10 minutes', false),
                             'seen_at', p.seen_at,
                             'seen_day', coalesce((p.seen_at at time zone 'Europe/Paris')::date, p.last_login),
-                            'since', p.created_at, 'owned', public.rc__owned_json(p.device))
+                            'since', p.created_at, 'trophies', public.rc__tshow(p.device),
+                            'tro_total', (select coalesce(sum(tier), 0)::int from public.rc_trophy_got g where g.device = p.device), 'owned', public.rc__owned_json(p.device))
     from public.rc_players p where p.pid = p_pid $function$;

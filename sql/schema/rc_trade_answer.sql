@@ -37,6 +37,8 @@ begin
   perform public.rc__bump(t.sender, 'trade', 1);
   perform public.rc__ev_bump(t.sender, 'trades', 1);    -- défi : échanges
   perform public.rc__ev_bump(t.receiver, 'trades', 1);
+  perform public.rc__tbump(t.sender, 'trades', 1);    -- trophée : échanges
+  perform public.rc__tbump(t.receiver, 'trades', 1);
   perform public.rc__milestones(t.sender);
   perform public.rc__rescore(t.sender);
   perform public.rc__rescore(t.receiver);

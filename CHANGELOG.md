@@ -3,6 +3,10 @@
 ## v1.0.13
 _Version 1.0.13+14._
 
+- **Trophées** : 12 trophées à 3 paliers (bronze, argent, or) au profil : paquets, cartes, consoles complètes, légendaires,
+  Full art, fusions, duels gagnés, cadeaux, ventes, échanges, Gamedle, coffres des défis. Chaque palier se récupère
+  (100, 300, puis 800 pièces + 3 pixels). 3 trophées au choix en vitrine, visibles sur le profil et sous l'écran de la borne.
+  L'historique déjà joué est repris (duels, cadeaux, ventes, échanges, Gamedle, légendaires et Full art possédées).
 - **Défis de la semaine tournants** : chaque lundi, 6 défis tirés au hasard (les mêmes pour tous) parmi 12 :
   paquets, cadeaux (remplace le recyclage), échanges, duels gagnés, Gamedle, épique, duels joués, nouvelles cartes,
   quiz, ventes à la Bourse, paquet gratuit plusieurs jours, paquets premium.

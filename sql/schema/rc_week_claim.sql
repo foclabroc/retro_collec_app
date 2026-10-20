@@ -22,6 +22,7 @@ begin
     gain := public.rc__cfg('chest_coins', 500)::int;
     update public.rc_players set w_claim = w_claim | 64, coins = coins + gain, pixels = pixels + public.rc__cfg('chest_pixels', 2)::int where device = p_device;
     insert into public.rc_gifts (receiver, giver, giver_name, kind) values (p_device, null, 'Défis de la semaine', 'premium');
+    perform public.rc__tbump(p_device, 'chest', 1);  -- trophée : coffres des défis
   else
     raise exception 'défi inconnu';
   end if;

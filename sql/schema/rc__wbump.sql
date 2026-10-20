@@ -7,6 +7,8 @@ as $function$
 declare k text[];
 begin
   if p_dev is null or coalesce(p_n, 0) <= 0 then return; end if;
+  -- trophées : cadeaux, ventes, duels gagnés, Gamedle (comptés même hors des défis de la semaine)
+  perform public.rc__tbump(p_dev, case p_kind when 'gift' then 'gifts' when 'sale' then 'sales' when 'win' then 'wins' when 'gamedle' then 'gamedle' end, p_n);
   k := public.rc__wkinds();
   if not (p_kind = any(k)) then return; end if;  -- pas au programme cette semaine
   perform public.rc__wk(p_dev);

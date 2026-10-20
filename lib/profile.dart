@@ -17,6 +17,7 @@ import 'arcade.dart';
 import 'main.dart';
 import 'server.dart';
 import 'trades.dart';
+import 'trophies.dart';
 import 'neighbors.dart';
 import 'notifs.dart';
 import 'push.dart';
@@ -182,6 +183,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: const TextStyle(color: Colors.white38, fontSize: 12)),
                 const SizedBox(height: 8),
                 const _MyShowcase(),
+                const SizedBox(height: 18),
+                const MyTrophies(),
                 const SizedBox(height: 18),
                 Text(t('Mes séries', 'My sets'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 8),
@@ -1061,6 +1064,10 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                   const SizedBox(height: 8),
                   _Showcase(parseItems(p!['showcase'] as String? ?? ''), owned: owned, ownerName: name),
                   const SizedBox(height: 18),
+                  if (p!.containsKey('trophies')) ...[
+                    OtherTrophies(show: p!['trophies'] as String?, total: (p!['tro_total'] as num? ?? 0).toInt()),
+                    const SizedBox(height: 18),
+                  ],
                   Text(t('Statistiques', 'Statistics'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                   const SizedBox(height: 8),
                   StatsPanel(

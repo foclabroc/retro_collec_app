@@ -30,6 +30,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - Code actuel des fonctions : `sql/schema/` (un fichier par fonction). **Le lire avant de modifier une fonction** ; le tenir à jour après chaque nouveau fichier SQL.
 - Récompenses (événements, paliers, courrier) en JSON : `{"coins":500,"pixels":5,"lots":1,"packs":{"premium":1,"star":1},"cards":{"3":1}}` → `rc__grant` côté serveur, `lib/rewards.dart` côté appli. Paquets possibles : mixte, premium, mystery, star, gold (pas console : il faut choisir la console).
 - Défis de la semaine : réservoir `rc__wpool` (id, type, objectif, récompense ; ne pas renuméroter), 6 tirés chaque lundi par `rc__wsel` (mêmes pour tous), suivis par `rc__wbump(device, type, n)`. Types : open, gift, trade, win, gamedle, epic, play, new, quiz, sale, free, premium (texte et icône dans `defis.dart`).
+- Trophées : paliers dans `rc__tpool` (bronze / argent / or), compteurs `rc_trophy_n` (via `rc__tbump`, branché dans `rc__give`, `rc__wbump`, `rc_fuse`, `rc_trade_answer`, `rc_week_claim`), paquets / cartes / consoles lus en direct (`rc__tn`), paliers récupérés `rc_trophy_got`, vitrine `rc_players.trophies` (« wins,,cards »), envoyée avec les paliers par `rc__tshow` (`rc_board`, `rc_profile`). Textes et icônes : `lib/trophies.dart`.
 - Voisinage : joueurs vus dans les **7 derniers jours** (`rc_board`, `rc_rank`, `rc_my_floor`). Le champ `house` d'un joueur = numéro de son habillage de borne (index de `kFloorThemes` dans `arcade.dart`, ne pas réordonner).
 
 ## Fichiers Flutter (lib/)
@@ -44,10 +45,11 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - `market.dart` / `bourse.dart` (Bourse), `trades.dart`.
 - `arcade.dart` (Voisinage « Pixel Arcade » : `ArcadeCabinet`, habillages `kFloorThemes` → `assets/arcade/*.webp`, `FloorData`, page d'habillage), `neighbors.dart` (salle : podium + rangées de 3), `profile.dart`, `house.dart`.
 - `connect4.dart`, `battleship.dart` (Console Wars), `duel_watch.dart`, `duel_msg.dart`.
+- `trophies.dart` (trophées : `MyTrophies` au profil, `OtherTrophies`, `TrophyMedal`, `myTrophyShow` pour la borne).
 - `events.dart` (événements, effets, défis à paliers), `defis.dart` (défis de la semaine), `rewards.dart` (récompenses + éditeur admin).
 - `admin.dart` + `admin_tools.dart` : page admin (Comptes, Liens, Stats cliquables, Chat, Outils : courrier / cadeau ciblé, sondage, événements, bandeau, maintenance, réglages en direct, version minimale, Bourse, recherche de carte, journal).
 - `inbox.dart` (courrier / sondage à l'ouverture), `update_check.dart` (mise à jour, version minimale, maintenance), `notifs.dart`, `push.dart`.
 
 ## À faire
 
-- Trophées au profil (badges débloqués en jouant), pour la v1.0.13 (pas encore buildée).
+Rien en attente pour l'instant.

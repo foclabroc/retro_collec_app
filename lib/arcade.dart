@@ -8,6 +8,7 @@ import 'main.dart';
 import 'notifs.dart';
 import 'retro_theme.dart';
 import 'server.dart';
+import 'trophies.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Voisinage « Pixel Arcade » : chaque joueur a sa borne d'arcade (habillage au
@@ -60,7 +61,9 @@ class FloorData {
   final int? rank;
   final bool online, me;
   final DateTime? seenAt; // dernière connexion
+  final String trophies; // vitrine de trophées « type:palier,,type:palier »
   const FloorData({
+    this.trophies = '',
     this.seenAt,
     required this.pid,
     required this.name,
@@ -89,6 +92,7 @@ class FloorData {
       me: me,
       seenAt: DateTime.tryParse(p['seen_at']?.toString() ?? '')?.toLocal(),
       rank: rank ?? (p['rank'] as num?)?.toInt(),
+      trophies: (me ? myTrophyShow.value : null) ?? p['trophies'] as String? ?? '',
     );
   }
 }
@@ -253,6 +257,7 @@ class ArcadeCabinet extends StatelessWidget {
     final on = d.online;
     final gifted = kGiftedToday.contains(d.pid);
     final showGift = onGift != null && !d.me && (Notifs.i.canGift || gifted);
+    final tro = parseTrophyShow(d.trophies).whereType<(String, int)>().toList();
     final g = (w / 110).clamp(0.6, 2.2); // échelle des textes
 
     final screen = Container(
@@ -319,6 +324,23 @@ class ArcadeCabinet extends StatelessWidget {
             ),
           Positioned.fill(child: Image.asset(skin.asset, fit: BoxFit.fill, filterQuality: FilterQuality.medium)),
           Positioned.fromRect(rect: sr, child: screen),
+          // vitrine de trophées sous l'écran
+          if (tro.isNotEmpty)
+            Positioned(
+              left: sr.left,
+              width: sr.width,
+              top: sr.bottom + h * 0.012,
+              height: h * 0.075,
+              child: Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: w * 0.02, vertical: h * 0.006),
+                  decoration: BoxDecoration(color: Colors.black.withOpacity(0.55), borderRadius: BorderRadius.circular(w * 0.03)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    for (final x in tro) Padding(padding: EdgeInsets.symmetric(horizontal: w * 0.01), child: TrophyMedal(x.$1, x.$2, size: h * 0.06)),
+                  ]),
+                ),
+              ),
+            ),
           if (showName)
             Positioned.fromRect(
               rect: mr,

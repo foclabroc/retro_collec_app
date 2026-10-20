@@ -14,6 +14,7 @@ begin
   need := case p_finish when 0 then 5 else 3 end;
   if not public.rc__take(p_device, p_card, p_finish, need) then raise exception 'pas assez d''exemplaires'; end if;
   perform public.rc__give(p_device, p_card, p_finish + 1, 1);
+  perform public.rc__tbump(p_device, 'fuse', 1);  -- trophée : fusions
   ev := public.rc__milestones(p_device);
   perform public.rc__rescore(p_device);
   return jsonb_build_object('card', p_card, 'f', p_finish + 1, 'events', ev,
