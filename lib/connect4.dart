@@ -1502,29 +1502,28 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
               const SizedBox(height: 6),
               // pion fantôme au-dessus de la colonne visée
               SizedBox(
-                height: 32,
-                child: Row(children: [
-                  for (var c = 0; c < 7; c++)
-                    Expanded(
-                      child: Center(
+                height: 38,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: _kFrame),
+                  child: Row(children: [
+                    for (var c = 0; c < 7; c++)
+                      Expanded(
                         child: AnimatedOpacity(
-                          opacity: _aim == c && myTurn ? 0.9 : 0,
+                          opacity: _aim == c && myTurn && board[c] == '0' ? 1 : 0,
                           duration: const Duration(milliseconds: 120),
-                          child: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(shape: BoxShape.circle, color: myColor, boxShadow: [BoxShadow(color: myColor, blurRadius: 10)]),
-                          ),
+                          child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+                            Opacity(opacity: 0.6, child: SizedBox(width: 24, height: 24, child: _Disc(myColor))),
+                            const SizedBox(height: 2),
+                            const _BobArrow(),
+                          ]),
                         ),
                       ),
-                    ),
-                ]),
+                  ]),
+                ),
               ),
               Stack(clipBehavior: Clip.none, children: [
-              AspectRatio(
-                aspectRatio: 7 / 6.1,
-                child: LayoutBuilder(builder: (context, box) {
-                  int colAt(double x) => (x / box.maxWidth * 7).floor().clamp(0, 6);
+              LayoutBuilder(builder: (context, box) {
+                  int colAt(double x) => ((x - _kFrame) / (box.maxWidth - 2 * _kFrame) * 7).floor().clamp(0, 6);
                   return GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTapDown: (d) => setState(() => _aim = colAt(d.localPosition.dx)),
@@ -1543,24 +1542,22 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                         if (c != _aim) setState(() => _aim = c);
                       },
                       onExit: (_) => setState(() => _aim = null),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [Color(0xFF2D64D6), Color(0xFF1D47A8)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: const [BoxShadow(color: Color(0xFF12306F), offset: Offset(0, 8))],
-                        ),
+                      child: _Cabinet(
+                        winLine: _winLine(win),
                         child: Row(children: [
                           for (var c = 0; c < 7; c++)
                             Expanded(
-                              child: Container(
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 120),
                                 decoration: BoxDecoration(
-                                  color: _aim == c && myTurn ? Colors.white.withOpacity(0.1) : Colors.transparent,
+                                  gradient: _aim == c && myTurn
+                                      ? LinearGradient(colors: [_kGoldHi.withOpacity(0.22), _kGoldHi.withOpacity(0.05)], begin: Alignment.topCenter, end: Alignment.bottomCenter)
+                                      : null,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Column(children: [
                                   for (var r = 0; r < 6; r++)
-                                    Expanded(child: Padding(padding: const EdgeInsets.all(3), child: _cell(board[r * 7 + c], r * 7 + c, win.contains(r * 7 + c)))),
+                                    Expanded(child: Padding(padding: const EdgeInsets.all(4), child: _cell(board[r * 7 + c], r * 7 + c, win.contains(r * 7 + c)))),
                                 ]),
                               ),
                             ),
@@ -1569,10 +1566,10 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                     ),
                   );
                 }),
-              ),
               // grande réaction au milieu du plateau
               if (_bigEmo != null) Positioned.fill(child: BigReaction(emo: _bigEmo!, who: _bigWho ?? '', seq: _bigSeq)),
               ]),
+              const _Feet(),
               Padding(
                 padding: const EdgeInsets.only(top: 14),
                 child: Row(children: [
@@ -1625,29 +1622,20 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
   Widget _cell(String v, int idx, bool win) {
     final color = v == '1' ? _kRed : v == '2' ? _kYellow : null;
     final last = idx == _lastPlaced || (_lastPlaced == null && g['last_col'] != null && idx % 7 == _i(g['last_col']) && _isTop(idx));
-    final disc = Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color ?? const Color(0xFF0A0F2E),
-        gradient: color == null
-            ? null
-            : RadialGradient(center: const Alignment(-0.3, -0.4), colors: [Color.lerp(color, Colors.white, 0.5)!, color, Color.lerp(color, Colors.black, 0.3)!], stops: const [0, 0.52, 1]),
-        border: win
-            ? Border.all(color: Colors.white, width: 3)
-            : color != null && last
-                ? Border.all(color: Colors.white70, width: 2.5)
-                : null,
-        boxShadow: [
-          if (win) const BoxShadow(color: Colors.white, blurRadius: 14, spreadRadius: 1),
-          if (color == null) const BoxShadow(color: Color(0x30FFFFFF), offset: Offset(0, 1)),
-        ],
-      ),
-      child: color == null ? null : FractionallySizedBox(widthFactor: 0.62, heightFactor: 0.62, child: Container(decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.black12, width: 2)))),
-    );
+    // trou vide : creusé (sombre en haut, reflet en bas)
+    if (color == null) {
+      return Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(colors: [Color(0xFF000000), Color(0xFF070A24), Color(0xFF1A2160)], stops: [0, 0.5, 1], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+          boxShadow: [BoxShadow(color: Color(0x33FFFFFF), offset: Offset(0, 1))],
+        ),
+      );
+    }
+    Widget disc = _Disc(color, ring: win ? Colors.white : last ? Colors.white70 : null);
+    if (win) disc = _WinPulse(child: disc);
     // pion posé : il remplit tout le trou (un peu plus grand que le trou vide), avec une ombre
-    final placed = color == null
-        ? disc
-        : Transform.scale(
+    final placed = Transform.scale(
             scale: 1.16,
             child: DecoratedBox(
               decoration: const BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Color(0x66000000), blurRadius: 4, offset: Offset(0, 2))]),
@@ -1664,6 +1652,18 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
       builder: (_, y, child) => FractionalTranslation(translation: Offset(0, y * 1.15), child: child),
       child: placed,
     );
+  }
+
+  /// Extrémités de la ligne gagnante (null si pas de victoire ou plusieurs lignes)
+  (int, int)? _winLine(Set<int> win) {
+    if (win.length < 4) return null;
+    final l = win.toList()..sort((a, b) => a ~/ 7 != b ~/ 7 ? a ~/ 7 - b ~/ 7 : a % 7 - b % 7);
+    final a = l.first, b = l.last;
+    final dr = b ~/ 7 - a ~/ 7, dc = b % 7 - a % 7;
+    for (final i in l) {
+      if ((i ~/ 7 - a ~/ 7) * dc != (i % 7 - a % 7) * dr) return null; // pas alignés
+    }
+    return (a, b);
   }
 
   /// Case la plus haute occupée de sa colonne (dernier coup quand la page s'ouvre)
@@ -1847,4 +1847,205 @@ class _ConfettiPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ConfettiPainter o) => o.t != t;
+}
+
+
+// ─────────────────────────── plateau façon borne d'arcade ───────────────────────────
+
+/// Épaisseur du cadre autour de la grille (bords néon + marge), pour aligner le pion fantôme et le toucher
+const double _kFrame = 18;
+
+/// Pion rouge ou jaune (dégradé, anneau intérieur)
+class _Disc extends StatelessWidget {
+  const _Disc(this.color, {this.ring});
+  final Color color;
+  final Color? ring;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(center: const Alignment(-0.3, -0.4), colors: [Color.lerp(color, Colors.white, 0.5)!, color, Color.lerp(color, Colors.black, 0.3)!], stops: const [0, 0.52, 1]),
+          border: ring == null ? null : Border.all(color: ring!, width: ring == Colors.white ? 3 : 2.5),
+        ),
+        child: FractionallySizedBox(widthFactor: 0.62, heightFactor: 0.62, child: Container(decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.black12, width: 2)))),
+      );
+}
+
+/// Double cadre néon (cyan dehors, rose dedans), rivets, reflet vitré et trait de victoire
+class _Cabinet extends StatelessWidget {
+  const _Cabinet({required this.child, this.winLine});
+  final Widget child;
+  final (int, int)? winLine;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget rivet() => Container(
+          width: 7,
+          height: 7,
+          decoration: const BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(center: Alignment(-0.3, -0.4), colors: [Colors.white, Color(0xFF9AA3DD), Color(0xFF3A4590)], stops: [0, 0.5, 1])),
+        );
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _kCyan, width: 2.5),
+        color: const Color(0xFF0B1030),
+        boxShadow: [BoxShadow(color: _kCyan.withOpacity(0.3), blurRadius: 22, spreadRadius: 2)],
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: _kNeon, width: 2.5),
+          gradient: const LinearGradient(colors: [Color(0xFF2F3AA8), Color(0xFF1C2580), Color(0xFF141B63)], stops: [0, 0.55, 1], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+          boxShadow: [BoxShadow(color: _kNeon.withOpacity(0.35), blurRadius: 16)],
+        ),
+        child: Stack(clipBehavior: Clip.none, children: [
+          AspectRatio(aspectRatio: 7 / 6, child: child),
+          // reflet vitré en biais
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: LinearGradient(
+                    colors: [Colors.white.withOpacity(0.12), Colors.white.withOpacity(0.03), Colors.transparent],
+                    stops: const [0, 0.28, 0.29],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (winLine != null) Positioned.fill(child: IgnorePointer(child: _WinLine(winLine!))),
+          for (final (x, y) in const [(-1.0, -1.0), (1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)])
+            Positioned(left: x < 0 ? -9 : null, right: x > 0 ? -9 : null, top: y < 0 ? -9 : null, bottom: y > 0 ? -9 : null, child: rivet()),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Trait lumineux qui relie les 4 pions gagnants (se dessine en 0,5 s)
+class _WinLine extends StatelessWidget {
+  const _WinLine(this.ends);
+  final (int, int) ends;
+
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+        key: ValueKey(ends),
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+        builder: (_, v, __) => CustomPaint(painter: _WinLinePainter(ends, v)),
+      );
+}
+
+class _WinLinePainter extends CustomPainter {
+  _WinLinePainter(this.ends, this.t);
+  final (int, int) ends;
+  final double t;
+
+  Offset _at(int i, Size s) => Offset((i % 7 + 0.5) * s.width / 7, (i ~/ 7 + 0.5) * s.height / 6);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final a = _at(ends.$1, size), b = Offset.lerp(a, _at(ends.$2, size), t)!;
+    final w = size.width / 7 * 0.16;
+    canvas.drawLine(a, b, Paint()..color = _kNeon.withOpacity(0.7)..strokeWidth = w * 2.2..strokeCap = StrokeCap.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8));
+    canvas.drawLine(a, b, Paint()..color = _kGoldHi..strokeWidth = w * 1.4..strokeCap = StrokeCap.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
+    canvas.drawLine(a, b, Paint()..color = Colors.white..strokeWidth = w..strokeCap = StrokeCap.round);
+  }
+
+  @override
+  bool shouldRepaint(_WinLinePainter o) => o.t != t || o.ends != ends;
+}
+
+/// Pions gagnants : clignotent (plus lumineux, halo blanc)
+class _WinPulse extends StatefulWidget {
+  const _WinPulse({required this.child});
+  final Widget child;
+  @override
+  State<_WinPulse> createState() => _WinPulseState();
+}
+
+class _WinPulseState extends State<_WinPulse> with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 550))..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _c,
+        child: widget.child,
+        builder: (_, child) => DecoratedBox(
+          decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.3 + 0.5 * _c.value), blurRadius: 6 + 12 * _c.value, spreadRadius: 1 + 2 * _c.value)]),
+          child: ColorFiltered(
+            colorFilter: ColorFilter.matrix([
+              for (var r = 0; r < 4; r++)
+                for (var k = 0; k < 5; k++) r == k ? (r < 3 ? 1 + 0.4 * _c.value : 1.0) : 0.0,
+            ]),
+            child: child,
+          ),
+        ),
+      );
+}
+
+/// Petite flèche dorée qui monte et descend sous le pion fantôme
+class _BobArrow extends StatefulWidget {
+  const _BobArrow();
+  @override
+  State<_BobArrow> createState() => _BobArrowState();
+}
+
+class _BobArrowState extends State<_BobArrow> with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _c,
+        builder: (_, __) => Transform.translate(
+          offset: Offset(0, 3 * Curves.easeInOut.transform(_c.value)),
+          child: CustomPaint(size: const Size(12, 7), painter: _ArrowPainter()),
+        ),
+      );
+}
+
+class _ArrowPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size s) => canvas.drawPath(Path()..moveTo(0, 0)..lineTo(s.width, 0)..lineTo(s.width / 2, s.height)..close(), Paint()..color = _kGoldHi);
+  @override
+  bool shouldRepaint(_ArrowPainter o) => false;
+}
+
+/// Pieds du plateau
+class _Feet extends StatelessWidget {
+  const _Feet();
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          for (var i = 0; i < 2; i++)
+            Container(
+              width: 44,
+              height: 12,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
+                gradient: LinearGradient(colors: [Color(0xFF1C2580), Color(0xFF0F1550)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+              ),
+            ),
+        ]),
+      );
 }

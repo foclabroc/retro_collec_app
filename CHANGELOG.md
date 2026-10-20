@@ -1,5 +1,11 @@
 # Pixel Trade — Changelog
 
+## Prochaine version
+
+- **4 en ligne : nouvelle grille** façon borne d'arcade : double cadre néon (cyan et rose), rivets, reflet vitré,
+  pieds ; trous creusés ; pion fantôme translucide avec flèche dorée qui bouge et colonne surlignée en doré ;
+  à la victoire, les 4 pions clignotent et un trait lumineux les relie.
+
 ## v1.0.12
 _Version 1.0.12+13._
 
