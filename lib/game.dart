@@ -130,14 +130,14 @@ Color get kPanel2 => rcTheme.panel2;
 /// Avatars : 30 images (assets/avatars/avatar_NN.webp, 256 × 256, recadrées, fond d'origine).
 /// 00-19 : Bowser Jr, Bowser, Cappy, Deadpool, Dragon, Donkey Kong, Eggman, Fleur de feu, Kirby, Lara Croft,
 /// Licorne, Link BotW, Link, Link Cartoon, Luigi, Mario chat, Mario, Samus, Champignon, Peach.
-/// 20-29 : provisoires (pixel art de tools/avatars), à remplacer.
+/// 20-29 : Sonic, Inkling, Super étoile, Fox, Tails, Tom Nook, Capitaine Toad, Toad, Toadette, Yoshi.
 /// La couleur sert de liseré autour de l'avatar. Ne pas réordonner (index stocké côté serveur).
 const kAvatars = <Color>[
   Color(0xFF8BC34A), Color(0xFFE8A33A), Color(0xFFE8E8F0), Color(0xFFC8202A), Color(0xFFD64032), Color(0xFF8A4A20),
   Color(0xFFD9202A), Color(0xFFF28A20), Color(0xFFF28AB0), Color(0xFF6A5040), Color(0xFFB07AE8), Color(0xFF3BA7E8),
   Color(0xFF3E8A28), Color(0xFF6CBF3A), Color(0xFF2E9A3A), Color(0xFFF2C230), Color(0xFFD9202A), Color(0xFFE8763A),
-  Color(0xFFD9202A), Color(0xFFF28AB0), Color(0xFF8E1B2E), Color(0xFF6E9A2E), Color(0xFF7FD1F0), Color(0xFFE8863A),
-  Color(0xFFE0662A), Color(0xFF8A5A3B), Color(0xFF3E6FC2), Color(0xFF4E9A4A), Color(0xFF5A6378), Color(0xFF7B55C7),
+  Color(0xFFD9202A), Color(0xFFF28AB0), Color(0xFF2E5ED8), Color(0xFF5ADC3A), Color(0xFFF2C230), Color(0xFFC8783A),
+  Color(0xFFF2A030), Color(0xFF8A5A2B), Color(0xFFF2C230), Color(0xFFD9202A), Color(0xFFED6AA8), Color(0xFF4EBF3A),
 ];
 
 Widget avatarWidget(int a, {double size = 40}) {
