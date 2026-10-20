@@ -169,7 +169,7 @@ class _RewardEditorState extends State<RewardEditor> {
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.fromLTRB(10, 2, 2, 2),
-      decoration: BoxDecoration(color: kCellHi, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white12)),
+      decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white12)),
       child: Row(children: [
         SizedBox(width: 26, child: Text(ic, style: const TextStyle(fontSize: 16))),
         Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),

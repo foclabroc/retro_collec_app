@@ -290,7 +290,7 @@ class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
             final c = left > 0.5 ? const Color(0xFF5DCAA5) : (left > 0.25 ? kGold : const Color(0xFFE24B4A));
             return ClipRRect(
               borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(value: left, minHeight: 8, color: c, backgroundColor: kCellHi),
+              child: LinearProgressIndicator(value: left, minHeight: 8, color: c, backgroundColor: Colors.white12),
             );
           },
         ),
@@ -315,7 +315,7 @@ class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
                 top: 8,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(color: kOnImg, borderRadius: BorderRadius.circular(6)),
+                  decoration: BoxDecoration(color: kBg.withOpacity(0.8), borderRadius: BorderRadius.circular(6)),
                   child: FittedBox(child: ConsoleLogo(q.answer.sys, height: 16)),
                 ),
               ),

@@ -250,7 +250,7 @@ class _SplitCardDetailState extends State<SplitCardDetail> {
           Container(
             width: 420,
             decoration: BoxDecoration(
-              color: kBg,
+              color: kBg.withOpacity(0.55),
               border: const Border(left: BorderSide(color: Colors.white12)),
             ),
             child: sel == null
@@ -605,7 +605,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
         await showDialog<void>(
           context: context,
           builder: (ctx) => Dialog(
-            backgroundColor: kBg,
+            backgroundColor: kBg.withOpacity(0.95),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: f == 2 ? kGold : const Color(0xFFB4A9FF), width: 2)),
             child: Padding(
               padding: const EdgeInsets.all(20),

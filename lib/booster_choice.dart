@@ -221,7 +221,7 @@ class _BoosterRingState extends State<BoosterRing> with SingleTickerProviderStat
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: opq(col.glow.withOpacity(0.9)),
+                        color: col.glow.withOpacity(0.9),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: kGold, width: 1.5),
                       ),

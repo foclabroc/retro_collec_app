@@ -129,7 +129,7 @@ class _BsThumb extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: v == 'm' ? BoxShape.circle : BoxShape.rectangle,
                       borderRadius: v == 'm' ? null : BorderRadius.circular(1),
-                      color: opq(v == 'h' ? _kRed : (v == 'm' ? Colors.white70 : Colors.white.withOpacity(0.08))),
+                      color: v == 'h' ? _kRed : (v == 'm' ? Colors.white70 : Colors.white.withOpacity(0.08)),
                     ),
                   ),
                 );
@@ -233,7 +233,7 @@ class _BattleTileState extends State<BattleTile> {
                         decoration: const BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [Color(0xFFFFF6C9), Color(0xFFFFB020), Color(0xFFFF4D1A), Color(0x00FF4D1A)])),
                       ),
                     ),
-                    Positioned(left: 18, bottom: 16, child: Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: opq(Colors.white70)))),
+                    Positioned(left: 18, bottom: 16, child: Container(width: 6, height: 6, decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white70))),
                   ]),
                 ),
                 Expanded(
@@ -361,7 +361,7 @@ class _BsBoard extends StatelessWidget {
                   width: s.h ? _bsLen(k) * cell : cell,
                   height: s.h ? cell : _bsLen(k) * cell,
                   decoration: BoxDecoration(
-                    color: opq((ok ? _kTeal : _kRed).withOpacity(0.35)),
+                    color: (ok ? _kTeal : _kRed).withOpacity(0.35),
                     borderRadius: BorderRadius.circular(cell * 0.2),
                     border: Border.all(color: ok ? _kTeal : _kRed, width: 2),
                   ),
@@ -390,7 +390,7 @@ class _BsBoard extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(5),
                       border: Border.all(color: _kRadar, width: 2),
-                      color: opq(_kRadar.withOpacity(0.12)),
+                      color: _kRadar.withOpacity(0.12),
                       boxShadow: [BoxShadow(color: _kRadar.withOpacity(0.6), blurRadius: 10)],
                     ),
                   ),
@@ -509,7 +509,7 @@ class _BsFlame extends StatelessWidget {
     if (sunk) {
       return Container(
         margin: const EdgeInsets.all(1),
-        decoration: BoxDecoration(color: opq(Color(0xCC3A1220)), borderRadius: BorderRadius.circular(3), border: Border.all(color: _kRed, width: 1.5)),
+        decoration: BoxDecoration(color: const Color(0xCC3A1220), borderRadius: BorderRadius.circular(3), border: Border.all(color: _kRed, width: 1.5)),
         child: const FittedBox(child: Padding(padding: EdgeInsets.all(4), child: Text('✕', style: TextStyle(color: Color(0xFFFF8A95), fontWeight: FontWeight.w900)))),
       );
     }
@@ -572,7 +572,7 @@ class _BsMissState extends State<_BsMiss> with SingleTickerProviderStateMixin {
           FractionallySizedBox(
             widthFactor: 0.3,
             heightFactor: 0.3,
-            child: Container(decoration: BoxDecoration(shape: BoxShape.circle, color: opq(Colors.white.withOpacity(0.8)), boxShadow: const [BoxShadow(color: Colors.white38, blurRadius: 6)])),
+            child: Container(decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.8), boxShadow: const [BoxShadow(color: Colors.white38, blurRadius: 6)])),
           ),
         ]),
       );
@@ -1124,7 +1124,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
               width: 44,
               height: 44,
               child: Stack(alignment: Alignment.center, children: [
-                SizedBox.expand(child: CircularProgressIndicator(value: frac, strokeWidth: 3, color: warn ? _kRed : ring, backgroundColor: kCellHi)),
+                SizedBox.expand(child: CircularProgressIndicator(value: frac, strokeWidth: 3, color: warn ? _kRed : ring, backgroundColor: Colors.white10)),
                 avatarWidget(avatar, size: 34),
               ]),
             ),
@@ -1228,7 +1228,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
                     width: (boardW - 8) / 2,
                     padding: const EdgeInsets.fromLTRB(8, 7, 8, 6),
                     decoration: BoxDecoration(
-                      color: kCellHi,
+                      color: Colors.white.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white.withOpacity(0.15)),
                     ),
@@ -1416,7 +1416,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
             tooltip: t('Son', 'Sound'),
             onPressed: () => setState(() => RcAudio.enabled = !RcAudio.enabled),
             icon: Icon(RcAudio.enabled ? Icons.volume_up : Icons.volume_off, color: Colors.white70),
-            style: IconButton.styleFrom(backgroundColor: kCellHi),
+            style: IconButton.styleFrom(backgroundColor: Colors.white10),
           ),
         ]),
       ),

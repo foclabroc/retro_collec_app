@@ -123,7 +123,7 @@ Future<String?> pickDuelMessage(BuildContext context, String title) {
   return showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: kBg,
+    backgroundColor: kBg.withOpacity(0.98),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (_) => _MsgSheet(title: title),
   );
@@ -153,7 +153,7 @@ class _MsgSheetState extends State<_MsgSheet> {
       child: SafeArea(
         top: false,
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: kHandle, borderRadius: BorderRadius.circular(2)))),
+          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
           const SizedBox(height: 10),
           Text(widget.title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
           Text(t('Ajoute un petit mot (facultatif)', 'Add a short message (optional)'), style: const TextStyle(color: Colors.white60, fontSize: 12.5)),
@@ -183,7 +183,7 @@ class _MsgSheetState extends State<_MsgSheet> {
               helperText: t('↵ Entrée envoie le défi avec ce message', '↵ Enter sends the challenge with this message'),
               helperStyle: const TextStyle(color: Color(0xFFFFD08A), fontWeight: FontWeight.w800),
               filled: true,
-              fillColor: kCell,
+              fillColor: const Color(0x33000000),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             ),
           ),
@@ -276,7 +276,7 @@ class BigReaction extends StatelessWidget {
                       const SizedBox(height: 4),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                        decoration: BoxDecoration(color: kOnImg, borderRadius: BorderRadius.circular(12)),
+                        decoration: BoxDecoration(color: Colors.black.withOpacity(0.65), borderRadius: BorderRadius.circular(12)),
                         child: Text(who, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
                       ),
                     ]),

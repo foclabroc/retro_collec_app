@@ -110,7 +110,7 @@ Widget _tags(List<_Tag> tags) => Wrap(spacing: 4, runSpacing: 4, children: [
       for (final g in tags)
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-          decoration: BoxDecoration(color: opq(g.color.withOpacity(0.18)), borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: g.color.withOpacity(0.18), borderRadius: BorderRadius.circular(8)),
           child: Text(g.text, style: TextStyle(color: Color.lerp(g.color, Colors.white, 0.45), fontSize: 11, fontWeight: FontWeight.w900)),
         ),
     ]);
@@ -809,7 +809,7 @@ class _StatsTab extends StatelessWidget {
           builder: (ctx, snap) {
             final rows = snap.data ?? const <Map<String, dynamic>>[];
             return ListView(controller: scroll, padding: const EdgeInsets.fromLTRB(12, 10, 12, 20), children: [
-              Center(child: Container(width: 38, height: 4, decoration: BoxDecoration(color: kHandle, borderRadius: BorderRadius.circular(2)))),
+              Center(child: Container(width: 38, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 10),
               Text('$title${snap.hasData ? ' · ${rows.length}' : ''}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
               Text(

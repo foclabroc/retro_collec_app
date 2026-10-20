@@ -761,7 +761,7 @@ class _MyShowcaseState extends State<_MyShowcase> {
         minChildSize: 0.4,
         builder: (ctx, scroll) => Column(children: [
           const SizedBox(height: 10),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: kHandle, borderRadius: BorderRadius.circular(2))),
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 6, 4),
             child: Row(children: [
@@ -831,7 +831,7 @@ class _MyShowcaseState extends State<_MyShowcase> {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      color: opq(Colors.white.withOpacity(cand.isEmpty ? 0.03 : 0.1)),
+                      color: Colors.white.withOpacity(cand.isEmpty ? 0.03 : 0.1),
                       border: Border.all(color: rcTheme.accent.withOpacity(0.45), width: 2),
                     ),
                     child: Center(child: Icon(Icons.add_circle_outline, color: rcTheme.accent.withOpacity(0.8), size: w * 0.32)),

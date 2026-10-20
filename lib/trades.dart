@@ -644,7 +644,7 @@ class TradeDetailPage extends StatelessWidget {
           Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: kCell, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12)),
             child: Text.rich(
               TextSpan(children: [
                 TextSpan(text: t('Valeur : tu reçois ', 'Value: you get ')),
@@ -687,7 +687,7 @@ class TradeDetailPage extends StatelessWidget {
 
   Widget _pill(String s, Color c) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(color: opq(c.withOpacity(0.2)), borderRadius: BorderRadius.circular(6), border: Border.all(color: c.withOpacity(0.7))),
+        decoration: BoxDecoration(color: c.withOpacity(0.2), borderRadius: BorderRadius.circular(6), border: Border.all(color: c.withOpacity(0.7))),
         child: Text(s, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color.lerp(c, Colors.white, 0.35))),
       );
 }

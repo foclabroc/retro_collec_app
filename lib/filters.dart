@@ -153,7 +153,7 @@ Future<void> showFilterSheet(BuildContext context, CardFilter f, Iterable<RcCard
             padding: EdgeInsets.fromLTRB(16, 10, 16, 12 + MediaQuery.of(ctx).viewInsets.bottom),
             child: SingleChildScrollView(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: kHandle, borderRadius: BorderRadius.circular(2)))),
+                Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
                 title(t('Afficher', 'Show')),
                 Wrap(spacing: 6, runSpacing: 6, children: [
                   for (var i = 0; i < _showLabels.length; i++)
@@ -317,7 +317,7 @@ class _AllCardsPageState extends State<AllCardsPage> {
                   hintText: t('Chercher un jeu', 'Search a game'),
                   isDense: true,
                   filled: true,
-                  fillColor: kCell,
+                  fillColor: const Color(0x33000000),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   suffixIcon: f.query.isEmpty
                       ? null

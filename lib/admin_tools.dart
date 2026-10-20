@@ -50,7 +50,7 @@ InputDecoration _field(String label, {String? hint}) => InputDecoration(
       hintText: hint,
       isDense: true,
       filled: true,
-      fillColor: kCellHi,
+      fillColor: Colors.white.withOpacity(0.05),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
     );
 
@@ -333,13 +333,13 @@ class _ToolsTab extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 5),
             child: Container(
               height: 30,
-              decoration: BoxDecoration(color: kCellHi, borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
               clipBehavior: Clip.antiAlias,
               child: Stack(children: [
                 FractionallySizedBox(
                     widthFactor: total == 0 || k >= votes.length ? 0 : votes[k] / total,
                     heightFactor: 1,
-                    child: Container(color: opq(kGold.withOpacity(0.35)))),
+                    child: Container(color: kGold.withOpacity(0.35))),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Row(children: [

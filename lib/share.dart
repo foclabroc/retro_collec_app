@@ -81,7 +81,7 @@ class ShareMenuTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       child: Material(
-        color: opq(pink.withOpacity(0.12)),
+        color: pink.withOpacity(0.12),
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
