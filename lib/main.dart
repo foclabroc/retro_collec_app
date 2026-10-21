@@ -528,12 +528,33 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       if (mounted) await maybeShowWhatsNew(context);
       if (mounted) await PushWatch.maybeAskBattery(context);
       await Game.i.claimRewards();
+      if (mounted) await _upgradeGift();
       Events.i.refresh();
       if (mounted) await showInbox(context); // annonces / cadeaux de l'admin, puis sondage
       // booster payé mais pas encore choisi (appli fermée pendant le choix) : on reprend
       final p = await Game.i.pendingChoice();
       if (p != null && mounted) await showPackOpening(context, p, (p['kind'] as String?) ?? 'mixte');
     });
+  }
+
+  /// Cadeau de mise à jour (500 pièces en 1.0.16), versé une seule fois par le serveur.
+  Future<void> _upgradeGift() async {
+    try {
+      final r = await RcServer.upgradeGift(kRetroCollecVersion);
+      final n = (r['coins'] as num? ?? 0).toInt();
+      if (n <= 0 || !mounted) return;
+      await Game.i.refresh();
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(px(t('CADEAU', 'GIFT')), style: pixelStyle(size: 14)),
+          content: Text(t('Mise à jour $kRetroCollecVersion : +$n pièces offertes en dédommagement. Merci de ta patience !',
+              'Update $kRetroCollecVersion: +$n coins as compensation. Thanks for your patience!')),
+          actions: [ElevatedButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Merci !', 'Thanks!')))],
+        ),
+      );
+    } catch (_) {}
   }
 
   @override

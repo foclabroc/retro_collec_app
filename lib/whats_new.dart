@@ -12,12 +12,14 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎁', 'Cadeau de mise à jour : 500 pièces offertes en dédommagement', 'Update gift: 500 coins as compensation'),
+  ('🃏', 'Nouveau thème « Mur de cartes » (par défaut) : tes cartes défilent en fond et se retournent de temps en temps',
+      'New "Card wall" theme (default): your cards scroll in the background and flip now and then'),
+  ('🎨', 'Thèmes refaits : 13 fonds aux couleurs plus douces, plus lisibles (Manettes, Cartouches, Pac-gommes, Synthwave…) ; « Aléatoire » toujours dispo',
+      'Themes redone: 13 softer, easier-to-read backgrounds (Pads, Cartridges, Pellets, Synthwave…); "Random" still available'),
+  ('#', 'Aussi depuis la 1.0.15', 'Also since 1.0.15'),
   ('🟢', 'Joueurs en ligne à jour en temps réel ; un joueur en partie affiche « En partie » (IN GAME sur sa borne) et ne peut plus être défié',
       'Online players updated in real time; a player in a game shows "In a game" (IN GAME on their cabinet) and can\'t be challenged'),
-  ('🎨', '12 nouveaux thèmes colorés (Envahisseurs, Blocs, Cerise, Lagon, Citron, Menthe…), motif fixe ou animation douce',
-      '12 new colorful themes (Invaders, Blocks, Cherry, Lagoon, Lemon, Mint…), still pattern or gentle animation'),
-  ('🧟', 'Nouvelles sagas Resident Evil et Castlevania : cartes holo et albums dans la Collection',
-      'New Resident Evil and Castlevania sagas: holo cards and albums in the Collection'),
   ('🛒', 'Bourse : achète plusieurs cartes d\'un coup (sélection groupée)', 'Market: buy several cards at once (multi-select)'),
   ('💡', 'Voisinage : bornes illuminées (halo, fronton, écran qui pulse, lueur au sol)', 'Neighbors: lit-up cabinets (glow, marquee, pulsing screen, floor light)'),
   ('🏆', 'Profil : tous les trophées dans un déroulant, doré quand un palier est à récupérer ; trophée Sagas en 1 / 3 / 6',

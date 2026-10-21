@@ -448,6 +448,12 @@ class RcServer {
     return _map(await _rpc('rc_week', {'p_device': d, 'p_sig': _sig('$d|week')}));
   }
 
+  /// Cadeau de passage de version (une fois par joueur et par version) : {coins} donnés (0 si déjà reçu)
+  static Future<Map<String, dynamic>> upgradeGift(String ver) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_upgrade_gift', {'p_device': d, 'p_ver': ver, 'p_sig': _sig('$d|upgrade|$ver')}));
+  }
+
   /// Trophées : {list: [{k, n, got, t: [bronze, argent, or]}], show, ready}
   static Future<Map<String, dynamic>> trophies() async {
     final d = await deviceId();

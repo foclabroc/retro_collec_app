@@ -109,7 +109,8 @@ int _randomTheme() {
 Future<void> loadTheme() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    final v = prefs.getInt('rc_theme2') ?? -1; // -1 = aléatoire (par défaut, nouveaux thèmes)
+    // pas encore de choix : Mur de cartes par défaut (1.0.16) ; -1 = aléatoire (toujours au choix)
+    final v = prefs.getInt('rc_theme2') ?? kThemes.indexWhere((th) => th.motif == RcMotif.wall);
     rcThemeRandom = v < 0;
     if (rcThemeRandom) {
       rcThemeIndex.value = (prefs.getInt('rc_theme_last') ?? 0).clamp(0, kThemes.length - 1);
