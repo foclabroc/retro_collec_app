@@ -47,7 +47,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - `game.dart` : état du joueur, constantes, prix (`kPackPrice`, `kPackBase`, `kPackPromo`, `lotPrice`), `applyLive`, `rcLive`.
 - Avatars (dans `game.dart`) : 30 images `assets/avatars/avatar_NN.webp` 256 × 256 détourées (fond transparent), liseré = `kAvatars` (ne pas réordonner). `avatarWidget` (rond, fond blanc, partout), `AvatarFloat` (sans fond, flotte : écran des bornes), `AvatarPulseSquare` (carré dégradé aléatoire qui pulse : profils).
 - `server.dart` : tous les appels RPC.
-- `retro_theme.dart` : 12 thèmes de fond colorés (`kThemes`, `RcMotif`) ; seuls les motifs de `kAnimatedMotifs` sont animés, les autres ne sont dessinés qu'au changement de thème. `bg` = `surface` (fond foncé des feuilles et dialogues).
+- `retro_theme.dart` : 13 thèmes de fond (`kThemes`, `RcMotif`) en couleurs sourdes (réglage du 21/10 : couleur 90 %, luminosité 76 %, motifs à 60 % via `_kMotif`). Animés : Envahisseurs, Menthe (`kAnimatedMotifs`) et Mur de cartes (`CardWall` : 36 jaquettes du joueur, complétées au hasard, mur incliné qui glisse en diagonale sous un voile du dégradé). Les 10 autres sont fixes (dessinés seulement au changement de thème). `bg` = `surface` (fond foncé des feuilles et dialogues). Ne pas proposer de flou derrière les panneaux (54 usages de `kPanel`, coûteux sur les thèmes animés).
 - Bornes du Voisinage : `assets/arcade/<id>.webp` en 360 × 594, fond transparent, écran noir à la même place sur toutes (zone écran / fronton dans `arcade.dart`). Générées avec Gemini en retouchant la borne « pierre » (une image par discussion).
 - `packs.dart` : onglet Paquets (mosaïque : stock, paquet gratuit, boutique, lot), ouverture animée, cadeaux. Bouton « Cadeau suivant / Déchirer le suivant / Ouvrir un autre » protégé contre le double appui (`_againBusy`).
 - `cards.dart` (rendu `CardView`), `catalog.dart` (catalogue, sagas), `sagas.dart`, `library.dart` / `album.dart` (Collection).
@@ -63,5 +63,5 @@ Web : https://foclabroc.github.io/retro_collec_app/
 
 ## À faire
 
-1. Revoir les thèmes de fond (`retro_theme.dart`) : l'utilisateur n'aime pas le rendu actuel. Lui demander ce qui ne va pas (captures), proposer une maquette HTML avant de coder. (Opacité : essai à 93 % puis à 100 % partout (jetons opq / kCell…) refusés et annulés le 20-21/10 : ne pas reproposer de passer tout en opaque.)
+1. Thèmes : refaits le 21/10 (13 thèmes). Attendre le retour de l'utilisateur après test web. (Opacité : essais à 93 % / 100 % refusés, ne pas reproposer.)
 2. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
