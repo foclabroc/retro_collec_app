@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // les fonctions SQL rc_* avec une signature (même sel que le SQL).
 // ═══════════════════════════════════════════════════════════════════════════
 
-const kRcUrl = 'https://wwyxfcdubdnwokeanigk.supabase.co';
+const kRcUrl = 'https://api.foclabroc.duckdns.org'; // TEST maison (branche selfhost)
 const kRcKey = 'sb_publishable_M1Rdee-lSEzCfq81zjYq5Q_NgJ0a35z';
 const _salt = 'rc-collec#7b2e-foc'; // identique au SQL (rc__sig)
 const _kDeviceKey = 'rc_device';
