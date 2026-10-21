@@ -6,7 +6,11 @@ CREATE OR REPLACE FUNCTION public.rc_duel_ping(p_device text, p_bg boolean DEFAU
 AS $function$
 declare live jsonb; inv int; trn int; last_from text; replies jsonb; onl int;
 begin
-  if not p_bg then update public.rc_players set seen_at = now() where device = p_device; end if;
+  -- « en ligne » : seen_at réécrit seulement s'il date de plus de 30 s (ping toutes les 10-20 s, seuil 75 s)
+  if not p_bg then
+    update public.rc_players set seen_at = now()
+     where device = p_device and (seen_at is null or seen_at < now() - interval '30 seconds');
+  end if;
   select coalesce(jsonb_agg(x order by x->>'created_at'), '[]'::jsonb) into live from (
     select jsonb_build_object('game', 'c4', 'id', g.id, 'stake', g.stake, 'friendly', public.rc__duel_why(g.p1, g.p2), 'created_at', g.created_at, 'msg', g.msg,
              'deadline', g.created_at + interval '2 minutes', 'now', now(),
