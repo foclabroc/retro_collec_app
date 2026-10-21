@@ -591,7 +591,11 @@ String itemsToString(List<(String, int)> items) => items.map((e) => '${e.$1}:${e
 /// Message d'erreur lisible (serveur ou hors ligne)
 String errText(Object e) {
   if (e is RcError) {
-    if (e.offline) return t('Pas de connexion au serveur', 'No connection to the server');
+    if (e.offline) {
+      return e.message == 'serveur indisponible'
+          ? t('Serveur indisponible, réessaie dans quelques minutes', 'Server unavailable, try again in a few minutes')
+          : t('Pas de connexion au serveur', 'No connection to the server');
+    }
     return switch (e.message) {
       'pas assez de pièces' => t('Pas assez de pièces', 'Not enough coins'),
       'pas assez de pixels' => t('Pas assez de pixels', 'Not enough pixels'),

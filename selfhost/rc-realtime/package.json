@@ -1,0 +1,14 @@
+{
+  "name": "rc-realtime",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Relais temps réel de Pixel Trade (compatible Supabase Realtime pour live_link.dart)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "pg": "8.13.1",
+    "ws": "8.22.0"
+  }
+}

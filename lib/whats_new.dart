@@ -12,7 +12,10 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('🎁', 'Cadeau de mise à jour : 500 pièces offertes en dédommagement', 'Update gift: 500 coins as compensation'),
+  ('🏠', 'Pixel Trade a déménagé sur son propre serveur : plus de limite de joueurs pour les duels en direct',
+      'Pixel Trade moved to its own server: no more player limit for live duels'),
+  ('🛠', 'Message clair quand le serveur est momentanément indisponible', 'Clear message when the server is temporarily unavailable'),
+  ('#', 'Aussi depuis la 1.0.16', 'Also since 1.0.16'),
   ('🃏', 'Nouveau thème « Mur de cartes » (par défaut) : tes cartes défilent en fond et se retournent de temps en temps',
       'New "Card wall" theme (default): your cards scroll in the background and flip now and then'),
   ('🎨', 'Thèmes refaits : 13 fonds aux couleurs plus douces, plus lisibles (Manettes, Cartouches, Pac-gommes, Synthwave…) ; « Aléatoire » toujours dispo',

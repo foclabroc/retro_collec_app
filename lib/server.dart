@@ -7,18 +7,20 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PIXEL TRADE — serveur Supabase (même projet que Rétro Jump, tables rc_*)
+// PIXEL TRADE — serveur maison (PostgreSQL + PostgREST + relais rc-realtime
+// derrière Caddy, voir selfhost/). Rétro Jump reste sur Supabase.
 // Tout est décidé côté serveur (pièces, tirages, collection) : l'appli appelle
 // les fonctions SQL rc_* avec une signature (même sel que le SQL).
 // ═══════════════════════════════════════════════════════════════════════════
 
-const kRcUrl = 'https://wwyxfcdubdnwokeanigk.supabase.co';
+const kRcUrl = 'https://api.foclabroc.duckdns.org';
 const kRcKey = 'sb_publishable_M1Rdee-lSEzCfq81zjYq5Q_NgJ0a35z';
 const _salt = 'rc-collec#7b2e-foc'; // identique au SQL (rc__sig)
 const _kDeviceKey = 'rc_device';
 
 /// Erreur renvoyée par le serveur (message lisible : « pas assez de pièces »…)
-/// ou hors ligne ([offline] = true).
+/// ou hors ligne ([offline] = true) : pas de réseau, ou serveur joignable mais
+/// service arrêté (502 / 503 / 504 de Caddy → message « serveur indisponible »).
 class RcError implements Exception {
   final String message;
   final bool offline;
@@ -128,6 +130,9 @@ class RcServer {
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 20));
+      if (res.statusCode == 502 || res.statusCode == 503 || res.statusCode == 504) {
+        throw const RcError('serveur indisponible', offline: true);
+      }
       final txt = utf8.decode(res.bodyBytes);
       if (res.statusCode >= 300) {
         var msg = 'HTTP ${res.statusCode}';

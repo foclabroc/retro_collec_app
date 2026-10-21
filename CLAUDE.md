@@ -1,13 +1,13 @@
 # Pixel Trade (retro_collec_app)
 
-Jeu de cartes à collectionner (jaquettes rétro) en **Flutter + Supabase**, par foclabroc.
+Jeu de cartes à collectionner (jaquettes rétro) en **Flutter + PostgreSQL maison** (ex-Supabase, bascule en 1.0.17), par foclabroc.
 Web : https://foclabroc.github.io/retro_collec_app/
 
 ## Règles de travail (obligatoires)
 
 - Répondre **en français**, court et direct.
 - **Ne jamais pousser sans accord** : montrer les changements, commit en local, pousser seulement après « pousse ».
-- **SQL avant le code** : donner le fichier SQL d'abord, l'utilisateur le lance dans le SQL Editor de Supabase, puis il dit « pousse ».
+- **SQL avant le code** : donner le fichier SQL d'abord, l'utilisateur le lance sur le serveur maison (`psql -U postgres -d postgres -f fichier.sql`, ou pgAdmin), puis il dit « pousse ». Le connecteur MCP Supabase ne touche plus Pixel Trade (seulement Rétro Jump).
 - Fichiers SQL **relançables** (`create or replace`, `if not exists`), rangés dans `sql/AAAA-MM-JJ_sujet.sql`.
 - **Nouvelle table (depuis le 30/10/2026)** : Supabase ne donne plus l'accès API automatiquement. Une table lue seulement par les RPC `security definer` n'a besoin d'aucun `GRANT` ; une table lue directement en REST par l'appli → `grant select (colonnes…) on public.t to anon;` colonne par colonne, **jamais `device`**.
 - **Maquette HTML : toujours demander d'abord** (« je te fais une maquette ? »), ne jamais en lancer une sans accord. Pour une petite retouche, coder directement.
@@ -23,7 +23,15 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - **APK** : `apk.yml` à lancer à la main (Actions → APK Android → Run workflow, cocher « publier »). Avant : monter la version dans `lib/update_check.dart` (`kRetroCollecVersion`) **et** `pubspec.yaml` (`x.y.z+n`), sinon l'APK va dans l'ancienne release.
 - Si un run reste bloqué « In progress » : le groupe de concurrence de `web.yml` est `pages-web`.
 
-## Serveur (Supabase)
+## Serveur maison (depuis la 1.0.17)
+
+- PC Windows de l'utilisateur, sans Docker (détails et pas-à-pas : `selfhost/README.md`). API publique : `https://api.foclabroc.duckdns.org` (`kRcUrl`), même clé `sb_publishable_…` (`kRcKey`) vérifiée par Caddy.
+- PostgreSQL 17 (service `postgresql-x64-17`, localhost seulement) ; PostgREST 16.5 (service NSSM `pixeltrade-api`, port 3000, log `D:\pixeltrade\api.log`) ; relais temps réel `rc-realtime` Node.js (service NSSM `pixeltrade-rt`, port 4000, log `D:\pixeltrade\rt.log`) ; Caddy (`C:\caddy\Caddyfile`, partagé avec Jellyfin) : `/rest/v1/*` → 3000, `/realtime/*` → 4000.
+- Serveur injoignable → « Pas de connexion au serveur » ; service arrêté (502/503/504) → « Serveur indisponible » (`_rpc` dans `server.dart`, `errText` dans `game.dart`).
+- Les anciennes APK (≤ 1.0.16) pointent encore sur Supabase : y laisser la maintenance et la version minimale 1.0.17. Rétro Jump / Rétro Jet restent sur Supabase.
+- Pas de pare-feu par pays sur le 443 (joueurs du monde entier) : ne pas relancer `C:\caddy\EuropeFirewall.ps1`.
+
+## Serveur (fonctions SQL)
 
 - Toutes les fonctions sont des RPC `security definer`, appelées avec une signature : `_sig('<device>|<payload>')`, sel `'rc-collec#7b2e-foc'`, vérifiée par `rc__check(p_sig, payload)`.
 - Admin : signature `'<device>|admin|<payload>'` + compte dans `rc_admins` (par pid, modifiable seulement dans Supabase). Les actions admin sont notées dans `rc_admin_log`.
@@ -36,9 +44,9 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - Journal d'activité (admin) : table `rc_activity` (30 jours, sans le chat), remplie **uniquement par déclencheurs** (`rc__act_*` sur `rc_players`, `rc_pending`, `rc_market`, `rc_trades`, `rc_gifts`, `rc_c4` / `rc_bs`, `rc_gamedle`, `rc_*_got`, `rc_milestones`, `rc_trophy_n`) via `rc__act` : une ligne par joueur et par transaction (libellé le plus précis gagne, deux actions connues = deux lignes), avec ± pièces / pixels ; mouvement inconnu = `coins`. Lecture : `rc_admin_activity` (groupe, pseudo, pagination par id). Page `AdminActivityPage` dans `admin_tools.dart`. Nouvelle action à journaliser : ajouter un déclencheur, pas toucher aux fonctions du jeu.
 - Bourse, achat groupé : `rc_market_buy_many(device, "card:f:prixmax,…", sig)` (30 max, offre la moins chère, cartes vendues / plus chères / trop chères passées) → `rc__market_buy1` (même logique que `rc_market_buy`, sans signature : à garder synchronisées). Côté appli : mode « ☑ Plusieurs » / appui long dans `MarketGroupsState` (`picks`, `_pickBar`).
 - Sagas (6) : Mario, Sonic, Zelda, Pokémon, Resident Evil (`re`), Castlevania. Définies dans `kSagas` (`catalog.dart` : 10 cartes d'origine + 3 de l'affiche + couleurs), logo `assets/sagas/<id>.webp`, cartes serveur `sg_<id>_NN` (rareté 3, `saga` = id) ajoutées par copie de la carte d'origine (voir `sql/2026-10-20_sagas_re_castlevania.sql` pour en ajouter une).
-- Charge serveur (Supabase t4g.nano, Irlande : CPU à crédits → pics de 1–2 s si sollicité en continu) : `rc_me(device, sig, p_have)` renvoie `owned` seulement si son md5 (`oh`) diffère de `p_have` (`Game.ownedHash`, remis à null dès qu'une autre réponse fournit `owned` sans `oh`). Vérifications coupées quand l'appli est en arrière-plan / onglet caché (`HomeShellState._away`), `DuelWatch` toutes les 20 s au repos (10 s si partie / défi / page de duel). Mesurer avec `pg_stat_statements` avant d'optimiser.
+- Charge serveur (avant la 1.0.17 : Supabase t4g.nano à crédits CPU ; règles gardées) : `rc_me(device, sig, p_have)` renvoie `owned` seulement si son md5 (`oh`) diffère de `p_have` (`Game.ownedHash`, remis à null dès qu'une autre réponse fournit `owned` sans `oh`). Vérifications coupées quand l'appli est en arrière-plan / onglet caché (`HomeShellState._away`), `DuelWatch` toutes les 20 s au repos (10 s si partie / défi / page de duel). Mesurer avec `pg_stat_statements` avant d'optimiser.
 - **En ligne** = `seen_at` de moins de **75 s** (`rc_board`, `rc_find`, `rc_profile`, `rc_c4_online`, `rc_bs_online`) ; `seen_at` mis à jour par `rc_duel_ping` (toutes les 10-20 s au premier plan, mais réécrit seulement s'il date de plus de 30 s : garder « 30 s + intervalle du ping » sous 75 s). Défi en direct refusé si l'autre n'a pas été vu depuis 2 min (`rc_c4_invite` / `rc_bs_invite`, plus large exprès). `rc_duel_ping` renvoie aussi `online` (nombre) → `DuelWatch.online` → compteur du menu (`OnlineMenuTile`). `rc_board` renvoie aussi `busy` (duel en direct en cours, même règle que les salons) → `FloorData.busy` : « ⚔ En partie » dans la liste En ligne (Défier grisé), IN GAME sur la borne.
-- **Realtime (duels)** : triggers `rc_c4_rt` / `rc_bs_rt` → `rc__rt_duel` → `realtime.send({game, gid, status}, 'duel', rc__rt_topic(device), false)` vers p1 et p2 (canal public `rc_` + sha256('rt|' + device)[0..24], tiré du device **secret**, jamais du pid ; clé `gid` et pas `id`, que `realtime.send` prendrait pour l'id du message). Côté appli `live_link.dart` (`LiveLink.i`, WebSocket Phoenix, heartbeat 25 s, reconnexion 2→30 s, démarré / coupé avec `DuelWatch`). Sur message : `DuelWatch.refresh`, salon `_load`, page de partie `_refresh`. `LiveLink.connected` = abonnement accepté **et** un message déjà reçu ; alors polling de secours ralenti (salon 12 s, partie ×5 : 10 s direct / 30 s tour par tour), sinon rythme normal. Realtime gratuit : 200 clients simultanés max. Dans le connecteur MCP, éviter `drop trigger` (bloqué) : utiliser `create or replace trigger`.
+- **Realtime (duels)** : triggers `rc_c4_rt` / `rc_bs_rt` → `rc__rt_duel` → `rc__rt_send` → `pg_notify('rc_rt', …)` → relais `rc-realtime` (même protocole Phoenix que Supabase Realtime ; il n'accepte que les canaux `realtime:rc_<24 hex>`) → p1 et p2 (canal public `rc_` + sha256('rt|' + device)[0..24], tiré du device **secret**, jamais du pid ; clé `gid` et pas `id`, que `realtime.send` prendrait pour l'id du message). Côté appli `live_link.dart` (`LiveLink.i`, WebSocket Phoenix, heartbeat 25 s, reconnexion 2→30 s, démarré / coupé avec `DuelWatch`). Sur message : `DuelWatch.refresh`, salon `_load`, page de partie `_refresh`. `LiveLink.connected` = abonnement accepté **et** un message déjà reçu ; alors polling de secours ralenti (salon 12 s, partie ×5 : 10 s direct / 30 s tour par tour), sinon rythme normal. Plus de limite de 200 clients depuis le relais maison.
 - Voisinage : joueurs vus dans les **7 derniers jours** (`rc_board`, `rc_rank`, `rc_my_floor`). Le champ `house` d'un joueur = numéro de son habillage de borne (index de `kFloorThemes` dans `arcade.dart`, ne pas réordonner).
 
 ## Fichiers Flutter (lib/)
@@ -63,5 +71,5 @@ Web : https://foclabroc.github.io/retro_collec_app/
 
 ## À faire
 
-1. Thèmes : refaits le 21/10 (13 thèmes), 1.0.16 poussée (web), APK à lancer par l'utilisateur. (Opacité : essais à 93 % / 100 % refusés, ne pas reproposer.)
+1. Bascule vers le serveur maison : 1.0.17 (web + APK). Ensuite : sauvegarde de nuit (`pg_dump -Fc` en tâche planifiée), `03_nettoyage.sql` (tables `jump_*` / `jet_*` copiées pour rien), supprimer les tables `rc_*` de Supabase après quelques semaines. Idées temps réel (présence, chat, Bourse en direct…) : déclencheur → `pg_notify` → relais, une à la fois. (Thèmes : opacité 93 % / 100 % refusée, ne pas reproposer.)
 2. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
