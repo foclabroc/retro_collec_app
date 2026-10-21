@@ -79,7 +79,8 @@ class AdminPage extends StatelessWidget {
 
 // ─── Petits outils d'affichage ──────────────────────────────────────────────
 
-int _i(dynamic v) => (v as num?)?.toInt() ?? 0;
+/// Nombre ou texte (« 2 » : clés JSON des finitions) → entier, 0 sinon
+int _i(dynamic v) => v is num ? v.toInt() : int.tryParse('${v ?? ''}') ?? 0;
 DateTime? _d(dynamic v) => DateTime.tryParse(v?.toString() ?? '')?.toLocal();
 
 String _ago(DateTime? d) {
