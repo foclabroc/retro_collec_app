@@ -377,7 +377,6 @@ class NeighborsScreenState extends State<NeighborsScreen> {
       );
 
       return Stack(children: [
-        Positioned.fill(child: ClipRect(child: CustomPaint(painter: ArcadeCarpet()))),
         RefreshIndicator(
           onRefresh: load,
           child: ListView.builder(
