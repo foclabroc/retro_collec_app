@@ -542,7 +542,7 @@ class CardWall extends StatefulWidget {
 }
 
 class _CardWallState extends State<CardWall> with SingleTickerProviderStateMixin {
-  static const _n = 6; // motif de 6 × 6 jaquettes qui se répète
+  static const _n = 8; // motif de 8 × 8 jaquettes qui se répète
   final _t = ValueNotifier<double>(0);
   final _loaded = ValueNotifier<int>(0);
   late final Ticker _ticker;
@@ -623,7 +623,7 @@ class _CardWallState extends State<CardWall> with SingleTickerProviderStateMixin
 
   /// Carte dessinée une fois pour toutes (cadre de la rareté + jaquette),
   /// sur le modèle de CardView mais sans texte : le mur ne fait ensuite que la recopier.
-  static const _fw = 200.0, _fh = 279.0;
+  static const _fw = 160.0, _fh = 223.0;
   static ui.Image _frame(ui.Image cover, int rarity) {
     final r = rarity.clamp(0, kRarityColor.length - 1);
     final gem = kRarityColor[r];
@@ -700,7 +700,7 @@ class _WallPainter extends CustomPainter {
     canvas.save();
     canvas.clipRect(Offset.zero & size);
     if (imgs.isNotEmpty) {
-      final cw = 66 * s, ch = 66 * s * _CardWallState._fh / _CardWallState._fw, sx = cw + 12 * s, sy = ch + 12 * s;
+      final cw = 44 * s, ch = 44 * s * _CardWallState._fh / _CardWallState._fw, sx = cw + 8 * s, sy = ch + 8 * s;
       final t = st._t.value, ox = t * 9 * s, oy = t * 6 * s; // décalage continu : les cases gardent leur identité
       final r = sqrt(w * w + h * h) / 2 + sy;
       canvas.translate(w / 2, h / 2);
