@@ -6,6 +6,7 @@ import 'audio.dart';
 import 'connect4.dart';
 import 'duel_msg.dart';
 import 'game.dart';
+import 'live_link.dart';
 import 'main.dart';
 import 'push.dart';
 import 'retro_theme.dart';
@@ -33,8 +34,17 @@ class DuelWatch extends ChangeNotifier {
 
   int get badge => invites + turns;
 
+  StreamSubscription? _rt;
+  Timer? _rtDebounce;
+
   void start() {
     _timer?.cancel();
+    // Realtime : un duel qui me concerne a changé → on recharge tout de suite
+    LiveLink.i.start();
+    _rt ??= LiveLink.i.events.listen((_) {
+      _rtDebounce?.cancel();
+      _rtDebounce = Timer(const Duration(milliseconds: 300), refresh);
+    });
     // toutes les 10 s s'il y a une partie ou un défi en cours, sinon toutes les 20 s (moins de charge serveur)
     var n = 0;
     _timer = Timer.periodic(const Duration(seconds: 10), (_) {
@@ -46,6 +56,7 @@ class DuelWatch extends ChangeNotifier {
   void stop() {
     _timer?.cancel();
     _timer = null;
+    LiveLink.i.stop();
   }
 
   Future<void> refresh() async {

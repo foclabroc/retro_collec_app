@@ -647,6 +647,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
   late Map<String, dynamic> g = widget.initial;
   bool busy = false, _resultShown = false;
   Timer? _poll, _tick;
+  StreamSubscription? _rt; // Realtime (live_link.dart)
   Duration _skew = Duration.zero;
   late final AnimationController anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 3600))..repeat();
   late final AnimationController shake = AnimationController(vsync: this, duration: const Duration(milliseconds: 420));
@@ -693,7 +694,14 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
     super.initState();
     _setSkew();
     _emoOppAt = g['emo_opp_at'] as String?;
-    _poll = Timer.periodic(Duration(seconds: live ? 2 : 6), (_) => _refresh());
+    // Realtime branché : coup de l'adversaire reçu tout de suite, polling de secours 5 fois plus lent
+    var pn = 0;
+    _poll = Timer.periodic(Duration(seconds: live ? 2 : 6), (_) {
+      if (!LiveLink.i.connected || (pn++) % 5 == 0) _refresh();
+    });
+    _rt = LiveLink.i.events.listen((e) {
+      if (e['game'] == 'bs' && _i(e['gid']) == id) _refresh();
+    });
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() {});
@@ -709,6 +717,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
   @override
   void dispose() {
     DuelWatch.i.inGame--;
+    _rt?.cancel();
     _poll?.cancel();
     _tick?.cancel();
     _bannerT?.cancel();

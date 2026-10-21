@@ -8,6 +8,7 @@ import 'cards.dart';
 import 'duel_msg.dart';
 import 'duel_watch.dart';
 import 'game.dart';
+import 'live_link.dart';
 import 'layout.dart';
 import 'main.dart';
 import 'retro_theme.dart';
@@ -302,13 +303,21 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
       final p = widget.inviteOnOpen;
       if (p != null && mounted) _invite(p.$1, p.$2, p.$3, 'live');
     });
+    // Realtime branché : rechargement immédiat sur événement, polling de secours toutes les 12 s
+    var n = 0;
     _poll = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!inGame) _load();
+      if (!inGame && (!LiveLink.i.connected || (n++) % 4 == 0)) _load();
+    });
+    _rt = LiveLink.i.events.listen((e) {
+      if (e['game'] == k.code && !inGame) _load();
     });
   }
 
+  StreamSubscription? _rt;
+
   @override
   void dispose() {
+    _rt?.cancel();
     _poll?.cancel();
     _wait.dispose();
     _waitReply.dispose();
@@ -1137,6 +1146,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
   late Map<String, dynamic> g = widget.initial;
   bool busy = false, _resultShown = false;
   Timer? _poll, _tick;
+  StreamSubscription? _rt; // Realtime (live_link.dart)
   Duration _skew = Duration.zero; // heure du serveur - heure du téléphone
   int? _lastPlaced; // case du dernier pion posé (animation)
   int? _aim; // colonne visée (pion fantôme)
@@ -1159,7 +1169,14 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
     super.initState();
     _setSkew();
     _emoOppAt = g['emo_opp_at'] as String?;
-    _poll = Timer.periodic(Duration(seconds: live ? 2 : 6), (_) => _refresh());
+    // Realtime branché : coup de l'adversaire reçu tout de suite, polling de secours 5 fois plus lent
+    var pn = 0;
+    _poll = Timer.periodic(Duration(seconds: live ? 2 : 6), (_) {
+      if (!LiveLink.i.connected || (pn++) % 5 == 0) _refresh();
+    });
+    _rt = LiveLink.i.events.listen((e) {
+      if (e['game'] == 'c4' && _i(e['gid']) == id) _refresh();
+    });
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() {});
@@ -1175,6 +1192,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
   @override
   void dispose() {
     DuelWatch.i.inGame--;
+    _rt?.cancel();
     _poll?.cancel();
     _tick?.cancel();
     _emoMeT?.cancel();
