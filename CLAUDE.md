@@ -71,5 +71,5 @@ Web : https://foclabroc.github.io/retro_collec_app/
 
 ## À faire
 
-1. Bascule vers le serveur maison : 1.0.17 (web + APK). Ensuite : sauvegarde de nuit (`pg_dump -Fc` en tâche planifiée), `03_nettoyage.sql` (tables `jump_*` / `jet_*` copiées pour rien), supprimer les tables `rc_*` de Supabase après quelques semaines. Idées temps réel (présence, chat, Bourse en direct…) : déclencheur → `pg_notify` → relais, une à la fois. (Thèmes : opacité 93 % / 100 % refusée, ne pas reproposer.)
+1. Bascule vers le serveur maison faite le 21/10 (base copiée : 47 joueurs, 5577 cartes) ; 1.0.17 en ligne (web + APK, release v1.0.17) ; sur Supabase : `min_version` = 1.0.17 et maintenance coupée (anciennes APK → mise à jour obligatoire). Ensuite : sauvegarde de nuit (`pg_dump -Fc` en tâche planifiée), `03_nettoyage.sql` (tables `jump_*` / `jet_*` copiées pour rien), supprimer les tables `rc_*` de Supabase après quelques semaines. Idées temps réel (présence, chat, Bourse en direct…) : déclencheur → `pg_notify` → relais, une à la fois. (Thèmes : opacité 93 % / 100 % refusée, ne pas reproposer.)
 2. Nouveau mini-jeu à 2 joueurs, en direct et en tour par tour asynchrone (comme 4 en ligne / Console Wars). Jeu à choisir.
