@@ -68,11 +68,28 @@ Avec un sous-domaine à toi, un futur déménagement ne demandera plus de nouvel
 
 ## 6. Sauvegardes (indispensable)
 
-Tâche planifiée Windows chaque nuit :
+Script `sauvegarde.ps1` : `pg_dump -Fc` du schéma `public` dans `D:\sauvegardes\rc_AAAA-MM-JJ_HHMM.dump`, vérifié par `pg_restore -l`, garde 7 jours, journal `D:\pixeltrade\sauvegarde.log`.
+
+1. Copier `sauvegarde.ps1` dans `D:\pixeltrade\`.
+2. Créer `D:\pixeltrade\pgpass.conf` (une ligne, mot de passe de `postgres`) :
+   ```
+   127.0.0.1:5432:*:postgres:MOT_DE_PASSE
+   ```
+3. Tester à la main (PowerShell admin) puis vérifier le journal et `D:\sauvegardes` :
+   ```
+   powershell -NoProfile -ExecutionPolicy Bypass -File D:\pixeltrade\sauvegarde.ps1
+   ```
+4. Tâche planifiée chaque nuit à 4 h 17 (compte SYSTEM, pas besoin d'être connecté) :
+   ```
+   schtasks /Create /TN "PixelTrade-Sauvegarde" /SC DAILY /ST 04:17 /RU SYSTEM /RL HIGHEST /F /TR "powershell -NoProfile -ExecutionPolicy Bypass -File D:\pixeltrade\sauvegarde.ps1"
+   schtasks /Run /TN "PixelTrade-Sauvegarde"
+   ```
+
+Restaurer (base vide préparée avec `01_avant_import.sql`) :
 ```
-pg_dump -U postgres -d postgres -n public -Fc -f D:\sauvegardes\rc_%DATE:~6,4%%DATE:~3,2%%DATE:~0,2%.dump
+pg_restore -U postgres -d postgres --no-owner --clean --if-exists D:\sauvegardes\rc_….dump
 ```
-Garder plusieurs jours, idéalement sur un autre disque.
+puis `02_apres_import.sql`. Idéalement, copier aussi de temps en temps un `.dump` sur un autre disque ou une clé.
 
 ## Comment marche le temps réel
 
