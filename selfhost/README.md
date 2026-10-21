@@ -46,6 +46,8 @@ Mettre d'abord le jeu en maintenance (page admin → Maintenance) pour que plus 
 
 ```
 nssm install pixeltrade-api C:\pixeltrade\postgrest\postgrest.exe C:\pixeltrade\postgrest\postgrest.conf
+rem PostgREST a besoin des DLL de PostgreSQL (sinon code 3221225781 = DLL introuvable)
+nssm set pixeltrade-api AppEnvironmentExtra "PATH=C:\Program Files\PostgreSQL\17\bin;C:\Windows\system32;C:\Windows"
 nssm install pixeltrade-rt "C:\Program Files\nodejs\node.exe" C:\pixeltrade\rc-realtime\server.js
 nssm set pixeltrade-rt AppEnvironmentExtra RT_PORT=4000 RT_DB=postgres://rc_rt:MOT_DE_PASSE@127.0.0.1:5432/postgres RC_KEY=sb_publishable_M1Rdee-lSEzCfq81zjYq5Q_NgJ0a35z
 nssm start pixeltrade-api
