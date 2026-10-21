@@ -1,0 +1,26 @@
+# À ajouter dans le Caddyfile existant (à côté du bloc Jellyfin).
+# Remplacer api.mondomaine.fr par le sous-domaine choisi (DNS vers la box, ports 80/443 ouverts).
+
+api.mondomaine.fr {
+	encode gzip
+
+	# Clé publique de l'appli obligatoire (sauf pré-requêtes CORS du navigateur)
+	@sanscle {
+		path /rest/v1/*
+		not method OPTIONS
+		not header apikey sb_publishable_M1Rdee-lSEzCfq81zjYq5Q_NgJ0a35z
+	}
+	respond @sanscle 401
+
+	# RPC : /rest/v1/rpc/rc_… → PostgREST
+	handle_path /rest/v1/* {
+		reverse_proxy 127.0.0.1:3000
+	}
+
+	# Temps réel (WebSocket des duels) → relais rc-realtime
+	handle /realtime/* {
+		reverse_proxy 127.0.0.1:4000
+	}
+
+	respond 404
+}
