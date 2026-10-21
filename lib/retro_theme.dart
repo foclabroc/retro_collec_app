@@ -581,12 +581,65 @@ class _CardWallState extends State<CardWall> with SingleTickerProviderStateMixin
         stream.removeListener(l);
         if (!mounted) return info.dispose();
         _imgs[i]?.dispose();
-        _imgs[i] = info.image.clone();
+        _imgs[i] = _frame(info.image, out[i].rarity);
         info.dispose();
         _loaded.value++;
       }, onError: (_, __) => stream.removeListener(l));
       stream.addListener(l);
     }
+  }
+
+  /// Carte dessinée une fois pour toutes (cadre de la rareté + jaquette),
+  /// sur le modèle de CardView mais sans texte : le mur ne fait ensuite que la recopier.
+  static const _fw = 200.0, _fh = 279.0;
+  static ui.Image _frame(ui.Image cover, int rarity) {
+    final r = rarity.clamp(0, kRarityColor.length - 1);
+    final gem = kRarityColor[r];
+    final rec = ui.PictureRecorder();
+    final c = Canvas(rec);
+    const w = _fw, h = _fh, rad = w * 0.075, fw = w * 0.045;
+    final all = const Rect.fromLTWH(0, 0, w, h);
+    c.drawRRect(
+        RRect.fromRectAndRadius(all, const Radius.circular(rad)),
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [kRarityLight[r], kRarityColor[r], kRarityDark[r], kRarityColor[r], kRarityLight[r]],
+          ).createShader(all));
+    final inner = all.deflate(fw);
+    c.save();
+    c.clipRRect(RRect.fromRectAndRadius(inner, Radius.circular(rad - fw * 0.7)));
+    c.drawRect(inner, Paint()..color = const Color(0xFF11131D));
+    // bandeau du haut (étiquette de cartouche)
+    final band = Rect.fromLTWH(inner.left, inner.top, inner.width, w * 0.11);
+    c.drawRect(band, Paint()..shader = LinearGradient(colors: [gem.withOpacity(0.55), gem.withOpacity(0.08)]).createShader(band));
+    c.drawRect(Rect.fromLTWH(band.right - w * 0.2, band.top, w * 0.2, band.height), Paint()..color = gem);
+    // fenêtre de la jaquette
+    final win = Rect.fromLTRB(inner.left + w * 0.03, band.bottom + w * 0.03, inner.right - w * 0.03, inner.bottom - w * 0.16);
+    final winR = RRect.fromRectAndRadius(win, const Radius.circular(w * 0.025));
+    c.drawRRect(winR, Paint()..color = kRarityDark[r]);
+    final iw = cover.width.toDouble(), ih = cover.height.toDouble();
+    final box = win.deflate(w * 0.015);
+    final k = min(box.width / iw, box.height / ih);
+    final dst = Rect.fromCenter(center: box.center, width: iw * k, height: ih * k);
+    c.drawImageRect(cover, Rect.fromLTWH(0, 0, iw, ih), dst, Paint()..filterQuality = FilterQuality.medium);
+    c.drawRRect(
+        winR,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = w * 0.008
+          ..color = gem.withOpacity(0.55));
+    // titre suggéré (deux traits)
+    final tp = Paint()..color = Colors.white.withOpacity(0.35);
+    c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(win.left, win.bottom + w * 0.045, inner.width * 0.62, w * 0.035), const Radius.circular(2)), tp);
+    tp.color = Colors.white.withOpacity(0.18);
+    c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(win.left, win.bottom + w * 0.1, inner.width * 0.4, w * 0.028), const Radius.circular(2)), tp);
+    c.restore();
+    final pic = rec.endRecording();
+    final img = pic.toImageSync(_fw.toInt(), _fh.toInt());
+    pic.dispose();
+    return img;
   }
 
   @override
@@ -615,7 +668,7 @@ class _WallPainter extends CustomPainter {
     canvas.save();
     canvas.clipRect(Offset.zero & size);
     if (imgs.isNotEmpty) {
-      final cw = 66 * s, ch = 92 * s, sx = cw + 12 * s, sy = ch + 12 * s;
+      final cw = 66 * s, ch = 66 * s * _CardWallState._fh / _CardWallState._fw, sx = cw + 12 * s, sy = ch + 12 * s;
       final ox = (st._t.value * 9 * s) % (sx * n), oy = (st._t.value * 6 * s) % (sy * n);
       final r = sqrt(w * w + h * h) / 2 + sy;
       canvas.translate(w / 2, h / 2);
@@ -628,14 +681,10 @@ class _WallPainter extends CustomPainter {
           final dst = Rect.fromLTWH(col * sx + shift - ox, y, cw, ch);
           final im = imgs[((row % n) * n + col % n) % imgs.length];
           if (im == null) {
-            canvas.drawRect(dst, empty);
+            canvas.drawRRect(RRect.fromRectAndRadius(dst, Radius.circular(cw * 0.075)), empty);
             continue;
           }
-          // recadrage « cover » de la jaquette dans la case
-          final iw = im.width.toDouble(), ih = im.height.toDouble();
-          final src = iw / ih > cw / ch
-              ? Rect.fromCenter(center: Offset(iw / 2, ih / 2), width: ih * cw / ch, height: ih)
-              : Rect.fromCenter(center: Offset(iw / 2, ih / 2), width: iw, height: iw * ch / cw);
+          final src = Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble());
           canvas.drawImageRect(im, src, dst, p);
         }
       }
