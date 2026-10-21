@@ -4,16 +4,15 @@
 api.mondomaine.fr {
 	encode gzip
 
-	# Clé publique de l'appli obligatoire (sauf pré-requêtes CORS du navigateur)
-	@sanscle {
-		path /rest/v1/*
-		not method OPTIONS
-		not header apikey sb_publishable_M1Rdee-lSEzCfq81zjYq5Q_NgJ0a35z
-	}
-	respond @sanscle 401
-
-	# RPC : /rest/v1/rpc/rc_… → PostgREST
+	# RPC : /rest/v1/rpc/rc_… → PostgREST, clé publique de l'appli obligatoire
+	# (sauf pré-requêtes CORS). Le contrôle doit être DANS le handle_path :
+	# Caddy traite handle_path avant un respond placé au niveau du site.
 	handle_path /rest/v1/* {
+		@sanscle {
+			not method OPTIONS
+			not header apikey sb_publishable_M1Rdee-lSEzCfq81zjYq5Q_NgJ0a35z
+		}
+		respond @sanscle 401
 		reverse_proxy 127.0.0.1:3000
 	}
 
