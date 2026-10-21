@@ -29,6 +29,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - PostgreSQL 17 (service `postgresql-x64-17`, localhost seulement) ; PostgREST 16.5 (service NSSM `pixeltrade-api`, port 3000, log `D:\pixeltrade\api.log`) ; relais temps réel `rc-realtime` Node.js (service NSSM `pixeltrade-rt`, port 4000, log `D:\pixeltrade\rt.log`) ; Caddy (`C:\caddy\Caddyfile`, partagé avec Jellyfin) : `/rest/v1/*` → 3000, `/realtime/*` → 4000.
 - Serveur injoignable → « Pas de connexion au serveur » ; service arrêté (502/503/504) → « Serveur indisponible » (`_rpc` dans `server.dart`, `errText` dans `game.dart`).
 - Les anciennes APK (≤ 1.0.16) pointent encore sur Supabase : y laisser la maintenance et la version minimale 1.0.17. Rétro Jump / Rétro Jet restent sur Supabase.
+- SQL lancé par Claude : serveur MCP local `selfhost/mcp-sql` (outil `sql`, transaction tout-ou-rien, rôle `claude_rw` de `04_role_claude.sql` : droits de postgres sans être superutilisateur), branché dans Claude Desktop du mini PC (`D:\pixeltrade\mcp-sql`). Pas de commandes psql (`\echo`, `\set`) dans ce qu'on lui envoie. Si l'outil est absent (PC éteint, Desktop fermé) : fichier dans `D:\pixeltrade\sql\` + psql par l'utilisateur.
 - Pas de pare-feu par pays sur le 443 (joueurs du monde entier) : ne pas relancer `C:\caddy\EuropeFirewall.ps1`.
 
 ## Serveur (fonctions SQL)
