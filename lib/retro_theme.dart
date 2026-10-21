@@ -556,7 +556,39 @@ class _CardWallState extends State<CardWall> with SingleTickerProviderStateMixin
     _ticker = createTicker((d) {
       if (_cards.isEmpty && Catalog.loaded) _pick();
       _t.value = d.inMicroseconds / 1e6;
+      _flipTick(_t.value);
     })..start();
+  }
+
+  // ── cartes qui se retournent au passage ──
+  static const _flipDur = 1.1; // durée d'un retournement (s)
+  final _rnd = Random();
+  final _flips = <(int, int), (double, int)>{}; // case (ligne, colonne) → (début, nouvelle face)
+  final _face = <(int, int), int>{}; // faces déjà changées par un retournement
+  List<(int, int)> _seen = []; // cases bien visibles à la dernière image
+  double _nextFlip = 2;
+
+  int faceOf((int, int) k) => _face[k] ?? (((k.$1 % _n) * _n + k.$2 % _n) % max(1, _imgs.length));
+
+  void _flipTick(double t) {
+    _flips.removeWhere((k, v) {
+      if (t - v.$1 < _flipDur) return false;
+      _face[k] = v.$2;
+      return true;
+    });
+    if (t < _nextFlip || _imgs.length < 2 || _seen.isEmpty) return;
+    _nextFlip = t + 2.5 + _rnd.nextDouble() * 2.5; // une ou deux cartes toutes les 2,5 à 5 s
+    final seen = _seen.toSet();
+    _face.removeWhere((k, _) => !seen.contains(k)); // oublie les cases sorties de l'écran
+    final count = _rnd.nextDouble() < 0.35 ? 2 : 1;
+    for (var i = 0; i < count; i++) {
+      final k = _seen[_rnd.nextInt(_seen.length)];
+      if (_flips.containsKey(k)) continue;
+      final cur = faceOf(k);
+      var nf = _rnd.nextInt(_imgs.length);
+      if (nf == cur) nf = (nf + 1) % _imgs.length;
+      _flips[k] = (t, nf);
+    }
   }
 
   void _pick() {
@@ -669,25 +701,44 @@ class _WallPainter extends CustomPainter {
     canvas.clipRect(Offset.zero & size);
     if (imgs.isNotEmpty) {
       final cw = 66 * s, ch = 66 * s * _CardWallState._fh / _CardWallState._fw, sx = cw + 12 * s, sy = ch + 12 * s;
-      final ox = (st._t.value * 9 * s) % (sx * n), oy = (st._t.value * 6 * s) % (sy * n);
+      final t = st._t.value, ox = t * 9 * s, oy = t * 6 * s; // décalage continu : les cases gardent leur identité
       final r = sqrt(w * w + h * h) / 2 + sy;
       canvas.translate(w / 2, h / 2);
       canvas.rotate(-0.18);
       final p = Paint()..filterQuality = FilterQuality.low;
       final empty = Paint()..color = th.panel2.withOpacity(0.6);
+      final seen = <(int, int)>[];
       for (var row = ((oy - r) / sy).floor() - 1; row <= ((oy + r) / sy).ceil(); row++) {
         final y = row * sy - oy, shift = row.isOdd ? sx / 2 : 0.0;
         for (var col = ((ox - shift - r) / sx).floor() - 1; col <= ((ox - shift + r) / sx).ceil(); col++) {
           final dst = Rect.fromLTWH(col * sx + shift - ox, y, cw, ch);
-          final im = imgs[((row % n) * n + col % n) % imgs.length];
+          final key = (row, col);
+          if (dst.center.dx.abs() < w * 0.38 && dst.center.dy.abs() < h * 0.38) seen.add(key);
+          final flip = st._flips[key];
+          var idx = st.faceOf(key);
+          var flipping = false;
+          if (flip != null) {
+            final pr = ((t - flip.$1) / _CardWallState._flipDur).clamp(0.0, 1.0);
+            if (pr >= 0.5) idx = flip.$2;
+            final lift = 1 + 0.1 * sin(pi * pr);
+            canvas.save();
+            canvas.translate(dst.center.dx, dst.center.dy);
+            canvas.scale(max(0.02, cos(pi * pr).abs()) * lift, lift);
+            canvas.translate(-dst.center.dx, -dst.center.dy);
+            flipping = true;
+          }
+          final im = imgs[idx % imgs.length];
           if (im == null) {
             canvas.drawRRect(RRect.fromRectAndRadius(dst, Radius.circular(cw * 0.075)), empty);
+            if (flipping) canvas.restore();
             continue;
           }
           final src = Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble());
           canvas.drawImageRect(im, src, dst, p);
+          if (flipping) canvas.restore();
         }
       }
+      st._seen = seen;
     }
     canvas.restore();
     // voile sombre aux couleurs du thème
