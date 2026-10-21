@@ -5,7 +5,7 @@
 $ErrorActionPreference = 'Stop'
 
 $PgBin   = 'C:\Program Files\PostgreSQL\17\bin'
-$Dossier = 'D:\sauvegardes'
+$Dossier = 'D:\pixeltrade\sauvegardes'
 $Journal = 'D:\pixeltrade\sauvegarde.log'
 $Jours   = 7
 

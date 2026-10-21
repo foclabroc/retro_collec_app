@@ -68,14 +68,14 @@ Avec un sous-domaine à toi, un futur déménagement ne demandera plus de nouvel
 
 ## 6. Sauvegardes (indispensable)
 
-Script `sauvegarde.ps1` : `pg_dump -Fc` du schéma `public` dans `D:\sauvegardes\rc_AAAA-MM-JJ_HHMM.dump`, vérifié par `pg_restore -l`, garde 7 jours, journal `D:\pixeltrade\sauvegarde.log`.
+Script `sauvegarde.ps1` : `pg_dump -Fc` du schéma `public` dans `D:\pixeltrade\sauvegardes\rc_AAAA-MM-JJ_HHMM.dump`, vérifié par `pg_restore -l`, garde 7 jours, journal `D:\pixeltrade\sauvegarde.log`.
 
 1. Copier `sauvegarde.ps1` dans `D:\pixeltrade\`.
 2. Créer `D:\pixeltrade\pgpass.conf` (une ligne, mot de passe de `postgres`) :
    ```
    127.0.0.1:5432:*:postgres:MOT_DE_PASSE
    ```
-3. Tester à la main (PowerShell admin) puis vérifier le journal et `D:\sauvegardes` :
+3. Tester à la main (PowerShell admin) puis vérifier le journal et `D:\pixeltrade\sauvegardes` :
    ```
    powershell -NoProfile -ExecutionPolicy Bypass -File D:\pixeltrade\sauvegarde.ps1
    ```
@@ -87,7 +87,7 @@ Script `sauvegarde.ps1` : `pg_dump -Fc` du schéma `public` dans `D:\sauvegardes
 
 Restaurer (base vide préparée avec `01_avant_import.sql`) :
 ```
-pg_restore -U postgres -d postgres --no-owner --clean --if-exists D:\sauvegardes\rc_….dump
+pg_restore -U postgres -d postgres --no-owner --clean --if-exists D:\pixeltrade\sauvegardes\rc_….dump
 ```
 puis `02_apres_import.sql`. Idéalement, copier aussi de temps en temps un `.dump` sur un autre disque ou une clé.
 
