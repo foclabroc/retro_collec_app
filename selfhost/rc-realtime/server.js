@@ -19,7 +19,7 @@ const { Client } = require('pg');
 const PORT = Number(process.env.RT_PORT || 4000);
 const DB = process.env.RT_DB || 'postgres://rc_rt:CHANGE_MOI@127.0.0.1:5432/postgres';
 const KEY = process.env.RC_KEY || '';
-const TOPIC_RE = /^realtime:rc_[0-9a-f]{24}$/; // canal d'un joueur (rc__rt_topic)
+const TOPIC_RE = /^realtime:rc_([0-9a-f]{24}|all)$/; // canal d'un joueur (rc__rt_topic) ou canal commun rc_all
 
 /** topic → ensemble des sockets abonnées */
 const topics = new Map();

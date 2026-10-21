@@ -6,6 +6,7 @@ import 'audio.dart';
 import 'connect4.dart';
 import 'duel_msg.dart';
 import 'game.dart';
+import 'live_events.dart';
 import 'live_link.dart';
 import 'main.dart';
 import 'push.dart';
@@ -41,6 +42,7 @@ class DuelWatch extends ChangeNotifier {
     _timer?.cancel();
     // Realtime : un duel qui me concerne a changé → on recharge tout de suite
     LiveLink.i.start();
+    LiveEvents.start();
     _rt ??= LiveLink.i.events.listen((_) {
       _rtDebounce?.cancel();
       _rtDebounce = Timer(const Duration(milliseconds: 300), refresh);

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'audio.dart';
 import 'catalog.dart';
 import 'game.dart';
+import 'live_link.dart';
 import 'main.dart';
 import 'push.dart';
 import 'server.dart';
@@ -50,7 +51,10 @@ class Notifs extends ChangeNotifier {
 
   void start() {
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 45), (_) => refresh());
+    var n = 0; // temps réel branché : secours toutes les 3 min au lieu de 45 s
+    _timer = Timer.periodic(const Duration(seconds: 45), (_) {
+      if (!LiveLink.i.connected || (n++) % 4 == 0) refresh();
+    });
     refresh();
   }
 

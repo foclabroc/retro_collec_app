@@ -30,6 +30,15 @@ class LiveLink {
   /// Événements de duel reçus : {game, gid, status}.
   Stream<Map<String, dynamic>> get events => _events.stream;
 
+  final _other = StreamController<String>.broadcast();
+
+  /// Autres événements (1.0.18), juste un nom, l'écran relit par les RPC habituelles :
+  ///  · canal du joueur, 'me' : trade / sale / gift → 'me'
+  ///  · canal commun rc_all : 'chat', 'feed', 'market', 'config', 'online'
+  Stream<String> get other => _other.stream;
+
+  static const _all = 'realtime:rc_all';
+
   bool _joined = false, _proven = false;
 
   /// Realtime branché et prouvé (au moins un message reçu dans cette session).
@@ -56,14 +65,16 @@ class LiveLink {
       final ch = WebSocketChannel.connect(Uri.parse('$ws/realtime/v1/websocket?apikey=$kRcKey&vsn=1.0.0'));
       _ch = ch;
       _sub = ch.stream.listen(_onMsg, onError: (_) => _drop(), onDone: _drop, cancelOnError: true);
-      _send(_topic!, 'phx_join', {
+      const cfg = {
         'config': {
           'broadcast': {'ack': false, 'self': false},
           'presence': {'key': ''},
           'postgres_changes': [],
           'private': false,
         },
-      });
+      };
+      _send(_topic!, 'phx_join', cfg); // ref 1 : mon canal
+      _send(_all, 'phx_join', cfg); // ref 2 : canal commun
       _beat?.cancel();
       _beat = Timer.periodic(const Duration(seconds: 25), (_) => _send('phoenix', 'heartbeat', {}));
     } catch (_) {
@@ -94,15 +105,19 @@ class LiveLink {
     }
     final ev = m['event'];
     final p = m['payload'];
-    if (m['topic'] != _topic) return;
+    final topic = m['topic'];
+    if (topic != _topic && topic != _all) return;
     if (ev == 'phx_reply' && p is Map && m['ref'] == '1') {
-      // réponse à l'abonnement (premier message envoyé sur cette connexion)
+      // réponse à l'abonnement à mon canal (premier message envoyé sur cette connexion)
       _joined = p['status'] == 'ok';
       if (_joined) _fails = 0;
     } else if (ev == 'broadcast' && p is Map && p['event'] == 'duel' && p['payload'] is Map) {
       _proven = true;
       _events.add(Map<String, dynamic>.from(p['payload'] as Map));
-    } else if (ev == 'phx_error' || ev == 'phx_close') {
+    } else if (ev == 'broadcast' && p is Map && p['event'] is String) {
+      _proven = true;
+      _other.add(p['event'] as String);
+    } else if (topic == _topic && (ev == 'phx_error' || ev == 'phx_close')) {
       _drop();
     }
   }

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
+import 'live_link.dart';
 import 'main.dart';
 import 'notifs.dart';
 import 'profile.dart';
@@ -35,7 +36,10 @@ class FeedScreenState extends State<FeedScreen> {
     super.initState();
     current = this;
     load();
-    _timer = Timer.periodic(const Duration(seconds: 45), (_) => load());
+    var n = 0; // temps réel branché : secours toutes les 3 min au lieu de 45 s
+    _timer = Timer.periodic(const Duration(seconds: 45), (_) {
+      if (!LiveLink.i.connected || (n++) % 4 == 0) load();
+    });
   }
 
   @override

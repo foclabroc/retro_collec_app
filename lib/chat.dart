@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'audio.dart';
 import 'game.dart';
+import 'live_link.dart';
 import 'main.dart';
 import 'notifs.dart';
 import 'profile.dart';
@@ -67,7 +68,10 @@ class MessagesScreenState extends State<MessagesScreen> {
     if (on) {
       Notifs.i.chatRead();
       load();
-      _timer = Timer.periodic(const Duration(seconds: 8), (_) => load());
+      var n = 0; // temps réel branché : secours toutes les 40 s au lieu de 8 s
+      _timer = Timer.periodic(const Duration(seconds: 8), (_) {
+        if (!LiveLink.i.connected || (n++) % 5 == 0) load();
+      });
     } else {
       _focus.unfocus();
     }

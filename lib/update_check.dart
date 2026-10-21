@@ -133,6 +133,19 @@ class UpdateGateState extends State<UpdateGate> {
     return 1;
   }
 
+  /// Réglages admin changés (temps réel) : bandeau, prix, maintenance, version minimale
+  Future<void> recheck() async {
+    if (_rechecking) return;
+    _rechecking = true;
+    try {
+      await _belowMinimum();
+    } finally {
+      _rechecking = false;
+    }
+  }
+
+  bool _rechecking = false;
+
   /// Version minimale réglée depuis la page admin : bloque l'appli tant qu'elle n'est pas mise à jour.
   Future<bool> _belowMinimum() async {
     String min;
