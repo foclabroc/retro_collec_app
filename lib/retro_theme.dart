@@ -19,6 +19,9 @@ import 'game.dart';
 enum RcMotif { invaders, blocks, dots, stripes, waves, crosses, checker, cards, bubbles, clouds, diamonds, scanlines }
 
 /// Motifs animés (les autres sont fixes : le fond n'est redessiné qu'au changement de thème)
+/// Visibilité des motifs (0,6 = choisi sur la maquette du 21/10)
+const _kMotif = 0.6;
+
 const kAnimatedMotifs = {RcMotif.invaders, RcMotif.blocks, RcMotif.waves, RcMotif.cards, RcMotif.bubbles, RcMotif.clouds};
 
 class RcThemeData {
@@ -44,41 +47,41 @@ class RcThemeData {
 
 const kThemes = <RcThemeData>[
   RcThemeData('Envahisseurs', 'Invaders', RcMotif.invaders, 'Envahisseurs', 'Invaders',
-      top: Color(0xFF0F7A62), bottom: Color(0xFF0A4A3C), accent: Color(0xFFC6FF5A), accent2: Color(0xFFFFE04A), onAccent: Color(0xFF123000),
-      panel: Color(0xCC062C22), panel2: Color(0xFF135846), surface: Color(0xFF07352A), line: Color(0xFF2A9A7A)),
+      top: Color(0xFF0F5948), bottom: Color(0xFF0A362C), accent: Color(0xFFC6FF5A), accent2: Color(0xFFFFE04A), onAccent: Color(0xFF123000),
+      panel: Color(0xCC07261E), panel2: Color(0xFF135846), surface: Color(0xFF093329), line: Color(0xFF2A9A7A)),
   RcThemeData('Blocs', 'Blocks', RcMotif.blocks, 'Blocs qui tombent', 'Falling blocks',
-      top: Color(0xFF2457E0), bottom: Color(0xFF173AA6), accent: Color(0xFFFFD23F), accent2: Color(0xFFFF7AD0), onAccent: Color(0xFF2A1C00),
-      panel: Color(0xCC0C1E5A), panel2: Color(0xFF244299), surface: Color(0xFF0F256A), line: Color(0xFF4A78F0)),
+      top: Color(0xFF2044A6), bottom: Color(0xFF172F79), accent: Color(0xFFFFD23F), accent2: Color(0xFFFF7AD0), onAccent: Color(0xFF2A1C00),
+      panel: Color(0xCC0E1D4D), panel2: Color(0xFF244299), surface: Color(0xFF142765), line: Color(0xFF4A78F0)),
   RcThemeData('Cerise', 'Cherry', RcMotif.dots, 'Pois', 'Dots',
-      top: Color(0xFFE0306A), bottom: Color(0xFFA81848), accent: Color(0xFFFFE7A0), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF4A0A1C),
-      panel: Color(0xB8500820), panel2: Color(0xFF982E50), surface: Color(0xFF610D29), line: Color(0xFFFF6A98)),
+      top: Color(0xFFAC2350), bottom: Color(0xFF7A1839), accent: Color(0xFFFFE7A0), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF4A0A1C),
+      panel: Color(0xB8440B1E), panel2: Color(0xFF982E50), surface: Color(0xFF5D112A), line: Color(0xFFFF6A98)),
   RcThemeData('Mandarine', 'Tangerine', RcMotif.stripes, 'Rayures', 'Stripes',
-      top: Color(0xFFFF8A24), bottom: Color(0xFFE0520C), accent: Color(0xFFFFF2C0), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF4A1C00),
-      panel: Color(0xB25A1E00), panel2: Color(0xFFA15A2A), surface: Color(0xFF6E2B04), line: Color(0xFFFFB070)),
+      top: Color(0xFFD2680B), bottom: Color(0xFFA24111), accent: Color(0xFFFFF2C0), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF4A1C00),
+      panel: Color(0xB24D1C04), panel2: Color(0xFFA15A2A), surface: Color(0xFF692C09), line: Color(0xFFFFB070)),
   RcThemeData('Lagon', 'Lagoon', RcMotif.waves, 'Vagues', 'Waves',
-      top: Color(0xFF16B4C4), bottom: Color(0xFF0A7C8E), accent: Color(0xFFFFF07A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF2A2400),
-      panel: Color(0xBD00323E), panel2: Color(0xFF217682), surface: Color(0xFF03424E), line: Color(0xFF5AD8E4)),
+      top: Color(0xFF17838E), bottom: Color(0xFF0D5B67), accent: Color(0xFFFFF07A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF2A2400),
+      panel: Color(0xBD032B35), panel2: Color(0xFF217682), surface: Color(0xFF073F4A), line: Color(0xFF5AD8E4)),
   RcThemeData('Raisin', 'Grape', RcMotif.crosses, 'Croix', 'Crosses',
-      top: Color(0xFF8A44E6), bottom: Color(0xFF5A24B0), accent: Color(0xFFFFD1F0), accent2: Color(0xFF7AFFD8), onAccent: Color(0xFF3A0A50),
-      panel: Color(0xB8280A50), panel2: Color(0xFF5F3699), surface: Color(0xFF341162), line: Color(0xFFB07AFF)),
+      top: Color(0xFF6723BF), bottom: Color(0xFF462180), accent: Color(0xFFFFD1F0), accent2: Color(0xFF7AFFD8), onAccent: Color(0xFF3A0A50),
+      panel: Color(0xB8240C44), panel2: Color(0xFF5F3699), surface: Color(0xFF35155E), line: Color(0xFFB07AFF)),
   RcThemeData('Citron', 'Lemon', RcMotif.checker, 'Damier', 'Checker',
-      top: Color(0xFFF6CC22), bottom: Color(0xFFE09A0A), accent: Color(0xFFFFF07A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF3A2000),
-      panel: Color(0xBD462800), panel2: Color(0xFF94752A), surface: Color(0xFF5B3C04), line: Color(0xFFFFE070)),
+      top: Color(0xFFC3A012), bottom: Color(0xFFA27210), accent: Color(0xFFFFF07A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF3A2000),
+      panel: Color(0xBD3B2404), panel2: Color(0xFF94752A), surface: Color(0xFF573B08), line: Color(0xFFFFE070)),
   RcThemeData('Menthe', 'Mint', RcMotif.cards, 'Esquisses de cartes', 'Card sketches',
-      top: Color(0xFF2CCC84), bottom: Color(0xFF169A5C), accent: Color(0xFFFFFFFF), accent2: Color(0xFFFFEF7A), onAccent: Color(0xFF0A3A22),
-      panel: Color(0xB8043820), panel2: Color(0xFF2B8158), surface: Color(0xFF094A2C), line: Color(0xFF6AE8AA)),
+      top: Color(0xFF289564), bottom: Color(0xFF167046), accent: Color(0xFFFFFFFF), accent2: Color(0xFFFFEF7A), onAccent: Color(0xFF0A3A22),
+      panel: Color(0xB806301D), panel2: Color(0xFF2B8158), surface: Color(0xFF0C472C), line: Color(0xFF6AE8AA)),
   RcThemeData('Corail', 'Coral', RcMotif.bubbles, 'Bulles', 'Bubbles',
-      top: Color(0xFFFF6A5E), bottom: Color(0xFFD8384A), accent: Color(0xFFFFF2B0), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF4A0A10),
-      panel: Color(0xB25A0E18), panel2: Color(0xFFA14647), surface: Color(0xFF6E1920), line: Color(0xFFFF9A90)),
+      top: Color(0xFFF32716), bottom: Color(0xFFA62937), accent: Color(0xFFFFF2B0), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF4A0A10),
+      panel: Color(0xB24D1018), panel2: Color(0xFFA14647), surface: Color(0xFF6A1D24), line: Color(0xFFFF9A90)),
   RcThemeData('Ciel', 'Sky', RcMotif.clouds, 'Nuages pixel', 'Pixel clouds',
-      top: Color(0xFF46A8FF), bottom: Color(0xFF2A70E0), accent: Color(0xFFFFE04A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF2A2000),
-      panel: Color(0xB80A2864), panel2: Color(0xFF3868A7), surface: Color(0xFF113777), line: Color(0xFF80C4FF)),
+      top: Color(0xFF0C82EB), bottom: Color(0xFF2155A9), accent: Color(0xFFFFE04A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFF2A2000),
+      panel: Color(0xB80E2556), panel2: Color(0xFF3868A7), surface: Color(0xFF163872), line: Color(0xFF80C4FF)),
   RcThemeData('Bonbon', 'Candy', RcMotif.diamonds, 'Losanges', 'Diamonds',
-      top: Color(0xFFFF5AB8), bottom: Color(0xFFC42A88), accent: Color(0xFFFFF2A0), accent2: Color(0xFF7AE8FF), onAccent: Color(0xFF4A0A30),
-      panel: Color(0xB8500834), panel2: Color(0xFF9B3C75), surface: Color(0xFF651244), line: Color(0xFFFF8AD0)),
+      top: Color(0xFFF31493), bottom: Color(0xFF8F2666), accent: Color(0xFFFFF2A0), accent2: Color(0xFF7AE8FF), onAccent: Color(0xFF4A0A30),
+      panel: Color(0xB8440B2E), panel2: Color(0xFF9B3C75), surface: Color(0xFF611643), line: Color(0xFFFF8AD0)),
   RcThemeData('Rétro gris', 'Retro grey', RcMotif.scanlines, 'Lignes d\'écran', 'Scanlines',
-      top: Color(0xFF8A8EA0), bottom: Color(0xFF5E6276), accent: Color(0xFFFF4F6A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFFFFFFFF),
-      panel: Color(0xBD1E202C), panel2: Color(0xFF5A5C6A), surface: Color(0xFF2B2D3A), line: Color(0xFFB0B4C4)),
+      top: Color(0xFF676B7C), bottom: Color(0xFF484B59), accent: Color(0xFFFF4F6A), accent2: Color(0xFFFFFFFF), onAccent: Color(0xFFFFFFFF),
+      panel: Color(0xBD1C1D27), panel2: Color(0xFF5A5C6A), surface: Color(0xFF2C2E39), line: Color(0xFFB0B4C4)),
 ];
 /// Thème choisi (réglages, mémorisé)
 final rcThemeIndex = ValueNotifier<int>(0);
@@ -328,7 +331,7 @@ class _BgPainter extends CustomPainter {
         final cols = (w / (sw + gap)).floor();
         final off = sin(t * 0.4) * 14 * s, frame = t.floor() % 2, drop = (t * 4 * s) % rowH;
         for (var row = -1; row < h / rowH + 1; row++) {
-          p.color = (row % 3 == 0 ? th.accent2 : th.accent).withOpacity(0.25);
+          p.color = (row % 3 == 0 ? th.accent2 : th.accent).withOpacity(0.25 * _kMotif);
           for (var col = 0; col < cols; col++) {
             final x = col * (sw + gap) + gap / 2 + off + (row.isOdd ? 12 * s : 0), y = row * rowH + drop;
             for (var yy = 0; yy < 8; yy++) {
@@ -346,14 +349,14 @@ class _BgPainter extends CustomPainter {
           final x = (rnd(i, 3) * (w / cs)).floor() * cs;
           final y = ((t * sp + rnd(i, 4) * h * 1.4) % (h + 80 * s)) - 60 * s;
           final yy = (y / cs).floor() * cs;
-          p.color = _blockCols[k].withOpacity(0.3);
+          p.color = _blockCols[k].withOpacity(0.3 * _kMotif);
           for (final d in _tetro[k]) {
             canvas.drawRect(Rect.fromLTWH(x + d[0] * cs + 1, yy + d[1] * cs + 1, cs - 2, cs - 2), p);
           }
         }
       case RcMotif.dots:
         final g = 22 * s, z = 4 * s;
-        p.color = white.withOpacity(0.18);
+        p.color = white.withOpacity(0.18 * _kMotif);
         for (var j = 0; j * g < h + g; j++) {
           for (var x = j.isOdd ? g / 2 : 0.0; x < w + g; x += g) {
             canvas.drawRect(Rect.fromCenter(center: Offset(x, j * g), width: z, height: z), p);
@@ -362,14 +365,14 @@ class _BgPainter extends CustomPainter {
       case RcMotif.stripes:
         st
           ..strokeWidth = 10 * s
-          ..color = white.withOpacity(0.14);
+          ..color = white.withOpacity(0.14 * _kMotif);
         for (var x = -h; x < w + h; x += 36 * s) {
           canvas.drawLine(Offset(x, 0), Offset(x + h, h), st);
         }
       case RcMotif.waves:
         st
           ..strokeWidth = 3 * s
-          ..color = white.withOpacity(0.16);
+          ..color = white.withOpacity(0.16 * _kMotif);
         for (var y = 20 * s; y < h; y += 34 * s) {
           final path = Path();
           for (double x = 0; x <= w; x += 6 * s) {
@@ -380,7 +383,7 @@ class _BgPainter extends CustomPainter {
         }
       case RcMotif.crosses:
         final g = 28 * s;
-        p.color = white.withOpacity(0.12);
+        p.color = white.withOpacity(0.12 * _kMotif);
         for (var j = 0; j * g < h + g; j++) {
           for (var x = j.isOdd ? g / 2 : 0.0; x < w + g; x += g) {
             final y = j * g;
@@ -390,7 +393,7 @@ class _BgPainter extends CustomPainter {
         }
       case RcMotif.checker:
         final g = 24 * s;
-        p.color = white.withOpacity(0.18);
+        p.color = white.withOpacity(0.18 * _kMotif);
         for (var j = 0; j * g < h; j++) {
           for (var x = j.isOdd ? g : 0.0; x < w; x += g * 2) {
             canvas.drawRect(Rect.fromLTWH(x, j * g, g, g), p);
@@ -402,8 +405,8 @@ class _BgPainter extends CustomPainter {
         final cols = (w / (cw + gx)).ceil() + 1;
         st
           ..strokeWidth = 2 * s
-          ..color = white.withOpacity(0.2);
-        p.color = white.withOpacity(0.12);
+          ..color = white.withOpacity(0.2 * _kMotif);
+        p.color = white.withOpacity(0.12 * _kMotif);
         for (var row = -1; row < h / rowH + 2; row++) {
           for (var col = -1; col < cols; col++) {
             final cx = col * (cw + gx) + gx / 2 + (row.isOdd ? (cw + gx) / 2 : 0) + cw / 2;
@@ -422,8 +425,8 @@ class _BgPainter extends CustomPainter {
       case RcMotif.bubbles:
         st
           ..strokeWidth = 2 * s
-          ..color = white.withOpacity(0.22);
-        p.color = white.withOpacity(0.25);
+          ..color = white.withOpacity(0.22 * _kMotif);
+        p.color = white.withOpacity(0.25 * _kMotif);
         for (var i = 0; i < 18; i++) {
           final r = (8 + rnd(i, 1) * 22) * s, sp = (6 + rnd(i, 2) * 10) * s;
           final x = rnd(i, 3) * w + sin(t * 0.5 + i) * 10 * s;
@@ -433,7 +436,7 @@ class _BgPainter extends CustomPainter {
         }
       case RcMotif.clouds:
         final q = 6 * s;
-        p.color = white.withOpacity(0.35);
+        p.color = white.withOpacity(0.35 * _kMotif);
         for (var i = 0; i < 7; i++) {
           final n = 4 + (rnd(i, 1) * 4).floor();
           final x = ((rnd(i, 2) * w * 1.5 + t * (5 + i * 2) * s) % (w + 160 * s)) - 80 * s;
@@ -444,7 +447,7 @@ class _BgPainter extends CustomPainter {
         }
       case RcMotif.diamonds:
         final g = 30 * s, d = 9 * s;
-        p.color = white.withOpacity(0.14);
+        p.color = white.withOpacity(0.14 * _kMotif);
         for (var j = 0; j * g < h + g; j++) {
           for (var x = j.isOdd ? g / 2 : 0.0; x < w + g; x += g) {
             final y = j * g;
@@ -452,11 +455,11 @@ class _BgPainter extends CustomPainter {
           }
         }
       case RcMotif.scanlines:
-        p.color = Colors.black.withOpacity(0.1);
+        p.color = Colors.black.withOpacity(0.1 * _kMotif);
         for (var y = 0.0; y < h; y += 4 * s) {
           canvas.drawRect(Rect.fromLTWH(0, y, w, 2 * s), p);
         }
-        p.color = white.withOpacity(0.12);
+        p.color = white.withOpacity(0.12 * _kMotif);
         canvas.drawRect(Rect.fromLTWH(0, h * 0.12, w, 6 * s), p);
         canvas.drawRect(Rect.fromLTWH(0, h * 0.12 + 12 * s, w, 3 * s), p);
     }
