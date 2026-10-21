@@ -1,10 +1,12 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'catalog.dart';
 import 'game.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -16,7 +18,7 @@ import 'game.dart';
 // Thèmes épurés : un dégradé sombre, deux lueurs de la couleur du thème qui
 // dérivent lentement et un motif discret qui défile (étoiles, grille, vagues…).
 
-enum RcMotif { invaders, cards, pads, carts, maze, hearts, coins, title, circuit, bricks, sticks, synth }
+enum RcMotif { invaders, cards, pads, carts, maze, hearts, coins, title, circuit, bricks, sticks, synth, wall }
 
 /// Motifs animés (les autres sont fixes : le fond n'est redessiné qu'au changement de thème)
 /// Visibilité des motifs (0,6 = choisi sur la maquette du 21/10)
@@ -82,6 +84,10 @@ const kThemes = <RcThemeData>[
   RcThemeData('Synthwave', 'Synthwave', RcMotif.synth, 'Grille néon', 'Neon grid',
       top: Color(0xFF4A1A4E), bottom: Color(0xFF2A0E36), accent: Color(0xFFFF7AD0), accent2: Color(0xFFFFC24A), onAccent: Color(0xFF3A0A30),
       panel: Color(0xC21E0824), panel2: Color(0xFF58225C), surface: Color(0xFF2E0E36), line: Color(0xFFC060C0)),
+  // fond = mur des jaquettes du joueur (CardWall), le dégradé sert de voile sombre
+  RcThemeData('Mur de cartes', 'Card wall', RcMotif.wall, 'Mes jaquettes', 'My box arts',
+      top: Color(0xFF2A2440), bottom: Color(0xFF18142A), accent: Color(0xFFFFD23F), accent2: Color(0xFF3DD9FF), onAccent: Color(0xFF2A1C00),
+      panel: Color(0xC2120E20), panel2: Color(0xFF3A3458), surface: Color(0xFF1C1830), line: Color(0xFF8A80C0)),
 ];
 /// Thème choisi (réglages, mémorisé)
 final rcThemeIndex = ValueNotifier<int>(0);
@@ -241,7 +247,13 @@ class _RetroBackgroundState extends State<RetroBackground> with SingleTickerProv
   }
 
   @override
-  Widget build(BuildContext context) => RepaintBoundary(child: CustomPaint(painter: _BgPainter(time), child: const SizedBox.expand()));
+  Widget build(BuildContext context) => ValueListenableBuilder<int>(
+        valueListenable: rcThemeIndex,
+        builder: (_, __, ___) => Stack(fit: StackFit.expand, children: [
+          RepaintBoundary(child: CustomPaint(painter: _BgPainter(time), child: const SizedBox.expand())),
+          if (rcTheme.motif == RcMotif.wall) RepaintBoundary(child: CardWall(rcTheme)),
+        ]),
+      );
 }
 
 /// Aperçu animé d'un thème (choix du thème dans les réglages) : la scène est
@@ -283,7 +295,12 @@ class _ThemePreviewState extends State<ThemePreview> with SingleTickerProviderSt
           child: SizedBox(
             width: 220,
             height: 220 * widget.height / widget.width,
-            child: RepaintBoundary(child: CustomPaint(painter: _BgPainter(time, themeIndex: widget.index))),
+            child: RepaintBoundary(
+              child: Stack(fit: StackFit.expand, children: [
+                CustomPaint(painter: _BgPainter(time, themeIndex: widget.index)),
+                if (kThemes[widget.index.clamp(0, kThemes.length - 1)].motif == RcMotif.wall) CardWall(kThemes[widget.index.clamp(0, kThemes.length - 1)]),
+              ]),
+            ),
           ),
         ),
       );
@@ -504,10 +521,135 @@ class _BgPainter extends CustomPainter {
         for (var k = -10; k <= 10; k++) {
           canvas.drawLine(Offset(cx + k * 14 * s, hz), Offset(cx + k * 90 * s, h), st);
         }
+      case RcMotif.wall:
+        break; // dessiné par CardWall par-dessus le dégradé
     }
     canvas.restore();
   }
 
   @override
   bool shouldRepaint(covariant _BgPainter old) => false;
+}
+
+/// Thème « Mur de cartes » : les jaquettes du joueur (catalogue au hasard s'il
+/// en a peu) en mur incliné qui glisse lentement en diagonale, sous un voile
+/// sombre aux couleurs du thème.
+class CardWall extends StatefulWidget {
+  final RcThemeData th;
+  const CardWall(this.th, {super.key});
+  @override
+  State<CardWall> createState() => _CardWallState();
+}
+
+class _CardWallState extends State<CardWall> with SingleTickerProviderStateMixin {
+  static const _n = 6; // motif de 6 × 6 jaquettes qui se répète
+  final _t = ValueNotifier<double>(0);
+  final _loaded = ValueNotifier<int>(0);
+  late final Ticker _ticker;
+  List<RcCard> _cards = [];
+  List<ui.Image?> _imgs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _pick();
+    _ticker = createTicker((d) {
+      if (_cards.isEmpty && Catalog.loaded) _pick();
+      _t.value = d.inMicroseconds / 1e6;
+    })..start();
+  }
+
+  void _pick() {
+    final rnd = Random();
+    final mine = <RcCard>[
+      for (final id in Game.i.owned.keys)
+        if (Catalog.cards[id] case final c?) c
+    ]..shuffle(rnd);
+    final out = mine.take(_n * _n).toList();
+    if (out.length < _n * _n) {
+      final ids = {for (final c in out) c.id};
+      final rest = Catalog.baseCards.where((c) => !ids.contains(c.id)).toList()..shuffle(rnd);
+      out.addAll(rest.take(_n * _n - out.length));
+    }
+    if (out.isEmpty) return;
+    _cards = out;
+    _imgs = List<ui.Image?>.filled(out.length, null);
+    for (var i = 0; i < out.length; i++) {
+      final stream = Catalog.image(out[i]).resolve(ImageConfiguration.empty);
+      late final ImageStreamListener l;
+      l = ImageStreamListener((info, _) {
+        stream.removeListener(l);
+        if (!mounted) return info.dispose();
+        _imgs[i]?.dispose();
+        _imgs[i] = info.image.clone();
+        info.dispose();
+        _loaded.value++;
+      }, onError: (_, __) => stream.removeListener(l));
+      stream.addListener(l);
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    for (final im in _imgs) {
+      im?.dispose();
+    }
+    _t.dispose();
+    _loaded.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(painter: _WallPainter(this), child: const SizedBox.expand());
+}
+
+class _WallPainter extends CustomPainter {
+  final _CardWallState st;
+  _WallPainter(this.st) : super(repaint: Listenable.merge([st._t, st._loaded]));
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height, s = w / 360, th = st.widget.th;
+    final imgs = st._imgs, n = _CardWallState._n;
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+    if (imgs.isNotEmpty) {
+      final cw = 66 * s, ch = 92 * s, sx = cw + 12 * s, sy = ch + 12 * s;
+      final ox = (st._t.value * 9 * s) % (sx * n), oy = (st._t.value * 6 * s) % (sy * n);
+      final r = sqrt(w * w + h * h) / 2 + sy;
+      canvas.translate(w / 2, h / 2);
+      canvas.rotate(-0.18);
+      final p = Paint()..filterQuality = FilterQuality.low;
+      final empty = Paint()..color = th.panel2.withOpacity(0.6);
+      for (var row = ((oy - r) / sy).floor() - 1; row <= ((oy + r) / sy).ceil(); row++) {
+        final y = row * sy - oy, shift = row.isOdd ? sx / 2 : 0.0;
+        for (var col = ((ox - shift - r) / sx).floor() - 1; col <= ((ox - shift + r) / sx).ceil(); col++) {
+          final dst = Rect.fromLTWH(col * sx + shift - ox, y, cw, ch);
+          final im = imgs[((row % n) * n + col % n) % imgs.length];
+          if (im == null) {
+            canvas.drawRect(dst, empty);
+            continue;
+          }
+          // recadrage « cover » de la jaquette dans la case
+          final iw = im.width.toDouble(), ih = im.height.toDouble();
+          final src = iw / ih > cw / ch
+              ? Rect.fromCenter(center: Offset(iw / 2, ih / 2), width: ih * cw / ch, height: ih)
+              : Rect.fromCenter(center: Offset(iw / 2, ih / 2), width: iw, height: iw * ch / cw);
+          canvas.drawImageRect(im, src, dst, p);
+        }
+      }
+    }
+    canvas.restore();
+    // voile sombre aux couleurs du thème
+    final all = Offset.zero & size;
+    canvas.drawRect(
+        all,
+        Paint()
+          ..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [th.top.withOpacity(0.74), th.bottom.withOpacity(0.84)])
+              .createShader(all));
+  }
+
+  @override
+  bool shouldRepaint(covariant _WallPainter old) => false;
 }
