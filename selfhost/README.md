@@ -89,7 +89,7 @@ Restaurer (base vide préparée avec `01_avant_import.sql`) :
 ```
 pg_restore -U postgres -d postgres --no-owner --clean --if-exists D:\pixeltrade\sauvegardes\rc_….dump
 ```
-puis `02_apres_import.sql`. Idéalement, copier aussi de temps en temps un `.dump` sur un autre disque ou une clé.
+puis `02_apres_import.sql` et `05_securite.sql` (propriétaire `rc_owner`, droits de l'API). Idéalement, copier aussi de temps en temps un `.dump` sur un autre disque ou une clé.
 
 ## Comment marche le temps réel
 
