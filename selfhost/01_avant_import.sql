@@ -10,6 +10,8 @@ do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin noinherit; end if;
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin noinherit; end if;
   if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role nologin noinherit bypassrls; end if;
+  -- compte interne de Supabase (cité par des droits par défaut de la sauvegarde)
+  if not exists (select 1 from pg_roles where rolname = 'supabase_admin') then create role supabase_admin nologin; end if;
   -- PostgREST se connecte avec ce rôle puis bascule en « anon »
   if not exists (select 1 from pg_roles where rolname = 'authenticator') then
     create role authenticator login noinherit password 'CHANGE_MOI_POSTGREST';
