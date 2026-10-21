@@ -10,6 +10,11 @@
 //   RT_PORT  port d'écoute local (défaut 4000, derrière Caddy)
 //   RT_DB    connexion Postgres (rôle rc_rt, qui n'a besoin que de se connecter)
 //   RC_KEY   clé publique de l'appli (paramètre apikey), vide = pas de contrôle
+//
+// Canaux acceptés : realtime:rc_<24 hex> (un joueur, ou une partie regardée) et realtime:rc_all.
+// Le premier canal rc_<24 hex> rejoint par une connexion est celui du joueur : 10 s après
+// qu'il n'a plus aucune connexion, le relais appelle rc__rt_gone(canal) → le joueur passe
+// hors ligne tout de suite (au lieu d'attendre 75 s).
 // ═══════════════════════════════════════════════════════════════════════════
 'use strict';
 const http = require('http');
@@ -19,7 +24,8 @@ const { Client } = require('pg');
 const PORT = Number(process.env.RT_PORT || 4000);
 const DB = process.env.RT_DB || 'postgres://rc_rt:CHANGE_MOI@127.0.0.1:5432/postgres';
 const KEY = process.env.RC_KEY || '';
-const TOPIC_RE = /^realtime:rc_([0-9a-f]{24}|all)$/; // canal d'un joueur (rc__rt_topic) ou canal commun rc_all
+const TOPIC_RE = /^realtime:rc_([0-9a-f]{24}|all)$/; // canal d'un joueur / d'une partie, ou canal commun rc_all
+const GONE_MS = 10000; // délai avant « hors ligne » après la dernière connexion d'un joueur
 
 /** topic → ensemble des sockets abonnées */
 const topics = new Map();
@@ -31,6 +37,22 @@ function leave(ws, topic) {
     if (set.size === 0) topics.delete(topic);
   }
   ws.topics.delete(topic);
+  if (ws.player === topic) {
+    ws.player = null;
+    gone(topic);
+  }
+}
+
+// ─── Joueur parti : plus aucune connexion sur son canal pendant GONE_MS ───
+const goneTimers = new Map();
+function gone(topic) {
+  clearTimeout(goneTimers.get(topic));
+  goneTimers.set(topic, setTimeout(() => {
+    goneTimers.delete(topic);
+    for (const ws of topics.get(topic) || []) if (ws.player === topic) return; // revenu entre-temps
+    if (!dbq) return;
+    dbq.query('select public.rc__rt_gone($1)', [topic.slice('realtime:'.length)]).catch((e) => console.error('[pg] rc__rt_gone :', e.message));
+  }, GONE_MS));
 }
 
 // ─── Serveur HTTP + WebSocket ──────────────────────────────────────────────
@@ -79,6 +101,11 @@ wss.on('connection', (ws) => {
         if (!topics.has(m.topic)) topics.set(m.topic, new Set());
         topics.get(m.topic).add(ws);
         ws.topics.add(m.topic);
+        if (!ws.player && m.topic !== 'realtime:rc_all') {
+          ws.player = m.topic; // premier canal personnel = celui du joueur
+          clearTimeout(goneTimers.get(m.topic));
+          goneTimers.delete(m.topic);
+        }
         return reply();
       case 'phx_leave':
         leave(ws, m.topic);
@@ -113,10 +140,12 @@ function broadcast(topic, event, payload) {
 }
 
 // ─── Écoute de Postgres (reconnexion automatique) ─────────────────────────
+let dbq = null; // connexion prête pour les requêtes (rc__rt_gone)
 async function listen() {
   const db = new Client({ connectionString: DB });
   db.on('error', (e) => console.error('[pg] erreur :', e.message));
   db.on('end', () => {
+    if (dbq === db) dbq = null;
     console.error('[pg] connexion perdue, nouvel essai dans 3 s');
     setTimeout(listen, 3000);
   });
@@ -131,6 +160,7 @@ async function listen() {
   try {
     await db.connect();
     await db.query('LISTEN rc_rt');
+    dbq = db;
     console.log('[pg] à l\'écoute du canal rc_rt');
   } catch (e) {
     console.error('[pg] connexion impossible :', e.message);

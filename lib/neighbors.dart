@@ -6,6 +6,7 @@ import 'duel_watch.dart';
 import 'game.dart';
 import 'packs.dart';
 import 'arcade.dart';
+import 'live_events.dart';
 import 'main.dart';
 import 'notifs.dart';
 import 'profile.dart';
@@ -161,6 +162,34 @@ class NeighborsScreenState extends State<NeighborsScreen> {
   }
 
   void _open(FloorData f) {
+    if (f.busy) {
+      // borne « IN GAME » : regarder sa partie ou voir son profil
+      showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: const Color(0xFF12173F),
+        builder: (ctx) => SafeArea(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ListTile(
+              leading: const Text('👁', style: TextStyle(fontSize: 22)),
+              title: Text(t('Regarder sa partie en direct', 'Watch their live game'), style: const TextStyle(fontWeight: FontWeight.w900)),
+              onTap: () {
+                Navigator.pop(ctx);
+                watchPlayer(context, f.pid);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: Text(t('Voir le profil de ${f.name}', 'See ${f.name}\'s profile')),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: f.pid)));
+              },
+            ),
+          ]),
+        ),
+      );
+      return;
+    }
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => f.me ? const MyProfilePage() : PlayerProfilePage(pid: f.pid)));
   }
 
@@ -458,11 +487,22 @@ class _OnlineRowState extends State<_OnlineRow> {
                       style: const TextStyle(fontSize: 11.5, color: Colors.white60)),
             ]),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800), visualDensity: VisualDensity.compact),
-            onPressed: rich && !f.busy ? () => setState(() => pick = !pick) : null,
-            child: Text(t('⚔ Défier', '⚔ Challenge'), style: const TextStyle(fontWeight: FontWeight.w900)),
-          ),
+          f.busy
+              ? FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7B3DFF), foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
+                  onPressed: () {
+                    final nav = Navigator.of(context);
+                    final ctx = HomeShellState.current?.context ?? context;
+                    nav.pop();
+                    watchPlayer(ctx, f.pid);
+                  },
+                  child: Text(t('👁 Regarder', '👁 Watch'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                )
+              : FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800), visualDensity: VisualDensity.compact),
+                  onPressed: rich ? () => setState(() => pick = !pick) : null,
+                  child: Text(t('⚔ Défier', '⚔ Challenge'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                ),
           const SizedBox(width: 6),
           OutlinedButton(
             style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
@@ -632,7 +672,45 @@ void _onlineSheet(BuildContext context, List<FloorData> on, void Function(String
       context: context,
       backgroundColor: const Color(0xFF12173F),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => SafeArea(
+      builder: (ctx) => _OnlineSheet(on: on, goTo: goTo),
+    );
+  }
+
+/// Liste « En ligne » qui se met à jour en direct (arrivées, départs, parties commencées / finies)
+class _OnlineSheet extends StatefulWidget {
+  final List<FloorData> on;
+  final void Function(String pid) goTo;
+  const _OnlineSheet({required this.on, required this.goTo});
+  @override
+  State<_OnlineSheet> createState() => _OnlineSheetState();
+}
+
+class _OnlineSheetState extends State<_OnlineSheet> {
+  late List<FloorData> on = widget.on;
+
+  @override
+  void initState() {
+    super.initState();
+    LiveEvents.online.addListener(_reload);
+  }
+
+  @override
+  void dispose() {
+    LiveEvents.online.removeListener(_reload);
+    super.dispose();
+  }
+
+  Future<void> _reload() async {
+    try {
+      final l = await OnlineNow.get(force: true);
+      if (mounted) setState(() => on = l);
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext ctx) {
+    final goTo = widget.goTo;
+    return SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -640,6 +718,11 @@ void _onlineSheet(BuildContext context, List<FloorData> on, void Function(String
             const SizedBox(height: 10),
             Text(t('🟢 En ligne maintenant', '🟢 Online now'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
             const SizedBox(height: 8),
+            // duels en direct à regarder
+            WatchList(header: (n) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(t('👁 Duels en direct', '👁 Live duels'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Color(0xFFCDB4FF))),
+                )),
             if (on.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -659,6 +742,6 @@ void _onlineSheet(BuildContext context, List<FloorData> on, void Function(String
                 style: const TextStyle(color: Colors.white54, fontSize: 11.5)),
           ]),
         ),
-      ),
     );
   }
+}

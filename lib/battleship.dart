@@ -638,7 +638,8 @@ class _BurstPainter extends CustomPainter {
 // ─── Partie ────────────────────────────────────────────────────────────────
 class BattleGamePage extends StatefulWidget {
   final Map<String, dynamic> initial;
-  const BattleGamePage({super.key, required this.initial});
+  final bool watch; // spectateur (rc_bs_watch : vue du joueur 1, flottes cachées tant qu'elles ne sont pas coulées)
+  const BattleGamePage({super.key, required this.initial, this.watch = false});
   @override
   State<BattleGamePage> createState() => _BattleGamePageState();
 }
@@ -680,7 +681,13 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
   bool get setup => phase == 'setup';
   bool get playing => phase == 'playing';
   bool get done => phase == 'done';
-  bool get myTurn => (playing || setup) && _i(g['turn']) == side;
+  bool get watch => widget.watch;
+  /// Au tour du joueur du bas (moi, ou le joueur 1 en spectateur)
+  bool get p1Turn => (playing || setup) && _i(g['turn']) == side;
+  bool get myTurn => !watch && p1Turn;
+  Map get me => g['me'] as Map? ?? const {}; // spectateur : le joueur 1
+  String get meName => watch ? me['name'] as String? ?? '?' : t('Toi', 'You');
+  String? _emoMeAt; // spectateur : réactions du joueur 1
   bool get placed => g['my_fleet'] != null;
   int get stake => _i(g['stake'], kC4Stake);
   Map get opp => g['opp'] as Map? ?? const {};
@@ -694,11 +701,13 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
     super.initState();
     _setSkew();
     _emoOppAt = g['emo_opp_at'] as String?;
+    _emoMeAt = g['emo_me_at'] as String?;
     // Realtime branché : coup de l'adversaire reçu tout de suite, polling de secours 5 fois plus lent
     var pn = 0;
     _poll = Timer.periodic(Duration(seconds: live ? 2 : 6), (_) {
       if (!LiveLink.i.connected || (pn++) % 5 == 0) _refresh();
     });
+    if (watch) LiveLink.i.watch('bs', id); // canal de la partie
     _rt = LiveLink.i.events.listen((e) {
       if (e['game'] == 'bs' && _i(e['gid']) == id) _refresh();
     });
@@ -709,14 +718,18 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
       if (live && playing && myTurn && s <= 10 && s > 0) RcAudio.tick();
       if ((playing || setup) && _left().isNegative) _refresh();
     });
-    if (done) WidgetsBinding.instance.addPostFrameCallback((_) => _showResult());
+    if (done && !watch) WidgetsBinding.instance.addPostFrameCallback((_) => _showResult());
     _refresh();
-    DuelWatch.i.inGame++;
+    if (!watch) DuelWatch.i.inGame++;
   }
 
   @override
   void dispose() {
-    DuelWatch.i.inGame--;
+    if (watch) {
+      LiveLink.i.unwatch();
+    } else {
+      DuelWatch.i.inGame--;
+    }
     _rt?.cancel();
     _poll?.cancel();
     _tick?.cancel();
@@ -757,7 +770,8 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
     _setSkew();
     if (wasPhase == 'setup' && playing) {
       RcAudio.sfx('powerup');
-      _banner('go', t('BATAILLE !', 'BATTLE!'), myTurn ? t('Tu tires en premier', 'You shoot first') : t('$oppName tire en premier', '$oppName shoots first'));
+      _banner('go', t('BATAILLE !', 'BATTLE!'),
+          myTurn ? t('Tu tires en premier', 'You shoot first') : t('${p1Turn ? meName : oppName} tire en premier', '${p1Turn ? meName : oppName} shoots first'));
     }
     // mes tirs
     final ms = myShots;
@@ -768,12 +782,12 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
           _fx(true, i, 'sunk');
           RcAudio.sfx('break');
           RcAudio.sfx('tier');
-          _banner('sunk', t('${_bsName(nowSunk.first).toUpperCase()}\nCOULÉE !', '${_bsName(nowSunk.first).toUpperCase()}\nSUNK!'), done ? '' : t('Tu rejoues', 'Shoot again'));
+          _banner('sunk', t('${_bsName(nowSunk.first).toUpperCase()}\nCOULÉE !', '${_bsName(nowSunk.first).toUpperCase()}\nSUNK!'), done ? '' : watch ? t('$meName rejoue', '$meName shoots again') : t('Tu rejoues', 'Shoot again'));
           _shake();
         } else if (ms[i] == 'h') {
           _fx(true, i, 'hit');
           RcAudio.sfx('hurt');
-          _banner('hit', t('TOUCHÉ !', 'HIT!'), done ? '' : t('Tu rejoues', 'Shoot again'));
+          _banner('hit', t('TOUCHÉ !', 'HIT!'), done ? '' : watch ? t('$meName rejoue', '$meName shoots again') : t('Tu rejoues', 'Shoot again'));
           _shake();
         } else {
           _fx(true, i, 'miss');
@@ -797,12 +811,25 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
         }
       }
     }
-    if (mySunkNow.isNotEmpty) _banner('sunk', t('TA ${_bsName(mySunkNow.first).toUpperCase()}\nCOULÉE', 'YOUR ${_bsName(mySunkNow.first).toUpperCase()}\nSUNK'), '');
+    if (mySunkNow.isNotEmpty) {
+      _banner(
+          'sunk',
+          watch
+              ? t('${_bsName(mySunkNow.first).toUpperCase()}\nCOULÉE', '${_bsName(mySunkNow.first).toUpperCase()}\nSUNK')
+              : t('TA ${_bsName(mySunkNow.first).toUpperCase()}\nCOULÉE', 'YOUR ${_bsName(mySunkNow.first).toUpperCase()}\nSUNK'),
+          watch && !done ? t('$oppName rejoue', '$oppName shoots again') : '');
+    }
     if (!wasMyTurn && myTurn && playing) RcAudio.correct();
     final at = n['emo_opp_at'] as String?;
     if (at != null && at != _emoOppAt) {
       _emoOppAt = at;
       _bubble(false, n['emo_opp'] as String? ?? '👍');
+    }
+    // spectateur : réaction du joueur 1
+    final at1 = n['emo_me_at'] as String?;
+    if (watch && at1 != null && at1 != _emoMeAt) {
+      _emoMeAt = at1;
+      _bubble(true, n['emo_me'] as String? ?? '👍');
     }
     if (wasActive && done) _showResult();
   }
@@ -832,13 +859,13 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
 
   Future<void> _refresh() async {
     try {
-      final n = await RcServer.bsState(id);
+      final n = watch ? await RcServer.bsWatch(id) : await RcServer.bsState(id);
       if (mounted) _apply(n);
     } catch (_) {}
   }
 
   Future<void> _shoot(int cell) async {
-    if (busy) return;
+    if (busy || watch) return;
     if (!playing || !myTurn) {
       RcAudio.wrong();
       toast(playing ? t('Ce n\'est pas ton tour', 'It\'s not your turn') : t('La partie est terminée', 'The game is over'));
@@ -881,7 +908,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
     setState(() {
       me ? _emoMe = emo : _emoOpp = emo;
       _bigEmo = emo;
-      _bigWho = me ? t('Toi', 'You') : oppName;
+      _bigWho = me ? meName : oppName;
       _bigSeq++;
     });
     final timer = Timer(const Duration(milliseconds: 3200), () {
@@ -945,6 +972,10 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
     if (_resultShown || !mounted) return;
     _resultShown = true;
     final w = (g['winner'] as num?)?.toInt();
+    if (watch) {
+      RcAudio.sfx('powerup'); // spectateur : le vainqueur est écrit au-dessus du radar
+      return;
+    }
     if (w == side) {
       RcAudio.win();
     } else {
@@ -970,6 +1001,18 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
     } else if (again == false) {
       Navigator.of(context).pop();
     }
+  }
+
+  /// Spectateur : qui a gagné
+  String _watchResult() {
+    final w = (g['winner'] as num?)?.toInt();
+    if (w == null) return t('Partie annulée', 'Game cancelled');
+    final win = w == side ? meName : oppName, lose = w == side ? oppName : meName;
+    return switch (g['reason']) {
+      'resign' => t('🏆 $win gagne ($lose abandonne)', '🏆 $win wins ($lose resigned)'),
+      'timeout' => t('🏆 $win gagne ($lose n\'a pas tiré à temps)', '🏆 $win wins ($lose ran out of time)'),
+      _ => t('🏆 $win gagne : flotte coulée !', '🏆 $win wins: fleet sunk!'),
+    };
   }
 
   // ── placement : glisser depuis le quai ou la mer, toucher pour tourner ──
@@ -1165,7 +1208,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
   Widget _header() => Padding(
         padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
         child: Row(children: [
-          _player(t('Toi', 'You'), Game.i.avatar, _kCyan, myTurn && !done, _emoMe, _hits(myShots)),
+          _player(meName, watch ? _i(me['avatar']) : Game.i.avatar, _kCyan, p1Turn && !done, _emoMe, _hits(myShots)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 5),
             child: Column(children: [
@@ -1174,12 +1217,33 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
               Text(stake > 0 ? 'POT' : g['friendly'] != null ? t('AMICAL', 'FRIENDLY') : 'GAIN', style: const TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
             ]),
           ),
-          _player(oppName, _i(opp['avatar']), _kNeon, !myTurn && !done && (playing || setup), _emoOpp, _hits(oppShots), right: true),
+          _player(oppName, _i(opp['avatar']), _kNeon, !p1Turn && !done && playing || (setup && !watch && !p1Turn), _emoOpp, _hits(oppShots), right: true),
         ]),
       );
 
   Widget _setupView(double width) {
     final boardW = min(width - 24, 440.0);
+    if (watch) {
+      Widget ready(String name, bool ok) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text(ok ? '✅' : '⏳', style: const TextStyle(fontSize: 16)),
+              const SizedBox(width: 8),
+              Text(ok ? t('$name : flotte prête', '$name: fleet ready') : t('$name place sa flotte…', '$name is placing their fleet…'),
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+            ]),
+          );
+      return ListView(padding: const EdgeInsets.fromLTRB(12, 8, 12, 24), children: [
+        _header(),
+        const SizedBox(height: 16),
+        Text(t('LE PORT', 'THE HARBOR'), textAlign: TextAlign.center, style: pixelStyle(size: 11, color: _kRadar, shadow: false)),
+        const SizedBox(height: 10),
+        ready(meName, g['me_ready'] == true),
+        ready(oppName, g['opp_ready'] == true),
+        const SizedBox(height: 14),
+        Center(child: SizedBox(width: min(boardW, 260.0), child: _BsBoard(ships: const {}, anim: anim))),
+      ]);
+    }
     if (placed) {
       return ListView(padding: const EdgeInsets.fromLTRB(12, 8, 12, 24), children: [
         _header(),
@@ -1303,9 +1367,14 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
         padding: const EdgeInsets.only(bottom: 6),
         child: Text.rich(
           done
-              ? TextSpan(text: (g['winner'] as num?)?.toInt() == side ? t('Victoire !', 'Victory!') : t('Défaite', 'Defeat'))
+              ? TextSpan(text: watch ? _watchResult() : (g['winner'] as num?)?.toInt() == side ? t('Victoire !', 'Victory!') : t('Défaite', 'Defeat'))
               : TextSpan(children: [
-                  TextSpan(text: myTurn ? t('À toi de tirer ! ', 'Your shot! ') : t('$oppName vise ta flotte…', '$oppName is aiming at your fleet…')),
+                  TextSpan(
+                      text: watch
+                          ? (p1Turn ? t('$meName vise la flotte de $oppName…', '$meName is aiming at $oppName\'s fleet…') : t('$oppName vise la flotte de $meName…', '$oppName is aiming at $meName\'s fleet…'))
+                          : myTurn
+                              ? t('À toi de tirer ! ', 'Your shot! ')
+                              : t('$oppName vise ta flotte…', '$oppName is aiming at your fleet…')),
                   if (myTurn) TextSpan(text: t('◎ vise une case', '◎ pick a cell'), style: const TextStyle(color: _kRadar)),
                 ]),
           textAlign: TextAlign.center,
@@ -1361,14 +1430,20 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
           SizedBox(
             width: min((width - 24) * 0.48, 220),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Padding(padding: const EdgeInsets.only(left: 2, bottom: 5), child: Text(t('TA FLOTTE', 'YOUR FLEET'), style: pixelStyle(size: 6.5, color: Colors.white54, shadow: false))),
+              Padding(
+                  padding: const EdgeInsets.only(left: 2, bottom: 5),
+                  child: Text(watch ? px(t('FLOTTE · ${meName.toUpperCase()}', 'FLEET · ${meName.toUpperCase()}')) : t('TA FLOTTE', 'YOUR FLEET'),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: pixelStyle(size: 6.5, color: Colors.white54, shadow: false))),
               _BsBoard(ships: myFleet, shots: oppShots, sunkCells: _sunkCells(mySunk), anim: anim, fx: _fxMine, labels: false),
             ]),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Padding(padding: const EdgeInsets.only(left: 2, bottom: 6), child: Text(t('SA FLOTTE', 'THEIR FLEET'), style: pixelStyle(size: 6.5, color: Colors.white54, shadow: false))),
+              Padding(
+                  padding: const EdgeInsets.only(left: 2, bottom: 6),
+                  child: Text(watch ? px(t('FLOTTE · ${oppName.toUpperCase()}', 'FLEET · ${oppName.toUpperCase()}')) : t('SA FLOTTE', 'THEIR FLEET'),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: pixelStyle(size: 6.5, color: Colors.white54, shadow: false))),
               for (final s in _kBsShips)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 7),
@@ -1393,22 +1468,28 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
           ),
         ]),
       ),
-      if (playing) ...[
+      if (playing && !watch) ...[
         const SizedBox(height: 12),
         // réactions : 5 emojis + phrases rapides
         ReactionBar(emotes: _kEmotes, onSend: _emote),
       ],
+      if (watch)
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Text(t('Tu regardes la partie : les flottes restent cachées jusqu\'à la fin.', 'You are watching: fleets stay hidden until the end.'),
+              textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        ),
       Padding(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
         child: Row(children: [
-          if (playing)
+          if (playing && !watch)
             FilledButton.icon(
               style: FilledButton.styleFrom(backgroundColor: const Color(0xFF4A1D2A), foregroundColor: const Color(0xFFFFC4CF)),
               onPressed: _resign,
               icon: const Icon(Icons.flag),
               label: Text(t('Abandonner', 'Resign'), style: const TextStyle(fontWeight: FontWeight.w900)),
             ),
-          if (done)
+          if (done && !watch)
             FilledButton.icon(
               style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
               onPressed: () {
@@ -1444,8 +1525,8 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
       max: 560,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(setup && !placed ? t('LE PORT', 'THE HARBOR') : 'CONSOLE WARS', style: pixelStyle(size: 12)),
-          actions: [ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
+          title: Text(watch ? t('👁 SPECTATEUR', '👁 WATCHING') : setup && !placed ? t('LE PORT', 'THE HARBOR') : 'CONSOLE WARS', style: pixelStyle(size: 12)),
+          actions: [if (!watch) ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
         ),
         body: LayoutBuilder(
           builder: (context, box) => AnimatedBuilder(

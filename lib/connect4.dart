@@ -15,6 +15,7 @@ import 'retro_theme.dart';
 import 'server.dart';
 
 part 'battleship.dart';
+part 'spectate.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 4 en ligne à 2 joueurs (onglet « Bonus / Jeux ») : gratuit, le gagnant
@@ -717,6 +718,8 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
               glow: kGold,
             ),
         ],
+        // duels en direct des autres : à regarder
+        WatchList(game: k.code, header: (n) => _section(t('👁 À regarder', '👁 Watch live'), sub: t('$n en cours', '$n in progress'))),
         _section(t('Joueurs en ligne', 'Online players'), trailing: const _LiveTag()),
         if (online.isEmpty) _empty(t('Personne d\'autre en ligne pour l\'instant · reviens plus tard ou joue en tour par tour', 'Nobody else online right now · come back later or play turn-based')),
         for (final p in online)
@@ -753,8 +756,10 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
                 ),
               ],
               btns: [
-                _btn(busyP ? t('Occupé', 'Busy') : (poor ? t('Sans pièces', 'No coins') : t('Défier', 'Challenge')),
-                    busyP || poor ? null : () => _invite(p['pid'] as String, p['name'] as String? ?? '?', _i(p['avatar']), 'live', friendly: p['friendly'] as String?))
+                busyP
+                    ? _btn(t('👁 Regarder', '👁 Watch'), () => watchPlayer(context, p['pid'] as String))
+                    : _btn(poor ? t('Sans pièces', 'No coins') : t('Défier', 'Challenge'),
+                        poor ? null : () => _invite(p['pid'] as String, p['name'] as String? ?? '?', _i(p['avatar']), 'live', friendly: p['friendly'] as String?))
               ],
             );
           }),
@@ -1137,7 +1142,8 @@ class _PlayerPickerState extends State<_PlayerPicker> {
 // ─── Partie ────────────────────────────────────────────────────────────────
 class Connect4GamePage extends StatefulWidget {
   final Map<String, dynamic> initial;
-  const Connect4GamePage({super.key, required this.initial});
+  final bool watch; // spectateur (rc_c4_watch : vue du joueur 1, rien à toucher)
+  const Connect4GamePage({super.key, required this.initial, this.watch = false});
   @override
   State<Connect4GamePage> createState() => _Connect4GamePageState();
 }
@@ -1160,20 +1166,26 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
   bool get live => g['mode'] == 'live';
   int get side => _i(g['side'], 1);
   bool get playing => g['status'] == 'playing';
-  bool get myTurn => playing && _i(g['turn']) == side;
+  bool get watch => widget.watch;
+  bool get myTurn => !watch && playing && _i(g['turn']) == side;
   int get stake => _i(g['stake'], kC4Stake);
   Map get opp => g['opp'] as Map? ?? const {};
+  Map get me => g['me'] as Map? ?? const {}; // spectateur : le joueur 1
+  String get meName => watch ? me['name'] as String? ?? '?' : t('Toi', 'You');
+  String? _emoMeAt; // spectateur : réactions du joueur 1
 
   @override
   void initState() {
     super.initState();
     _setSkew();
     _emoOppAt = g['emo_opp_at'] as String?;
+    _emoMeAt = g['emo_me_at'] as String?;
     // Realtime branché : coup de l'adversaire reçu tout de suite, polling de secours 5 fois plus lent
     var pn = 0;
     _poll = Timer.periodic(Duration(seconds: live ? 2 : 6), (_) {
       if (!LiveLink.i.connected || (pn++) % 5 == 0) _refresh();
     });
+    if (watch) LiveLink.i.watch('c4', id); // canal de la partie
     _rt = LiveLink.i.events.listen((e) {
       if (e['game'] == 'c4' && _i(e['gid']) == id) _refresh();
     });
@@ -1184,14 +1196,18 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
       if (live && myTurn && s <= 10 && s > 0) RcAudio.tick();
       if (playing && _left().isNegative) _refresh(); // délai dépassé : le serveur règle la partie
     });
-    if (g['status'] == 'done') WidgetsBinding.instance.addPostFrameCallback((_) => _showResult());
+    if (g['status'] == 'done' && !watch) WidgetsBinding.instance.addPostFrameCallback((_) => _showResult());
     _refresh();
-    DuelWatch.i.inGame++;
+    if (!watch) DuelWatch.i.inGame++;
   }
 
   @override
   void dispose() {
-    DuelWatch.i.inGame--;
+    if (watch) {
+      LiveLink.i.unwatch();
+    } else {
+      DuelWatch.i.inGame--;
+    }
     _rt?.cancel();
     _poll?.cancel();
     _tick?.cancel();
@@ -1233,19 +1249,25 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
       _emoOppAt = at;
       _bubble(false, n['emo_opp'] as String? ?? '👍');
     }
+    // spectateur : réaction du joueur 1
+    final at1 = n['emo_me_at'] as String?;
+    if (watch && at1 != null && at1 != _emoMeAt) {
+      _emoMeAt = at1;
+      _bubble(true, n['emo_me'] as String? ?? '👍');
+    }
     if (wasPlaying && !playing) _showResult();
   }
 
   Future<void> _refresh() async {
     try {
-      final n = await RcServer.c4State(id);
+      final n = watch ? await RcServer.c4Watch(id) : await RcServer.c4State(id);
       if (mounted) _apply(n);
     } catch (_) {}
   }
 
   Future<void> _play(int col) async {
     setState(() => _aim = null);
-    if (busy) return;
+    if (busy || watch) return;
     if (!myTurn) {
       RcAudio.wrong();
       toast(playing ? t('Ce n\'est pas ton tour', 'It\'s not your turn') : t('La partie est terminée', 'The game is over'));
@@ -1272,7 +1294,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
     setState(() {
       me ? _emoMe = emo : _emoOpp = emo;
       _bigEmo = emo;
-      _bigWho = me ? t('Toi', 'You') : ((g['opp'] as Map?)?['name'] as String? ?? '?');
+      _bigWho = me ? meName : ((g['opp'] as Map?)?['name'] as String? ?? '?');
       _bigSeq++;
     });
     final timer = Timer(const Duration(milliseconds: 3200), () {
@@ -1338,6 +1360,11 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
     if (_resultShown || !mounted) return;
     _resultShown = true;
     final w = (g['winner'] as num?)?.toInt();
+    if (watch) {
+      // spectateur : juste un son, le vainqueur est écrit au-dessus du plateau
+      RcAudio.sfx(w == 0 ? 'shield' : 'powerup');
+      return;
+    }
     if (w == side) {
       RcAudio.win();
     } else if (w == 0) {
@@ -1470,12 +1497,12 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
       max: 560,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(live ? t('EN DIRECT', 'LIVE') : t('TOUR PAR TOUR', 'TURN-BASED'), style: pixelStyle(size: 12)),
-          actions: [ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
+          title: Text(watch ? t('👁 SPECTATEUR', '👁 WATCHING') : live ? t('EN DIRECT', 'LIVE') : t('TOUR PAR TOUR', 'TURN-BASED'), style: pixelStyle(size: 12)),
+          actions: [if (!watch) ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
         ),
         body: ListView(padding: const EdgeInsets.fromLTRB(14, 8, 14, 24), children: [
           Row(children: [
-            player(t('Toi', 'You'), Game.i.avatar, myColor, playing && turn == side, _emoMe),
+            player(meName, watch ? _i(me['avatar']) : Game.i.avatar, myColor, playing && turn == side, _emoMe),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Column(children: [
@@ -1495,17 +1522,22 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
             Text(t('En attente de la réponse de $oppName…', 'Waiting for $oppName to answer…'), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w800))
           else
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              if (playing) Container(width: 14, height: 14, margin: const EdgeInsets.only(right: 8), decoration: BoxDecoration(shape: BoxShape.circle, color: myTurn ? myColor : oppColor)),
-              Text(
+              if (playing) Container(width: 14, height: 14, margin: const EdgeInsets.only(right: 8), decoration: BoxDecoration(shape: BoxShape.circle, color: turn == side ? myColor : oppColor)),
+              Flexible(child: Text(
                 playing
-                    ? (myTurn ? t('À toi de jouer !', 'Your turn!') : t('$oppName réfléchit…', '$oppName is thinking…'))
-                    : g['reason'] == 'draw'
-                        ? t('Plateau plein', 'Board full')
-                        : g['reason'] == 'win'
-                            ? t('Quatre alignés !', 'Four in a row!')
-                            : '',
+                    ? (myTurn
+                        ? t('À toi de jouer !', 'Your turn!')
+                        : t('${turn == side ? meName : oppName} réfléchit…', '${turn == side ? meName : oppName} is thinking…'))
+                    : watch
+                        ? _watchResult(meName, oppName)
+                        : g['reason'] == 'draw'
+                            ? t('Plateau plein', 'Board full')
+                            : g['reason'] == 'win'
+                                ? t('Quatre alignés !', 'Four in a row!')
+                                : '',
+                textAlign: TextAlign.center,
                 style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
-              ),
+              )),
             ]),
           const SizedBox(height: 10),
           // borne d'arcade
@@ -1611,17 +1643,20 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
           ),
           const SizedBox(height: 12),
           // réactions : 5 emojis + phrases rapides
-          if (playing) ReactionBar(emotes: _kEmotes, onSend: _emote),
+          if (playing && !watch) ReactionBar(emotes: _kEmotes, onSend: _emote),
+          if (watch)
+            Text(t('Tu regardes la partie : les coups arrivent en direct.', 'You are watching: moves arrive live.'),
+                textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 12)),
           const SizedBox(height: 12),
           Row(children: [
-            if (playing)
+            if (playing && !watch)
               FilledButton.icon(
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF4A1D2A), foregroundColor: const Color(0xFFFFC4CF)),
                 onPressed: _resign,
                 icon: const Icon(Icons.flag),
                 label: Text(t('Abandonner', 'Resign'), style: const TextStyle(fontWeight: FontWeight.w900)),
               ),
-            if (g['status'] == 'done')
+            if (g['status'] == 'done' && !watch)
               FilledButton.icon(
                 style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
                 onPressed: () {
@@ -1637,6 +1672,20 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
         ]),
       ),
     );
+  }
+
+  /// Spectateur : qui a gagné
+  String _watchResult(String n1, String n2) {
+    final w = (g['winner'] as num?)?.toInt();
+    final r = g['reason'];
+    if (w == 0 || r == 'draw') return t('Match nul', 'Draw');
+    final win = w == 1 ? n1 : n2, lose = w == 1 ? n2 : n1;
+    return switch (r) {
+      'win' => t('🏆 $win gagne : quatre alignés !', '🏆 $win wins: four in a row!'),
+      'resign' => t('🏆 $win gagne ($lose abandonne)', '🏆 $win wins ($lose resigned)'),
+      'timeout' => t('🏆 $win gagne ($lose n\'a pas joué à temps)', '🏆 $win wins ($lose ran out of time)'),
+      _ => w == null ? t('Partie terminée', 'Game over') : t('🏆 $win gagne', '🏆 $win wins'),
+    };
   }
 
   Widget _cell(String v, int idx, bool win) {

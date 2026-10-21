@@ -15,6 +15,7 @@ import 'notifs.dart';
 import 'retro_theme.dart';
 import 'rewards.dart';
 import 'server.dart';
+import 'update_check.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Événements : la liste vient du serveur (table rc_events), on peut donc en
@@ -70,9 +71,30 @@ class Events extends ChangeNotifier {
       _seen = prefs.getInt(_kSeen) ?? 0;
       list = await RcServer.events();
       notifyListeners();
+      _schedule();
     } catch (_) {
       // hors ligne ou serveur pas encore à jour : on garde la liste actuelle
     }
+  }
+
+  Timer? _next;
+
+  /// Prochain début ou fin d'événement : on recharge à ce moment-là (liste, prix, promos)
+  void _schedule() {
+    _next?.cancel();
+    Duration? soon;
+    for (final e in list) {
+      final now = DateTime.tryParse(e['now'] as String? ?? '');
+      final at = DateTime.tryParse((e['upcoming'] == true ? e['starts_at'] : e['live'] == true ? e['ends_at'] : null) as String? ?? '');
+      if (now == null || at == null) continue;
+      final d = at.difference(now);
+      if (!d.isNegative && (soon == null || d < soon)) soon = d;
+    }
+    if (soon == null || soon > const Duration(hours: 12)) return;
+    _next = Timer(soon + const Duration(seconds: 2), () {
+      refresh();
+      updateGateKey.currentState?.recheck();
+    });
   }
 
   Future<void> markSeen() async {

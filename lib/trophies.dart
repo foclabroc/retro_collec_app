@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'audio.dart';
 import 'game.dart';
+import 'live_events.dart';
 import 'main.dart';
 import 'notifs.dart';
 import 'retro_theme.dart';
@@ -219,6 +220,13 @@ class _MyTrophiesState extends State<MyTrophies> {
   void initState() {
     super.initState();
     load();
+    LiveEvents.prog.addListener(load); // temps réel : un trophée a avancé
+  }
+
+  @override
+  void dispose() {
+    LiveEvents.prog.removeListener(load);
+    super.dispose();
   }
 
   void _apply(Map<String, dynamic> r) {

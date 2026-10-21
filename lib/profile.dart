@@ -1,6 +1,7 @@
+import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,6 +14,7 @@ import 'packs.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'layout.dart';
+import 'live_events.dart';
 import 'game.dart';
 import 'arcade.dart';
 import 'main.dart';
@@ -884,20 +886,42 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
   Map<String, List<int>> owned = {};
   String? error;
 
+  StreamSubscription? _live;
+
   @override
   void initState() {
     super.initState();
+    _load();
+    // temps réel : son profil ou sa collection a changé → on recharge
+    _live = LiveEvents.player.listen((pid) {
+      if (pid == widget.pid) _load(quiet: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _live?.cancel();
+    ownedLive.dispose();
+    super.dispose();
+  }
+
+  void _load({bool quiet = false}) {
     RcServer.profile(widget.pid).then((r) {
       if (!mounted) return;
+      if (quiet && r == null) return;
       setState(() {
         p = r;
         owned = parseOwned(r?['owned']);
+        ownedLive.value = owned;
         if (r == null) error = t('Joueur introuvable', 'Player not found');
       });
     }).catchError((e) {
-      if (mounted) setState(() => error = errText(e));
+      if (mounted && !quiet) setState(() => error = errText(e));
     });
   }
+
+  /// Sa collection, partagée avec ses albums ouverts (mis à jour en direct)
+  final ownedLive = ValueNotifier<Map<String, List<int>>>({});
 
   int _in(String sys) => (Catalog.bySys[sys] ?? const <RcCard>[]).where((c) => (owned[c.id]?.fold<int>(0, (a, b) => a + b) ?? 0) > 0).length;
 
@@ -1117,7 +1141,7 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                   for (final s in [...Catalog.systems, ...Catalog.sagaSystems])
                     InkWell(
                       onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => OtherAlbumPage(sys: s.id, owned: owned, name: name, pid: widget.pid),
+                        builder: (_) => OtherAlbumPage(sys: s.id, owned: owned, name: name, pid: widget.pid, live: ownedLive),
                       )),
                       child: _cmpRow(s.name, Game.i.ownedIn(s.id), _in(s.id), s.count),
                     ),
@@ -1204,10 +1228,17 @@ class _DiffPage extends StatelessWidget {
 class OtherAlbumPage extends StatelessWidget {
   final String sys, name, pid;
   final Map<String, List<int>> owned;
-  const OtherAlbumPage({super.key, required this.sys, required this.owned, required this.name, required this.pid});
+  final ValueListenable<Map<String, List<int>>>? live; // collection mise à jour en direct (profil)
+  const OtherAlbumPage({super.key, required this.sys, required this.owned, required this.name, required this.pid, this.live});
 
   @override
   Widget build(BuildContext context) {
+    final l = live;
+    if (l == null) return _page(context, owned);
+    return ValueListenableBuilder<Map<String, List<int>>>(valueListenable: l, builder: (ctx, o, _) => _page(ctx, o.isEmpty ? owned : o));
+  }
+
+  Widget _page(BuildContext context, Map<String, List<int>> owned) {
     final list = Catalog.bySys[sys] ?? const <RcCard>[];
     return Scaffold(
       appBar: AppBar(title: Text('$name — ${Catalog.system(sys)?.name ?? sys}')),

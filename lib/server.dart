@@ -214,6 +214,14 @@ class RcServer {
     return r == null ? null : _map(r);
   }
 
+  // ── Spectateurs (duels en direct des autres) ───────────────────────────
+  /// Duels en direct en cours : [{game: c4|bs, id, phase, moves, p1: {pid, name, avatar}, p2}]
+  static Future<List<Map<String, dynamic>>> liveGames() async => _list(await _rpc('rc_live_games', {}));
+
+  /// Une partie vue en spectateur (vue du joueur 1, rien de secret)
+  static Future<Map<String, dynamic>> c4Watch(int id) async => _map(await _rpc('rc_c4_watch', {'p_id': id}));
+  static Future<Map<String, dynamic>> bsWatch(int id) async => _map(await _rpc('rc_bs_watch', {'p_id': id}));
+
   // ── 4 en ligne (rc_c4_*) ───────────────────────────────────────────────
   /// Joueurs en ligne à défier en direct : [{pid, name, avatar, score, busy}]
   static Future<List<Map<String, dynamic>>> c4Online() async {

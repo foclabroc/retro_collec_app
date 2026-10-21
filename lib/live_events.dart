@@ -1,25 +1,36 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'chat.dart';
+import 'connect4.dart';
+import 'defis.dart';
+import 'duel_watch.dart';
+import 'events.dart';
 import 'feed.dart';
+import 'inbox.dart';
 import 'live_link.dart';
 import 'main.dart';
 import 'market.dart';
 import 'neighbors.dart';
 import 'notifs.dart';
 import 'trades.dart';
-import 'duel_watch.dart';
 import 'update_check.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Temps réel partout (1.0.18) : le serveur prévient (LiveLink.other), l'écran
 // concerné se recharge tout de suite par ses RPC habituelles.
-//  · 'me'     : échange reçu / répondu, carte vendue, paquet offert → notifications
-//  · 'chat'   : nouveau message → écran Messages ouvert, sinon pastille
-//  · 'feed'   : nouvelle actu → onglet Actu s'il est affiché
-//  · 'market' : la Bourse a bougé → onglet Bourse s'il est affiché
-//  · 'config' : réglages admin (bandeau, prix, maintenance, version minimale)
-//  · 'online' : un joueur arrive → compteur En ligne, salle d'arcade affichée
+//  · 'me' {k}  : trade / sale / gift → notifications (+ échanges) ;
+//                prog → défis de la semaine, trophées ; react → pastille Actu
+//  · 'chat'    : nouveau message → écran Messages ouvert, sinon pastille
+//  · 'feed'    : nouvelle actu → onglet Actu s'il est affiché
+//  · 'market'  : la Bourse a bougé → onglet Bourse s'il est affiché
+//  · 'config'  : réglages admin (bandeau, prix, maintenance, version minimale)
+//  · 'online'  : un joueur arrive ou part → compteur, liste En ligne, salle d'arcade
+//  · 'duels'   : un duel en direct commence / finit → listes « À regarder », salle
+//  · 'mail'    : courrier ou sondage de l'admin → affiché tout de suite (après une partie)
+//  · 'events'  : événements modifiés → liste + prix / promos
+//  · 'player' {pid} : profil ou collection d'un joueur changé → pages ouvertes de ce joueur
 // Chaque événement est regroupé (rafales) puis traité une fois.
 // Les minuteries restent en secours, ralenties quand LiveLink.connected.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -29,20 +40,49 @@ class LiveEvents {
   static StreamSubscription? _sub;
   static final _wait = <String, Timer>{};
 
+  /// Un joueur est arrivé / parti, ou un duel en direct a commencé / fini
+  static final online = ValueNotifier<int>(0);
+
+  /// Mes défis de la semaine ou trophées ont avancé
+  static final prog = ValueNotifier<int>(0);
+
+  /// Profil ou collection d'un joueur changé (pid)
+  static final _player = StreamController<String>.broadcast();
+  static Stream<String> get player => _player.stream;
+
   static void start() {
-    _sub ??= LiveLink.i.other.listen((ev) {
-      _wait[ev]?.cancel();
-      _wait[ev] = Timer(Duration(milliseconds: ev == 'chat' ? 300 : 1200), () => _run(ev));
+    _sub ??= LiveLink.i.other.listen((m) {
+      final ev = m['ev'] as String? ?? '';
+      if (ev == 'player') {
+        final pid = m['pid'] as String?;
+        if (pid != null) _later('player:$pid', 1500, () => _player.add(pid));
+        return;
+      }
+      final key = ev == 'me' ? 'me:${m['k']}' : ev;
+      _later(key, ev == 'chat' ? 300 : 1200, () => _run(ev, m['k'] as String?));
+    });
+  }
+
+  static void _later(String key, int ms, void Function() f) {
+    _wait[key]?.cancel();
+    _wait[key] = Timer(Duration(milliseconds: ms), () {
+      _wait.remove(key);
+      f();
     });
   }
 
   static int get _tab => HomeShellState.current?.tab ?? -1;
 
-  static void _run(String ev) {
+  static void _run(String ev, String? k) {
     switch (ev) {
       case 'me':
         Notifs.i.refresh();
-        TradesScreenState.current?.load();
+        if (k == 'trade') TradesScreenState.current?.load();
+        if (k == 'react' && _tab == 6) FeedScreenState.current?.load();
+        if (k == 'prog') {
+          DefisScreenState.current?.load();
+          prog.value++;
+        }
       case 'chat':
         final m = MessagesScreenState.current;
         if (m != null && Notifs.i.chatOpen) {
@@ -58,7 +98,28 @@ class LiveEvents {
         updateGateKey.currentState?.recheck();
       case 'online':
         DuelWatch.i.refresh();
+        online.value++;
         if (_tab == 5) NeighborsScreenState.current?.load();
+      case 'duels':
+        if (LiveGames.i.watched) LiveGames.i.refresh();
+        online.value++;
+        if (_tab == 5) NeighborsScreenState.current?.load();
+      case 'mail':
+        _inbox();
+      case 'events':
+        Events.i.refresh();
+        updateGateKey.currentState?.recheck(); // promos, prix
     }
+  }
+
+  /// Courrier / sondage : tout de suite, sauf pendant une partie (on réessaie toutes les 20 s)
+  static void _inbox([int tries = 0]) {
+    final ctx = HomeShellState.current?.context;
+    if (ctx == null || !ctx.mounted || tries > 45) return;
+    if (DuelWatch.i.inGame > 0) {
+      _later('mail', 20000, () => _inbox(tries + 1));
+      return;
+    }
+    showInbox(ctx);
   }
 }
