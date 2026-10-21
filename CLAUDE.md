@@ -9,6 +9,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - **Ne jamais pousser sans accord** : montrer les changements, commit en local, pousser seulement après « pousse ».
 - **SQL avant le code** : donner le fichier SQL d'abord, l'utilisateur le lance dans le SQL Editor de Supabase, puis il dit « pousse ».
 - Fichiers SQL **relançables** (`create or replace`, `if not exists`), rangés dans `sql/AAAA-MM-JJ_sujet.sql`.
+- **Nouvelle table (depuis le 30/10/2026)** : Supabase ne donne plus l'accès API automatiquement. Une table lue seulement par les RPC `security definer` n'a besoin d'aucun `GRANT` ; une table lue directement en REST par l'appli → `grant select (colonnes…) on public.t to anon;` colonne par colonne, **jamais `device`**.
 - **Maquette HTML : toujours demander d'abord** (« je te fais une maquette ? »), ne jamais en lancer une sans accord. Pour une petite retouche, coder directement.
 - **Économiser** : réponses courtes, ne lire que les parties utiles des fichiers, pas de gros affichages inutiles. Une conversation par chantier.
 - Ne jamais commiter la clé de signature (keystore, `key.properties`) : elle est dans le secret GitHub `DEBUG_KEYSTORE_B64`.
