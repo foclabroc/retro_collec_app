@@ -1,6 +1,8 @@
 // Serveur MCP local (stdio) lancé par Claude Desktop sur le mini PC.
 // Outil unique « sql » : lance une ou plusieurs requêtes et renvoie les résultats.
 // Connexion : variable PT_DB (rôle claude_rw, jamais postgres), localhost seulement.
+// Chaque transaction passe en rôle rc_owner (propriétaire du jeu, pas superutilisateur) :
+// les objets créés gardent le même propriétaire que le reste.
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
@@ -30,6 +32,7 @@ server.registerTool(
     const client = await pool.connect();
     try {
       await client.query('begin');
+      await client.query('set local role rc_owner');
       const res = await client.query(query);
       await client.query('commit');
       const list = Array.isArray(res) ? res : [res];
