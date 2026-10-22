@@ -12,6 +12,7 @@ import 'main.dart';
 import 'push.dart';
 import 'retro_theme.dart';
 import 'server.dart';
+import 'tournament.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Défis reçus (4 en ligne, Console Wars), appli ouverte : toutes les 10 s,
@@ -75,6 +76,7 @@ class DuelWatch extends ChangeNotifier {
       notifyListeners();
       _announceReplies(r['replies']);
       _maybeShow();
+      TourWatch.handle(r['tour']); // tournoi : mon match commence, partie suivante prête
     } catch (_) {
       // serveur pas encore à jour ou hors ligne : on réessaiera
     }

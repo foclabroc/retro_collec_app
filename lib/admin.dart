@@ -11,6 +11,7 @@ import 'events.dart' show goalLabel;
 import 'profile.dart';
 import 'rewards.dart';
 import 'server.dart';
+import 'tournament.dart' show AdminTourPage;
 import 'arcade.dart';
 import 'update_check.dart';
 

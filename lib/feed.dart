@@ -70,7 +70,7 @@ class FeedScreenState extends State<FeedScreen> {
   String filter = 'all';
 
   static String _cat(String kind) => switch (kind) {
-        'c4' || 'c4draw' || 'bs' || 'bsdraw' => 'duel',
+        'c4' || 'c4draw' || 'bs' || 'bsdraw' || 'tour' || 'tournew' => 'duel',
         'trade' || 'gift' => 'trade',
         'join' || 'streak' || 'packs' => 'player',
         _ => 'card',
@@ -268,6 +268,21 @@ class _FeedTile extends StatelessWidget {
       'c4draw' => (s('$a et $b ont fait match nul au 4 en ligne', '$a and $b drew at Connect 4'), const Color(0xFF99AAAA), '🤝', null),
       'bs' => (s('$a a coulé la flotte de $b à Console Wars$how', '$a sank $b\'s fleet in Console Wars$how'), const Color(0xFF3EC7FF), '🚢', n > 0 ? '+$n 🪙' : null),
       'bsdraw' => (s('$a et $b ont fait match nul à Console Wars', '$a and $b drew in Console Wars'), const Color(0xFF99AAAA), '🤝', null),
+      'tour' => (
+          duo
+              ? s('$a a gagné le tournoi **${x ?? ''}** (${_tourGame(e['sys'])}) en battant $b en finale !', '$a won the **${x ?? ''}** tournament (${_tourGame(e['sys'])}), beating $b in the final!')
+              : s('$a a gagné le tournoi **${x ?? ''}** (${_tourGame(e['sys'])}) !', '$a won the **${x ?? ''}** tournament (${_tourGame(e['sys'])})!'),
+          kGold,
+          '🏆',
+          n > 0 ? '+$n 🪙' : null
+        ),
+      'tournew' => (
+          s('Nouveau tournoi **${x ?? ''}** (${_tourGame(e['sys'])}, $n places) : inscriptions ouvertes dans la Salle de jeux !',
+              'New tournament **${x ?? ''}** (${_tourGame(e['sys'])}, $n spots): sign up in the Game room!'),
+          kGold,
+          '🏆',
+          null
+        ),
       'trade' => (
           card == null
               ? s('$a et $b ont échangé $n carte${n > 1 ? 's' : ''}', '$a and $b traded $n card${n > 1 ? 's' : ''}')
@@ -433,3 +448,6 @@ class _ReactsState extends State<_Reacts> {
     ]);
   }
 }
+
+/// Nom du jeu d'un tournoi (actu)
+String _tourGame(dynamic sys) => sys == 'bs' ? 'Console Wars' : t('4 en ligne', 'Connect 4');

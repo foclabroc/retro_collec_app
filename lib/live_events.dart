@@ -14,6 +14,7 @@ import 'main.dart';
 import 'market.dart';
 import 'neighbors.dart';
 import 'notifs.dart';
+import 'tournament.dart';
 import 'trades.dart';
 import 'update_check.dart';
 
@@ -32,6 +33,7 @@ import 'update_check.dart';
 //  · 'mail'    : courrier ou sondage de l'admin → affiché tout de suite (après une partie)
 //  · 'events'  : événements modifiés → liste + prix / promos
 //  · 'player' {pid} : profil ou collection d'un joueur changé → pages ouvertes de ce joueur
+//  · 'tour'    : un tournoi a bougé → pages des tournois (Tours.ping) + mon match (DuelWatch)
 // Traitement quasi immédiat : seules les rafales d'un même tour (≈ 80 ms) sont regroupées.
 // Les minuteries restent en secours, ralenties quand LiveLink.connected.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -106,6 +108,9 @@ class LiveEvents {
         if (_tab == 5) NeighborsScreenState.current?.load();
       case 'mail':
         _inbox();
+      case 'tour':
+        Tours.ping.value++;
+        DuelWatch.i.refresh();
       case 'events':
         Events.i.refresh();
         updateGateKey.currentState?.recheck(); // promos, prix

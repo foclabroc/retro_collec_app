@@ -223,6 +223,14 @@ class _ToolsTab extends StatelessWidget {
               label: Text(t('Gérer les événements', 'Manage events')),
             ),
           ]),
+          _section(t('🏆 Tournois', '🏆 Tournaments'), t('Créer un tournoi (4 en ligne ou Console Wars, 4 / 8 / 16 places, lots, inscription payante), le modifier tant qu\'il est ouvert, l\'annuler (mises rendues).',
+              'Create a tournament (Connect 4 or Console Wars, 4 / 8 / 16 spots, prizes, paid entry), edit it while open, cancel it (fees refunded).'), [
+            ElevatedButton.icon(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminTourPage())),
+              icon: const Icon(Icons.emoji_events),
+              label: Text(t('Gérer les tournois', 'Manage tournaments')),
+            ),
+          ]),
           _bannerSection(context, cfg['banner'] is Map ? Map<String, dynamic>.from(cfg['banner'] as Map) : null, reload),
           _maintenanceSection(context, cfg['maintenance'] is Map ? Map<String, dynamic>.from(cfg['maintenance'] as Map) : null, reload),
           _liveSection(context, live, reload),
@@ -1008,6 +1016,7 @@ class _AdminActivityPageState extends State<AdminActivityPage> {
         'trade_offer' || 'trade_ok' || 'trade_no' => '🔄',
         'gift' || 'gift_in' => '🎁',
         'duel' => '⚔',
+        'tour' => '🏆',
         'gamedle' => '🧩',
         'wheel' => '🎡',
         'week' => '🎯',

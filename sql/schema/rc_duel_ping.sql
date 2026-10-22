@@ -1,16 +1,20 @@
-CREATE OR REPLACE FUNCTION public.rc_duel_ping(p_device text, p_bg boolean DEFAULT false)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-declare live jsonb; inv int; trn int; last_from text; replies jsonb; onl int;
+create or replace function public.rc_duel_ping(p_device text, p_bg boolean DEFAULT false)
+ returns jsonb
+ language plpgsql
+ security definer
+ set search_path to 'public'
+as $function$
+declare live jsonb; inv int; trn int; last_from text; replies jsonb; onl int; tour jsonb;
 begin
   -- « en ligne » : seen_at réécrit seulement s'il date de plus de 30 s (ping toutes les 10-20 s, seuil 75 s)
   if not p_bg then
     update public.rc_players set seen_at = now()
      where device = p_device and (seen_at is null or seen_at < now() - interval '30 seconds');
   end if;
+  begin
+    perform public.rc__tour_tick();
+  exception when others then null;
+  end;
   select coalesce(jsonb_agg(x order by x->>'created_at'), '[]'::jsonb) into live from (
     select jsonb_build_object('game', 'c4', 'id', g.id, 'stake', g.stake, 'friendly', public.rc__duel_why(g.p1, g.p2), 'created_at', g.created_at, 'msg', g.msg,
              'deadline', g.created_at + interval '2 minutes', 'now', now(),
@@ -53,5 +57,6 @@ begin
   -- joueurs en ligne (même règle que rc_board : vus il y a moins de 75 s), pour le compteur du menu
   select count(*) into onl from public.rc_players
    where device <> p_device and packs > 0 and seen_at > now() - interval '75 seconds';
-  return jsonb_build_object('online', onl, 'live', live, 'invites', inv, 'turns', trn, 'last_from', last_from, 'replies', replies);
-end $function$
+  tour := public.rc__tour_me(p_device);
+  return jsonb_build_object('online', onl, 'live', live, 'invites', inv, 'turns', trn, 'last_from', last_from, 'replies', replies, 'tour', tour);
+end $function$;

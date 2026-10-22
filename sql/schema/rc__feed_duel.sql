@@ -1,12 +1,13 @@
-CREATE OR REPLACE FUNCTION public.rc__feed_duel()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
+create or replace function public.rc__feed_duel()
+ returns trigger
+ language plpgsql
+ security definer
+ set search_path to 'public'
+as $function$
 declare k text := case when tg_table_name = 'rc_bs' then 'bs' else 'c4' end;
 begin
   if new.status <> 'done' or old.status = 'done' then return new; end if;
+  if new.tmatch is not null then return new; end if;  -- tournoi : une seule nouvelle à la fin
   if new.reason not in ('win', 'draw', 'timeout', 'resign') or new.moves = 0 then return new; end if;
   if new.winner = 0 then
     perform public.rc__feed_put(new.p1, k || 'draw', new.p2, null, null, null, null, new.reason);
@@ -16,4 +17,4 @@ begin
                                 null, null, null, case when new.stake > 0 then new.stake * 2 when new.paid then 150 end, new.reason);
   end if;
   return new;
-end $function$
+end $function$;

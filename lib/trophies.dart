@@ -49,6 +49,7 @@ const kTrophies = [
   TrophyDef('premium', '⭐', 'Premium', 'Premium', 'Ouvrir # paquets premium', 'Open # premium packs', [5, 25, 100]),
   TrophyDef('buys', '🛒', 'Acheteur', 'Buyer', 'Acheter # cartes à la Bourse', 'Buy # cards on the market', [5, 25, 100]),
   TrophyDef('firsttry', '🎯', 'Du premier coup', 'First try', 'Trouver # Gamedle du premier coup', 'Solve # Gamedles on the first try', [1, 5, 20]),
+  TrophyDef('tourney', '🏆', 'Champion', 'Champion', 'Gagner # tournois', 'Win # tournaments', [1, 3, 10]),
 ];
 
 TrophyDef? trophyDef(String k) {

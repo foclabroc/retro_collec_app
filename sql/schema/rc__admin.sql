@@ -9,7 +9,8 @@ begin
   if not public.rc__is_admin(p_dev) then raise exception 'réservé'; end if;
   -- journal : seulement les actions (pas les lectures)
   if split_part(coalesce(p_payload, ''), '|', 1) in
-     ('mail', 'mail2', 'block', 'rename', 'config', 'live', 'mremove', 'maildel', 'pollnew', 'pollclose', 'evsave', 'evactive') then
+     ('mail', 'mail2', 'block', 'rename', 'config', 'live', 'mremove', 'maildel', 'pollnew', 'pollclose', 'evsave', 'evactive',
+      'toursave', 'tourcancel') then
     insert into public.rc_admin_log (device, action) values (p_dev, left(p_payload, 400));
   end if;
 end $function$;

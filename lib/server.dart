@@ -218,6 +218,35 @@ class RcServer {
   /// Duels en direct en cours : [{game: c4|bs, id, phase, moves, p1: {pid, name, avatar}, p2}]
   static Future<List<Map<String, dynamic>>> liveGames() async => _list(await _rpc('rc_live_games', {}));
 
+  // ── Tournois (tournament.dart) ─────────────────────────────────────────
+  /// À venir, en cours, finis depuis moins de 7 jours (résumés)
+  static Future<List<Map<String, dynamic>>> tourList() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_tour_list', {'p_device': d}));
+  }
+
+  /// Un tournoi complet : joueurs, matchs (arbre)
+  static Future<Map<String, dynamic>> tourGet(int id) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_tour_get', {'p_id': id, 'p_device': d}));
+  }
+
+  static Future<Map<String, dynamic>> tourJoin(int id) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_tour_join', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|tjoin|$id')}));
+  }
+
+  static Future<Map<String, dynamic>> tourLeave(int id) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_tour_leave', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|tleave|$id')}));
+  }
+
+  /// « Je suis là » pour mon match → mon match ({status, gid…} + match)
+  static Future<Map<String, dynamic>> tourReady(int mid) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_tour_ready', {'p_device': d, 'p_mid': mid, 'p_sig': _sig('$d|tready|$mid')}));
+  }
+
   // ── Spectateurs d'une partie en direct (watchers.dart) ─────────────────
   /// Je regarde (à refaire toutes les 20 s) → spectateurs [{pid, name, avatar}]
   static Future<List<Map<String, dynamic>>> watchJoin(String game, int id) async {
@@ -809,6 +838,14 @@ class RcServer {
     final v = jsonEncode(data);
     await _admin('rc_admin_event_save', 'evsave|${id ?? 0}|$v', {'p_id': id, 'p_data': v});
   }
+
+  /// Créer (id absent) ou modifier un tournoi encore ouvert → id
+  static Future<int> adminTourSave(Map<String, dynamic> data) async {
+    final v = jsonEncode(data);
+    return ((await _admin('rc_admin_tour_save', 'toursave|$v', {'p_data': v})) as num).toInt();
+  }
+
+  static Future<void> adminTourCancel(int id) async => _admin('rc_admin_tour_cancel', 'tourcancel|$id', {'p_id': id});
 
   static Future<void> adminEventActive(int id, bool on) async =>
       _admin('rc_admin_event_active', 'evactive|$id|${on ? 1 : 0}', {'p_id': id, 'p_on': on});

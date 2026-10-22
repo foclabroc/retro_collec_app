@@ -9,11 +9,16 @@ declare jeu text := case when tg_table_name = 'rc_bs' then 'Console Wars' else '
 begin
   begin
     if tg_op = 'INSERT' then
-      perform public.rc__act(new.p1, 'duel', 2, 'invite à ' || jeu, null, null, new.p2);
+      if new.tmatch is not null then
+        perform public.rc__act(new.p1, 'tour', 2, 'match de tournoi à ' || jeu || ' contre', null, null, new.p2);
+        perform public.rc__act(new.p2, 'tour', 2, 'match de tournoi à ' || jeu || ' contre', null, null, new.p1);
+      else
+        perform public.rc__act(new.p1, 'duel', 2, 'invite à ' || jeu, null, null, new.p2);
+      end if;
     elsif new.status = 'done' and old.status is distinct from 'done' then
       if new.reason in ('win', 'draw', 'timeout', 'resign') then
         how := case new.reason when 'timeout' then ' (temps écoulé)' when 'resign' then ' (abandon)' else '' end;
-        ami := case when coalesce(new.paid, false) then '' else ' — amical' end;
+        ami := case when new.tmatch is not null then ' — tournoi' when coalesce(new.paid, false) then '' else ' — amical' end;
         if new.winner in (1, 2) then
           perform public.rc__act(case new.winner when 1 then new.p1 else new.p2 end, 'duel', 2,
                                  'gagne à ' || jeu || how || ami || ' contre', null, null,

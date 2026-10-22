@@ -38,7 +38,22 @@ int duelPrize(int stake) => stake > 0 ? stake * 2 : kDuelWin;
 String duelLoseText(int stake) => stake > 0 ? '−$stake' : '+$kDuelLose';
 
 /// Partie amicale : pas de gains (adversaire de moins d'un jour, ou déjà 4 parties payées aujourd'hui contre lui)
-bool duelFriendly(Map g) => g['paid'] == false;
+bool duelFriendly(Map g) => g['paid'] == false && !duelTour(g);
+
+/// Partie de tournoi (tournament.dart) : pas de gains par partie, les lots arrivent à la fin du tournoi
+bool duelTour(Map g) => g['tour'] is Map;
+
+/// « Tournoi « Coupe » · finale en 2 manches gagnantes (1-0) »
+String duelTourNote(Map g) {
+  final tr = g['tour'] as Map? ?? const {};
+  final name = tr['name'] ?? '';
+  final best = (tr['best'] as num? ?? 1).toInt();
+  if (best > 1) {
+    final w1 = (tr['w1'] as num? ?? 0).toInt(), w2 = (tr['w2'] as num? ?? 0).toInt();
+    return t('🏆 $name · finale en 2 manches gagnantes ($w1-$w2)', '🏆 $name · final, best of 3 ($w1-$w2)');
+  }
+  return t('🏆 $name · le gagnant passe au tour suivant', '🏆 $name · the winner goes through');
+}
 String get duelFriendlyText => t('Partie amicale : pas de gains', 'Friendly game: no rewards');
 
 /// Pourquoi la partie sera amicale (renvoyé par le serveur : 'new' ou 'limit')
@@ -668,7 +683,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
             lead: _avatar(_av(g), ring: (g['opp'] as Map?)?['online'] == true ? _kTeal : null),
             title: Text(t('${_name(g)} te défie ⚔', '${_name(g)} challenges you ⚔'), maxLines: 1, overflow: TextOverflow.ellipsis),
             lines: [
-              Text('${g['mode'] == 'live' ? t('En direct', 'Live') : t('Tour par tour', 'Turn-based')} · ${_i(g['stake'], kC4Stake) > 0 ? '${_i(g['stake'], kC4Stake)} ${t('pièces', 'coins')}' : g['friendly'] != null ? t('amicale, sans gains', 'friendly, no rewards') : t('gratuit', 'free')}'),
+              Text('${g['mode'] == 'live' ? t('En direct', 'Live') : t('Tour par tour', 'Turn-based')} · ${_i(g['stake'], kC4Stake) > 0 ? '${_i(g['stake'], kC4Stake)} ${t('pièces', 'coins')}' : duelTour(g) ? t('tournoi', 'tournament') : g['friendly'] != null ? t('amicale, sans gains', 'friendly, no rewards') : t('gratuit', 'free')}'),
               if (g['msg'] != null) SayLine(g['msg'] as String),
               if (g['reply'] != null) SayLine(g['reply'] as String, who: t('Toi', 'You')),
             ],
@@ -1047,8 +1062,8 @@ Widget _resultLine(Map g) {
     'resign' => t(' (abandon)', ' (resigned)'),
     _ => '',
   };
-  if (duelFriendly(g) && w != null) {
-    return Text('${w == 0 ? t('Match nul', 'Draw') : w == side ? t('Gagné$why', 'Won$why') : t('Perdu$why', 'Lost$why')} · ${t('amicale', 'friendly')}',
+  if ((duelFriendly(g) || duelTour(g)) && w != null) {
+    return Text('${w == 0 ? t('Match nul', 'Draw') : w == side ? t('Gagné$why', 'Won$why') : t('Perdu$why', 'Lost$why')} · ${duelTour(g) ? t('tournoi', 'tournament') : t('amicale', 'friendly')}',
         style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w800));
   }
   if (w == 0) {
@@ -1480,7 +1495,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
               Expanded(
                 child: Column(crossAxisAlignment: right ? CrossAxisAlignment.end : CrossAxisAlignment.start, children: [
                   Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                  Text(stake > 0 ? t('mise $stake', 'bet $stake') : g['friendly'] != null ? t('amicale', 'friendly') : t('gratuit', 'free'), style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                  Text(stake > 0 ? t('mise $stake', 'bet $stake') : duelTour(g) ? t('tournoi', 'tournament') : g['friendly'] != null ? t('amicale', 'friendly') : t('gratuit', 'free'), style: const TextStyle(fontSize: 11, color: Colors.white54)),
                   if (on && playing) Text(timerText(), style: pixelStyle(size: 8, color: warn ? _kRed : _kGoldHi, shadow: false)),
                 ]),
               ),
@@ -1512,7 +1527,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
       max: 560,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(watch ? t('👁 SPECTATEUR', '👁 WATCHING') : live ? t('EN DIRECT', 'LIVE') : t('TOUR PAR TOUR', 'TURN-BASED'), style: pixelStyle(size: 12)),
+          title: Text(watch ? t('👁 SPECTATEUR', '👁 WATCHING') : duelTour(g) ? t('🏆 TOURNOI', '🏆 TOURNAMENT') : live ? t('EN DIRECT', 'LIVE') : t('TOUR PAR TOUR', 'TURN-BASED'), style: pixelStyle(size: 12)),
           actions: [WatchersChip(_wctl), if (!watch) ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
         ),
         body: ListView(padding: const EdgeInsets.fromLTRB(14, 8, 14, 24), children: [
@@ -1526,8 +1541,8 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                   height: 16,
                   child: Stack(children: [for (var k = 0; k < 3; k++) Positioned(left: k * 9.0, child: const _Coin(size: 16))]),
                 ),
-                Text(g['friendly'] != null ? '0' : '${duelPrize(stake)}', style: pixelStyle(size: 9, color: _kGoldHi, shadow: false)),
-                Text(stake > 0 ? 'POT' : g['friendly'] != null ? t('AMICAL', 'FRIENDLY') : 'GAIN', style: TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
+                Text(duelTour(g) ? '${(g['tour'] as Map)['w1'] ?? 0}-${(g['tour'] as Map)['w2'] ?? 0}' : g['friendly'] != null ? '0' : '${duelPrize(stake)}', style: pixelStyle(size: 9, color: _kGoldHi, shadow: false)),
+                Text(duelTour(g) ? t('TOURNOI', 'CUP') : stake > 0 ? 'POT' : g['friendly'] != null ? t('AMICAL', 'FRIENDLY') : 'GAIN', style: TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
               ]),
             ),
             player(oppName, _i(opp['avatar']), oppColor, playing && turn != side, _emoOpp, right: true),
@@ -1790,8 +1805,8 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
       w == widget.side && !duelFriendly(widget.g) ? 140 : 0,
       (_) => _Bit((_rnd.nextDouble() - 0.5) * 2.2, -_rnd.nextDouble() * 2.4 - 0.6, 3 + _rnd.nextDouble() * 4, cols[_rnd.nextInt(cols.length)], _rnd.nextDouble() * 6),
     );
-    if (w == widget.side && !duelFriendly(widget.g)) {
-      c.forward();
+    if (w == widget.side && !duelFriendly(widget.g)) c.forward();
+    if (w == widget.side && !duelFriendly(widget.g) && !duelTour(widget.g)) {
       _count = Timer.periodic(const Duration(milliseconds: 30), (tm) {
         if (!mounted) return tm.cancel();
         setState(() => shown = min(shown + 2, duelPrize(stake)));
@@ -1833,7 +1848,7 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                 : reason == 'resign'
                     ? t('Tu as abandonné', 'You resigned')
                     : t('$opp a aligné quatre pions', '$opp got four in a row'));
-    final gain = duelFriendly(g) ? '0' : win ? '+$shown' : draw ? (stake > 0 ? '+$stake' : '+$kDuelLose') : duelLoseText(stake);
+    final gain = duelTour(g) ? '' : duelFriendly(g) ? '0' : win ? '+$shown' : draw ? (stake > 0 ? '+$stake' : '+$kDuelLose') : duelLoseText(stake);
     return Stack(children: [
       // confettis
       Positioned.fill(
@@ -1864,9 +1879,9 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                 const SizedBox(height: 6),
                 Text(px(title), style: pixelStyle(size: 15, color: win ? _kGoldHi : draw ? Colors.white : const Color(0xFFFF8A95), shadow: false)),
                 const SizedBox(height: 6),
-                Text(duelFriendly(g) ? '$sub\n$duelFriendlyText' : sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
+                Text(duelTour(g) ? '$sub\n${duelTourNote(g)}' : duelFriendly(g) ? '$sub\n$duelFriendlyText' : sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
                 const SizedBox(height: 10),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                if (!duelTour(g)) Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   const _Coin(size: 22),
                   const SizedBox(width: 8),
                   Text(gain, style: pixelStyle(size: 18, color: _kGoldHi, shadow: false)),
@@ -1885,13 +1900,22 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                 ]),
                 const SizedBox(height: 14),
                 Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(backgroundColor: _kNeon, foregroundColor: Colors.white),
-                    onPressed: () => Navigator.pop(context, true),
-                    icon: const Icon(Icons.replay),
-                    label: Text(t('Revanche', 'Rematch'), style: const TextStyle(fontWeight: FontWeight.w900)),
-                  ),
-                  OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(t('Salon', 'Lobby'))),
+                  if (duelTour(g))
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF1A1000)),
+                      onPressed: () => Navigator.pop(context, false),
+                      icon: const Icon(Icons.emoji_events),
+                      label: Text(t('Continuer', 'Continue'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                    )
+                  else ...[
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(backgroundColor: _kNeon, foregroundColor: Colors.white),
+                      onPressed: () => Navigator.pop(context, true),
+                      icon: const Icon(Icons.replay),
+                      label: Text(t('Revanche', 'Rematch'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                    ),
+                    OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(t('Salon', 'Lobby'))),
+                  ],
                   TextButton(onPressed: () => Navigator.pop(context), child: Text(t('Voir le plateau', 'See the board'))),
                 ]),
               ]),

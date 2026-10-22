@@ -1220,8 +1220,8 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
             padding: const EdgeInsets.symmetric(horizontal: 5),
             child: Column(children: [
               const _Coin(size: 16),
-              Text(g['friendly'] != null ? '0' : '${duelPrize(stake)}', style: pixelStyle(size: 8.5, color: _kGoldHi, shadow: false)),
-              Text(stake > 0 ? 'POT' : g['friendly'] != null ? t('AMICAL', 'FRIENDLY') : 'GAIN', style: const TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
+              Text(duelTour(g) ? '${(g['tour'] as Map)['w1'] ?? 0}-${(g['tour'] as Map)['w2'] ?? 0}' : g['friendly'] != null ? '0' : '${duelPrize(stake)}', style: pixelStyle(size: 8.5, color: _kGoldHi, shadow: false)),
+              Text(duelTour(g) ? t('TOURNOI', 'CUP') : stake > 0 ? 'POT' : g['friendly'] != null ? t('AMICAL', 'FRIENDLY') : 'GAIN', style: const TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
             ]),
           ),
           _player(oppName, _i(opp['avatar']), _kNeon, !p1Turn && !done && playing || (setup && !watch && !p1Turn), _emoOpp, _hits(oppShots), right: true),
@@ -1532,7 +1532,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
       max: 560,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(watch ? t('👁 SPECTATEUR', '👁 WATCHING') : setup && !placed ? t('LE PORT', 'THE HARBOR') : 'CONSOLE WARS', style: pixelStyle(size: 12)),
+          title: Text(watch ? t('👁 SPECTATEUR', '👁 WATCHING') : setup && !placed ? t('LE PORT', 'THE HARBOR') : duelTour(g) ? t('🏆 TOURNOI', '🏆 TOURNAMENT') : 'CONSOLE WARS', style: pixelStyle(size: 12)),
           actions: [WatchersChip(_wctl), if (!watch) ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
         ),
         body: LayoutBuilder(
@@ -1618,8 +1618,8 @@ class _BsResultDialogState extends State<_BsResultDialog> with SingleTickerProvi
     super.initState();
     const cols = [_kRed, _kYellow, _kCyan, _kNeon, _kTeal, Colors.white];
     bits = List.generate(win && !duelFriendly(widget.g) ? 140 : 0, (_) => _Bit((_rnd.nextDouble() - 0.5) * 2.2, -_rnd.nextDouble() * 2.4 - 0.6, 3 + _rnd.nextDouble() * 4, cols[_rnd.nextInt(cols.length)], _rnd.nextDouble() * 6));
-    if (win && !duelFriendly(widget.g)) {
-      c.forward();
+    if (win && !duelFriendly(widget.g)) c.forward();
+    if (win && !duelFriendly(widget.g) && !duelTour(widget.g)) {
       _count = Timer.periodic(const Duration(milliseconds: 30), (tm) {
         if (!mounted) return tm.cancel();
         setState(() => shown = min(shown + 2, duelPrize(stake)));
@@ -1681,9 +1681,9 @@ class _BsResultDialogState extends State<_BsResultDialog> with SingleTickerProvi
                 const SizedBox(height: 6),
                 Text(px(win ? t('VICTOIRE !', 'VICTORY!') : t('DÉFAITE', 'DEFEAT')), style: pixelStyle(size: 15, color: win ? _kGoldHi : const Color(0xFFFF8A95), shadow: false)),
                 const SizedBox(height: 6),
-                Text(duelFriendly(widget.g) ? '$sub\n$duelFriendlyText' : sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
+                Text(duelTour(widget.g) ? '$sub\n${duelTourNote(widget.g)}' : duelFriendly(widget.g) ? '$sub\n$duelFriendlyText' : sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
                 const SizedBox(height: 10),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                if (!duelTour(widget.g)) Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   const _Coin(size: 22),
                   const SizedBox(width: 8),
                   Text(duelFriendly(widget.g) ? '0' : win ? '+$shown' : duelLoseText(stake), style: pixelStyle(size: 18, color: _kGoldHi, shadow: false)),
@@ -1700,13 +1700,22 @@ class _BsResultDialogState extends State<_BsResultDialog> with SingleTickerProvi
                 ]),
                 const SizedBox(height: 14),
                 Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(backgroundColor: _kNeon, foregroundColor: Colors.white),
-                    onPressed: () => Navigator.pop(context, true),
-                    icon: const Icon(Icons.replay),
-                    label: Text(t('Revanche', 'Rematch'), style: const TextStyle(fontWeight: FontWeight.w900)),
-                  ),
-                  OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(t('Salon', 'Lobby'))),
+                  if (duelTour(widget.g))
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF1A1000)),
+                      onPressed: () => Navigator.pop(context, false),
+                      icon: const Icon(Icons.emoji_events),
+                      label: Text(t('Continuer', 'Continue'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                    )
+                  else ...[
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(backgroundColor: _kNeon, foregroundColor: Colors.white),
+                      onPressed: () => Navigator.pop(context, true),
+                      icon: const Icon(Icons.replay),
+                      label: Text(t('Revanche', 'Rematch'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                    ),
+                    OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(t('Salon', 'Lobby'))),
+                  ],
                   TextButton(onPressed: () => Navigator.pop(context), child: Text(t('Voir le radar', 'See the radar'))),
                 ]),
               ]),

@@ -4,9 +4,10 @@ import 'connect4.dart';
 import 'game.dart';
 import 'layout.dart';
 import 'main.dart';
+import 'tournament.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Onglet « Salle de jeux » (8) : les jeux à 2 joueurs (4 en ligne, Console Wars),
+// Onglet « Salle de jeux » (8) : tournois (TourTile), les jeux à 2 joueurs (4 en ligne, Console Wars),
 // sortis de « Bonus / Jeux », et le bouton « Jeux en cours » (duels en direct
 // des autres joueurs, à regarder en spectateur : WatchList de spectate.dart).
 // ═══════════════════════════════════════════════════════════════════════════
@@ -43,6 +44,8 @@ class GamesRoomScreenState extends State<GamesRoomScreen> {
         child: RefreshIndicator(
           onRefresh: () => LiveGames.i.refresh(),
           child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: const [
+            TourTile(),
+            SizedBox(height: 12),
             _LiveGamesButton(),
             SizedBox(height: 12),
             Connect4Tile(),
