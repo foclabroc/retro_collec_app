@@ -1644,10 +1644,19 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       Notifs.i.refresh();
       if (!mounted) return;
       final k = (r['kind'] as String?) ?? kind;
-      Navigator.of(context).pushReplacement(PageRouteBuilder(
-        pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: k, sys: k == 'console' ? (r.containsKey('kind') ? r['sys'] as String? : sys) : null),
-        transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
-      ));
+      // pushReplacement termine la page d'origine (son await rend la main) : on compte la nouvelle page
+      // comme une ouverture en cours, sinon l'onglet Paquets voit ce paquet pas encore choisi comme « entamé »
+      _packFlows++;
+      Navigator.of(context)
+          .pushReplacement(PageRouteBuilder(
+            pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: k, sys: k == 'console' ? (r.containsKey('kind') ? r['sys'] as String? : sys) : null),
+            transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
+          ))
+          .whenComplete(() {
+        _packFlows--;
+        Game.i.sync();
+        if (_packFlows == 0) PacksScreenState.reloadPending();
+      });
     } catch (e) {
       toast(errText(e));
       if (mounted) setState(() => _againBusy = false);
