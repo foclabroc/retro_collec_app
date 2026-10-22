@@ -12,6 +12,15 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('⚡', 'Ouverture auto des boosters : un bouton choisit le booster et montre directement tes cartes, même pour les paquets suivants',
+      'Auto open: one button picks the booster and shows your cards right away, for the next packs too'),
+  ('🏆', 'Tournois : fenêtre de félicitations pour le podium, lots au nom du tournoi, score des manches plus clair en finale',
+      'Tournaments: congrats window for the podium, prizes named after the tournament, clearer round score in the final'),
+  ('🔕', 'Plus de fenêtre de défi pendant l\'ouverture d\'un paquet ou un match de tournoi : elle arrive juste après',
+      'No more challenge window while opening a pack or during a tournament match: it shows right after'),
+  ('🛠', 'Corrigé : « Paquet entamé » qui restait affiché pour rien, messages du chat parfois en double',
+      'Fixed: "Started pack" showing for nothing, chat messages sometimes shown twice'),
+  ('#', 'Aussi depuis la 1.0.20', 'Also since 1.0.20'),
   ('🏆', 'Tournois ! Inscris-toi dans la Salle de jeux : matchs en direct au 4 en ligne ou à Console Wars, arbre en direct, lots et cagnotte pour le podium',
       'Tournaments! Sign up in the Game room: live Connect 4 or Console Wars matches, live bracket, prizes and a pot for the podium'),
   ('⚔', 'Quand ton match commence, une fenêtre te prévient : touche « Jouer » dans les 3 minutes (sinon forfait)',
@@ -31,18 +40,6 @@ const _kNews = <(String, String, String)>[
   ('🚀', 'Version web plus rapide au lancement', 'Faster web version at startup'),
   ('🛡', 'Plus de sécurité : un nouveau compte peut utiliser la Bourse, les cadeaux et les échanges après 24 h',
       'More security: a new account can use the market, gifts and trades after 24 h'),
-  ('#', 'Aussi depuis la 1.0.18', 'Also since 1.0.18'),
-  ('🎮', '5 nouvelles consoles : 3DS, SG-1000, Dreamcast, Atari 7800 et Amiga CD32 (50 cartes chacune, 1600 cartes en tout)',
-      '5 new systems: 3DS, SG-1000, Dreamcast, Atari 7800 and Amiga CD32 (50 cards each, 1,600 cards in total)'),
-  ('⚡', 'Tout en temps réel : messages, notifications, échanges, Bourse, Actu, événements, défis, trophées et profils',
-      'Everything in real time: messages, notifications, trades, market, news, events, challenges, trophies and profiles'),
-  ('👁', 'Mode spectateur : regarde les duels en direct des autres joueurs (salon, liste En ligne, borne IN GAME)',
-      'Spectator mode: watch other players\' live duels (lobby, Online list, IN GAME cabinet)'),
-  ('🕹', 'Nouvel onglet « Salle de jeux » : 4 en ligne et Console Wars, avec le bouton « Jeux en cours »',
-      'New "Game room" tab: Connect 4 and Console Wars, with a "Games in progress" button'),
-  ('👤', 'Profil : Ma borne, Thème et Musique en haut ; tes séries en déroulant, et celles des autres sur leur profil',
-      'Profile: My cabinet, Theme and Music at the top; your sets in a drop-down, and other players\' sets on their profile'),
-  ('🏆', 'Trophée « Console complète » : l\'or demande maintenant les 19 consoles', '"Full system" trophy: gold now needs all 19 systems'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';

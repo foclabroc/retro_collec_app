@@ -1,5 +1,16 @@
 # Pixel Trade — Changelog
 
+## v1.0.21
+_Version 1.0.21+22._
+
+- ⚡ **Ouverture auto des boosters** : bouton « Ouverture auto » (choix des boosters, paquet à déchirer) → booster au hasard
+  et récapitulatif direct, gardé pour les paquets suivants jusqu'à « arrêter ».
+- 🏆 Tournois : fenêtre de félicitations pour le podium (lots, cagnotte), paquets des lots nommés « Tournoi X · … »
+  (`sql/2026-10-22_tournois_suite.sql`), score des manches vu de son côté, plus de « Voir le plateau » en partie de tournoi.
+- Pas de fenêtre de défi pendant l'ouverture d'un paquet ni pendant un match de tournoi (montrée juste après).
+- Corrigé : case « Paquet entamé » fantôme (« Ouvrir un autre », réponses en retard, erreurs prises pour « déjà ouvert ») ;
+  messages du chat affichés en double après un envoi.
+
 ## v1.0.20
 _Version 1.0.20+21._
 
