@@ -196,9 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 18),
                 const MyTrophies(),
                 const SizedBox(height: 18),
-                Text(t('Mes séries', 'My sets'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-                const SizedBox(height: 8),
-                for (final s in [...Catalog.systems, ...Catalog.sagaSystems]) _setRow(s.name, g.ownedIn(s.id), s.count),
+                SetsFold(title: t('Mes séries', 'My sets'), count: g.ownedIn),
                 const SizedBox(height: 18),
                 Text(t('Statistiques', 'Statistics'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 8),
@@ -656,6 +654,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
       trailing: Text('${p['score']}', style: const TextStyle(color: kGold, fontWeight: FontWeight.w700)),
       onTap: me ? null : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: p['pid'] as String))),
     );
+  }
+}
+
+/// « Mes séries » / « Ses séries » : déroulant (fermé par défaut), une barre par console / saga
+class SetsFold extends StatefulWidget {
+  final String title;
+  final int Function(String sys) count; // cartes possédées dans la série
+  const SetsFold({super.key, required this.title, required this.count});
+  @override
+  State<SetsFold> createState() => _SetsFoldState();
+}
+
+class _SetsFoldState extends State<SetsFold> {
+  bool open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final sets = [...Catalog.systems, ...Catalog.sagaSystems];
+    final done = sets.where((s) => s.count > 0 && widget.count(s.id) >= s.count).length;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => setState(() => open = !open),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.18),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white12),
+          ),
+          child: Row(children: [
+            const Text('🎮', style: TextStyle(fontSize: 15)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(t('${widget.title} · $done/${sets.length} complètes', '${widget.title} · $done/${sets.length} complete'),
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
+            ),
+            AnimatedRotation(
+              turns: open ? 0.5 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: const Icon(Icons.expand_more, color: Colors.white70),
+            ),
+          ]),
+        ),
+      ),
+      AnimatedSize(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        alignment: Alignment.topCenter,
+        child: !open
+            ? const SizedBox(width: double.infinity)
+            : Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Column(children: [for (final s in sets) _setRow(s.name, widget.count(s.id), s.count)]),
+              ),
+      ),
+    ]);
   }
 }
 
@@ -1142,6 +1197,11 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                     OtherTrophies(show: p!['trophies'] as String?, total: (p!['tro_total'] as num? ?? 0).toInt()),
                     const SizedBox(height: 18),
                   ],
+                  ValueListenableBuilder<Map<String, List<int>>>(
+                    valueListenable: ownedLive,
+                    builder: (_, __, ___) => SetsFold(title: t('Ses séries', 'Their sets'), count: _in),
+                  ),
+                  const SizedBox(height: 18),
                   Text(t('Statistiques', 'Statistics'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                   const SizedBox(height: 8),
                   StatsPanel(
