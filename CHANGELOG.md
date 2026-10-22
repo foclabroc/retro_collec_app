@@ -1,5 +1,23 @@
 # Pixel Trade — Changelog
 
+## v1.0.18
+_Version 1.0.18+19._
+
+- 🎁 **Cadeau de mise à jour** : 600 pièces, 8 pixels et 1 booster premium (dans Paquets → Cadeaux reçus), une fois par joueur (`rc_upgrade_gift`).
+- **5 nouvelles consoles** : 3DS, SG-1000, Dreamcast, Atari 7800 et Amiga CD32, 50 cartes chacune (1600 cartes, 19 séries),
+  descriptions en français et en anglais ; trophée « Console complète » en 1 / 5 / 19.
+- **Temps réel partout** : messages, notifications, échanges, ventes, Bourse, Actu, événements, défis, trophées, profils et
+  collections ouverts, joueurs qui arrivent ou partent.
+- **Mode spectateur** : regarder les duels en direct des autres (salon « À regarder », liste En ligne, borne IN GAME).
+- **Onglet « Salle de jeux »** : 4 en ligne et Console Wars sortis de Bonus, bouton « Jeux en cours ».
+- **Profil** : Ma borne / Thème / Musique en haut ; « Mes séries » en déroulant, « Ses séries » sur le profil des autres.
+
+## v1.0.17
+- Bascule sur le serveur maison (`api.foclabroc.duckdns.org`), message « Serveur indisponible » / « Pas de connexion au serveur ».
+
+## v1.0.16
+- Thème « Mur de cartes » par défaut, 13 thèmes plus doux, cadeau de mise à jour (500 pièces).
+
 ## v1.0.15
 _Version 1.0.15+16._
 

@@ -12,6 +12,20 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎁', 'Cadeau de mise à jour : 600 pièces, 8 pixels et un booster premium (dans Paquets → Cadeaux reçus)',
+      'Update gift: 600 coins, 8 pixels and a premium pack (in Packs → Gifts received)'),
+  ('🎮', '5 nouvelles consoles : 3DS, SG-1000, Dreamcast, Atari 7800 et Amiga CD32 (50 cartes chacune, 1600 cartes en tout)',
+      '5 new systems: 3DS, SG-1000, Dreamcast, Atari 7800 and Amiga CD32 (50 cards each, 1,600 cards in total)'),
+  ('⚡', 'Tout en temps réel : messages, notifications, échanges, Bourse, Actu, événements, défis, trophées et profils',
+      'Everything in real time: messages, notifications, trades, market, news, events, challenges, trophies and profiles'),
+  ('👁', 'Mode spectateur : regarde les duels en direct des autres joueurs (salon, liste En ligne, borne IN GAME)',
+      'Spectator mode: watch other players\' live duels (lobby, Online list, IN GAME cabinet)'),
+  ('🕹', 'Nouvel onglet « Salle de jeux » : 4 en ligne et Console Wars, avec le bouton « Jeux en cours »',
+      'New "Game room" tab: Connect 4 and Console Wars, with a "Games in progress" button'),
+  ('👤', 'Profil : Ma borne, Thème et Musique en haut ; tes séries en déroulant, et celles des autres sur leur profil',
+      'Profile: My cabinet, Theme and Music at the top; your sets in a drop-down, and other players\' sets on their profile'),
+  ('🏆', 'Trophée « Console complète » : l\'or demande maintenant les 19 consoles', '"Full system" trophy: gold now needs all 19 systems'),
+  ('#', 'Aussi depuis la 1.0.17', 'Also since 1.0.17'),
   ('🏠', 'Pixel Trade a déménagé sur son propre serveur : plus de limite de joueurs pour les duels en direct',
       'Pixel Trade moved to its own server: no more player limit for live duels'),
   ('🛠', 'Message clair quand le serveur est momentanément indisponible', 'Clear message when the server is temporarily unavailable'),

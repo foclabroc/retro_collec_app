@@ -33,6 +33,7 @@ import 'title_screen.dart';
 import 'update_check.dart';
 import 'welcome.dart';
 import 'whats_new.dart';
+import 'rewards.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PIXEL TRADE — collection multijoueur de boîtes de jeux rétro, by foclabroc
@@ -538,20 +539,25 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     });
   }
 
-  /// Cadeau de mise à jour (500 pièces en 1.0.16), versé une seule fois par le serveur.
+  /// Cadeau de mise à jour (1.0.16 : 500 pièces ; 1.0.18 : 600 pièces, 8 pixels, 1 booster premium),
+  /// versé une seule fois par le serveur. `reward` = même JSON que les récompenses (rewards.dart).
   Future<void> _upgradeGift() async {
     try {
       final r = await RcServer.upgradeGift(kRetroCollecVersion);
-      final n = (r['coins'] as num? ?? 0).toInt();
-      if (n <= 0 || !mounted) return;
+      final rw = r['reward'] ?? {'coins': r['coins'] ?? 0};
+      final txt = rewardText(rw, icons: false);
+      if (txt.isEmpty || !mounted) return;
+      final pack = rewardHasPacks(rw);
       await Game.i.refresh();
       if (!mounted) return;
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(px(t('CADEAU', 'GIFT')), style: pixelStyle(size: 14)),
-          content: Text(t('Mise à jour $kRetroCollecVersion : +$n pièces offertes en dédommagement. Merci de ta patience !',
-              'Update $kRetroCollecVersion: +$n coins as compensation. Thanks for your patience!')),
+          content: Text(t('Mise à jour $kRetroCollecVersion : $txt offerts. Merci de jouer à Pixel Trade !'
+                  '${pack ? '\n\nLe booster t\'attend dans Paquets → Cadeaux reçus.' : ''}',
+              'Update $kRetroCollecVersion: $txt for you. Thanks for playing Pixel Trade!'
+                  '${pack ? '\n\nYour pack is waiting in Packs → Gifts received.' : ''}')),
           actions: [ElevatedButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Merci !', 'Thanks!')))],
         ),
       );
