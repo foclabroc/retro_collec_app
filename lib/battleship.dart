@@ -688,6 +688,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
   Map get me => g['me'] as Map? ?? const {}; // spectateur : le joueur 1
   String get meName => watch ? me['name'] as String? ?? '?' : t('Toi', 'You');
   String? _emoMeAt; // spectateur : réactions du joueur 1
+  WatchCtl? _wctl; // spectateurs (duel en direct)
   bool get placed => g['my_fleet'] != null;
   int get stake => _i(g['stake'], kC4Stake);
   Map get opp => g['opp'] as Map? ?? const {};
@@ -708,6 +709,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
       if (!LiveLink.i.connected || (pn++) % 5 == 0) _refresh();
     });
     if (watch) LiveLink.i.watch('bs', id); // canal de la partie
+    if (live && (phase == 'playing' || phase == 'setup')) _wctl = WatchCtl('bs', id, spectator: watch);
     _rt = LiveLink.i.events.listen((e) {
       if (e['game'] == 'bs' && _i(e['gid']) == id) _refresh();
     });
@@ -736,6 +738,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
     _bannerT?.cancel();
     _emoMeT?.cancel();
     _emoOppT?.cancel();
+    _wctl?.dispose();
     anim.dispose();
     shake.dispose();
     super.dispose();
@@ -1521,12 +1524,12 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
       'go' => const [Color(0xFF7B3DFF), Color(0xFF2A1360)],
       _ => const [Color(0xFFFF7A1A), Color(0xFFC3202E)],
     };
-    return MaxWidth(
+    return WatchLayer(ctl: _wctl, child: MaxWidth(
       max: 560,
       child: Scaffold(
         appBar: AppBar(
           title: Text(watch ? t('👁 SPECTATEUR', '👁 WATCHING') : setup && !placed ? t('LE PORT', 'THE HARBOR') : 'CONSOLE WARS', style: pixelStyle(size: 12)),
-          actions: [if (!watch) ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
+          actions: [WatchersChip(_wctl), if (!watch) ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
         ),
         body: LayoutBuilder(
           builder: (context, box) => AnimatedBuilder(
@@ -1581,7 +1584,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
           ),
         ),
       ),
-    );
+    ));
   }
 }
 

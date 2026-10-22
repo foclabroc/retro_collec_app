@@ -13,6 +13,7 @@ import 'layout.dart';
 import 'main.dart';
 import 'retro_theme.dart';
 import 'server.dart';
+import 'watchers.dart';
 
 part 'battleship.dart';
 part 'spectate.dart';
@@ -1173,10 +1174,12 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
   Map get me => g['me'] as Map? ?? const {}; // spectateur : le joueur 1
   String get meName => watch ? me['name'] as String? ?? '?' : t('Toi', 'You');
   String? _emoMeAt; // spectateur : réactions du joueur 1
+  WatchCtl? _wctl; // spectateurs (duel en direct)
 
   @override
   void initState() {
     super.initState();
+    if (live && g['status'] == 'playing') _wctl = WatchCtl('c4', id, spectator: watch);
     _setSkew();
     _emoOppAt = g['emo_opp_at'] as String?;
     _emoMeAt = g['emo_me_at'] as String?;
@@ -1213,6 +1216,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
     _tick?.cancel();
     _emoMeT?.cancel();
     _emoOppT?.cancel();
+    _wctl?.dispose();
     super.dispose();
   }
 
@@ -1493,12 +1497,12 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
       );
     }
 
-    return MaxWidth(
+    return WatchLayer(ctl: _wctl, child: MaxWidth(
       max: 560,
       child: Scaffold(
         appBar: AppBar(
           title: Text(watch ? t('👁 SPECTATEUR', '👁 WATCHING') : live ? t('EN DIRECT', 'LIVE') : t('TOUR PAR TOUR', 'TURN-BASED'), style: pixelStyle(size: 12)),
-          actions: [if (!watch) ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
+          actions: [WatchersChip(_wctl), if (!watch) ListenableBuilder(listenable: Game.i, builder: (_, __) => CoinChip(Game.i.coins)), const SizedBox(width: 12)],
         ),
         body: ListView(padding: const EdgeInsets.fromLTRB(14, 8, 14, 24), children: [
           Row(children: [
@@ -1671,7 +1675,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
           ]),
         ]),
       ),
-    );
+    ));
   }
 
   /// Spectateur : qui a gagné

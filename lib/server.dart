@@ -218,6 +218,28 @@ class RcServer {
   /// Duels en direct en cours : [{game: c4|bs, id, phase, moves, p1: {pid, name, avatar}, p2}]
   static Future<List<Map<String, dynamic>>> liveGames() async => _list(await _rpc('rc_live_games', {}));
 
+  // ── Spectateurs d'une partie en direct (watchers.dart) ─────────────────
+  /// Je regarde (à refaire toutes les 20 s) → spectateurs [{pid, name, avatar}]
+  static Future<List<Map<String, dynamic>>> watchJoin(String game, int id) async {
+    final d = await deviceId();
+    final r = _map(await _rpc('rc_watch_join', {'p_device': d, 'p_game': game, 'p_id': id, 'p_sig': _sig('$d|wjoin|$game|$id')}));
+    return _list(r['list']);
+  }
+
+  static Future<void> watchLeave(String game, int id) async {
+    final d = await deviceId();
+    await _rpc('rc_watch_leave', {'p_device': d, 'p_game': game, 'p_id': id, 'p_sig': _sig('$d|wleave|$game|$id')});
+  }
+
+  /// Spectateurs d'une partie (pour les joueurs)
+  static Future<List<Map<String, dynamic>>> watchers(String game, int id) async =>
+      _list(await _rpc('rc_watchers', {'p_game': game, 'p_id': id}));
+
+  static Future<void> watchReact(String game, int id, String e) async {
+    final d = await deviceId();
+    await _rpc('rc_watch_react', {'p_device': d, 'p_game': game, 'p_id': id, 'p_e': e, 'p_sig': _sig('$d|wreact|$game|$id|$e')});
+  }
+
   /// Une partie vue en spectateur (vue du joueur 1, rien de secret)
   static Future<Map<String, dynamic>> c4Watch(int id) async => _map(await _rpc('rc_c4_watch', {'p_id': id}));
   static Future<Map<String, dynamic>> bsWatch(int id) async => _map(await _rpc('rc_bs_watch', {'p_id': id}));
