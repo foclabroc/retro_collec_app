@@ -1,6 +1,6 @@
 -- Admin : journal de TOUS les joueurs (même contenu que l'activité d'une fiche joueur),
 -- du plus récent au plus ancien, 150 lignes par page (p_before = date de la dernière ligne reçue, '' = début).
--- Relançable.
+-- Avec les courriers / cadeaux de l'admin (envoi + récupération) depuis le 22/10. Relançable.
 create or replace function public.rc_admin_feed(p_device text, p_sig text, p_before text)
  returns jsonb
  language plpgsql
@@ -59,6 +59,24 @@ begin
           select l.at, l.device, null::text, jsonb_build_object('kind', 'pack', 'pack', l.kind, 'sys', l.sys)
             from public.rc_pack_log l
            where l.at < b
+          union all
+          -- courrier / cadeau de l'admin : envoi, vu du destinataire (sans joueur = envoi à un groupe)
+          select m.created_at, m.device, null::text,
+                 jsonb_build_object('kind', 'mail_sent', 'title', m.title,
+                                    'grp', coalesce(m.grp, case when m.device is null then 'all' end),
+                                    'reward', case when coalesce(m.reward, '{}'::jsonb) = '{}'::jsonb
+                                                   then jsonb_strip_nulls(jsonb_build_object(
+                                                          'coins', nullif(m.coins, 0), 'pixels', nullif(m.pixels, 0),
+                                                          'packs', case when m.packs > 0 then jsonb_build_object('premium', m.packs) end))
+                                                   else m.reward end)
+            from public.rc_mail m
+           where m.created_at < b
+          union all
+          -- courrier récupéré par le joueur (journal d'activité : pièces / pixels versés)
+          select a.at, a.device, null::text,
+                 jsonb_build_object('kind', 'mail_got', 'txt', a.txt, 'coins', a.coins, 'pixels', a.pixels)
+            from public.rc_activity a
+           where a.at < b and a.at > now() - interval '30 days' and a.txt like 'récupère le courrier%'
         ) u
         order by u.at desc
         limit 150

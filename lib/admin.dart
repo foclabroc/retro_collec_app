@@ -516,6 +516,17 @@ class AdminPlayerPage extends StatelessWidget {
         _ => e['reason']?.toString() ?? e['status']?.toString() ?? '',
       };
       return ('$game ${t('contre', 'vs')} $other : $res', Colors.white70);
+    case 'mail_sent':
+      final rw = rewardText(e['reward']);
+      return (
+        t('✉ courrier de l\'admin « ${e['title'] ?? ''} »${rw.isEmpty ? '' : ' · $rw'}',
+            '✉ admin mail "${e['title'] ?? ''}"${rw.isEmpty ? '' : ' · $rw'}'),
+        const Color(0xFF7FD3FF)
+      );
+    case 'mail_got':
+      final c = _i(e['coins']), p = _i(e['pixels']);
+      final gain = [if (c != 0) '${c > 0 ? '+' : ''}$c 🪙', if (p != 0) '${p > 0 ? '+' : ''}$p ▦'].join(' ');
+      return ('✉ ${e['txt'] ?? ''}${gain.isEmpty ? '' : ' · $gain'}', const Color(0xFF7FD3FF));
     case 'chat':
       final rep = _i(e['reports']);
       return (
@@ -528,6 +539,15 @@ class AdminPlayerPage extends StatelessWidget {
 
 
 // ─── Journal : activité de tous les joueurs ───────────────────────────────
+
+/// Courrier envoyé à un groupe (pas de joueur sur la ligne)
+String _grpName(dynamic g) => switch (g) {
+      'all' => t('👥 Tous', '👥 Everyone'),
+      'active7' => t('👥 Actifs 7 j', '👥 Active 7 d'),
+      'new7' => t('👥 Nouveaux 7 j', '👥 New 7 d'),
+      'inactive7' => t('👥 Inactifs 7 j', '👥 Inactive 7 d'),
+      _ => '?',
+    };
 
 class _FeedTab extends StatefulWidget {
   const _FeedTab();
@@ -625,7 +645,7 @@ class _FeedTabState extends State<_FeedTab> with AutomaticKeepAliveClientMixin {
           ),
           SizedBox(
             width: 110,
-            child: Text(e['name']?.toString() ?? '?',
+            child: Text(e['name']?.toString() ?? _grpName(e['grp']),
                 maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
           ),
           Expanded(child: Text(text, style: TextStyle(color: color ?? Colors.white, fontSize: 12.5, height: 1.3))),
