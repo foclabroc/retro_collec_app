@@ -28,10 +28,11 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Compilation
+        # --wasm : WebAssembly pour Chrome / Edge / Firefox, JavaScript gardé automatiquement pour Safari et les autres
         # en cas d'erreur, les lignes « Error » remontent en annotations (lisibles sans les journaux)
         run: |
           set -o pipefail
-          flutter build web --release --base-href /retro_collec_app/ 2>&1 | tee build.log || {
+          flutter build web --release --wasm --base-href /retro_collec_app/ 2>&1 | tee build.log || {
             grep -E "Error|error:" build.log | head -40 | while IFS= read -r l; do echo "::error::$l"; done
             exit 1
           }
