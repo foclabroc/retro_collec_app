@@ -271,6 +271,12 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
       error = null;
       step = t('Chargement…', 'Loading…');
     });
+    // profil déjà créé : le serveur est interrogé pendant que le catalogue se charge (au lieu d'après)
+    Future<void>? me;
+    if (await RcServer.hasProfile()) {
+      me = Game.i.refresh();
+      me.catchError((_) {}); // l'erreur éventuelle est relue plus bas
+    }
     try {
       if (!await Catalog.loadLocal()) {
         setState(() => step = t('Téléchargement des cartes…', 'Downloading cards…'));
@@ -314,7 +320,15 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
     }
     try {
       setState(() => step = t('Connexion au serveur…', 'Connecting…'));
-      await Game.i.refresh();
+      if (me != null) {
+        try {
+          await me;
+        } catch (_) {
+          await Game.i.refresh(); // nouvel essai (réseau qui revient, réessai après une erreur)
+        }
+      } else {
+        await Game.i.refresh();
+      }
     } catch (e) {
       if (mounted) setState(() => error = errText(e));
       return;

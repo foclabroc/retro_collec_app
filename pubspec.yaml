@@ -41,6 +41,7 @@ flutter:
     - assets/arcade/
     - assets/avatars/
     - assets/bs/
+    - assets/google_fonts/
     - assets/card_back.jpg
     - assets/booster_front.webp
     - assets/booster_back.webp
