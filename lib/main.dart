@@ -15,6 +15,7 @@ import 'inbox.dart';
 import 'game.dart';
 import 'bonus.dart';
 import 'games_room.dart';
+import 'guide.dart';
 import 'chat.dart';
 import 'duel_watch.dart';
 import 'events.dart';
@@ -818,6 +819,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             ),
             const OnlineMenuTile(compact: true),
             const ReferralMenuTile(compact: true),
+            const GuideMenuTile(compact: true),
             Padding(
               padding: const EdgeInsets.all(8),
               child: Text('v$kRetroCollecVersion', style: const TextStyle(color: Colors.white30, fontSize: 10)),
@@ -951,6 +953,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               ),
               OnlineMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
               ReferralMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
+              GuideMenuTile(beforeOpen: () => Navigator.of(context).maybePop()),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
                 child: Text('Pixel Trade v$kRetroCollecVersion', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30, fontSize: 10.5)),
