@@ -12,8 +12,8 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('⚡', 'Ouverture auto des boosters : un bouton choisit le booster et montre directement tes cartes, même pour les paquets suivants',
-      'Auto open: one button picks the booster and shows your cards right away, for the next packs too'),
+  ('⚡', 'Déchirer et tout voir : un bouton sous le paquet montre toutes tes cartes d\'un coup',
+      'Tear and see all: a button under the pack shows all your cards at once'),
   ('🏆', 'Tournois : fenêtre de félicitations pour le podium, lots au nom du tournoi, score des manches plus clair en finale',
       'Tournaments: congrats window for the podium, prizes named after the tournament, clearer round score in the final'),
   ('🔕', 'Plus de fenêtre de défi pendant l\'ouverture d\'un paquet ou un match de tournoi : elle arrive juste après',

@@ -3,8 +3,7 @@
 ## v1.0.21
 _Version 1.0.21+22._
 
-- ⚡ **Ouverture auto des boosters** : bouton « Ouverture auto » (choix des boosters, paquet à déchirer) → booster au hasard
-  et récapitulatif direct, gardé pour les paquets suivants jusqu'à « arrêter ».
+- ⚡ **Déchirer et tout voir** : bouton sous le paquet à déchirer → toutes les cartes d'un coup (récapitulatif).
 - 🏆 Tournois : fenêtre de félicitations pour le podium (lots, cagnotte), paquets des lots nommés « Tournoi X · … »
   (`sql/2026-10-22_tournois_suite.sql`), score des manches vu de son côté, plus de « Voir le plateau » en partie de tournoi.
 - Pas de fenêtre de défi pendant l'ouverture d'un paquet ni pendant un match de tournoi (montrée juste après).

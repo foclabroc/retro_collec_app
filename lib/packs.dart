@@ -662,10 +662,6 @@ class PackOpeningPage extends StatefulWidget {
 
 enum _Phase { choose, pack, reveal, summary }
 
-/// Ouverture auto (bouton « ⚡ Auto ») : booster au hasard et cartes montrées directement dans le
-/// récapitulatif, aussi pour les paquets suivants (« Ouvrir un autre ») jusqu'à « Arrêter l'auto ».
-bool _packAuto = false;
-
 class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderStateMixin {
   List<_Pulled> pulled = [];
   _Phase phase = _Phase.pack;
@@ -731,30 +727,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     }
     _ticker = createTicker(_tick)..start();
     RcAudio.sfx('logo');
-    if (_packAuto) WidgetsBinding.instance.addPostFrameCallback((_) => _autoOpen());
   }
-
-  /// ⚡ Auto : booster au hasard, puis directement le récapitulatif
-  Future<void> _autoOpen() async {
-    if (!mounted) return;
-    _packAuto = true;
-    if (phase == _Phase.choose) await _choose(rnd.nextInt(6));
-    if (mounted && (phase == _Phase.pack || phase == _Phase.reveal)) _skipToSummary();
-  }
-
-  Widget _autoButton() => Positioned(
-        bottom: 10,
-        left: 0,
-        right: 0,
-        child: Center(
-          child: FilledButton.icon(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xCC2A1F5E), foregroundColor: const Color(0xFFFFD166), side: const BorderSide(color: Color(0x66FFD166))),
-            onPressed: _choosing ? null : _autoOpen,
-            icon: const Icon(Icons.bolt),
-            label: Text(t('Ouverture auto', 'Auto open'), style: const TextStyle(fontWeight: FontWeight.w900)),
-          ),
-        ),
-      );
 
   void _load(Map<String, dynamic> r) {
     final list = <_Pulled>[];
@@ -1107,7 +1080,6 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                   if (phase == _Phase.pack) _packStage(),
                   if (phase == _Phase.reveal) _revealStage(),
                   if (phase == _Phase.summary) _summary(),
-                  if (phase == _Phase.choose || (phase == _Phase.pack && !torn)) _autoButton(),
                   // bannière
                   if (phase == _Phase.reveal && pulled.isNotEmpty)
                     Positioned(
@@ -1176,8 +1148,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
 
   Widget _packStage() {
     return LayoutBuilder(builder: (context, box) {
-      // le plus grand possible : 82 % de la largeur, sans dépasser la hauteur (étiquette comprise)
-      pw = min(box.maxWidth * 0.82, (box.maxHeight - 90) * _kPackW / _kPackH).clamp(160.0, 420.0);
+      // le plus grand possible : 82 % de la largeur, sans dépasser la hauteur (étiquette et bouton compris)
+      pw = min(box.maxWidth * 0.82, (box.maxHeight - 150) * _kPackW / _kPackH).clamp(160.0, 420.0);
       ph = pw * _kPackH / _kPackW;
       return _packStageSized(pw, ph, pcap);
     });
@@ -1361,6 +1333,25 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
             child: (widget.kind == 'console' || widget.kind == 'sconsole') && widget.sys != null
                 ? ConsoleLogo(widget.sys!, height: 18)
                 : Text(px(_packLabel().toUpperCase()), style: pixelStyle(size: 9, color: Colors.white, shadow: false)),
+          ),
+        ),
+        const SizedBox(height: 14),
+        // raccourci : déchire le paquet et montre toutes les cartes d'un coup (récapitulatif)
+        IgnorePointer(
+          ignoring: torn,
+          child: AnimatedOpacity(
+            opacity: torn ? 0 : 1,
+            duration: const Duration(milliseconds: 250),
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xCC2A1F5E),
+                foregroundColor: const Color(0xFFFFD166),
+                side: const BorderSide(color: Color(0x66FFD166)),
+              ),
+              onPressed: _skipToSummary,
+              icon: const Icon(Icons.bolt),
+              label: Text(t('Déchirer et tout voir', 'Tear and see all'), style: const TextStyle(fontWeight: FontWeight.w900)),
+            ),
           ),
         ),
       ]),
@@ -1624,12 +1615,6 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                 ),
             ]),
           ),
-          if (_packAuto)
-            TextButton.icon(
-              onPressed: () => setState(() => _packAuto = false),
-              icon: const Icon(Icons.bolt, size: 16, color: Color(0xFFFFD166)),
-              label: Text(t('Ouverture auto activée · arrêter', 'Auto open on · stop'), style: const TextStyle(color: Colors.white70, fontSize: 12.5)),
-            ),
           if (again == 'lot' || again == 'gift') ...[
             const SizedBox(height: 8),
             Text(t('Si tu quittes, ${again == 'lot' ? lotsLeft : giftsLeft} restent dans ton stock 📦', 'If you leave, ${again == 'lot' ? lotsLeft : giftsLeft} stay in your stock 📦'),
