@@ -7,6 +7,7 @@ as $function$
 declare t public.rc_tour; c bigint;
 begin
   perform public.rc__check(p_sig, p_device || '|tjoin|' || p_id);
+  perform public.rc__not_blocked(p_device);
   select * into t from public.rc_tour where id = p_id for update;
   if t.id is null then raise exception 'tournoi inconnu'; end if;
   if t.status <> 'open' or now() >= t.start_at then raise exception 'inscriptions fermées'; end if;

@@ -15,6 +15,8 @@ begin
     update public.rc_bs set status = 'done', reason = case when p_device = g.p1 then 'cancelled' else 'declined' end where id = p_id;
   else
     if p_device <> g.p2 then raise exception 'partie inconnue'; end if;
+    perform public.rc__not_blocked(p_device);
+    if exists (select 1 from public.rc_players where device = g.p1 and blocked) then raise exception 'joueur indisponible'; end if;
     select coins into c1 from public.rc_players where device = g.p1 for update;
     select coins into c2 from public.rc_players where device = g.p2 for update;
     if c2 < g.stake then raise exception 'pas assez de pièces'; end if;
@@ -24,4 +26,4 @@ begin
     update public.rc_bs set status = 'setup', move_at = now() where id = p_id;
   end if;
   return public.rc__bs_out(p_id, p_device);
-end $function$
+end $function$;

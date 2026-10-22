@@ -6,6 +6,6 @@ CREATE OR REPLACE FUNCTION public.rc__not_blocked(p_dev text)
 AS $function$
 begin
   if exists (select 1 from public.rc_players where device = p_dev and blocked) then
-    raise exception 'compte bloqué : échanges, ventes, achats et cadeaux désactivés';
+    raise exception 'compte bloqué : échanges, ventes, achats, cadeaux, duels et tournois désactivés';
   end if;
-end $function$
+end $function$;

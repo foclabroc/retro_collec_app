@@ -9,10 +9,12 @@ begin
   perform public.rc__check(p_sig, p_device || '|mailread|' || p_id);
   select * into v from public.rc_players where device = p_device for update;
   if v.device is null then raise exception 'joueur inconnu'; end if;
+  -- mêmes règles que rc_mail_list
   select * into m from public.rc_mail x where x.id = p_id
      and (x.device = p_device
-          or (x.device is null and x.grp is null)
-          or exists (select 1 from public.rc_mail_to t where t.mail_id = x.id and t.device = p_device));
+          or (x.device is null and x.grp is null and x.created_at > v.created_at and x.created_at > now() - interval '30 days')
+          or (x.grp is not null and x.created_at > now() - interval '30 days'
+              and exists (select 1 from public.rc_mail_to t where t.mail_id = x.id and t.device = p_device)));
   if m.id is null then raise exception 'message inconnu'; end if;
   insert into public.rc_mail_got (device, mail_id) values (p_device, p_id) on conflict do nothing;
   if found then

@@ -12,6 +12,8 @@ begin
   select * into o from public.rc_players where pid = p_pid;
   if v.device is null or o.device is null then raise exception 'joueur inconnu'; end if;
   if o.device = v.device then raise exception 'pas contre toi-même'; end if;
+  perform public.rc__not_blocked(p_device);
+  if o.blocked then raise exception 'joueur indisponible'; end if;
   if p_mode = 'live' and coalesce(o.seen_at < now() - interval '2 minutes', true) then raise exception 'joueur hors ligne'; end if;
   if exists (select 1 from public.rc_c4 g where g.status in ('invite', 'playing') and g.mode = p_mode
               and ((g.p1 = v.device and g.p2 = o.device) or (g.p1 = o.device and g.p2 = v.device))
@@ -25,4 +27,4 @@ begin
   update public.rc_players set seen_at = now() where device = p_device;
   insert into public.rc_c4 (p1, p2, mode) values (v.device, o.device, p_mode) returning id into gid;
   return public.rc__c4_json((select g from public.rc_c4 g where g.id = gid), p_device);
-end $function$
+end $function$;
