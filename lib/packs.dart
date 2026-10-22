@@ -23,13 +23,33 @@ import 'server.dart';
 
 /// Ouvre un paquet (serveur + choix du booster + animation). [sys] : console, ou numéro du cadeau.
 Future<void> openPackFlow(BuildContext context, String kind, [String? sys]) async {
-  final r = await Game.i.openChoice(kind, sys);
-  if (!context.mounted) return;
-  await showPackOpening(context, r, kind, sys);
+  _packFlows++;
+  try {
+    final r = await Game.i.openChoice(kind, sys);
+    if (!context.mounted) return;
+    await showPackOpening(context, r, kind, sys);
+  } finally {
+    _packFlows--;
+  }
+  if (_packFlows == 0) PacksScreenState.reloadPending();
 }
+
+/// Ouvertures en cours (achat → choix du booster) : pendant ce temps, le paquet « en attente »
+/// vu par le serveur est celui qu'on est en train d'ouvrir, pas un paquet entamé à afficher.
+int _packFlows = 0;
 
 /// Écran d'ouverture pour un résultat de [Game.openChoice] (ou un achat resté sans choix).
 Future<void> showPackOpening(BuildContext context, Map<String, dynamic> r, String kind, [String? sys]) async {
+  _packFlows++;
+  try {
+    await _showPackOpening(context, r, kind, sys);
+  } finally {
+    _packFlows--;
+  }
+  if (_packFlows == 0) PacksScreenState.reloadPending(); // booster quitté sans déchirer → « Paquet entamé »
+}
+
+Future<void> _showPackOpening(BuildContext context, Map<String, dynamic> r, String kind, [String? sys]) async {
   r = await Game.i.autoPickGift(r); // cadeau resté en attente : couleur au hasard
   if (!context.mounted) return;
   final k = (r['kind'] as String?) ?? kind;
@@ -42,7 +62,6 @@ Future<void> showPackOpening(BuildContext context, Map<String, dynamic> r, Strin
   ));
   Game.i.sync();
   Notifs.i.refresh();
-  PacksScreenState.reloadPending();
 }
 
 /// Accès depuis le menu : recharge le paquet entamé quand on ouvre l'onglet
@@ -95,9 +114,14 @@ class _PacksScreenState extends State<PacksScreen> {
       applyLive(c['live']);
       if (mounted) setState(() {});
     }).catchError((_) {});
+    final gen = ++_pendingGen;
     final p = await Game.i.pendingChoice();
-    if (mounted) setState(() => pending = p);
+    // réponse dépassée (une plus récente est partie) ou paquet en cours d'ouverture : pas de « Paquet entamé »
+    if (!mounted || gen != _pendingGen) return;
+    setState(() => pending = _packFlows > 0 ? null : p);
   }
+
+  int _pendingGen = 0;
 
   Future<void> _resume() async {
     if (pending == null || busy) return;
