@@ -35,12 +35,12 @@
 
 ## 🎮 Le jeu
 
-**1350 cartes** de jaquettes de jeux, réparties en **14 séries** (100 cartes, 50 pour la PS2) :
+**1600 cartes** de jaquettes de jeux, réparties en **19 séries** (100 cartes, 50 pour la PS2, la 3DS, la SG-1000, la Dreamcast, l'Atari 7800 et l'Amiga CD32) :
 
 | Sega | Nintendo | Autres |
 |---|---|---|
-| Master System | NES · Super Nintendo · Nintendo 64 · GameCube | PlayStation · PS2 · PSP |
-| Mega Drive · Game Gear | Game Boy Color · Game Boy Advance · Switch | Neo Geo |
+| SG-1000 · Master System | NES · Super Nintendo · Nintendo 64 · GameCube | PlayStation · PS2 · PSP |
+| Mega Drive · Game Gear · Dreamcast | Game Boy Color · Game Boy Advance · 3DS · Switch | Neo Geo · Atari 7800 · Amiga CD32 |
 
 Chaque carte a une **rareté** (commune, peu commune, rare, épique, légendaire) et une **finition** (normale, brillante, dorée). Sa fiche donne la capture d'écran, l'année, le développeur, l'éditeur, le genre et la description du jeu.
 

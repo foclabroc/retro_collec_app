@@ -812,7 +812,7 @@ class MiniCards extends StatelessWidget {
 
 /// Logo officiel d'une console (assets/logos/<id>.png) sur un panneau clair ou sombre
 /// selon les couleurs du logo. Si le logo manque : le nom de la console.
-const _kDarkBoardLogos = {'n64', 'neogeo', 'nes', 'psx', 'gba', 'gamecube', 'ps2'};
+const _kDarkBoardLogos = {'n64', 'neogeo', 'nes', 'psx', 'gba', 'gamecube', 'ps2', '3ds', 'dreamcast', 'atari7800', 'amigacd32'};
 
 class ConsoleLogo extends StatelessWidget {
   final String sys;

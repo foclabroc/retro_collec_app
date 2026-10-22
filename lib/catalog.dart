@@ -129,6 +129,8 @@ class RcSystem {
         'ps2' => 'PlayStation 2',
         'gamecube' => 'GameCube',
         'gamegear' => 'Game Gear',
+        '3ds' => '3DS',
+        'amigacd32' => 'Amiga CD32',
         _ => name,
       };
 }

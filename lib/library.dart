@@ -30,6 +30,11 @@ const Map<String, Color> kConsoleBrand = {
   'mastersystem': Color(0xFFD62828),
   'neogeo': Color(0xFFE0B13A),
   'switch': Color(0xFFE60012),
+  '3ds': Color(0xFFCE181E),
+  'sg1000': Color(0xFF1F4FA8),
+  'dreamcast': Color(0xFFE8711E),
+  'atari7800': Color(0xFFB8242A),
+  'amigacd32': Color(0xFF4A4A52),
 };
 
 class LibraryScreen extends StatefulWidget {
@@ -514,10 +519,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
 const Map<String, int> kConsoleYear = {
   'nes': 1985, 'snes': 1990, 'n64': 1996, 'psx': 1994, 'gba': 2001,
   'gbc': 1998, 'megadrive': 1988, 'mastersystem': 1986, 'neogeo': 1990, 'switch': 2017,
+  '3ds': 2011, 'sg1000': 1983, 'dreamcast': 1998, 'atari7800': 1986, 'amigacd32': 1993,
 };
 const Map<String, Color> kConsoleAccent = {
   'nes': Color(0xFFFFD23B), 'snes': Color(0xFFFF5D8F), 'n64': Color(0xFFFFD23B), 'psx': Color(0xFF3DD9FF), 'gba': Color(0xFFFFD23B),
   'gbc': Color(0xFFFFD23B), 'megadrive': Color(0xFFFFD23B), 'mastersystem': Color(0xFF3DD9FF), 'neogeo': Color(0xFFE60012), 'switch': Color(0xFF3DD9FF),
+  '3ds': Color(0xFF3DD9FF), 'sg1000': Color(0xFFFFD23B), 'dreamcast': Color(0xFF3DD9FF), 'atari7800': Color(0xFFFFD23B), 'amigacd32': Color(0xFFFF5D8F),
 };
 
 const _kPaper = Color(0xFFF3E6C8); // papier d'affiche
