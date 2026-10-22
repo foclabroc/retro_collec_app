@@ -14,6 +14,7 @@ import 'catalog.dart';
 import 'inbox.dart';
 import 'game.dart';
 import 'bonus.dart';
+import 'games_room.dart';
 import 'chat.dart';
 import 'duel_watch.dart';
 import 'events.dart';
@@ -646,6 +647,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       if (Notifs.i.reacts > 0) RcServer.reactsSeen().then((_) => Notifs.i.refresh()).catchError((_) {});
     }
     if (i == 7) DefisScreenState.current?.load();
+    if (i == 8) GamesRoomScreenState.current?.load();
     if (i == 2 || i == 5) Notifs.i.refresh();
     if (i == 1) PacksScreenState.reloadPending();
   }
@@ -684,6 +686,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           NeighborsScreen(),
           MaxWidth(child: FeedScreen()),
           MaxWidth(child: DefisScreen()),
+          MaxWidth(child: GamesRoomScreen()),
         ]);
         return Scaffold(
           key: scaffoldKey,
@@ -783,7 +786,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   item(0, 'collection', t('Collection', 'Collection')),
                   item(1, 'packs', t('Paquets', 'Packs'), dot: g.free || n.lotFree, count: n.gifts + n.lots),
                   item(7, 'defis', t('Défis', 'Challenges'), count: n.week),
-                  item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'), dot: n.wheel, count: DuelWatch.i.badge),
+                  item(2, 'bonus', t('Bonus', 'Bonus'), dot: n.wheel),
+                  item(8, 'games', t('Salle de jeux', 'Game room'), count: DuelWatch.i.badge),
                   item(3, 'market', t('Bourse', 'Exchange'), count: n.trades + n.sales.length),
                   item(4, 'messages', t('Messages', 'Messages'), count: n.chat, dot: n.mention),
                   item(5, 'neighbors', t('Voisinage', 'Neighbors')),
@@ -903,8 +907,8 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                               : null),
                   item(7, 'defis', t('Défis de la semaine', 'Weekly challenges'),
                       count: n.week, hint: n.week > 0 ? t('Récompense à récupérer !', 'Reward to claim!') : null),
-                  item(2, 'bonus', t('Bonus / Jeux', 'Bonus / Games'),
-                      dot: n.wheel,
+                  item(2, 'bonus', t('Bonus', 'Bonus'), dot: n.wheel),
+                  item(8, 'games', t('Salle de jeux', 'Game room'),
                       count: DuelWatch.i.badge,
                       hint: DuelWatch.i.invites > 0
                           ? t('⚔ ${DuelWatch.i.lastFrom ?? 'Un joueur'} te défie', '⚔ ${DuelWatch.i.lastFrom ?? 'A player'} challenges you')

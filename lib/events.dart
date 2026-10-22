@@ -110,7 +110,7 @@ class Events extends ChangeNotifier {
   }
 }
 
-const _kTabs = {'collection': 0, 'packs': 1, 'bonus': 2, 'market': 3, 'messages': 4, 'neighbors': 5, 'news': 6};
+const _kTabs = {'collection': 0, 'packs': 1, 'bonus': 2, 'market': 3, 'messages': 4, 'neighbors': 5, 'news': 6, 'games': 8};
 
 class EventsPage extends StatefulWidget {
   const EventsPage({super.key});

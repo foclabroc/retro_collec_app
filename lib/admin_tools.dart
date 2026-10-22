@@ -1258,7 +1258,7 @@ class _EventEditorState extends State<_EventEditor> {
     effect = s('effect', 'pixels_x2');
     goal = s('goal', 'packs');
     action = s('action');
-    if (!const ['', 'packs', 'collection', 'bonus', 'market', 'messages', 'neighbors', 'news'].contains(action)) action = '';
+    if (!const ['', 'packs', 'collection', 'bonus', 'games', 'market', 'messages', 'neighbors', 'news'].contains(action)) action = '';
     if (!_kEffects.containsKey(effect)) effect = 'pixels_x2';
     if (!_kGoals.contains(goal)) goal = 'packs';
     promoArg = effect == 'promo' ? s('arg', 'all') : 'all';
@@ -1455,7 +1455,8 @@ class _EventEditorState extends State<_EventEditor> {
             DropdownMenuItem(value: '', child: Text(t('aucun', 'none'))),
             DropdownMenuItem(value: 'packs', child: Text(t('Paquets', 'Packs'))),
             DropdownMenuItem(value: 'collection', child: Text(t('Collection', 'Collection'))),
-            DropdownMenuItem(value: 'bonus', child: Text(t('Bonus et jeux', 'Bonus & games'))),
+            DropdownMenuItem(value: 'bonus', child: Text(t('Bonus', 'Bonus'))),
+            DropdownMenuItem(value: 'games', child: Text(t('Salle de jeux', 'Game room'))),
             DropdownMenuItem(value: 'market', child: Text(t('Bourse', 'Market'))),
             DropdownMenuItem(value: 'messages', child: Text(t('Messages', 'Messages'))),
             DropdownMenuItem(value: 'neighbors', child: Text(t('Voisinage', 'Neighbors'))),
