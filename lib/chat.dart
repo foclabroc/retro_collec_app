@@ -82,8 +82,11 @@ class MessagesScreenState extends State<MessagesScreen> {
 
   Future<void> load() async {
     try {
-      final r = await RcServer.chatList(_last);
+      final r0 = await RcServer.chatList(_last);
       if (!mounted) return;
+      // deux chargements en même temps (envoi + temps réel) : on ne garde que les messages pas encore affichés
+      final after = _last;
+      final r = [for (final m in r0) if ((m['id'] as num? ?? 0).toInt() > after) m];
       final atBottom = !_scroll.hasClients || _scroll.position.pixels >= _scroll.position.maxScrollExtent - 60;
       setState(() {
         msgs.addAll(r);
