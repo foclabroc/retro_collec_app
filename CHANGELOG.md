@@ -1,5 +1,15 @@
 # Pixel Trade — Changelog
 
+## v1.0.20
+_Version 1.0.20+21._
+
+- 🏆 **Tournois** (Salle de jeux) : créés par l'admin (4 en ligne ou Console Wars, 4 / 8 / 16 places, inscription gratuite
+  ou payante avec cagnotte 100 % ou 70 / 30, lots pour le 1er, le 2e et les demi-finalistes), arbre tiré au sort avec
+  exemptés, matchs en direct (1 manche, finale en 2 manches gagnantes, nul rejoué), forfait après 3 min d'absence,
+  arbre en direct avec matchs à regarder, podium, annonce dans l'Actu (`sql/2026-10-22_tournois.sql`).
+- Fenêtre « Ton match commence ! », ouverture automatique de chaque partie, rappel 10 min avant le début.
+- Trophée **Champion** (1 / 3 / 10 tournois gagnés), section Tournois dans le Guide.
+
 ## v1.0.19
 _Version 1.0.19+20._
 

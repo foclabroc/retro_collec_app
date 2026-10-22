@@ -12,6 +12,12 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🏆', 'Tournois ! Inscris-toi dans la Salle de jeux : matchs en direct au 4 en ligne ou à Console Wars, arbre en direct, lots et cagnotte pour le podium',
+      'Tournaments! Sign up in the Game room: live Connect 4 or Console Wars matches, live bracket, prizes and a pot for the podium'),
+  ('⚔', 'Quand ton match commence, une fenêtre te prévient : touche « Jouer » dans les 3 minutes (sinon forfait)',
+      'When your match starts, a window tells you: tap "Play" within 3 minutes (or forfeit)'),
+  ('🥇', 'Nouveau trophée « Champion » pour les tournois gagnés', 'New "Champion" trophy for tournaments won'),
+  ('#', 'Aussi depuis la 1.0.19', 'Also since 1.0.19'),
   ('📖', 'Nouveau « Guide du jeu » dans le menu : score, raretés, paquets, Bourse, duels, défis… tout est expliqué',
       'New "Game guide" in the menu: score, rarities, packs, market, duels, challenges… everything explained'),
   ('⚡', 'Temps réel instantané : les joueurs apparaissent en ligne dès qu\'ils ouvrent le jeu, et tout arrive sans attendre',
@@ -37,10 +43,6 @@ const _kNews = <(String, String, String)>[
   ('👤', 'Profil : Ma borne, Thème et Musique en haut ; tes séries en déroulant, et celles des autres sur leur profil',
       'Profile: My cabinet, Theme and Music at the top; your sets in a drop-down, and other players\' sets on their profile'),
   ('🏆', 'Trophée « Console complète » : l\'or demande maintenant les 19 consoles', '"Full system" trophy: gold now needs all 19 systems'),
-  ('#', 'Aussi depuis la 1.0.17', 'Also since 1.0.17'),
-  ('🏠', 'Pixel Trade a déménagé sur son propre serveur : plus de limite de joueurs pour les duels en direct',
-      'Pixel Trade moved to its own server: no more player limit for live duels'),
-  ('🛠', 'Message clair quand le serveur est momentanément indisponible', 'Clear message when the server is temporarily unavailable'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';
