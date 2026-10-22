@@ -574,6 +574,12 @@ class RcServer {
   }
 
   /// Joueurs qui ont cette carte en double : [{pid, name, avatar, qty}]
+  /// Mes cartes manquantes que les voisins ont en double : {cards, players: [{pid, name, avatar, online, n, cards: [[id, qty]]}]}
+  static Future<Map<String, dynamic>> missingFinder() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_missing_finder', {'p_device': d, 'p_sig': _sig('$d|missing')}));
+  }
+
   static Future<List<Map<String, dynamic>>> cardOwners(String card) async {
     final d = await deviceId();
     return _list(await _rpc('rc_card_owners', {'p_device': d, 'p_card': card}));

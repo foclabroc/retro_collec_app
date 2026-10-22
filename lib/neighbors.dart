@@ -7,6 +7,7 @@ import 'game.dart';
 import 'packs.dart';
 import 'arcade.dart';
 import 'live_events.dart';
+import 'missing.dart';
 import 'main.dart';
 import 'notifs.dart';
 import 'profile.dart';
@@ -226,6 +227,25 @@ class NeighborsScreenState extends State<NeighborsScreen> {
                 if (icon != Icons.person) const SizedBox(width: 6),
               ],
             ]),
+          ),
+          // mes cartes manquantes chez les voisins
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  side: const BorderSide(color: kGold),
+                  foregroundColor: kGold,
+                  backgroundColor: Colors.black.withOpacity(0.25),
+                ),
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MissingFinderPage())),
+                icon: const Icon(Icons.travel_explore, size: 18),
+                label: Text(t('Trouver mes cartes manquantes chez les voisins', 'Find my missing cards at neighbors'),
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800)),
+              ),
+            ),
           ),
           // cadeau du jour
           Padding(

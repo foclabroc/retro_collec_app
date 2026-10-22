@@ -337,7 +337,8 @@ class TradeBuilderPage extends StatefulWidget {
   final String pid, name;
   final String? wantCard; // carte demandée d'avance (depuis le profil)
   final String? giveCard; // carte proposée d'avance (depuis le profil)
-  const TradeBuilderPage({super.key, required this.pid, required this.name, this.wantCard, this.giveCard});
+  final List<String> wantCards; // plusieurs cartes demandées d'avance (cartes manquantes, 5 max)
+  const TradeBuilderPage({super.key, required this.pid, required this.name, this.wantCard, this.giveCard, this.wantCards = const []});
   @override
   State<TradeBuilderPage> createState() => _TradeBuilderPageState();
 }
@@ -357,8 +358,8 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
       if (!mounted) return;
       setState(() {
         theirs = parseOwned(p?['owned']);
-        final wc = widget.wantCard;
-        if (wc != null) {
+        for (final wc in [if (widget.wantCard != null) widget.wantCard!, ...widget.wantCards]) {
+          if (want.length >= 5 || want.any((x) => x.$1 == wc)) continue;
           final q = theirs![wc];
           if (q != null) want.add((wc, q[0] > 0 ? 0 : q[1] > 0 ? 1 : 2));
         }

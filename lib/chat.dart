@@ -285,6 +285,11 @@ class MessagesScreenState extends State<MessagesScreen> {
   }
 
   Widget _bubble(Map<String, dynamic> m, DateTime? at, {bool sameAuthor = false}) {
+    // largeur réelle de la liste (et pas de l'écran : en grand écran le chat n'occupe qu'une partie)
+    return LayoutBuilder(builder: (context, box) => _bubbleIn(m, at, sameAuthor, box.maxWidth * (m['me'] == true ? 0.8 : 0.72)));
+  }
+
+  Widget _bubbleIn(Map<String, dynamic> m, DateTime? at, bool sameAuthor, double maxW) {
     final me = m['me'] == true;
     final name = m['name'] as String? ?? '?';
     final pid = m['pid'] as String? ?? '';
@@ -297,7 +302,7 @@ class MessagesScreenState extends State<MessagesScreen> {
     final bubble = GestureDetector(
       onLongPress: () => _report(m),
       child: Container(
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+        constraints: BoxConstraints(maxWidth: maxW),
         padding: const EdgeInsets.fromLTRB(11, 7, 11, 6),
         decoration: BoxDecoration(
           color: me ? const Color(0xFF5A3A08) : kPanel,
@@ -309,7 +314,7 @@ class MessagesScreenState extends State<MessagesScreen> {
           ),
           border: Border.all(color: citesMe ? kGold : (me ? kGold.withOpacity(0.5) : Colors.white10), width: citesMe ? 1.6 : 1),
         ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+        child: IntrinsicWidth(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
           if (!me && !sameAuthor)
             GestureDetector(
               onTap: pid.isEmpty ? null : () => _openPlayer(pid, name),
@@ -320,7 +325,7 @@ class MessagesScreenState extends State<MessagesScreen> {
             alignment: Alignment.bottomRight,
             child: Text(time, style: const TextStyle(color: Colors.white38, fontSize: 10)),
           ),
-        ]),
+        ])),
       ),
     );
 
@@ -340,7 +345,7 @@ class MessagesScreenState extends State<MessagesScreen> {
                       child: avatarWidget((m['avatar'] as num? ?? 0).toInt(), size: 32),
                     ),
             ),
-          bubble,
+          Flexible(child: bubble),
         ],
       ),
     );
