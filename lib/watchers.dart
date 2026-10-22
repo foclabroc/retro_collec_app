@@ -34,7 +34,12 @@ class WatchCtl extends ChangeNotifier {
   WatchCtl(this.game, this.id, {required this.spectator}) {
     _sub = LiveLink.i.other.listen(_on);
     _tick();
-    _t = Timer.periodic(Duration(seconds: spectator ? 20 : 25), (_) => _tick());
+    // spectateur : se signale toutes les 20 s ; joueur : la liste arrive par événement ('watchers'),
+    // relue en secours toutes les 25 s, ou toutes les 75 s si le temps réel marche
+    var n = 0;
+    _t = Timer.periodic(Duration(seconds: spectator ? 20 : 25), (_) {
+      if (spectator || !LiveLink.i.connected || (++n) % 3 == 0) _tick();
+    });
   }
 
   Future<void> _tick() async {

@@ -26,12 +26,13 @@ import 'update_check.dart';
 //  · 'feed'    : nouvelle actu → onglet Actu s'il est affiché
 //  · 'market'  : la Bourse a bougé → onglet Bourse s'il est affiché
 //  · 'config'  : réglages admin (bandeau, prix, maintenance, version minimale)
-//  · 'online'  : un joueur arrive ou part → compteur, liste En ligne, salle d'arcade
+//  · 'online' {pid} : un joueur arrive ou part → compteur, liste En ligne, salle d'arcade,
+//                salons et parties (pastille en ligne), profil de ce joueur s'il est ouvert
 //  · 'duels'   : un duel en direct commence / finit → listes « À regarder », salle
 //  · 'mail'    : courrier ou sondage de l'admin → affiché tout de suite (après une partie)
 //  · 'events'  : événements modifiés → liste + prix / promos
 //  · 'player' {pid} : profil ou collection d'un joueur changé → pages ouvertes de ce joueur
-// Chaque événement est regroupé (rafales) puis traité une fois.
+// Traitement quasi immédiat : seules les rafales d'un même tour (≈ 80 ms) sont regroupées.
 // Les minuteries restent en secours, ralenties quand LiveLink.connected.
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -53,13 +54,12 @@ class LiveEvents {
   static void start() {
     _sub ??= LiveLink.i.other.listen((m) {
       final ev = m['ev'] as String? ?? '';
-      if (ev == 'player') {
-        final pid = m['pid'] as String?;
-        if (pid != null) _later('player:$pid', 1500, () => _player.add(pid));
-        return;
-      }
+      if (ev == 'hello') return; // le relais confirme l'abonnement
+      final pid = m['pid'] as String?;
+      if ((ev == 'player' || ev == 'online') && pid != null) _later('player:$pid', 80, () => _player.add(pid));
+      if (ev == 'player') return;
       final key = ev == 'me' ? 'me:${m['k']}' : ev;
-      _later(key, ev == 'chat' ? 300 : 1200, () => _run(ev, m['k'] as String?));
+      _later(key, ev == 'chat' ? 0 : 80, () => _run(ev, m['k'] as String?));
     });
   }
 
@@ -112,12 +112,12 @@ class LiveEvents {
     }
   }
 
-  /// Courrier / sondage : tout de suite, sauf pendant une partie (on réessaie toutes les 20 s)
+  /// Courrier / sondage : tout de suite, sauf pendant une partie (on réessaie toutes les 5 s)
   static void _inbox([int tries = 0]) {
     final ctx = HomeShellState.current?.context;
-    if (ctx == null || !ctx.mounted || tries > 45) return;
+    if (ctx == null || !ctx.mounted || tries > 180) return;
     if (DuelWatch.i.inGame > 0) {
-      _later('mail', 20000, () => _inbox(tries + 1));
+      _later('mail', 5000, () => _inbox(tries + 1));
       return;
     }
     showInbox(ctx);

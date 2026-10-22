@@ -18,7 +18,8 @@ import 'server.dart';
 //    déjà été reçu (preuve que la chaîne marche) : les écrans passent alors en
 //    polling lent de secours, sinon ils gardent le rythme normal.
 // Protocole Phoenix (vsn 1.0.0) : phx_join, heartbeat toutes les 25 s,
-// reconnexion automatique (2 s → 30 s).
+// reconnexion automatique (1 s → 15 s). Le relais envoie 'hello' dès l'abonnement
+// (preuve que la chaîne marche) et tient lui-même la présence « en ligne ».
 // ═══════════════════════════════════════════════════════════════════════════
 
 class LiveLink {
@@ -160,7 +161,7 @@ class LiveLink {
     _close();
     if (!_wanted) return;
     _fails++;
-    final int s = _fails < 5 ? 2 << (_fails - 1) : 30; // 2, 4, 8, 16 puis 30 s
+    final int s = _fails < 5 ? 1 << (_fails - 1) : 15; // 1, 2, 4, 8 puis 15 s
     _retry?.cancel();
     _retry = Timer(Duration(seconds: s), start);
   }

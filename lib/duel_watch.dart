@@ -45,12 +45,14 @@ class DuelWatch extends ChangeNotifier {
     LiveEvents.start();
     _rt ??= LiveLink.i.events.listen((_) {
       _rtDebounce?.cancel();
-      _rtDebounce = Timer(const Duration(milliseconds: 300), refresh);
+      _rtDebounce = Timer(const Duration(milliseconds: 80), refresh);
     });
-    // toutes les 10 s s'il y a une partie ou un défi en cours, sinon toutes les 20 s (moins de charge serveur)
+    // Temps réel branché : tout arrive par événement et le relais tient la présence → secours toutes les 60 s.
+    // Sinon toutes les 10 s s'il y a une partie ou un défi en cours, toutes les 20 s au repos.
     var n = 0;
     _timer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (live.isNotEmpty || badge > 0 || inGame > 0 || (n++).isEven) refresh();
+      n++;
+      if (LiveLink.i.connected ? n % 6 == 0 : (live.isNotEmpty || badge > 0 || inGame > 0 || n.isEven)) refresh();
     });
     refresh();
   }

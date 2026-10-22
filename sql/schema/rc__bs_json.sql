@@ -27,6 +27,6 @@ AS $function$
     'emo_opp', case when s.side = 1 then g.emo2 else g.emo1 end,
     'emo_opp_at', case when s.side = 1 then g.emo2_at else g.emo1_at end,
     'opp', (select jsonb_build_object('pid', o.pid, 'name', o.name, 'avatar', o.avatar,
-                                      'online', coalesce(o.seen_at > now() - interval '2 minutes', false))
+                                      'online', coalesce(o.seen_at > now() - interval '75 seconds', false))
               from public.rc_players o where o.device = case when s.side = 1 then g.p2 else g.p1 end))
   from s $function$

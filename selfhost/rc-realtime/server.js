@@ -12,9 +12,12 @@
 //   RC_KEY   clé publique de l'appli (paramètre apikey), vide = pas de contrôle
 //
 // Canaux acceptés : realtime:rc_<24 hex> (un joueur, ou une partie regardée) et realtime:rc_all.
-// Le premier canal rc_<24 hex> rejoint par une connexion est celui du joueur : 10 s après
-// qu'il n'a plus aucune connexion, le relais appelle rc__rt_gone(canal) → le joueur passe
-// hors ligne tout de suite (au lieu d'attendre 75 s).
+// Le premier canal rc_<24 hex> rejoint par une connexion est celui du joueur. Présence tenue ici :
+//  · connexion → rc__rt_here(canal) : en ligne tout de suite (+ message 'hello' à la connexion,
+//    preuve pour l'appli que la chaîne marche) ;
+//  · toutes les 30 s → rc__rt_alive(canaux connectés) : reste en ligne sans ping de l'appli ;
+//  · 5 s après sa dernière connexion → rc__rt_gone(canal) : hors ligne tout de suite ;
+//  · un spectateur quitte le canal d'une partie (ou se déconnecte) → rc__rt_unwatch(joueur, partie).
 // ═══════════════════════════════════════════════════════════════════════════
 'use strict';
 const http = require('http');
@@ -25,12 +28,20 @@ const PORT = Number(process.env.RT_PORT || 4000);
 const DB = process.env.RT_DB || 'postgres://rc_rt:CHANGE_MOI@127.0.0.1:5432/postgres';
 const KEY = process.env.RC_KEY || '';
 const TOPIC_RE = /^realtime:rc_([0-9a-f]{24}|all)$/; // canal d'un joueur / d'une partie, ou canal commun rc_all
-const GONE_MS = 10000; // délai avant « hors ligne » après la dernière connexion d'un joueur
+const GONE_MS = 5000; // délai avant « hors ligne » après la dernière connexion d'un joueur (rechargement de page)
+const ALL = 'realtime:rc_all';
 
 /** topic → ensemble des sockets abonnées */
 const topics = new Map();
 
-function leave(ws, topic) {
+const bare = (t) => t.slice('realtime:'.length);
+
+function sql(q, args) {
+  if (!dbq) return;
+  dbq.query(q, args).catch((e) => console.error('[pg]', q.split('(')[0], ':', e.message));
+}
+
+function leave(ws, topic, player = ws.player) {
   const set = topics.get(topic);
   if (set) {
     set.delete(ws);
@@ -40,6 +51,10 @@ function leave(ws, topic) {
   if (ws.player === topic) {
     ws.player = null;
     gone(topic);
+  } else if (player && topic !== ALL && topic !== player) {
+    // canal d'une partie regardée : le spectateur part (s'il ne la regarde plus d'ailleurs)
+    for (const o of set || []) if (o.player === player) return;
+    sql('select public.rc__rt_unwatch($1, $2)', [bare(player), bare(topic)]);
   }
 }
 
@@ -50,8 +65,7 @@ function gone(topic) {
   goneTimers.set(topic, setTimeout(() => {
     goneTimers.delete(topic);
     for (const ws of topics.get(topic) || []) if (ws.player === topic) return; // revenu entre-temps
-    if (!dbq) return;
-    dbq.query('select public.rc__rt_gone($1)', [topic.slice('realtime:'.length)]).catch((e) => console.error('[pg] rc__rt_gone :', e.message));
+    sql('select public.rc__rt_gone($1)', [bare(topic)]);
   }, GONE_MS));
 }
 
@@ -101,10 +115,14 @@ wss.on('connection', (ws) => {
         if (!topics.has(m.topic)) topics.set(m.topic, new Set());
         topics.get(m.topic).add(ws);
         ws.topics.add(m.topic);
-        if (!ws.player && m.topic !== 'realtime:rc_all') {
+        if (!ws.player && m.topic !== ALL) {
           ws.player = m.topic; // premier canal personnel = celui du joueur
           clearTimeout(goneTimers.get(m.topic));
           goneTimers.delete(m.topic);
+          reply();
+          sql('select public.rc__rt_here($1)', [bare(m.topic)]); // en ligne tout de suite
+          ws.send(JSON.stringify({ topic: m.topic, event: 'broadcast', payload: { type: 'broadcast', event: 'hello', payload: {} }, ref: null }));
+          return;
         }
         return reply();
       case 'phx_leave':
@@ -116,11 +134,19 @@ wss.on('connection', (ws) => {
   });
 
   ws.on('close', () => {
-    for (const t of [...ws.topics]) leave(ws, t);
+    const player = ws.player;
+    for (const t of [...ws.topics]) leave(ws, t, player);
   });
 });
 
-// Coupe les connexions mortes (pas de heartbeat ni de pong depuis 60 s)
+// Joueurs connectés : restent « en ligne » (seen_at) sans ping de l'appli
+setInterval(() => {
+  const players = new Set();
+  for (const ws of wss.clients) if (ws.player) players.add(bare(ws.player));
+  if (players.size) sql('select public.rc__rt_alive($1)', [[...players]]);
+}, 30000);
+
+// Coupe les connexions mortes (pas de heartbeat ni de pong depuis 30 s)
 setInterval(() => {
   for (const ws of wss.clients) {
     if (!ws.alive) {
@@ -130,7 +156,7 @@ setInterval(() => {
     ws.alive = false;
     ws.ping();
   }
-}, 30000);
+}, 15000);
 
 function broadcast(topic, event, payload) {
   const set = topics.get('realtime:' + topic);
@@ -140,7 +166,7 @@ function broadcast(topic, event, payload) {
 }
 
 // ─── Écoute de Postgres (reconnexion automatique) ─────────────────────────
-let dbq = null; // connexion prête pour les requêtes (rc__rt_gone)
+let dbq = null; // connexion prête pour les requêtes (présence, spectateurs)
 async function listen() {
   const db = new Client({ connectionString: DB });
   db.on('error', (e) => console.error('[pg] erreur :', e.message));

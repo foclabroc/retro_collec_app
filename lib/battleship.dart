@@ -713,6 +713,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
     _rt = LiveLink.i.events.listen((e) {
       if (e['game'] == 'bs' && _i(e['gid']) == id) _refresh();
     });
+    LiveEvents.online.addListener(_onOnline); // adversaire connecté / parti
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() {});
@@ -732,6 +733,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
     } else {
       DuelWatch.i.inGame--;
     }
+    LiveEvents.online.removeListener(_onOnline);
     _rt?.cancel();
     _poll?.cancel();
     _tick?.cancel();
@@ -859,6 +861,8 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
       if (mounted) setState(() => _bannerText = null);
     });
   }
+
+  void _onOnline() => _refresh();
 
   Future<void> _refresh() async {
     try {

@@ -8,6 +8,7 @@ import 'cards.dart';
 import 'duel_msg.dart';
 import 'duel_watch.dart';
 import 'game.dart';
+import 'live_events.dart';
 import 'live_link.dart';
 import 'layout.dart';
 import 'main.dart';
@@ -313,12 +314,18 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
     _rt = LiveLink.i.events.listen((e) {
       if (e['game'] == k.code && !inGame) _load();
     });
+    LiveEvents.online.addListener(_onOnline); // un joueur arrive / part : liste « En ligne » du salon
+  }
+
+  void _onOnline() {
+    if (!inGame) _load();
   }
 
   StreamSubscription? _rt;
 
   @override
   void dispose() {
+    LiveEvents.online.removeListener(_onOnline);
     _rt?.cancel();
     _poll?.cancel();
     _wait.dispose();
@@ -1192,6 +1199,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
     _rt = LiveLink.i.events.listen((e) {
       if (e['game'] == 'c4' && _i(e['gid']) == id) _refresh();
     });
+    LiveEvents.online.addListener(_onOnline); // adversaire connecté / parti
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() {});
@@ -1211,6 +1219,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
     } else {
       DuelWatch.i.inGame--;
     }
+    LiveEvents.online.removeListener(_onOnline);
     _rt?.cancel();
     _poll?.cancel();
     _tick?.cancel();
@@ -1261,6 +1270,8 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
     }
     if (wasPlaying && !playing) _showResult();
   }
+
+  void _onOnline() => _refresh();
 
   Future<void> _refresh() async {
     try {
