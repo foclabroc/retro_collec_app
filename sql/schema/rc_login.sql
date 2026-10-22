@@ -7,7 +7,7 @@ AS $function$
 declare v public.rc_players;
 begin
   select * into v from public.rc_players
-   where name_key = public.rc__name_key(left(trim(coalesce(p_name, '')), 16)) for update;
+   where name_key = public.rc__name_key(left(trim(coalesce(p_name, '')), 24)) for update;
   if v.device is null or v.pass_hash is null then raise exception 'identifiants incorrects'; end if;
   if v.pass_lock is not null and v.pass_lock > now() then raise exception 'trop de tentatives'; end if;
   if extensions.crypt(coalesce(p_hash, ''), v.pass_hash) <> v.pass_hash then

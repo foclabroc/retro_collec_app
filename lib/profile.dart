@@ -73,7 +73,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(t('Ton pseudo', 'Your name')),
-        content: TextField(controller: ctl, maxLength: 16, autofocus: true),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          TextField(controller: ctl, maxLength: 24, autofocus: true),
+          Text(
+            t('Emojis et symboles permis pour le décorer. Pour te connecter, seuls les lettres et chiffres comptent : « ${nameKey(Game.i.name)} ».',
+                'Emojis and symbols allowed to decorate it. To log in, only letters and digits count: "${nameKey(Game.i.name)}".'),
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+        ]),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Annuler', 'Cancel'))),
           ElevatedButton(onPressed: () => Navigator.pop(ctx, ctl.text.trim()), child: Text(t('OK', 'OK'))),

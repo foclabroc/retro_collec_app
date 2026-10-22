@@ -1,6 +1,6 @@
-CREATE OR REPLACE FUNCTION public.rc__name_key(p text)
- RETURNS text
- LANGUAGE sql
- IMMUTABLE
-AS $function$
-  select lower(regexp_replace(trim(coalesce(p, '')), '\s+', '', 'g')) $function$
+create or replace function public.rc__name_key(p text)
+ returns text
+ language sql
+ immutable
+as $function$
+  select lower(regexp_replace(coalesce(p, ''), '[^[:alnum:]]', '', 'g')) $function$;

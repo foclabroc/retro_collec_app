@@ -18,6 +18,10 @@ bool rcFrench = true;
 String rcLang = 'auto';
 String t(String fr, String en) => rcFrench ? fr : en;
 
+/// Clé d'un pseudo (comme rc__name_key côté serveur) : lettres et chiffres seulement, en minuscules.
+/// Sert à la connexion, aux doublons et aux @mentions (« 🎮Foc labroc👾 » → « foclabroc »).
+String nameKey(String s) => s.toLowerCase().replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '');
+
 /// Incrémenté à chaque changement de langue : l'appli se reconstruit entièrement.
 final rcLangChanged = ValueNotifier<int>(0);
 

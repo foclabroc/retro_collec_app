@@ -171,7 +171,7 @@ class _WelcomePageState extends State<WelcomePage> {
           child: Column(children: [
             TextField(
               controller: loginName,
-              maxLength: 16,
+              maxLength: 24,
               enabled: !busy,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
               decoration: _field(t('Pseudo', 'Name'), Icons.person),
@@ -264,7 +264,7 @@ class _WelcomePageState extends State<WelcomePage> {
                   child: Column(children: [
                     TextField(
                       controller: ctl,
-                      maxLength: 16,
+                      maxLength: 24,
                       enabled: !busy,
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),

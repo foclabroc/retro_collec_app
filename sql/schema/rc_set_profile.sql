@@ -1,12 +1,12 @@
-CREATE OR REPLACE FUNCTION public.rc_set_profile(p_device text, p_name text, p_avatar integer, p_showcase text, p_sig text)
- RETURNS text
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'extensions'
-AS $function$
+create or replace function public.rc_set_profile(p_device text, p_name text, p_avatar integer, p_showcase text, p_sig text)
+ returns text
+ language plpgsql
+ security definer
+ set search_path to 'public', 'extensions'
+as $function$
 declare
-  v_name text := left(trim(coalesce(p_name, '')), 16);
-  v_key  text := public.rc__name_key(left(trim(coalesce(p_name, '')), 16));
+  v_name text := left(trim(coalesce(p_name, '')), 24);
+  v_key  text := public.rc__name_key(left(trim(coalesce(p_name, '')), 24));
 begin
   perform public.rc__check(p_sig, p_device || '|profile|' || coalesce(p_name, '') || '|' || p_avatar || '|' || coalesce(p_showcase, ''));
   if v_key = '' then raise exception 'pseudo vide'; end if;
@@ -18,4 +18,4 @@ begin
          showcase = coalesce(p_showcase, ''), updated_at = now()
    where device = p_device;
   return 'ok';
-end $function$
+end $function$;

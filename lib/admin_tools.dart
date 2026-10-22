@@ -158,7 +158,7 @@ class _PlayerActions extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(t('Renommer $name', 'Rename $name')),
-        content: TextField(controller: ctl, maxLength: 16, autofocus: true),
+        content: TextField(controller: ctl, maxLength: 24, autofocus: true),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Annuler', 'Cancel'))),
           ElevatedButton(onPressed: () => Navigator.pop(ctx, ctl.text.trim()), child: const Text('OK')),

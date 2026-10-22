@@ -65,7 +65,7 @@ class _LoginDialogState extends State<_LoginDialog> {
             TextField(
               controller: name,
               enabled: !busy,
-              maxLength: 16,
+              maxLength: 24,
               decoration: InputDecoration(labelText: t('Pseudo', 'Name'), counterText: '', prefixIcon: const Icon(Icons.person)),
             ),
             const SizedBox(height: 8),

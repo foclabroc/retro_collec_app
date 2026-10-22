@@ -115,7 +115,7 @@ class MessagesScreenState extends State<MessagesScreen> {
     final m = RegExp(r'@(\S*)$').firstMatch(before);
     final next = m == null
         ? <String>[]
-        : _names.where((n) => n != Game.i.name && n.toLowerCase().startsWith(m.group(1)!.toLowerCase())).take(5).toList();
+        : _names.where((n) => n != Game.i.name && nameKey(n).startsWith(nameKey(m.group(1)!))).take(5).toList();
     if (next.join('|') != _suggest.join('|')) setState(() => _suggest = next);
   }
 
@@ -124,14 +124,14 @@ class MessagesScreenState extends State<MessagesScreen> {
     final pos = _ctl.selection.baseOffset < 0 ? txt.length : _ctl.selection.baseOffset;
     final before = txt.substring(0, pos);
     final start = before.lastIndexOf('@');
-    final insert = '@${name.replaceAll(' ', '')} ';
+    final insert = '@${nameKey(name)} ';
     final out = txt.substring(0, start) + insert + txt.substring(pos);
     _ctl.value = TextEditingValue(text: out, selection: TextSelection.collapsed(offset: start + insert.length));
     setState(() => _suggest = []);
   }
 
   void mention(String name) {
-    _ctl.text = '${_ctl.text.isEmpty || _ctl.text.endsWith(' ') ? _ctl.text : '${_ctl.text} '}@${name.replaceAll(' ', '')} ';
+    _ctl.text = '${_ctl.text.isEmpty || _ctl.text.endsWith(' ') ? _ctl.text : '${_ctl.text} '}@${nameKey(name)} ';
     _ctl.selection = TextSelection.collapsed(offset: _ctl.text.length);
     _focus.requestFocus();
   }
@@ -294,8 +294,8 @@ class MessagesScreenState extends State<MessagesScreen> {
     final name = m['name'] as String? ?? '?';
     final pid = m['pid'] as String? ?? '';
     final msg = m['msg'] as String? ?? '';
-    final myKey = '@${Game.i.name.replaceAll(' ', '').toLowerCase()}';
-    final citesMe = !me && msg.replaceAll(' ', '').toLowerCase().contains(myKey);
+    final myKey = '@${nameKey(Game.i.name)}';
+    final citesMe = !me && msg.toLowerCase().replaceAll(RegExp(r'[^\p{L}\p{N}@]', unicode: true), '').contains(myKey);
     final nameColor = me ? kGold : _nameColors[pid.hashCode.abs() % _nameColors.length];
     final time = at == null ? '' : '${at.hour.toString().padLeft(2, '0')}:${at.minute.toString().padLeft(2, '0')}';
 
@@ -353,13 +353,13 @@ class MessagesScreenState extends State<MessagesScreen> {
 
   /// Texte avec les @mentions colorées (la mienne en doré)
   Widget _richMsg(String msg) {
-    final myKey = Game.i.name.replaceAll(' ', '').toLowerCase();
+    final myKey = nameKey(Game.i.name);
     final spans = <TextSpan>[];
     msg.splitMapJoin(
       RegExp(r'@\S+'),
       onMatch: (mm) {
         final tag = mm.group(0)!;
-        final mine = tag.substring(1).toLowerCase().replaceAll(RegExp(r'[^\w]'), '') == myKey.replaceAll(RegExp(r'[^\w]'), '');
+        final mine = nameKey(tag.substring(1)) == myKey;
         spans.add(TextSpan(text: tag, style: TextStyle(color: mine ? kGold : const Color(0xFF8FD3FF), fontWeight: FontWeight.w800)));
         return '';
       },
