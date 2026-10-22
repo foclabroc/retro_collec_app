@@ -103,7 +103,7 @@ class _PacksScreenState extends State<PacksScreen> {
     if (pending == null || busy) return;
     setState(() => busy = true);
     try {
-      final p = await Game.i.pendingChoice(); // toujours en attente ? (il a pu être ouvert ailleurs)
+      final p = await Game.i.pendingChoice(strict: true); // toujours en attente ? (il a pu être ouvert ailleurs) ; erreur → vrai message
       if (p == null) {
         toast(t('Ce paquet a déjà été ouvert', 'This pack was already opened'));
       } else if (mounted) {

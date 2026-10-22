@@ -489,11 +489,13 @@ class Game extends ChangeNotifier {
   }
 
   /// Achat payé mais booster pas encore choisi (appli fermée entre les deux), ou null.
-  Future<Map<String, dynamic>?> pendingChoice() async {
+  /// strict : une erreur (réseau, serveur) remonte au lieu de passer pour « pas de paquet ».
+  Future<Map<String, dynamic>?> pendingChoice({bool strict = false}) async {
     if (!_choiceOk) return null;
     try {
       return await RcServer.pending();
     } catch (_) {
+      if (strict) rethrow;
       return null;
     }
   }
