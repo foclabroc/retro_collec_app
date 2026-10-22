@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart' show consolidateHttpClientResponseBytes, kIsWeb;
+import 'package:flutter/foundation.dart' show SynchronousFuture, consolidateHttpClientResponseBytes, kIsWeb;
 import 'package:flutter/painting.dart';
 
 import 'package:archive/archive.dart';
@@ -10,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'game.dart';
+import 'web_img_stub.dart' if (dart.library.js_interop) 'web_img_web.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Catalogue des cartes : catalog.json + images, hébergés sur GitHub Pages
@@ -205,15 +207,26 @@ class Catalog {
   /// Version web : adresse en ligne, avec l'empreinte du pack pour suivre les mises à jour
   static String _url(String path, String sys) => '$kAssetsBase$path?h=${system(sys)?.hash ?? version}';
 
+  /// Web : retire du cache du navigateur les images des anciennes versions des packs
+  static Future<void> _pruneWeb() => webPruneImages((u) {
+        final uri = Uri.tryParse(u);
+        if (uri == null) return false;
+        final seg = uri.pathSegments;
+        final i = seg.indexOf('retro_collec_assets');
+        if (i < 0 || seg.length < i + 3) return false;
+        final sys = seg[i + 1] == 'shots' ? (seg.length > i + 2 ? seg[i + 2] : '') : seg[i + 1];
+        return uri.queryParameters['h'] == (system(sys)?.hash ?? version);
+      });
+
   /// Jaquette de la carte (fichier local sur Android, image en ligne sur le web)
   static ImageProvider image(RcCard c) =>
-      kIsWeb ? NetworkImage(_url(c.img, c.baseSys ?? c.sys)) : FileImage(File('$dir/${c.img}')) as ImageProvider;
+      kIsWeb ? CachedWebImage(_url(c.img, c.baseSys ?? c.sys)) : FileImage(File('$dir/${c.img}')) as ImageProvider;
 
   /// Capture d'écran du jeu, ou null si absente (pas encore téléchargée sur Android)
   static ImageProvider? shot(RcCard c) {
     final s = c.shot;
     if (s == null) return null;
-    if (kIsWeb) return NetworkImage(_url(s, c.baseSys ?? c.sys));
+    if (kIsWeb) return CachedWebImage(_url(s, c.baseSys ?? c.sys));
     final f = File('$dir/$s');
     return f.existsSync() ? FileImage(f) : null;
   }
@@ -316,6 +329,7 @@ class Catalog {
       progress?.call(0.5, '');
       _parse(txt);
       progress?.call(1, '');
+      Future(_pruneWeb);
       return;
     }
     final j = jsonDecode(txt) as Map<String, dynamic>;
@@ -366,4 +380,35 @@ class Catalog {
       return false;
     }
   }
+}
+
+
+/// Image web gardée dans le Cache Storage du navigateur (voir web_img_web.dart) ;
+/// sinon (cache indisponible) téléchargée comme une image réseau normale.
+class CachedWebImage extends ImageProvider<CachedWebImage> {
+  final String url;
+  const CachedWebImage(this.url);
+
+  @override
+  Future<CachedWebImage> obtainKey(ImageConfiguration configuration) => SynchronousFuture<CachedWebImage>(this);
+
+  @override
+  ImageStreamCompleter loadImage(CachedWebImage key, ImageDecoderCallback decode) =>
+      MultiFrameImageStreamCompleter(codec: _load(decode), scale: 1, debugLabel: url);
+
+  Future<ui.Codec> _load(ImageDecoderCallback decode) async {
+    var bytes = await webCachedBytes(url);
+    if (bytes == null) {
+      final r = await http.get(Uri.parse(url));
+      if (r.statusCode != 200) throw Exception('HTTP ${r.statusCode} $url');
+      bytes = r.bodyBytes;
+    }
+    return decode(await ui.ImmutableBuffer.fromUint8List(bytes));
+  }
+
+  @override
+  bool operator ==(Object other) => other is CachedWebImage && other.url == url;
+
+  @override
+  int get hashCode => url.hashCode;
 }
