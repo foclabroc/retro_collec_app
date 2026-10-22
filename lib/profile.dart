@@ -178,6 +178,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _stat(t('Paquets', 'Packs'), '${g.packs}'),
                   _stat(t('Série', 'Streak'), t('${g.streak} j', '${g.streak} d')),
                 ]),
+                const SizedBox(height: 8),
+                Row(children: [
+                  _quick(Icons.videogame_asset, t('Ma borne', 'My cabinet'), t('Habillage', 'Skin'), _myCabinet),
+                  _quick(Icons.palette, t('Thème', 'Theme'), rcThemeRandom ? t('Aléatoire', 'Random') : rcTheme.name, _pickTheme),
+                  _quick(Icons.library_music, t('Musique', 'Music'),
+                      RcAudio.homeTrackNone ? t('Aucune', 'None') : RcAudio.homeTrackRandom ? t('Aléatoire', 'Random') : RcAudio.kTracks[RcAudio.homeTrack], _pickMusic),
+                ]),
                 const SizedBox(height: 18),
                 Text(t('Ma vitrine', 'My showcase'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 4),
@@ -310,122 +317,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           );
                         },
                       ),
-                    const Divider(height: 1, color: Colors.white12),
-                    ListTile(
-                      leading: const Icon(Icons.palette),
-                      title: Text(t('Thème', 'Theme')),
-                      subtitle: Text(rcThemeRandom ? '${t('Aléatoire', 'Random')} · ${rcTheme.name}' : rcTheme.name,
-                          style: const TextStyle(fontSize: 12, color: Colors.white54)),
-                      trailing: const Icon(Icons.chevron_right, color: Colors.white38),
-                      onTap: () async {
-                        final i = await showDialog<int>(
-                          context: context,
-                          builder: (ctx) => SimpleDialog(
-                            title: Text(t('Thème de l\'interface', 'Interface theme')),
-                            children: [
-                              SimpleDialogOption(
-                                onPressed: () => Navigator.pop(ctx, -1),
-                                child: Row(children: [
-                                  Container(
-                                    width: 64,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      gradient: const LinearGradient(colors: [Color(0xFFFF4FD8), Color(0xFF3DD9FF), Color(0xFF7DFF3D)]),
-                                      border: Border.all(color: rcThemeRandom ? kGold : Colors.white24, width: rcThemeRandom ? 2.5 : 1.5),
-                                    ),
-                                    child: const Center(child: Text('🎲', style: TextStyle(fontSize: 22))),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                      Text(t('Aléatoire', 'Random'),
-                                          style: TextStyle(fontWeight: FontWeight.w700, color: rcThemeRandom ? kGold : Colors.white)),
-                                      Text(t('Un thème différent à chaque lancement', 'A different theme at each launch'),
-                                          style: const TextStyle(fontSize: 11, color: Colors.white54)),
-                                    ]),
-                                  ),
-                                  if (rcThemeRandom) const Icon(Icons.check, color: kGold),
-                                ]),
-                              ),
-                              for (var k = 0; k < kThemes.length; k++)
-                                SimpleDialogOption(
-                                  onPressed: () => Navigator.pop(ctx, k),
-                                  child: Row(children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: rcThemeIndex.value == k ? kGold : kThemes[k].line, width: rcThemeIndex.value == k ? 2.5 : 1.5),
-                                      ),
-                                      child: ClipRRect(borderRadius: BorderRadius.circular(6), child: ThemePreview(k, width: 64, height: 44)),
-                                    ),
-                                    const SizedBox(width: 14),
-                                    Expanded(
-                                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                        Text(kThemes[k].name,
-                                            style: TextStyle(fontWeight: FontWeight.w700, color: !rcThemeRandom && rcThemeIndex.value == k ? kThemes[k].accent : Colors.white)),
-                                        Text(kThemes[k].motifName, style: const TextStyle(fontSize: 11, color: Colors.white54)),
-                                      ]),
-                                    ),
-                                    if (!rcThemeRandom && rcThemeIndex.value == k) const Icon(Icons.check, color: kGold),
-                                  ]),
-                                ),
-                            ],
-                          ),
-                        );
-                        if (i != null) {
-                          await setTheme(i);
-                          setState(() {});
-                        }
-                      },
-                    ),
-                    const Divider(height: 1, color: Colors.white12),
-                    ListTile(
-                      leading: const Icon(Icons.library_music),
-                      title: Text(t('Musique', 'Music')),
-                      subtitle: Text(RcAudio.homeTrackNone ? t('Aucune', 'None') : RcAudio.homeTrackRandom ? '${t('Aléatoire', 'Random')} · ${RcAudio.kTracks[RcAudio.homeTrack]}' : RcAudio.kTracks[RcAudio.homeTrack], style: const TextStyle(fontSize: 12, color: Colors.white54)),
-                      trailing: const Icon(Icons.chevron_right, color: Colors.white38),
-                      onTap: () async {
-                        final i = await showDialog<int>(
-                          context: context,
-                          builder: (ctx) => SimpleDialog(
-                            title: Text(t('Musique', 'Music')),
-                            children: [
-                              RadioListTile<int>(
-                                value: -2,
-                                groupValue: RcAudio.homeTrackNone ? -2 : RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
-                                activeColor: kGold,
-                                title: Text(t('🔇 Aucune', '🔇 None')),
-                                subtitle: Text(t('Pas de musique, les bruitages restent', 'No music, sound effects stay on'),
-                                    style: const TextStyle(fontSize: 11, color: Colors.white54)),
-                                onChanged: (v) => Navigator.pop(ctx, v),
-                              ),
-                              RadioListTile<int>(
-                                value: -1,
-                                groupValue: RcAudio.homeTrackNone ? -2 : RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
-                                activeColor: kGold,
-                                title: Text(t('🎲 Aléatoire', '🎲 Random')),
-                                subtitle: Text(t('Un morceau différent à chaque lancement', 'A different track at each launch'),
-                                    style: const TextStyle(fontSize: 11, color: Colors.white54)),
-                                onChanged: (v) => Navigator.pop(ctx, v),
-                              ),
-                              for (var k = 0; k < RcAudio.kTracks.length; k++)
-                                RadioListTile<int>(
-                                  value: k,
-                                  groupValue: RcAudio.homeTrackNone ? -2 : RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
-                                  activeColor: kGold,
-                                  title: Text(RcAudio.kTracks[k]),
-                                  onChanged: (v) => Navigator.pop(ctx, v),
-                                ),
-                            ],
-                          ),
-                        );
-                        if (i != null) {
-                          await RcAudio.setHomeTrack(i);
-                          setState(() {});
-                        }
-                      },
-                    ),
                     const Divider(height: 1, color: Colors.white12),
                     ListTile(
                       leading: const Icon(Icons.translate),
@@ -600,6 +491,137 @@ class _ProfileScreenState extends State<ProfileScreen> {
       toast(t('Mot de passe enregistré', 'Password saved'));
     }
   }
+
+  Future<void> _pickTheme() async {
+                        final i = await showDialog<int>(
+                          context: context,
+                          builder: (ctx) => SimpleDialog(
+                            title: Text(t('Thème de l\'interface', 'Interface theme')),
+                            children: [
+                              SimpleDialogOption(
+                                onPressed: () => Navigator.pop(ctx, -1),
+                                child: Row(children: [
+                                  Container(
+                                    width: 64,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      gradient: const LinearGradient(colors: [Color(0xFFFF4FD8), Color(0xFF3DD9FF), Color(0xFF7DFF3D)]),
+                                      border: Border.all(color: rcThemeRandom ? kGold : Colors.white24, width: rcThemeRandom ? 2.5 : 1.5),
+                                    ),
+                                    child: const Center(child: Text('🎲', style: TextStyle(fontSize: 22))),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                      Text(t('Aléatoire', 'Random'),
+                                          style: TextStyle(fontWeight: FontWeight.w700, color: rcThemeRandom ? kGold : Colors.white)),
+                                      Text(t('Un thème différent à chaque lancement', 'A different theme at each launch'),
+                                          style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                                    ]),
+                                  ),
+                                  if (rcThemeRandom) const Icon(Icons.check, color: kGold),
+                                ]),
+                              ),
+                              for (var k = 0; k < kThemes.length; k++)
+                                SimpleDialogOption(
+                                  onPressed: () => Navigator.pop(ctx, k),
+                                  child: Row(children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: rcThemeIndex.value == k ? kGold : kThemes[k].line, width: rcThemeIndex.value == k ? 2.5 : 1.5),
+                                      ),
+                                      child: ClipRRect(borderRadius: BorderRadius.circular(6), child: ThemePreview(k, width: 64, height: 44)),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                        Text(kThemes[k].name,
+                                            style: TextStyle(fontWeight: FontWeight.w700, color: !rcThemeRandom && rcThemeIndex.value == k ? kThemes[k].accent : Colors.white)),
+                                        Text(kThemes[k].motifName, style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                                      ]),
+                                    ),
+                                    if (!rcThemeRandom && rcThemeIndex.value == k) const Icon(Icons.check, color: kGold),
+                                  ]),
+                                ),
+                            ],
+                          ),
+                        );
+                        if (i != null) {
+                          await setTheme(i);
+                          setState(() {});
+                        }
+                      }
+
+  Future<void> _pickMusic() async {
+                        final i = await showDialog<int>(
+                          context: context,
+                          builder: (ctx) => SimpleDialog(
+                            title: Text(t('Musique', 'Music')),
+                            children: [
+                              RadioListTile<int>(
+                                value: -2,
+                                groupValue: RcAudio.homeTrackNone ? -2 : RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
+                                activeColor: kGold,
+                                title: Text(t('🔇 Aucune', '🔇 None')),
+                                subtitle: Text(t('Pas de musique, les bruitages restent', 'No music, sound effects stay on'),
+                                    style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                                onChanged: (v) => Navigator.pop(ctx, v),
+                              ),
+                              RadioListTile<int>(
+                                value: -1,
+                                groupValue: RcAudio.homeTrackNone ? -2 : RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
+                                activeColor: kGold,
+                                title: Text(t('🎲 Aléatoire', '🎲 Random')),
+                                subtitle: Text(t('Un morceau différent à chaque lancement', 'A different track at each launch'),
+                                    style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                                onChanged: (v) => Navigator.pop(ctx, v),
+                              ),
+                              for (var k = 0; k < RcAudio.kTracks.length; k++)
+                                RadioListTile<int>(
+                                  value: k,
+                                  groupValue: RcAudio.homeTrackNone ? -2 : RcAudio.homeTrackRandom ? -1 : RcAudio.homeTrack,
+                                  activeColor: kGold,
+                                  title: Text(RcAudio.kTracks[k]),
+                                  onChanged: (v) => Navigator.pop(ctx, v),
+                                ),
+                            ],
+                          ),
+                        );
+                        if (i != null) {
+                          await RcAudio.setHomeTrack(i);
+                          setState(() {});
+                        }
+                      }
+
+  Future<void> _myCabinet() async {
+    await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => const FloorThemePage()));
+    if (mounted) setState(() {});
+  }
+
+  Widget _quick(IconData icon, String label, String sub, VoidCallback onTap) => Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3),
+          child: Material(
+            color: kPanel,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                child: Column(children: [
+                  Icon(icon, color: kGold, size: 22),
+                  const SizedBox(height: 4),
+                  Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                  Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      );
 
   Widget _stat(String k, String v) => Expanded(
         child: Container(
