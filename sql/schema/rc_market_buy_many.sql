@@ -9,6 +9,7 @@ declare
   got jsonb := '[]'::jsonb; skip jsonb := '[]'::jsonb; ev jsonb := '[]'::jsonb; n int := 0;
 begin
   perform public.rc__check(p_sig, p_device || '|buymany|' || coalesce(p_items, ''));
+  perform public.rc__not_new(p_device);
   perform public.rc__not_blocked(p_device);
   foreach it in array array_remove(string_to_array(coalesce(p_items, ''), ','), '') loop
     n := n + 1;
@@ -43,4 +44,4 @@ begin
   if jsonb_array_length(got) > 0 then perform public.rc__rescore(p_device); end if;
   return jsonb_build_object('bought', got, 'skipped', skip, 'events', ev,
                             'coins', (select coins from public.rc_players where device = p_device));
-end $function$;
+end $function$

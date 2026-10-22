@@ -7,6 +7,7 @@ AS $function$
 declare v_to text; v_id bigint; ng int; nw int;
 begin
   perform public.rc__check(p_sig, p_device || '|offer|' || p_to_pid || '|' || coalesce(p_give, '') || '|' || coalesce(p_want, ''));
+  perform public.rc__not_new(p_device);
   perform public.rc__not_blocked(p_device);
   select device into v_to from public.rc_players where pid = p_to_pid;
   if v_to is null then raise exception 'joueur inconnu'; end if;

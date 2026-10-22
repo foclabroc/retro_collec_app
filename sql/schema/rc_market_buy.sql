@@ -8,6 +8,7 @@ declare
   m public.rc_market; v public.rc_players; is_new boolean; ev jsonb := '[]'::jsonb;
 begin
   perform public.rc__check(p_sig, p_device || '|buy|' || p_id);
+  perform public.rc__not_new(p_device);
   select * into m from public.rc_market x where x.id = p_id and x.buyer is null for update skip locked;
   if m.id is null then return null; end if;
   if m.seller = p_device then raise exception 'c''est ton lot'; end if;
@@ -29,4 +30,4 @@ begin
   perform public.rc__rescore(p_device);
   return jsonb_build_object('card', m.card, 'f', m.finish, 'n', is_new,
                             'coins', (select coins from public.rc_players where device = p_device), 'events', ev);
-end $function$;
+end $function$

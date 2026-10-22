@@ -18,6 +18,7 @@
 //  · toutes les 30 s → rc__rt_alive(canaux connectés) : reste en ligne sans ping de l'appli ;
 //  · 5 s après sa dernière connexion → rc__rt_gone(canal) : hors ligne tout de suite ;
 //  · un spectateur quitte le canal d'une partie (ou se déconnecte) → rc__rt_unwatch(joueur, partie).
+// Protection : 12 connexions max par IP, 40 messages max par connexion et par 10 s.
 // ═══════════════════════════════════════════════════════════════════════════
 'use strict';
 const http = require('http');
@@ -30,6 +31,8 @@ const KEY = process.env.RC_KEY || '';
 const TOPIC_RE = /^realtime:rc_([0-9a-f]{24}|all)$/; // canal d'un joueur / d'une partie, ou canal commun rc_all
 const GONE_MS = 5000; // délai avant « hors ligne » après la dernière connexion d'un joueur (rechargement de page)
 const ALL = 'realtime:rc_all';
+const MAX_PER_IP = 12; // connexions WebSocket ouvertes en même temps par adresse IP (plusieurs onglets / appareils d'une maison)
+const MAX_MSG = 40; // messages reçus par connexion et par tranche de 10 s (au-delà : connexion coupée)
 
 /** topic → ensemble des sockets abonnées */
 const topics = new Map();
@@ -80,6 +83,12 @@ function countSockets() {
   return wss.clients.size;
 }
 
+// adresse du client : X-Forwarded-For posé par Caddy (seule entrée, relais en 127.0.0.1)
+const perIp = new Map();
+function clientIp(req) {
+  return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+}
+
 server.on('upgrade', (req, socket, head) => {
   const u = new URL(req.url, 'http://local');
   if (u.pathname !== '/realtime/v1/websocket' || (KEY && u.searchParams.get('apikey') !== KEY)) {
@@ -87,7 +96,22 @@ server.on('upgrade', (req, socket, head) => {
     socket.destroy();
     return;
   }
-  wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws));
+  const ip = clientIp(req);
+  if ((perIp.get(ip) || 0) >= MAX_PER_IP) {
+    socket.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
+    socket.destroy();
+    return;
+  }
+  wss.handleUpgrade(req, socket, head, (ws) => {
+    ws.ip = ip;
+    perIp.set(ip, (perIp.get(ip) || 0) + 1);
+    ws.on('close', () => {
+      const n = (perIp.get(ip) || 1) - 1;
+      if (n > 0) perIp.set(ip, n);
+      else perIp.delete(ip);
+    });
+    wss.emit('connection', ws);
+  });
 });
 
 wss.on('connection', (ws) => {
@@ -95,7 +119,9 @@ wss.on('connection', (ws) => {
   ws.alive = true;
   ws.on('pong', () => (ws.alive = true));
 
+  ws.msgs = 0;
   ws.on('message', (raw) => {
+    if (++ws.msgs > MAX_MSG) return ws.terminate(); // trop de messages : client fou ou malveillant
     let m;
     try {
       m = JSON.parse(raw);
@@ -157,6 +183,11 @@ setInterval(() => {
     ws.ping();
   }
 }, 15000);
+
+// remise à zéro du compteur de messages
+setInterval(() => {
+  for (const ws of wss.clients) ws.msgs = 0;
+}, 10000);
 
 function broadcast(topic, event, payload) {
   const set = topics.get('realtime:' + topic);

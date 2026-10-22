@@ -13,6 +13,8 @@ begin
   if p_accept then
     perform public.rc__not_blocked(t.sender);
     perform public.rc__not_blocked(t.receiver);
+    perform public.rc__not_new(t.sender);
+    perform public.rc__not_new(t.receiver);
   end if;
   if not p_accept then
     update public.rc_trades set status = 'refused', done_at = now() where id = t.id;
@@ -43,4 +45,4 @@ begin
   perform public.rc__rescore(t.sender);
   perform public.rc__rescore(t.receiver);
   return jsonb_build_object('status', 'accepted', 'events', ev);
-end $function$;
+end $function$

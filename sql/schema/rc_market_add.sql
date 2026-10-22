@@ -7,6 +7,7 @@ AS $function$
 declare v_id bigint;
 begin
   perform public.rc__check(p_sig, p_device || '|sell|' || p_card || '|' || p_finish || '|' || p_price);
+  perform public.rc__not_new(p_device);
   perform public.rc__not_blocked(p_device);
   perform 1 from public.rc_players where device = p_device for update;
   if (select count(*) from public.rc_market where seller = p_device and buyer is null) >= 12 then

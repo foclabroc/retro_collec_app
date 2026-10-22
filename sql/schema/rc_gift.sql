@@ -7,6 +7,7 @@ as $function$
 declare v public.rc_players; dest public.rc_players; n int;
 begin
   perform public.rc__check(p_sig, p_device || '|gift|' || p_to_pid);
+  perform public.rc__not_new(p_device);
   perform public.rc__not_blocked(p_device);
   select * into v from public.rc_players where device = p_device for update;
   if v.device is null then raise exception 'joueur inconnu'; end if;
@@ -27,4 +28,4 @@ begin
   perform public.rc__ev_bump(p_device, 'gifts_sent', 1);  -- défi : paquets offerts
   perform public.rc__wbump(p_device, 'gift', 1);  -- défi de la semaine : cadeaux envoyés
   return true;
-end $function$;
+end $function$

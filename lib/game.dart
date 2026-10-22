@@ -644,6 +644,11 @@ String errText(Object e) {
       'maison invalide' => t('Thème invalide', 'Invalid theme'),
       'identifiants incorrects' => t('Pseudo ou mot de passe incorrect', 'Wrong name or password'),
       'trop de tentatives' => t('Trop d\'essais : réessaie dans 15 minutes', 'Too many attempts: try again in 15 minutes'),
+      'compte trop récent : possible 24 h après la création du compte' =>
+        t('Bourse, cadeaux et échanges : possibles 24 h après la création du compte', 'Market, gifts and trades: available 24 h after creating your account'),
+      'trop de comptes créés depuis cette connexion, réessaie demain' =>
+        t('Trop de comptes créés depuis cette connexion, réessaie demain', 'Too many accounts created from this connection, try again tomorrow'),
+      'trop de tentatives' => t('Trop de tentatives, réessaie dans 15 minutes', 'Too many attempts, try again in 15 minutes'),
       _ => e.message,
     };
   }

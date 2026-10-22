@@ -16,6 +16,12 @@ begin
   perform public.rc__check(p_sig, p_device || '|me');
   if length(coalesce(p_device, '')) <> 32 then raise exception 'invalide'; end if;
   if not exists (select 1 from public.rc_players where device = p_device) then
+    if public.rc__ip() is not null then
+      if (select count(*) from public.rc_ip_log where ip = public.rc__ip() and kind = 'signup' and at > now() - interval '1 day') >= 5 then
+        raise exception 'trop de comptes créés depuis cette connexion, réessaie demain';
+      end if;
+      insert into public.rc_ip_log (ip, kind) values (public.rc__ip(), 'signup');
+    end if;
     v_name := 'Collec-' || upper(left(v_pid, 4));
     insert into public.rc_players (device, pid, name, name_key)
     values (p_device, v_pid, v_name, public.rc__name_key(v_name)) on conflict do nothing;
