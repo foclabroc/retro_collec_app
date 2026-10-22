@@ -93,6 +93,41 @@ String _ago(DateTime? d) {
 }
 
 String _two(int n) => n.toString().padLeft(2, '0');
+
+/// Version de l'appli du joueur (rc_upgrade_gift, à chaque démarrage) : « 1.0.21 · Android », '' si inconnue
+String _verText(Map p) {
+  final v = p['ver']?.toString() ?? '';
+  if (v.isEmpty) return '';
+  final os = switch (p['os']?.toString()) {
+    'web' => 'Web',
+    'android' => 'Android',
+    'iOS' => 'iOS',
+    null || '' => '',
+    final o => o,
+  };
+  return os.isEmpty ? 'v$v' : 'v$v · $os';
+}
+
+/// Vrai si la version du joueur est plus ancienne que celle de cette appli
+bool _verOld(Map p) {
+  List<int> parts(String s) => [for (final x in s.split('.')) int.tryParse(x) ?? 0];
+  final a = parts(p['ver']?.toString() ?? ''), b = parts(kRetroCollecVersion);
+  if ((p['ver']?.toString() ?? '').isEmpty) return false;
+  for (var i = 0; i < 3; i++) {
+    final x = i < a.length ? a[i] : 0, y = i < b.length ? b[i] : 0;
+    if (x != y) return x < y;
+  }
+  return false;
+}
+
+/// Ligne « 📱 v1.0.21 · Android » (orange si ancienne version), rien si inconnue
+Widget _verLine(Map p, {double size = 11.5}) {
+  final s = _verText(p);
+  if (s.isEmpty) return const SizedBox.shrink();
+  final old = _verOld(p);
+  return Text('📱 $s${old ? t(' · ancienne version', ' · old version') : ''}',
+      style: TextStyle(color: old ? const Color(0xFFFFB24D) : Colors.white60, fontSize: size, fontWeight: old ? FontWeight.w800 : FontWeight.normal));
+}
 String _date(DateTime? d) => d == null ? '' : '${_two(d.day)}/${_two(d.month)} ${_two(d.hour)}:${_two(d.minute)}';
 
 String _cardName(dynamic id) {
@@ -371,6 +406,7 @@ class _AccountsTabState extends State<_AccountsTab> with AutomaticKeepAliveClien
                 '${_i(p['packs'])} ${t('paquets', 'packs')} · ${_i(p['cards'])} ${t('cartes', 'cards')} · ${_i(p['score'])} pts · '
                 '${fmt(_i(p['coins']))} 🪙 · ${_i(p['pixels'])} ▦ · ${t('vu il y a', 'seen')} ${_ago(_d(p['seen_at']))}',
                 style: const TextStyle(color: Colors.white60, fontSize: 12)),
+            _verLine(p, size: 12),
             const SizedBox(height: 6),
             _tags(tags),
           ]),
@@ -405,6 +441,7 @@ class AdminPlayerPage extends StatelessWidget {
                   Text(
                       '${t('créé le', 'created')} ${_date(_d(p['created_at']))} · ${t('vu', 'seen')} ${lastSeenLong(_d(p['seen_at']))}',
                       style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                  _verLine(p, size: 12),
                   if (p['referrer'] != null)
                     Text(t('parrainé par ${p['referrer']}', 'referred by ${p['referrer']}'),
                         style: const TextStyle(color: Colors.white60, fontSize: 12)),
@@ -879,6 +916,7 @@ class _StatsTab extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(r['name']?.toString() ?? '?', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5)),
               if (sub.isNotEmpty) Text(sub, style: const TextStyle(color: Colors.white60, fontSize: 11.5)),
+              if (kind == 'active7' || kind == 'today') _verLine(r),
             ]),
           ),
           Text(right, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: Colors.white70)),

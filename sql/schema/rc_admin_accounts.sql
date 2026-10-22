@@ -29,11 +29,11 @@ begin
         'overpaid', (select count(*) from public.rc_market m
                       where m.buyer = p.device and m.price >= 100
                         and m.price > 5 * coalesce(public.rc__avg_price(m.card, m.finish, m.id), m.price)),
-        'blocked', p.blocked,
+        'blocked', p.blocked, 'ver', p.app_ver, 'os', p.app_os, 'ver_at', p.app_at,
         'chat_banned', exists (select 1 from public.rc_chat_bans b where b.device = p.device and (b.until is null or b.until > now()))
       ) as x
         from public.rc_players p
        where (coalesce(p_query, '') = '' and p.created_at > now() - interval '7 days')
           or (coalesce(p_query, '') <> '' and p.name_key like public.rc__name_key(p_query) || '%')
        order by p.created_at desc limit 80) s), '[]'::jsonb);
-end $function$
+end $function$;

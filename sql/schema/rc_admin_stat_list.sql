@@ -9,7 +9,7 @@ begin
   perform public.rc__admin(p_device, p_sig, 'statlist|' || coalesce(p_kind, ''));
   if p_kind in ('active7', 'today') then
     return coalesce((select jsonb_agg(jsonb_build_object('pid', p.pid, 'name', p.name, 'avatar', p.avatar, 'at', p.seen_at,
-                                                         'n', p.packs, 'coins', p.coins) order by p.seen_at desc)
+                                                         'n', p.packs, 'coins', p.coins, 'ver', p.app_ver, 'os', p.app_os) order by p.seen_at desc)
                        from public.rc_players p
                       where (p_kind = 'active7' and p.seen_at > now() - interval '7 days')
                          or (p_kind = 'today' and (p.seen_at at time zone 'Europe/Paris')::date = today)), '[]'::jsonb);

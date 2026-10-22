@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -513,9 +514,11 @@ class RcServer {
   }
 
   /// Cadeau de passage de version (une fois par joueur et par version) : {coins} donnés (0 si déjà reçu)
+  /// Envoie aussi l'appareil (« 1.0.21|android », « 1.0.21|web ») : version vue dans l'admin.
   static Future<Map<String, dynamic>> upgradeGift(String ver) async {
     final d = await deviceId();
-    return _map(await _rpc('rc_upgrade_gift', {'p_device': d, 'p_ver': ver, 'p_sig': _sig('$d|upgrade|$ver')}));
+    final v = '$ver|${kIsWeb ? 'web' : defaultTargetPlatform.name}';
+    return _map(await _rpc('rc_upgrade_gift', {'p_device': d, 'p_ver': v, 'p_sig': _sig('$d|upgrade|$v')}));
   }
 
   /// Trophées : {list: [{k, n, got, t: [bronze, argent, or]}], show, ready}

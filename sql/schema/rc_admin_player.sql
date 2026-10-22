@@ -12,6 +12,7 @@ begin
   return jsonb_build_object(
     'pid', v.pid, 'name', v.name, 'avatar', v.avatar, 'created_at', v.created_at, 'seen_at', v.seen_at,
     'coins', v.coins, 'pixels', v.pixels, 'packs', v.packs, 'cards', v.cards, 'score', v.score, 'days', v.days, 'blocked', v.blocked,
+    'ver', v.app_ver, 'os', v.app_os, 'ver_at', v.app_at,
     'referrer', (select s.name from public.rc_players s where s.device = v.referrer),
     'events', coalesce((select jsonb_agg(e order by e->>'at' desc) from (
       select e from (
