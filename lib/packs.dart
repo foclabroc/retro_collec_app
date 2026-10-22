@@ -9,6 +9,7 @@ import 'audio.dart';
 import 'booster_choice.dart';
 import 'cards.dart';
 import 'catalog.dart';
+import 'duel_watch.dart';
 import 'events.dart';
 import 'game.dart';
 import 'library.dart';
@@ -31,12 +32,21 @@ Future<void> openPackFlow(BuildContext context, String kind, [String? sys]) asyn
   } finally {
     _packFlows--;
   }
-  if (_packFlows == 0) PacksScreenState.reloadPending();
+  if (_packFlows == 0) _packFlowsDone();
 }
 
 /// Ouvertures en cours (achat → choix du booster) : pendant ce temps, le paquet « en attente »
 /// vu par le serveur est celui qu'on est en train d'ouvrir, pas un paquet entamé à afficher.
 int _packFlows = 0;
+
+/// Un paquet est en cours d'ouverture : pas de fenêtre de défi par-dessus (duel_watch.dart)
+bool get packOpening => _packFlows > 0;
+
+/// Fin d'une ouverture : paquet entamé revérifié, défi en attente montré
+void _packFlowsDone() {
+  PacksScreenState.reloadPending();
+  DuelWatch.i.retryShow();
+}
 
 /// Écran d'ouverture pour un résultat de [Game.openChoice] (ou un achat resté sans choix).
 Future<void> showPackOpening(BuildContext context, Map<String, dynamic> r, String kind, [String? sys]) async {
@@ -46,7 +56,7 @@ Future<void> showPackOpening(BuildContext context, Map<String, dynamic> r, Strin
   } finally {
     _packFlows--;
   }
-  if (_packFlows == 0) PacksScreenState.reloadPending(); // booster quitté sans déchirer → « Paquet entamé »
+  if (_packFlows == 0) _packFlowsDone(); // booster quitté sans déchirer → « Paquet entamé »
 }
 
 Future<void> _showPackOpening(BuildContext context, Map<String, dynamic> r, String kind, [String? sys]) async {
@@ -652,6 +662,10 @@ class PackOpeningPage extends StatefulWidget {
 
 enum _Phase { choose, pack, reveal, summary }
 
+/// Ouverture auto (bouton « ⚡ Auto ») : booster au hasard et cartes montrées directement dans le
+/// récapitulatif, aussi pour les paquets suivants (« Ouvrir un autre ») jusqu'à « Arrêter l'auto ».
+bool _packAuto = false;
+
 class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderStateMixin {
   List<_Pulled> pulled = [];
   _Phase phase = _Phase.pack;
@@ -717,7 +731,30 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     }
     _ticker = createTicker(_tick)..start();
     RcAudio.sfx('logo');
+    if (_packAuto) WidgetsBinding.instance.addPostFrameCallback((_) => _autoOpen());
   }
+
+  /// ⚡ Auto : booster au hasard, puis directement le récapitulatif
+  Future<void> _autoOpen() async {
+    if (!mounted) return;
+    _packAuto = true;
+    if (phase == _Phase.choose) await _choose(rnd.nextInt(6));
+    if (mounted && (phase == _Phase.pack || phase == _Phase.reveal)) _skipToSummary();
+  }
+
+  Widget _autoButton() => Positioned(
+        bottom: 10,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: FilledButton.icon(
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xCC2A1F5E), foregroundColor: const Color(0xFFFFD166), side: const BorderSide(color: Color(0x66FFD166))),
+            onPressed: _choosing ? null : _autoOpen,
+            icon: const Icon(Icons.bolt),
+            label: Text(t('Ouverture auto', 'Auto open'), style: const TextStyle(fontWeight: FontWeight.w900)),
+          ),
+        ),
+      );
 
   void _load(Map<String, dynamic> r) {
     final list = <_Pulled>[];
@@ -1070,6 +1107,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                   if (phase == _Phase.pack) _packStage(),
                   if (phase == _Phase.reveal) _revealStage(),
                   if (phase == _Phase.summary) _summary(),
+                  if (phase == _Phase.choose || (phase == _Phase.pack && !torn)) _autoButton(),
                   // bannière
                   if (phase == _Phase.reveal && pulled.isNotEmpty)
                     Positioned(
@@ -1586,6 +1624,12 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                 ),
             ]),
           ),
+          if (_packAuto)
+            TextButton.icon(
+              onPressed: () => setState(() => _packAuto = false),
+              icon: const Icon(Icons.bolt, size: 16, color: Color(0xFFFFD166)),
+              label: Text(t('Ouverture auto activée · arrêter', 'Auto open on · stop'), style: const TextStyle(color: Colors.white70, fontSize: 12.5)),
+            ),
           if (again == 'lot' || again == 'gift') ...[
             const SizedBox(height: 8),
             Text(t('Si tu quittes, ${again == 'lot' ? lotsLeft : giftsLeft} restent dans ton stock 📦', 'If you leave, ${again == 'lot' ? lotsLeft : giftsLeft} stay in your stock 📦'),
@@ -1655,7 +1699,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
           .whenComplete(() {
         _packFlows--;
         Game.i.sync();
-        if (_packFlows == 0) PacksScreenState.reloadPending();
+        if (_packFlows == 0) _packFlowsDone();
       });
     } catch (e) {
       toast(errText(e));

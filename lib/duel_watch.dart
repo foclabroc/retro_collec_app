@@ -11,6 +11,7 @@ import 'live_link.dart';
 import 'main.dart';
 import 'push.dart';
 import 'retro_theme.dart';
+import 'packs.dart' show packOpening;
 import 'server.dart';
 import 'tournament.dart';
 
@@ -119,8 +120,11 @@ class DuelWatch extends ChangeNotifier {
 
   bool stillValid(String key) => live.any((x) => '${x['game']}:${x['id']}' == key);
 
+  /// Après une ouverture de paquet : le défi reçu pendant ce temps s'affiche maintenant
+  void retryShow() => _maybeShow();
+
   Future<void> _maybeShow() async {
-    if (_showing || inGame > 0) return;
+    if (_showing || inGame > 0 || packOpening || TourWatch.busy) return; // pas par-dessus une partie, une ouverture de paquet ni un match de tournoi
     final ctx = HomeShellState.current?.context;
     if (ctx == null || !ctx.mounted) return;
     final todo = live.where((x) => !_handled.contains('${x['game']}:${x['id']}'));

@@ -9,6 +9,7 @@ declare
   k text; v text; n int; i int; c text; cards jsonb := '[]'::jsonb;
   lbl text;
 begin
+  -- rc.gift_from (réglage de la transaction) : nom du donneur des paquets offerts, « Pixel Trade » par défaut (tournois : « Tournoi X »)
   if r = '{}'::jsonb then return jsonb_build_object('cards', cards); end if;
   update public.rc_players
      set coins = coins + coalesce((r->>'coins')::int, 0),
@@ -19,7 +20,8 @@ begin
     lbl := case k when 'mixte' then 'mixte' when 'premium' then 'premium' when 'mystery' then 'mystère'
                   when 'star' then 'Étoile' when 'gold' then 'Rétro d''or' end;
     for i in 1 .. v::int loop
-      insert into public.rc_gifts (receiver, giver, giver_name, kind) values (p_dev, null, 'Pixel Trade · ' || lbl, k);
+      insert into public.rc_gifts (receiver, giver, giver_name, kind)
+      values (p_dev, null, coalesce(nullif(current_setting('rc.gift_from', true), ''), 'Pixel Trade') || ' · ' || lbl, k);
     end loop;
   end loop;
   for k, v in select key, value from jsonb_each_text(coalesce(r->'cards', '{}'::jsonb)) loop

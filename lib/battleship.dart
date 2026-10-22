@@ -1220,7 +1220,7 @@ class _BattleGamePageState extends State<BattleGamePage> with TickerProviderStat
             padding: const EdgeInsets.symmetric(horizontal: 5),
             child: Column(children: [
               const _Coin(size: 16),
-              Text(duelTour(g) ? '${(g['tour'] as Map)['w1'] ?? 0}-${(g['tour'] as Map)['w2'] ?? 0}' : g['friendly'] != null ? '0' : '${duelPrize(stake)}', style: pixelStyle(size: 8.5, color: _kGoldHi, shadow: false)),
+              Text(duelTour(g) ? duelTourScore(g) : g['friendly'] != null ? '0' : '${duelPrize(stake)}', style: pixelStyle(size: 8.5, color: _kGoldHi, shadow: false)),
               Text(duelTour(g) ? t('TOURNOI', 'CUP') : stake > 0 ? 'POT' : g['friendly'] != null ? t('AMICAL', 'FRIENDLY') : 'GAIN', style: const TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
             ]),
           ),
@@ -1716,7 +1716,7 @@ class _BsResultDialogState extends State<_BsResultDialog> with SingleTickerProvi
                     ),
                     OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(t('Salon', 'Lobby'))),
                   ],
-                  TextButton(onPressed: () => Navigator.pop(context), child: Text(t('Voir le radar', 'See the radar'))),
+                  if (!duelTour(widget.g)) TextButton(onPressed: () => Navigator.pop(context), child: Text(t('Voir le radar', 'See the radar'))),
                 ]),
               ]),
             ),

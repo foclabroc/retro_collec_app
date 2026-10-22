@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'audio.dart';
 import 'cards.dart';
@@ -76,6 +77,9 @@ class TourWatch {
   static bool _showing = false;
   static Map<String, dynamic>? current; // dernier état connu de mon match
 
+  /// Mon match de tournoi est en cours ou va commencer : pas de défi par-dessus
+  static bool get busy => current != null && (current!['status'] == 'wait' || current!['status'] == 'play');
+
   static void handle(dynamic x) {
     current = x is Map ? Map<String, dynamic>.from(x) : null;
     final m = current;
@@ -97,6 +101,11 @@ class TourWatch {
       }
       return;
     }
+    // tournoi fini, je suis sur le podium : félicitations (une fois par tournoi)
+    if (m['done'] == true) {
+      _congrats(m);
+      return;
+    }
     final mid = _n(m['mid']);
     if (m['status'] == 'wait' && m['ready'] != true) {
       if (!_called.contains(mid)) _call(m);
@@ -106,6 +115,72 @@ class TourWatch {
     if (m['status'] == 'play' && gid > 0 && !_opened.contains(gid) && DuelWatch.i.inGame == 0 && !_showing) {
       _opened.add(gid);
       _openGame(m['game'] as String? ?? 'c4', gid);
+    }
+  }
+
+  static bool _congratsBusy = false;
+
+  static Future<void> _congrats(Map<String, dynamic> m) async {
+    if (_congratsBusy || _showing || DuelWatch.i.inGame > 0) return;
+    final c = _ctx;
+    if (c == null) return;
+    _congratsBusy = true;
+    try {
+      final tid = _n(m['tid']);
+      final prefs = await SharedPreferences.getInstance();
+      final seen = prefs.getStringList('rc_tour_done') ?? [];
+      if (seen.contains('$tid')) return;
+      await prefs.setStringList('rc_tour_done', [...seen.length > 20 ? seen.sublist(seen.length - 20) : seen, '$tid']);
+      Game.i.sync();
+      final c2 = _ctx;
+      if (c2 == null) return;
+      final place = _n(m['place']);
+      final pot = _n(m['pot']);
+      final parts = [if (rewardText(m['reward']).isNotEmpty) rewardText(m['reward']), if (pot > 0) '$pot 🪙 ${t('de cagnotte', 'from the pot')}'];
+      final hasPack = (m['reward'] is Map) && (m['reward'] as Map)['packs'] is Map && ((m['reward'] as Map)['packs'] as Map).isNotEmpty;
+      if (place == 1) RcAudio.win(); else RcAudio.sfx('powerup');
+      await showDialog<void>(
+        context: c2,
+        builder: (ctx) => AlertDialog(
+          title: Text(
+              px(place == 1 ? t('🏆 CHAMPION !', '🏆 CHAMPION!') : place == 2 ? t('🥈 FINALISTE', '🥈 RUNNER-UP') : t('🥉 DEMI-FINALE', '🥉 SEMI-FINAL')),
+              style: pixelStyle(size: 13)),
+          content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+                place == 1
+                    ? t('Tu as gagné le tournoi « ${m['name']} » !', 'You won the "${m['name']}" tournament!')
+                    : place == 2
+                        ? t('Tu termines 2e du tournoi « ${m['name']} ».', 'You finished 2nd in "${m['name']}".')
+                        : t('Tu as atteint les demi-finales du tournoi « ${m['name']} ».', 'You reached the semi-finals of "${m['name']}".'),
+                style: const TextStyle(fontWeight: FontWeight.w800)),
+            if (parts.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text(t('Tes lots : ${parts.join(' + ')}', 'Your prizes: ${parts.join(' + ')}'), style: const TextStyle(color: Color(0xFFFFD166))),
+            ],
+            if (hasPack) ...[
+              const SizedBox(height: 6),
+              Text(t('Les boosters t\'attendent dans Paquets → Cadeaux reçus.', 'Your boosters are waiting in Packs → Gifts received.'),
+                  style: const TextStyle(color: Colors.white60, fontSize: 12.5)),
+            ],
+            if (place == 1) ...[
+              const SizedBox(height: 6),
+              Text(t('Trophée « Champion » à récupérer dans ton profil.', '"Champion" trophy to claim in your profile.'), style: const TextStyle(color: Colors.white60, fontSize: 12.5)),
+            ],
+          ]),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _openTour(tid);
+              },
+              child: Text(t('Voir le podium', 'See the podium')),
+            ),
+            FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+          ],
+        ),
+      );
+    } finally {
+      _congratsBusy = false;
     }
   }
 

@@ -12,7 +12,8 @@ begin
   s := case when f.winner = f.p1 then f.p2 else f.p1 end;
   update public.rc_tour_players set place = 1 where tid = p_tid and device = w;
   if s is not null then update public.rc_tour_players set place = 2 where tid = p_tid and device = s; end if;
-  -- lots fixes
+  -- lots fixes (paquets offerts au nom du tournoi dans les cadeaux et le journal)
+  perform set_config('rc.gift_from', public.rc__tour_label(t.name), true);
   perform public.rc__grant(w, coalesce(t.lots->'1', '{}'::jsonb));
   if s is not null then perform public.rc__grant(s, coalesce(t.lots->'2', '{}'::jsonb)); end if;
   if t.rounds >= 2 then
@@ -24,6 +25,7 @@ begin
       end if;
     end loop;
   end if;
+  perform set_config('rc.gift_from', '', true);
   -- cagnotte
   if t.pot > 0 then
     if t.split >= 100 or s is null then

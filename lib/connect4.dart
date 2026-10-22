@@ -43,14 +43,23 @@ bool duelFriendly(Map g) => g['paid'] == false && !duelTour(g);
 /// Partie de tournoi (tournament.dart) : pas de gains par partie, les lots arrivent à la fin du tournoi
 bool duelTour(Map g) => g['tour'] is Map;
 
+/// Score des manches du match de tournoi, le mien d'abord (« 1-0 ») ; spectateur : joueur 1 de la partie d'abord
+String duelTourScore(Map g) {
+  final tr = g['tour'] as Map? ?? const {};
+  final w1 = (tr['w1'] as num? ?? 0).toInt(), w2 = (tr['w2'] as num? ?? 0).toInt();
+  // tr['p1'] = joueur 1 du match (pas forcément celui de la partie) ; side = mon camp dans la partie
+  final meP1 = tr['p1'] == Game.i.pid;
+  return meP1 ? '$w1-$w2' : '$w2-$w1';
+}
+
 /// « Tournoi « Coupe » · finale en 2 manches gagnantes (1-0) »
 String duelTourNote(Map g) {
   final tr = g['tour'] as Map? ?? const {};
   final name = tr['name'] ?? '';
   final best = (tr['best'] as num? ?? 1).toInt();
   if (best > 1) {
-    final w1 = (tr['w1'] as num? ?? 0).toInt(), w2 = (tr['w2'] as num? ?? 0).toInt();
-    return t('🏆 $name · finale en 2 manches gagnantes ($w1-$w2)', '🏆 $name · final, best of 3 ($w1-$w2)');
+    final sc = duelTourScore(g);
+    return t('🏆 $name · finale en 2 manches gagnantes ($sc)', '🏆 $name · final, best of 3 ($sc)');
   }
   return t('🏆 $name · le gagnant passe au tour suivant', '🏆 $name · the winner goes through');
 }
@@ -1541,7 +1550,7 @@ class _Connect4GamePageState extends State<Connect4GamePage> {
                   height: 16,
                   child: Stack(children: [for (var k = 0; k < 3; k++) Positioned(left: k * 9.0, child: const _Coin(size: 16))]),
                 ),
-                Text(duelTour(g) ? '${(g['tour'] as Map)['w1'] ?? 0}-${(g['tour'] as Map)['w2'] ?? 0}' : g['friendly'] != null ? '0' : '${duelPrize(stake)}', style: pixelStyle(size: 9, color: _kGoldHi, shadow: false)),
+                Text(duelTour(g) ? duelTourScore(g) : g['friendly'] != null ? '0' : '${duelPrize(stake)}', style: pixelStyle(size: 9, color: _kGoldHi, shadow: false)),
                 Text(duelTour(g) ? t('TOURNOI', 'CUP') : stake > 0 ? 'POT' : g['friendly'] != null ? t('AMICAL', 'FRIENDLY') : 'GAIN', style: TextStyle(fontSize: 9, color: Colors.white54, fontWeight: FontWeight.w800)),
               ]),
             ),
@@ -1916,7 +1925,8 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                     ),
                     OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(t('Salon', 'Lobby'))),
                   ],
-                  TextButton(onPressed: () => Navigator.pop(context), child: Text(t('Voir le plateau', 'See the board'))),
+                  // tournoi : pas de « voir le plateau », la manche suivante s'ouvre en quittant la partie
+                  if (!duelTour(g)) TextButton(onPressed: () => Navigator.pop(context), child: Text(t('Voir le plateau', 'See the board'))),
                 ]),
               ]),
             ),
