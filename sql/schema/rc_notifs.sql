@@ -32,4 +32,5 @@ as $function$
     'chat_last', (select coalesce(max(c.id), 0) from public.rc_chat c where not c.hidden),
     'mention', (select coalesce(max(c.id), 0) from public.rc_chat c, public.rc_players me
                  where me.device = p_device and c.id > me.chat_seen and c.device <> p_device and not c.hidden
-                   and lower(regexp_replace(c.msg, '[^[:alnum:]@]', '', 'g')) like '%@' || me.name_key || '%')) $function$;
+                   and (lower(regexp_replace(c.msg, '[^[:alnum:]@]', '', 'g')) like '%@' || me.name_key || '%'
+                        or (lower(c.msg) ~ '@tous\M' and public.rc__is_admin(c.device))))) $function$;

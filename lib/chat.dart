@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'admin.dart';
 import 'audio.dart';
 import 'game.dart';
 import 'live_link.dart';
@@ -16,6 +17,7 @@ import 'server.dart';
 //  · filtre de mots, liens et numéros masqués côté serveur
 //  · appui long sur un message = signaler ; toucher un pseudo = sa fiche
 //  · @pseudo : suggestions en tapant @, mention en doré, notification
+//  · @tous (admin seulement, vérifié par le serveur) : mention de tous les joueurs
 // ═══════════════════════════════════════════════════════════════════════════
 
 const kChatMax = 120;
@@ -45,6 +47,7 @@ class MessagesScreenState extends State<MessagesScreen> {
     super.initState();
     current = this;
     _ctl.addListener(_onType);
+    checkAdmin(); // @tous proposé seulement à l'admin
     RcServer.board().then((r) {
       _names = {..._names, for (final p in r) p['name'] as String? ?? ''}.where((n) => n.isNotEmpty).toList();
     }).catchError((_) {});
@@ -113,9 +116,13 @@ class MessagesScreenState extends State<MessagesScreen> {
     final pos = _ctl.selection.baseOffset < 0 ? txt.length : _ctl.selection.baseOffset;
     final before = txt.substring(0, pos.clamp(0, txt.length));
     final m = RegExp(r'@(\S*)$').firstMatch(before);
+    final typed = m == null ? '' : nameKey(m.group(1)!);
     final next = m == null
         ? <String>[]
-        : _names.where((n) => n != Game.i.name && nameKey(n).startsWith(nameKey(m.group(1)!))).take(5).toList();
+        : [
+            if (rcIsAdmin.value && 'tous'.startsWith(typed)) 'tous', // @tous : tout le monde (admin)
+            ..._names.where((n) => n != Game.i.name && nameKey(n).startsWith(typed)).take(5),
+          ];
     if (next.join('|') != _suggest.join('|')) setState(() => _suggest = next);
   }
 
@@ -295,7 +302,8 @@ class MessagesScreenState extends State<MessagesScreen> {
     final pid = m['pid'] as String? ?? '';
     final msg = m['msg'] as String? ?? '';
     final myKey = '@${nameKey(Game.i.name)}';
-    final citesMe = !me && msg.toLowerCase().replaceAll(RegExp(r'[^\p{L}\p{N}@]', unicode: true), '').contains(myKey);
+    final flat = msg.toLowerCase().replaceAll(RegExp(r'[^\p{L}\p{N}@]', unicode: true), '');
+    final citesMe = !me && (flat.contains(myKey) || RegExp(r'@tous\b').hasMatch(msg.toLowerCase()));
     final nameColor = me ? kGold : _nameColors[pid.hashCode.abs() % _nameColors.length];
     final time = at == null ? '' : '${at.hour.toString().padLeft(2, '0')}:${at.minute.toString().padLeft(2, '0')}';
 
@@ -359,7 +367,7 @@ class MessagesScreenState extends State<MessagesScreen> {
       RegExp(r'@\S+'),
       onMatch: (mm) {
         final tag = mm.group(0)!;
-        final mine = nameKey(tag.substring(1)) == myKey;
+        final mine = nameKey(tag.substring(1)) == myKey || nameKey(tag.substring(1)) == 'tous';
         spans.add(TextSpan(text: tag, style: TextStyle(color: mine ? kGold : const Color(0xFF8FD3FF), fontWeight: FontWeight.w800)));
         return '';
       },
