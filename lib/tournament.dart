@@ -13,7 +13,6 @@ import 'main.dart';
 import 'retro_theme.dart';
 import 'rewards.dart';
 import 'server.dart';
-import 'spectate.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Tournois (22/10) : créés par l'admin (AdminTourPage), inscriptions dans la
