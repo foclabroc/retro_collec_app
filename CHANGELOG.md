@@ -1,5 +1,21 @@
 # Pixel Trade — Changelog
 
+## v1.0.19
+_Version 1.0.19+20._
+
+- 📖 **Guide du jeu** (menu latéral) : cartes, raretés, finitions, calcul du score, paquets, pièces et pixels, doublons,
+  Bourse, échanges, cadeaux, duels, défis, trophées, voisinage, parrainage.
+- **Temps réel instantané** : en ligne dès l'ouverture du jeu, hors ligne quelques secondes après la fermeture (présence tenue
+  par le relais), événements sans attente, reconnexion plus rapide, moins de vérifications en arrière-plan.
+- **Spectateurs visibles** (👁 N) et **réactions en direct** des spectateurs pendant les duels.
+- **Voisinage → « Trouver mes cartes manquantes »** : voisins qui les ont en double, filtre par console, échange préparé.
+- **Pseudos décorés** : emojis et symboles affichés (24 caractères) ; connexion et @mentions sur les lettres et chiffres.
+- **Messages** : `@tous` de l'admin prévient tous les joueurs.
+- **Sécurité** : 5 comptes par jour et par connexion, Bourse / cadeaux / échanges 24 h après la création d'un compte,
+  cadeaux de version réservés aux comptes existants, blocage des connexions ratées par adresse, relais limité par adresse.
+- **Web plus rapide** : WebAssembly, police intégrée, jaquettes gardées dans le cache du navigateur.
+- Admin : courriers et cadeaux de l'admin dans le Journal.
+
 ## v1.0.18
 _Version 1.0.18+19._
 
