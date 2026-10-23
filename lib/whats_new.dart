@@ -12,6 +12,8 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🏅', 'Les paliers de collection gagnés (25, 50, 75, 100 % d\'une console ou d\'une saga) s\'affichent dans le récapitulatif du paquet',
+      'Collection milestones you reach (25, 50, 75, 100% of a console or saga) now show in the pack summary'),
   ('♻️', 'Recyclage rééquilibré : commune 2, peu commune 5, rare 20, épique 60, légendaire 200 pièces (acheter des paquets pour les recycler rapportait plus qu\'ils ne coûtaient)',
       'Recycling rebalanced: common 2, uncommon 5, rare 20, epic 60, legendary 200 coins (buying packs to recycle them paid more than they cost)'),
   ('⚡', 'Déchirer et tout voir : un bouton sous le paquet montre toutes tes cartes d\'un coup',

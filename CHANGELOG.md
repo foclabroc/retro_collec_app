@@ -3,6 +3,7 @@
 ## v1.0.21
 _Version 1.0.21+22._
 
+- 🏅 Paliers de collection gagnés affichés dans le récapitulatif du paquet (`_milestones`, `packs.dart`).
 - ♻️ **Recyclage rééquilibré** (`sql/2026-10-23_recyclage.sql`) : 2 / 5 / 20 / 60 / 200 pièces au lieu de 5 / 15 / 50 / 150 / 500
   (× 3 brillante, × 10 dorée, × 30 full art inchangés). Un paquet mixte recyclé valait ≈ 135 pièces pour 100 payées.
 - ⚡ **Déchirer et tout voir** : bouton sous le paquet à déchirer → toutes les cartes d'un coup (récapitulatif).

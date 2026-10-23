@@ -1540,6 +1540,43 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     );
   }
 
+  /// Paliers de collection gagnés avec ce paquet (25 / 50 / 75 / 100 % d'une console, 50 / 100 % d'une saga) :
+  /// montrés dans le récapitulatif, sinon la pièce gagnée passait inaperçue derrière la page du paquet.
+  List<Widget> _milestones() {
+    final out = <Widget>[];
+    for (final e in (res['events'] as List? ?? const [])) {
+      if (e is! Map || e['type'] != 'milestone') continue;
+      final coins = (e['coins'] as num? ?? 0).toInt();
+      final step = (e['step'] as num? ?? 0).toInt();
+      final saga = sagaOfSys(e['sys'] as String?);
+      final name = saga?.name ?? Catalog.system(e['sys'] as String? ?? '')?.name ?? '${e['sys']}';
+      final px = saga != null && step == 100 ? 2 : 0;
+      out.add(Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: const Color(0x332A1F5E),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0x99FFD166)),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(step == 100 ? '🌈' : '🏅', style: const TextStyle(fontSize: 18)),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              saga != null
+                  ? t('Saga $name à $step % : +$coins pièces${px > 0 ? ' et +$px pixels' : ''}',
+                      '$name saga at $step%: +$coins coins${px > 0 ? ' and +$px pixels' : ''}')
+                  : t('Série $name à $step % : +$coins pièces', '$name set at $step%: +$coins coins'),
+              style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.w900),
+            ),
+          ),
+        ]),
+      ));
+    }
+    return out;
+  }
+
   Widget _summary() {
     final nw = pulled.where((p) => p.isNew).length;
     final dup = pulled.length - nw;
@@ -1579,6 +1616,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
               ),
           ]),
           if (missed != null) ...[const SizedBox(height: 22), _missedLine(missed!)],
+          if (_milestones().isNotEmpty) ...[const SizedBox(height: 18), ..._milestones()],
           if (res['pixel_gain'] == 1) ...[
             const SizedBox(height: 14),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
