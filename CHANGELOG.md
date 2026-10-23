@@ -1,11 +1,16 @@
 # Pixel Trade — Changelog
 
-## v1.0.21
-_Version 1.0.21+22._
+## v1.0.22
+_Version 1.0.22+23._
 
 - 🏅 Paliers de collection gagnés affichés dans le récapitulatif du paquet (`_milestones`, `packs.dart`).
 - ♻️ **Recyclage rééquilibré** (`sql/2026-10-23_recyclage.sql`) : 2 / 5 / 20 / 60 / 200 pièces au lieu de 5 / 15 / 50 / 150 / 500
   (× 3 brillante, × 10 dorée, × 30 full art inchangés). Un paquet mixte recyclé valait ≈ 135 pièces pour 100 payées.
+- ✨ Full art plus fréquentes : réglage en direct `fullart` = 3 % des épiques / légendaires (au lieu de 0,2 % : aucune n'était encore sortie). Valeur par défaut de l'appli (`rcLive`) et de l'admin passée à 3.
+
+## v1.0.21
+_Version 1.0.21+22._
+
 - ⚡ **Déchirer et tout voir** : bouton sous le paquet à déchirer → toutes les cartes d'un coup (récapitulatif).
 - 🏆 Tournois : fenêtre de félicitations pour le podium (lots, cagnotte), paquets des lots nommés « Tournoi X · … »
   (`sql/2026-10-22_tournois_suite.sql`), score des manches vu de son côté, plus de « Voir le plateau » en partie de tournoi.

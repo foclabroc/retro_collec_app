@@ -574,12 +574,12 @@ class _ToolsTab extends StatelessWidget {
             OutlinedButton(
               onPressed: () async {
                 final ok = await _confirm(context, t('Valeurs d\'origine ?', 'Back to defaults?'),
-                    t('Saga 3,2 %, brillante 5 %, dorée 0,5 %, full art 0,2 %, paquets 100 / 150 / 400 / 120, coffre 500 🪙 + 2 ▦.',
-                        'Saga 3.2%, holo 5%, gold 0.5%, full art 0.2%, packs 100 / 150 / 400 / 120, chest 500 🪙 + 2 ▦.'));
+                    t('Saga 3,2 %, brillante 5 %, dorée 0,5 %, full art 3 %, paquets 100 / 150 / 400 / 120, coffre 500 🪙 + 2 ▦.',
+                        'Saga 3.2%, holo 5%, gold 0.5%, full art 3%, packs 100 / 150 / 400 / 120, chest 500 🪙 + 2 ▦.'));
                 if (ok != true) return;
                 await _run(
                     () => RcServer.adminSetLive(const {
-                          'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 0.2, 'mixte': 100, 'console': 150,
+                          'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 3, 'mixte': 100, 'console': 150,
                           'premium': 400, 'mystery': 120, 'chest_coins': 500, 'chest_pixels': 2,
                         }).then(applyLive),
                     t('Valeurs d\'origine remises', 'Defaults restored'),

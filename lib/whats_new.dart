@@ -12,10 +12,13 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('✨', 'Les cartes full art sortent bien plus souvent : 3 % des épiques et légendaires (au lieu de 0,2 %)',
+      'Full art cards now drop much more often: 3% of epics and legendaries (instead of 0.2%)'),
   ('🏅', 'Les paliers de collection gagnés (25, 50, 75, 100 % d\'une console ou d\'une saga) s\'affichent dans le récapitulatif du paquet',
       'Collection milestones you reach (25, 50, 75, 100% of a console or saga) now show in the pack summary'),
   ('♻️', 'Recyclage rééquilibré : commune 2, peu commune 5, rare 20, épique 60, légendaire 200 pièces (acheter des paquets pour les recycler rapportait plus qu\'ils ne coûtaient)',
       'Recycling rebalanced: common 2, uncommon 5, rare 20, epic 60, legendary 200 coins (buying packs to recycle them paid more than they cost)'),
+  ('#', 'Aussi depuis la 1.0.21', 'Also since 1.0.21'),
   ('⚡', 'Déchirer et tout voir : un bouton sous le paquet montre toutes tes cartes d\'un coup',
       'Tear and see all: a button under the pack shows all your cards at once'),
   ('🏆', 'Tournois : fenêtre de félicitations pour le podium, lots au nom du tournoi, score des manches plus clair en finale',
@@ -30,20 +33,6 @@ const _kNews = <(String, String, String)>[
   ('⚔', 'Quand ton match commence, une fenêtre te prévient : touche « Jouer » dans les 3 minutes (sinon forfait)',
       'When your match starts, a window tells you: tap "Play" within 3 minutes (or forfeit)'),
   ('🥇', 'Nouveau trophée « Champion » pour les tournois gagnés', 'New "Champion" trophy for tournaments won'),
-  ('#', 'Aussi depuis la 1.0.19', 'Also since 1.0.19'),
-  ('📖', 'Nouveau « Guide du jeu » dans le menu : score, raretés, paquets, Bourse, duels, défis… tout est expliqué',
-      'New "Game guide" in the menu: score, rarities, packs, market, duels, challenges… everything explained'),
-  ('⚡', 'Temps réel instantané : les joueurs apparaissent en ligne dès qu\'ils ouvrent le jeu, et tout arrive sans attendre',
-      'Instant real time: players show online as soon as they open the game, and everything arrives right away'),
-  ('👁', 'Duels : la liste des spectateurs est visible, et les spectateurs peuvent envoyer des réactions en direct',
-      'Duels: see who\'s watching, and spectators can send live reactions'),
-  ('🔎', 'Voisinage : « Trouver mes cartes manquantes » chez les joueurs qui les ont en double',
-      'Neighbors: "Find my missing cards" from players who have them as duplicates'),
-  ('✨', 'Pseudos décorés : emojis et symboles autorisés (ta connexion se fait toujours avec les lettres et chiffres)',
-      'Decorated names: emojis and symbols allowed (you still log in with the letters and numbers)'),
-  ('🚀', 'Version web plus rapide au lancement', 'Faster web version at startup'),
-  ('🛡', 'Plus de sécurité : un nouveau compte peut utiliser la Bourse, les cadeaux et les échanges après 24 h',
-      'More security: a new account can use the market, gifts and trades after 24 h'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';

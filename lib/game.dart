@@ -86,7 +86,7 @@ const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40};
 final kPackPrice = <String, int>{'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0, 'lot': 0};
 
 /// Réglages en direct (page admin → rc_config « live ») : chances en %, coffre des défis.
-final rcLive = <String, num>{'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 0.2, 'chest_coins': 500, 'chest_pixels': 2};
+final rcLive = <String, num>{'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 3, 'chest_coins': 500, 'chest_pixels': 2};
 
 /// Applique les réglages reçus du serveur (prix des paquets compris)
 void applyLive(dynamic m) {
