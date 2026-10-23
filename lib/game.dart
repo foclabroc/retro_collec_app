@@ -78,7 +78,8 @@ int bestFinish(List<int>? q) {
 }
 
 // Mêmes valeurs que le SQL (rc__recycle_value, rc__craft_cost, rc__pack_price)
-int recycleValue(int r, int f) => const [5, 15, 50, 150, 500][r] * const [1, 3, 10, 30][f];
+/// Pièces données par le recyclage (même table que rc__recycle_value côté serveur, baissée le 23/10)
+int recycleValue(int r, int f) => const [2, 5, 20, 60, 200][r] * const [1, 3, 10, 30][f];
 int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
 /// Boosters spéciaux payés en pixels (1 pixel par booster ouvert)
 const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40};

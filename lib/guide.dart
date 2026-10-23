@@ -213,8 +213,8 @@ List<_Section> _sections() {
           'Rare currency: 1 pixel per duel won, and in some rewards (challenges, trophies, milestones, chest). They buy special boosters.')),
     ]),
     _Section('♻️', t('Doublons : recycler, fusionner, fabriquer', 'Duplicates: recycle, fuse, craft'), [
-      _b(t('Recycler : un doublon rapporte des pièces (commune 5, peu commune 15, rare 50, épique 150, légendaire 500), ×3 en brillante, ×10 en dorée, ×30 en full art.',
-          'Recycle: a duplicate gives coins (common 5, uncommon 15, rare 50, epic 150, legendary 500), ×3 holo, ×10 gold, ×30 full art.')),
+      _b(t('Recycler : un doublon rapporte des pièces (commune 2, peu commune 5, rare 20, épique 60, légendaire 200), ×3 en brillante, ×10 en dorée, ×30 en full art.',
+          'Recycle: a duplicate gives coins (common 2, uncommon 5, rare 20, epic 60, legendary 200), ×3 holo, ×10 gold, ×30 full art.')),
       _b(t('Fusionner : 5 exemplaires normaux → 1 brillant ; 3 brillants → 1 doré. Le full art ne s\'obtient qu\'en paquet.',
           'Fuse: 5 normal copies → 1 holo; 3 holo → 1 gold. Full art only comes from packs.')),
       _b(t('Fabriquer une carte manquante : commune 50, peu commune 150, rare 500, épique 1 500, légendaire 5 000 pièces.',
