@@ -3,6 +3,7 @@
 ## Prochaine version (numéro à fixer)
 
 - 🕹️ **Bornes jouables** (`sql/2026-10-27_bornes_jouables.sql`, `lib/cab_games.dart`) : chaque borne du Voisinage lance un mini-jeu choisi par son propriétaire (Snake, Casse-briques, Esquive) ; écran de la borne en mode démo (jeu + record de la semaine / avatar, 3 s chacun) ; page de la borne `CabinetPage` (jouer, records de la semaine, profil, stats si c'est la mienne) ; partie `CabPlayPage` (`MiniGameView`, 60 pas / s, 340 × 440 logiques) ; choix du jeu `MyCabGamePicker` dans « Ma borne : jeu et habillage ». Record battu = +20 pièces (1 fois par jour et par borne, pas la sienne) ; propriétaire +1 pièce par partie d'un autre (5 par joueur, 30 par jour) ; records remis à zéro le lundi et au changement de jeu ; score impossible pour la durée refusé. Temps réel : `me` {k: cabrec} (toast au propriétaire), `rc_all` `cab`.
+- 🎨 7 habillages de borne (`assets/arcade/*.webp`, `sql/2026-10-27_bornes_habillages.sql` : `rc_set_house`) : Game Boy 1 300, Bonbons 1 400, Forêt enchantée 1 500, Pirate 1 600, Égypte 1 700, Cyberpunk 1 800, Noël 1 900 cartes.
 
 ## v1.0.23
 _Version 1.0.23+24._

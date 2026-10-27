@@ -49,6 +49,14 @@ const kFloorThemes = [
   CabinetSkin('Neige', 'Snow', 'neige', 800, Color(0xFFBFE6FF)),
   CabinetSkin('Halloween', 'Halloween', 'halloween', 1000, Color(0xFFFF8A1A)),
   CabinetSkin('Or', 'Gold', 'or', 1200, Color(0xFFFFD166)),
+  // 27/10 : 7 habillages de plus (seuils aussi dans rc_set_house)
+  CabinetSkin('Game Boy', 'Game Boy', 'gameboy', 1300, Color(0xFF9BBC0F)),
+  CabinetSkin('Bonbons', 'Candy', 'bonbons', 1400, Color(0xFFFF9ACD)),
+  CabinetSkin('Forêt enchantée', 'Enchanted forest', 'foret', 1500, Color(0xFFB8F060)),
+  CabinetSkin('Pirate', 'Pirate', 'pirate', 1600, Color(0xFFE0B04A)),
+  CabinetSkin('Égypte', 'Egypt', 'egypte', 1700, Color(0xFF3FD8D0)),
+  CabinetSkin('Cyberpunk', 'Cyberpunk', 'cyberpunk', 1800, Color(0xFF4FE8FF)),
+  CabinetSkin('Noël', 'Christmas', 'noel', 1900, Color(0xFFFF4A5A)),
 ];
 
 /// Habillage d'un joueur ; par défaut un des 3 offerts, varié selon le joueur
