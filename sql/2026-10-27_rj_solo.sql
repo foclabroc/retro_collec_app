@@ -3,7 +3,7 @@
 --  · Solo : un parcours par jour (graine tirée au 1er départ du jour, la même pour tous), parties illimitées,
 --    le meilleur score du jour compte. Score plafonné à 60 + 70 pts par seconde de partie (rc_rj_solo_end).
 --  · Le lendemain, les 3 premiers du jour sont récompensés une seule fois (rc__rj_solo_pay, appelé par
---    rc_duel_ping, rc_rj_solo_start et rc_rj_solo_board) : 1er 300 pièces + 2 pixels, 2e 200 + 1 pixel, 3e 100.
+--    rc_duel_ping, rc_rj_solo_start et rc_rj_solo_board) : 1er 500 pièces + 2 pixels, 2e 300 + 1 pixel, 3e 100.
 --    Historique dans rc_rj_wins (rc_rj_solo_winners), nouvelle « rjsolo » dans l'Actu pour le 1er.
 --  · Défi en direct (4 en ligne, Console Wars, Rétro Jump) refusé si je suis déjà en partie en direct
 --    (« tu es déjà en partie ») ou si l'adversaire l'est (« joueur déjà en partie »), à l'envoi comme à l'acceptation.
@@ -56,8 +56,8 @@ create or replace function public.rc__rj_solo_prize(p_place integer)
  language sql
  immutable
 as $function$
-  select case p_place when 1 then '{"coins":300,"pixels":2}'::jsonb
-                      when 2 then '{"coins":200,"pixels":1}'::jsonb
+  select case p_place when 1 then '{"coins":500,"pixels":2}'::jsonb
+                      when 2 then '{"coins":300,"pixels":1}'::jsonb
                       when 3 then '{"coins":100}'::jsonb end $function$;
 alter function public.rc__rj_solo_prize(integer) owner to rc_owner;
 

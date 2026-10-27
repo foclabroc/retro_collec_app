@@ -14,8 +14,8 @@ import 'update_check.dart';
 const _kNews = <(String, String, String)>[
   ('🤖', 'Nouveau duel dans la Salle de jeux : Rétro Jump en direct ! Même parcours pour vous deux, ton adversaire apparaît en fantôme, 2 minutes et le plus haut gagne',
       'New duel in the Game room: live Rétro Jump! Same course for both of you, your opponent shows up as a ghost, 2 minutes and the highest wins'),
-  ('🚀', 'Rétro Jump solo du jour : même parcours pour tous, joue autant que tu veux. Le lendemain, les 3 meilleurs gagnent 300, 200 et 100 pièces (+ pixels) ; historique des gagnants dans le salon',
-      'Daily solo Rétro Jump: same course for everyone, play as much as you like. The next day, the top 3 win 300, 200 and 100 coins (+ pixels); winners history in the lobby'),
+  ('🚀', 'Rétro Jump solo du jour : même parcours pour tous, joue autant que tu veux. Le lendemain, les 3 meilleurs gagnent 500, 300 et 100 pièces (+ pixels) ; historique des gagnants dans le salon',
+      'Daily solo Rétro Jump: same course for everyone, play as much as you like. The next day, the top 3 win 500, 300 and 100 coins (+ pixels); winners history in the lobby'),
   ('🛡️', 'Plus de défi quand tu es déjà en partie (ou ton adversaire), et la fusée remplace le robot dans Rétro Jump',
       'No more challenges while you (or your opponent) are already in a game, and the rocket replaces the robot in Rétro Jump'),
   ('#', 'Aussi depuis la 1.0.23', 'Also since 1.0.23'),

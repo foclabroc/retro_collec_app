@@ -3,7 +3,7 @@ part of 'connect4.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 // Rétro Jump solo du jour (27/10) : un parcours par jour, le même pour tous (graine du serveur),
 // parties illimitées, le meilleur score du jour compte. Le lendemain, les 3 premiers sont
-// récompensés (1er 300 pièces + 2 pixels, 2e 200 + 1 pixel, 3e 100) et inscrits dans l'historique.
+// récompensés (1er 500 pièces + 2 pixels, 2e 300 + 1 pixel, 3e 100) et inscrits dans l'historique.
 // SQL : sql/2026-10-27_rj_solo.sql (rc_rj_solo_start / _end / _board / _winners).
 // Entrée : RjSoloCard dans le salon Rétro Jump (DuelKind.header).
 // ═══════════════════════════════════════════════════════════════════════════
