@@ -492,6 +492,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _password() async {
     if (await showSetPassword(context, change: hasPass == true)) {
+      if (!mounted) return;
       setState(() => hasPass = true);
       toast(t('Mot de passe enregistré', 'Password saved'));
     }
@@ -555,7 +556,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         );
                         if (i != null) {
                           await setTheme(i);
-                          setState(() {});
+                          if (mounted) setState(() {});
                         }
                       }
 
@@ -596,7 +597,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         );
                         if (i != null) {
                           await RcAudio.setHomeTrack(i);
-                          setState(() {});
+                          if (mounted) setState(() {});
                         }
                       }
 

@@ -664,7 +664,7 @@ class _TourPageState extends State<TourPage> {
           ],
         ),
       );
-      if (ok != true) return;
+      if (ok != true || !mounted) return;
     }
     setState(() => busy = true);
     try {
@@ -1239,7 +1239,7 @@ class _TourFormState extends State<_TourForm> {
     final d = await showDatePicker(context: context, initialDate: start, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 60)));
     if (d == null || !mounted) return;
     final tm = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(start));
-    if (tm == null) return;
+    if (tm == null || !mounted) return;
     setState(() => start = DateTime(d.year, d.month, d.day, tm.hour, tm.minute));
   }
 

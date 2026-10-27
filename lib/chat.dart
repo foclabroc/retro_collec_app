@@ -183,7 +183,7 @@ class MessagesScreenState extends State<MessagesScreen> {
     if (ok != true) return;
     try {
       await RcServer.chatReport((m['id'] as num).toInt());
-      setState(() => msgs.remove(m));
+      if (mounted) setState(() => msgs.remove(m));
       toast(t('Message signalé, merci', 'Message reported, thanks'));
     } catch (e) {
       toast(errText(e));

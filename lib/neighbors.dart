@@ -159,7 +159,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
 
   Future<void> _editTheme() async {
     final ok = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => const FloorThemePage()));
-    if (ok == true) setState(() {});
+    if (ok == true && mounted) setState(() {});
   }
 
   void _open(FloorData f) {

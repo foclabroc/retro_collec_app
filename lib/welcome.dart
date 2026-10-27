@@ -54,7 +54,7 @@ class _WelcomePageState extends State<WelcomePage> {
     });
     try {
       if (!await RcServer.nameFree(name)) {
-        setState(() => error = t('Ce pseudo est déjà pris', 'This name is already taken'));
+        if (mounted) setState(() => error = t('Ce pseudo est déjà pris', 'This name is already taken'));
       } else {
         await Game.i.refresh(); // crée le profil
         await Game.i.setProfile(newName: name, newAvatar: avatar);
@@ -74,7 +74,7 @@ class _WelcomePageState extends State<WelcomePage> {
         return;
       }
     } catch (e) {
-      setState(() => error = errText(e));
+      if (mounted) setState(() => error = errText(e));
     }
     if (mounted) setState(() => busy = false);
   }

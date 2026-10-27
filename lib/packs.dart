@@ -153,6 +153,7 @@ class _PacksScreenState extends State<PacksScreen> {
   Future<void> _open(String kind, [String? sys]) async {
     if (busy) return;
     if (kind != 'free' && kind != 'gift' && kind != 'lot' && !kSpecialPrice.containsKey(kind) && !await _confirm(kind, sys)) return;
+    if (!mounted) return;
     setState(() => busy = true);
     try {
       await openPackFlow(context, kind, sys);

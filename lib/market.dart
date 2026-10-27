@@ -513,7 +513,7 @@ class MarketGroupsState extends State<MarketGroups> {
       builder: (ctx) => StatefulBuilder(builder: (ctx, setS) {
         void upd(VoidCallback f) {
           setS(f);
-          setState(() {});
+          if (mounted) setState(() {});
         }
 
         Widget opt(String label, bool on, VoidCallback onTap) => ChoiceChip(

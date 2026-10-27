@@ -280,6 +280,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
     }
     try {
       if (!await Catalog.loadLocal()) {
+        if (!mounted) return;
         setState(() => step = t('Téléchargement des cartes…', 'Downloading cards…'));
         await Catalog.update(progress: (p, s) {
           if (mounted) {
@@ -291,6 +292,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
         });
       } else {
         // catalogue déjà là : on vérifie s'il a changé (nouvelles cartes, textes, traductions)
+        if (!mounted) return;
         setState(() => step = t('Recherche de nouvelles cartes…', 'Checking for new cards…'));
         await Catalog.refreshInBackground(progress: (p, s) {
           if (mounted) {
