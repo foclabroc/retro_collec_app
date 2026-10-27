@@ -14,6 +14,11 @@ begin
   if jeu = 'c4' then
     insert into public.rc_c4 (p1, p2, mode, stake, status, turn, move_at, tmatch)
     values (a, b, 'live', 0, 'playing', 1, now() + d, m.id) returning id into gid;
+  elsif jeu = 'rj' then
+    -- Rétro Jump : départ 8 s plus tard (le temps d'ouvrir la partie), 2 min
+    insert into public.rc_rj (p1, p2, status, seed, start_at, end_at, move_at, tmatch)
+    values (a, b, 'playing', floor(random() * 2147483646)::int + 1, now() + d + interval '8 seconds',
+            now() + d + interval '128 seconds', now(), m.id) returning id into gid;
   else
     insert into public.rc_bs (p1, p2, mode, stake, status, move_at, tmatch)
     values (a, b, 'live', 0, 'setup', now() + d, m.id) returning id into gid;

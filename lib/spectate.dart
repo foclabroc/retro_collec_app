@@ -103,7 +103,7 @@ class WatchGameRow extends StatelessWidget {
             Text('${p1['name'] ?? '?'}  vs  ${p2['name'] ?? '?'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5)),
             Text(
               [
-                if (showGame) bs ? '🚢 Console Wars' : rj ? '🤖 Rétro Jump' : t('🔴 4 en ligne', '🔴 Connect 4'),
+                if (showGame) bs ? '🚢 Console Wars' : rj ? '🚀 Rétro Jump' : t('🔴 4 en ligne', '🔴 Connect 4'),
                 rj
                     ? '${_i(g['h1'])} – ${_i(g['h2'])} pts'
                     : setup

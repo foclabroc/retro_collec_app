@@ -108,14 +108,25 @@ class _RjSoloCardState extends State<RjSoloCard> {
                 ),
               ]),
             ),
-            FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: _kRjGreen, foregroundColor: const Color(0xFF06281B), visualDensity: VisualDensity.compact),
-              onPressed: () async {
-                final r = await _rjSoloPlay(context);
-                if (r != null && mounted) setState(() => b = r);
-              },
-              child: Text(t('Jouer', 'Play'), style: const TextStyle(fontWeight: FontWeight.w900)),
-            ),
+            Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: _kRjGreen, foregroundColor: const Color(0xFF06281B), visualDensity: VisualDensity.compact),
+                onPressed: () async {
+                  final r = await _rjSoloPlay(context);
+                  if (r != null && mounted) setState(() => b = r);
+                },
+                child: Text(t('Jouer', 'Play'), style: const TextStyle(fontWeight: FontWeight.w900)),
+              ),
+              const SizedBox(height: 4),
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact, side: BorderSide(color: _kRjGreen.withOpacity(0.7)), foregroundColor: _kRjGreen),
+                onPressed: () async {
+                  await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RjSoloPage()));
+                  _load();
+                },
+                child: Text(t('🏆 Scores', '🏆 Scores'), style: const TextStyle(fontWeight: FontWeight.w900)),
+              ),
+            ]),
           ]),
         ),
       ),
@@ -366,6 +377,7 @@ class _RjSoloRunPageState extends State<RjSoloRunPage> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
+    DuelWatch.i.inGame++; // pas de fenêtre de défi pendant la partie : elle attend la fin
     _reset();
     _ticker = createTicker(_onTick)..start();
     RcServer.rjSoloBoard().then((b) {
@@ -385,10 +397,11 @@ class _RjSoloRunPageState extends State<RjSoloRunPage> with SingleTickerProvider
 
   @override
   void dispose() {
+    DuelWatch.i.inGame--;
     _ticker?.dispose();
     _focus.dispose();
-    // quitter en cours de partie : le score atteint compte quand même
-    if (!_sent && hero.score > 0) RcServer.rjSoloEnd(_i(st['run']), hero.score).catchError((_) => <String, dynamic>{});
+    // quitter en cours de partie : le score atteint compte quand même, et je ne suis plus « en partie »
+    if (!_sent) RcServer.rjSoloEnd(_i(st['run']), hero.score).catchError((_) => <String, dynamic>{}); // libère « en partie »
     super.dispose();
   }
 

@@ -537,21 +537,21 @@ class _OnlineRowState extends State<_OnlineRow> {
         if (pick)
           Padding(
             padding: const EdgeInsets.only(top: 6, left: 48),
-            child: Row(children: [
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFFC3202E), foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
-                  onPressed: () => _challenge(kC4Duel),
-                  child: Text(t('🔴 4 en ligne', '🔴 Connect 4'), style: const TextStyle(fontWeight: FontWeight.w900)),
-                ),
+            child: Wrap(spacing: 6, runSpacing: 6, children: [
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFFC3202E), foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
+                onPressed: () => _challenge(kC4Duel),
+                child: Text(t('🔴 4 en ligne', '🔴 Connect 4'), style: const TextStyle(fontWeight: FontWeight.w900)),
               ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1C7ED6), foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
-                  onPressed: () => _challenge(kBsDuel),
-                  child: const Text('🚢 Console Wars', style: TextStyle(fontWeight: FontWeight.w900)),
-                ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1C7ED6), foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
+                onPressed: () => _challenge(kBsDuel),
+                child: const Text('🚢 Console Wars', style: TextStyle(fontWeight: FontWeight.w900)),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1E9E6A), foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
+                onPressed: () => _challenge(kRjDuel),
+                child: const Text('🚀 Rétro Jump', style: TextStyle(fontWeight: FontWeight.w900)),
               ),
             ]),
           ),

@@ -38,6 +38,12 @@ begin
   else
     return;  -- on continue
   end if;
+  -- tournoi : personne n'est venu → tirage au sort (sinon la manche serait rejouée sans fin)
+  if w = 0 and g.tmatch is not null and g.gone1 and g.gone2 then
+    w := 1 + floor(random() * 2)::int;
+    perform public.rc__rj_finish(p_id, w, 'timeout');
+    return;
+  end if;
   why := case when w = 0 then 'draw'
               when (w = 1 and g.gone2) or (w = 2 and g.gone1) then 'timeout'
               else 'win' end;

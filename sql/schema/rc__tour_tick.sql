@@ -19,4 +19,7 @@ begin
   for x in select id from public.rc_bs where tmatch is not null and status in ('setup', 'playing') loop
     perform public.rc__bs_settle(x);
   end loop;
+  for x in select id from public.rc_rj where tmatch is not null and status = 'playing' loop
+    perform public.rc__rj_settle(x);
+  end loop;
 end $function$;

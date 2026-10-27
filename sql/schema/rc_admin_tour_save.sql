@@ -11,7 +11,7 @@ begin
   v_id := nullif(j->>'id', '')::bigint;
   nm := left(trim(coalesce(j->>'name', '')), 40);
   if nm = '' then raise exception 'nom vide'; end if;
-  if coalesce(j->>'game', '') not in ('c4', 'bs') then raise exception 'jeu inconnu'; end if;
+  if coalesce(j->>'game', '') not in ('c4', 'bs', 'rj') then raise exception 'jeu inconnu'; end if;
   v_sz := coalesce((j->>'size')::int, 8);
   if v_sz not in (4, 8, 16) then raise exception 'places : 4, 8 ou 16'; end if;
   v_st := (j->>'start_at')::timestamptz;

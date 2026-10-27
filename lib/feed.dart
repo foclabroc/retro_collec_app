@@ -268,7 +268,7 @@ class _FeedTile extends StatelessWidget {
       'c4draw' => (s('$a et $b ont fait match nul au 4 en ligne', '$a and $b drew at Connect 4'), const Color(0xFF99AAAA), '🤝', null),
       'bs' => (s('$a a coulé la flotte de $b à Console Wars$how', '$a sank $b\'s fleet in Console Wars$how'), const Color(0xFF3EC7FF), '🚢', n > 0 ? '+$n 🪙' : null),
       'bsdraw' => (s('$a et $b ont fait match nul à Console Wars', '$a and $b drew in Console Wars'), const Color(0xFF99AAAA), '🤝', null),
-      'rj' => (s('$a est monté plus haut que $b à Rétro Jump$how', '$a climbed higher than $b at Rétro Jump$how'), const Color(0xFF69F0AE), '🤖', n > 0 ? '+$n 🪙' : null),
+      'rj' => (s('$a est monté plus haut que $b à Rétro Jump$how', '$a climbed higher than $b at Rétro Jump$how'), const Color(0xFF69F0AE), '🚀', n > 0 ? '+$n 🪙' : null),
       'rjsolo' => (s('$a a gagné le Rétro Jump solo d\'hier avec **$n points** !', '$a won yesterday\'s solo Rétro Jump with **$n points**!'), const Color(0xFF69F0AE), '🚀', null),
       'rjdraw' => (s('$a et $b ont fait égalité à Rétro Jump', '$a and $b tied at Rétro Jump'), const Color(0xFF99AAAA), '🤝', null),
       'tour' => (
@@ -453,4 +453,4 @@ class _ReactsState extends State<_Reacts> {
 }
 
 /// Nom du jeu d'un tournoi (actu)
-String _tourGame(dynamic sys) => sys == 'bs' ? 'Console Wars' : t('4 en ligne', 'Connect 4');
+String _tourGame(dynamic sys) => switch (sys) { 'bs' => 'Console Wars', 'rj' => 'Rétro Jump', _ => t('4 en ligne', 'Connect 4') };

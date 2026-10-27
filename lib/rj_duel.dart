@@ -613,7 +613,9 @@ class _RjGamePageState extends State<RjGamePage> with SingleTickerProviderStateM
                   ),
                 ),
               ),
-              if (watch && duelFriendly(g))
+              if (duelTour(g))
+                Padding(padding: const EdgeInsets.only(bottom: 6, top: 2), child: Text(duelTourNote(g), textAlign: TextAlign.center, style: const TextStyle(color: kGold, fontSize: 11.5, fontWeight: FontWeight.w800)))
+              else if (watch && duelFriendly(g))
                 Padding(padding: const EdgeInsets.only(bottom: 6), child: Text(duelFriendlyText, style: const TextStyle(color: Colors.white54, fontSize: 11.5))),
             ]),
           ),

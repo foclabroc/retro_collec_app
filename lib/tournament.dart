@@ -26,8 +26,8 @@ import 'server.dart';
 
 int _n(dynamic v, [int d = 0]) => (v as num?)?.toInt() ?? d;
 
-String tourGameName(String? g) => g == 'bs' ? 'Console Wars' : t('4 en ligne', 'Connect 4');
-String tourGameIcon(String? g) => g == 'bs' ? '🚢' : '🔴';
+String tourGameName(String? g) => duelGameName(g);
+String tourGameIcon(String? g) => switch (g) { 'bs' => '🚢', 'rj' => '🚀', _ => '🔴' };
 
 /// Heure locale « sam. 25/10 à 21:00 »
 String tourDate(String? iso) {
@@ -204,11 +204,11 @@ class TourWatch {
     final c = _ctx;
     if (c == null) return;
     try {
-      final g = game == 'bs' ? await RcServer.bsState(gid) : await RcServer.c4State(gid);
+      final g = switch (game) { 'bs' => await RcServer.bsState(gid), 'rj' => await RcServer.rjState(gid), _ => await RcServer.c4State(gid) };
       final c2 = _ctx;
       if (c2 == null || g['status'] != 'playing' || DuelWatch.i.inGame > 0) return;
       RcAudio.sfx('powerup');
-      await Navigator.of(c2).push(MaterialPageRoute(builder: (_) => (game == 'bs' ? kBsDuel : kC4Duel).page(g)));
+      await Navigator.of(c2).push(MaterialPageRoute(builder: (_) => duelKindOf(game).page(g)));
       Game.i.sync();
     } catch (_) {}
     DuelWatch.i.refresh(); // manche suivante déjà prête ?
@@ -1277,7 +1277,7 @@ class _TourFormState extends State<_TourForm> {
                   foregroundColor: v == value ? kGold : Colors.white70,
                 ),
                 onPressed: () => setState(() => on(v)),
-                child: Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
+                child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w800))),
               ),
             ),
           ),
@@ -1296,7 +1296,7 @@ class _TourFormState extends State<_TourForm> {
           _label(t('Nom', 'Name')),
           TextField(controller: name, maxLength: 40),
           _label(t('Jeu', 'Game')),
-          _seg<String>([('c4', '🔴 ${t('4 en ligne', 'Connect 4')}'), ('bs', '🚢 Console Wars')], game, (v) => game = v),
+          _seg<String>([('c4', '🔴 ${t('4 en ligne', 'Connect 4')}'), ('bs', '🚢 Console Wars'), ('rj', '🚀 Rétro Jump')], game, (v) => game = v),
           _label(t('Places', 'Spots')),
           _seg<int>([(4, '4'), (8, '8'), (16, '16')], size, (v) => size = v),
           _label(t('Début', 'Start')),
