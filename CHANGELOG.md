@@ -1,9 +1,13 @@
 # Pixel Trade — Changelog
 
+## v1.0.24
+_Version 1.0.24+25. Pas de cadeau de version._
+
+- 🤖 **Duel Rétro Jump en direct** (`sql/2026-10-27_duel_retro_jump.sql`, `lib/rj_engine.dart`, `lib/rj_duel.dart`) : 3e jeu de la Salle de jeux, en direct seulement. Même parcours pour les deux (graine du serveur, `RjRng` mulberry32 identique Android / JS / Wasm), monde fixe 360 × 640, sans bonus, 2 min, le plus haut gagne (gains du 4 en ligne). Fantôme de l'adversaire par le relais (`rjpos`, ≈ 10 / s, `LiveLink.play` / `sendPos` / `positions`), hauteur au serveur toutes les 2 s (`rc_rj_score`, plafond 70 pts/s), déconnexion = tombé après 20 s. Spectateurs, réactions, Actu, journal admin, « En partie » partout (`rc__duel_busy`). Défis seulement vers les appli qui connaissent le jeu (`rc_players.rj_ok`, `rc_duel_ping(…, p_rj)`). **Relais à mettre à jour** (`selfhost/rc-realtime/server.js`).
+
 ## v1.0.23
 _Version 1.0.23+24._
 
-- 🤖 **Duel Rétro Jump en direct** (`sql/2026-10-27_duel_retro_jump.sql`, `lib/rj_engine.dart`, `lib/rj_duel.dart`) : 3e jeu de la Salle de jeux, en direct seulement. Même parcours pour les deux (graine du serveur, `RjRng` mulberry32 identique Android / JS / Wasm), monde fixe 360 × 640, sans bonus, 2 min, le plus haut gagne (gains du 4 en ligne). Fantôme de l'adversaire par le relais (`rjpos`, ≈ 10 / s, `LiveLink.play` / `sendPos` / `positions`), hauteur au serveur toutes les 2 s (`rc_rj_score`, plafond 70 pts/s), déconnexion = tombé après 20 s. Spectateurs, réactions, Actu, journal admin, « En partie » partout (`rc__duel_busy`). Défis seulement vers les appli qui connaissent le jeu (`rc_players.rj_ok`, `rc_duel_ping(…, p_rj)`). **Relais à mettre à jour** (`selfhost/rc-realtime/server.js`).
 - 🕹️ **Bornes jouables** (`sql/2026-10-27_bornes_jouables.sql`, `lib/cab_games.dart`) : chaque borne du Voisinage lance un mini-jeu choisi par son propriétaire (Snake, Casse-briques, Esquive) ; écran de la borne en mode démo (jeu + record de la semaine / avatar, 3 s chacun) ; page de la borne `CabinetPage` (jouer, records de la semaine, profil, stats si c'est la mienne) ; partie `CabPlayPage` (`MiniGameView`, 60 pas / s, 340 × 440 logiques) ; choix du jeu `MyCabGamePicker` dans « Ma borne : jeu et habillage ». Record battu = +20 pièces (1 fois par jour et par borne, pas la sienne) ; propriétaire +1 pièce par partie d'un autre (5 par joueur, 30 par jour) ; records remis à zéro le lundi et au changement de jeu ; score impossible pour la durée refusé. Temps réel : `me` {k: cabrec} (toast au propriétaire), `rc_all` `cab`.
 - 🎨 7 habillages de borne (`assets/arcade/*.webp`, `sql/2026-10-27_bornes_habillages.sql` : `rc_set_house`) : Game Boy 1 300, Bonbons 1 400, Forêt enchantée 1 500, Pirate 1 600, Égypte 1 700, Cyberpunk 1 800, Noël 1 900 cartes.
 - 🎁 Cadeau de version : 600 pièces + 1 booster premium (`sql/2026-10-27_cadeau_1023.sql`, comptes créés avant le 27/10 9 h).

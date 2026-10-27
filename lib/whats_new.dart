@@ -12,10 +12,9 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('🎁', 'Cadeau de mise à jour : 600 pièces et un booster premium (dans Paquets → Cadeaux reçus)',
-      'Update gift: 600 coins and a premium pack (in Packs → Gifts received)'),
   ('🤖', 'Nouveau duel dans la Salle de jeux : Rétro Jump en direct ! Même parcours pour vous deux, ton adversaire apparaît en fantôme, 2 minutes et le plus haut gagne',
       'New duel in the Game room: live Rétro Jump! Same course for both of you, your opponent shows up as a ghost, 2 minutes and the highest wins'),
+  ('#', 'Aussi depuis la 1.0.23', 'Also since 1.0.23'),
   ('🕹️', 'Bornes jouables : tape une borne du Voisinage pour jouer à son mini-jeu (Snake, Casse-briques ou Esquive). Bats le record de la semaine pour gagner 20 pièces !',
       'Playable cabinets: tap a cabinet in Neighbors to play its mini-game (Snake, Brick breaker or Dodge). Beat the weekly record to earn 20 coins!'),
   ('🎮', 'Choisis le jeu de ta borne (Voisinage → Jeu & style) : tu gagnes 1 pièce à chaque partie d\'un autre joueur',
@@ -38,28 +37,6 @@ const _kNews = <(String, String, String)>[
       'Trade: new "He doesn\'t have" filter in "I give"; your collection and consoles update instantly after a trade'),
   ('🚀', 'Cartes full art beaucoup plus fluides (moins de lag)',
       'Full art cards run much smoother (less lag)'),
-  ('#', 'Aussi depuis la 1.0.22', 'Also since 1.0.22'),
-  ('✨', 'Les cartes full art sortent bien plus souvent : 3 % des épiques et légendaires (au lieu de 0,2 %)',
-      'Full art cards now drop much more often: 3% of epics and legendaries (instead of 0.2%)'),
-  ('🏅', 'Les paliers de collection gagnés (25, 50, 75, 100 % d\'une console ou d\'une saga) s\'affichent dans le récapitulatif du paquet',
-      'Collection milestones you reach (25, 50, 75, 100% of a console or saga) now show in the pack summary'),
-  ('♻️', 'Recyclage rééquilibré : commune 2, peu commune 5, rare 20, épique 60, légendaire 200 pièces (acheter des paquets pour les recycler rapportait plus qu\'ils ne coûtaient)',
-      'Recycling rebalanced: common 2, uncommon 5, rare 20, epic 60, legendary 200 coins (buying packs to recycle them paid more than they cost)'),
-  ('#', 'Aussi depuis la 1.0.21', 'Also since 1.0.21'),
-  ('⚡', 'Déchirer et tout voir : un bouton sous le paquet montre toutes tes cartes d\'un coup',
-      'Tear and see all: a button under the pack shows all your cards at once'),
-  ('🏆', 'Tournois : fenêtre de félicitations pour le podium, lots au nom du tournoi, score des manches plus clair en finale',
-      'Tournaments: congrats window for the podium, prizes named after the tournament, clearer round score in the final'),
-  ('🔕', 'Plus de fenêtre de défi pendant l\'ouverture d\'un paquet ou un match de tournoi : elle arrive juste après',
-      'No more challenge window while opening a pack or during a tournament match: it shows right after'),
-  ('🛠', 'Corrigé : « Paquet entamé » qui restait affiché pour rien, messages du chat parfois en double',
-      'Fixed: "Started pack" showing for nothing, chat messages sometimes shown twice'),
-  ('#', 'Aussi depuis la 1.0.20', 'Also since 1.0.20'),
-  ('🏆', 'Tournois ! Inscris-toi dans la Salle de jeux : matchs en direct au 4 en ligne ou à Console Wars, arbre en direct, lots et cagnotte pour le podium',
-      'Tournaments! Sign up in the Game room: live Connect 4 or Console Wars matches, live bracket, prizes and a pot for the podium'),
-  ('⚔', 'Quand ton match commence, une fenêtre te prévient : touche « Jouer » dans les 3 minutes (sinon forfait)',
-      'When your match starts, a window tells you: tap "Play" within 3 minutes (or forfeit)'),
-  ('🥇', 'Nouveau trophée « Champion » pour les tournois gagnés', 'New "Champion" trophy for tournaments won'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';
