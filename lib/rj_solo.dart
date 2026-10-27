@@ -108,7 +108,9 @@ class _RjSoloCardState extends State<RjSoloCard> {
                 ),
               ]),
             ),
-            Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            SizedBox(
+             width: 112, // largeur fixe : sinon les boutons étirés prennent toute la ligne (texte en colonne)
+             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: _kRjGreen, foregroundColor: const Color(0xFF06281B), visualDensity: VisualDensity.compact),
                 onPressed: () async {
@@ -126,7 +128,8 @@ class _RjSoloCardState extends State<RjSoloCard> {
                 },
                 child: Text(t('🏆 Scores', '🏆 Scores'), style: const TextStyle(fontWeight: FontWeight.w900)),
               ),
-            ]),
+             ]),
+            ),
           ]),
         ),
       ),
