@@ -1,5 +1,14 @@
 # Pixel Trade — Changelog
 
+## v1.0.23
+_Version 1.0.23+24._
+
+- ⭐ Paquets premium (achetés ou reçus en cadeau) et paquet gratuit comptés dans les défis et le trophée Premium (`sql/2026-10-27_premium_defis.sql` : `rc_pending.gk`, `rc_pick`).
+- 🃏 Cartes de récompense dans un stock « Cartes à ranger » (`sql/2026-10-27_stock_cartes.sql` : `rc_card_stock`, `rc_stock_list`, `rc_stock_take`, `rc__grant`, `rc_notifs.cards`) ; page `CardStockPage` (`packs.dart`).
+- 🚀 Full art allégé (`cards.dart`) : prisme en un dessin, fond sans flou, capture réduite, couche en cache.
+- ⚔ Défi accepté : `DuelWatch.watchOut` ouvre la partie hors du salon.
+- 🔄 Échange : filtre « Qu'il n'a pas » ; `Game.i.sync()` sur les événements temps réel trade / sale / gift.
+
 ## v1.0.22
 _Version 1.0.22+23._
 

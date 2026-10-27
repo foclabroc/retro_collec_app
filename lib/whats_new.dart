@@ -12,6 +12,17 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🃏', 'Cartes offertes en récompense : elles attendent dans « Cartes à ranger » (onglet Paquets) pour les voir avant de les ranger dans ta collection',
+      'Reward cards now wait in "Cards to store" (Packs tab) so you can look at them before adding them to your collection'),
+  ('⭐', 'Les paquets premium (achetés ou reçus) et le paquet gratuit comptent enfin pour les défis de la semaine et le trophée Premium',
+      'Premium packs (bought or received) and the free pack now count for weekly challenges and the Premium trophy'),
+  ('⚔', 'Quand ton défi est accepté, la page de la partie s\'ouvre toute seule, même si tu as quitté le salon',
+      'When your challenge is accepted, the game page opens by itself, even if you left the lobby'),
+  ('🔄', 'Échange : filtre « Qu\'il n\'a pas » dans « Je donne » ; ta collection et tes consoles se mettent à jour tout de suite après un échange',
+      'Trade: new "He doesn\'t have" filter in "I give"; your collection and consoles update instantly after a trade'),
+  ('🚀', 'Cartes full art beaucoup plus fluides (moins de lag)',
+      'Full art cards run much smoother (less lag)'),
+  ('#', 'Aussi depuis la 1.0.22', 'Also since 1.0.22'),
   ('✨', 'Les cartes full art sortent bien plus souvent : 3 % des épiques et légendaires (au lieu de 0,2 %)',
       'Full art cards now drop much more often: 3% of epics and legendaries (instead of 0.2%)'),
   ('🏅', 'Les paliers de collection gagnés (25, 50, 75, 100 % d\'une console ou d\'une saga) s\'affichent dans le récapitulatif du paquet',
