@@ -10,6 +10,7 @@ import 'admin.dart';
 
 import 'album.dart';
 import 'audio.dart';
+import 'cab_games.dart';
 import 'packs.dart';
 import 'cards.dart';
 import 'catalog.dart';
@@ -1132,7 +1133,13 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
               ? const Center(child: CircularProgressIndicator(color: kGold))
               : ListView(padding: const EdgeInsets.all(16), children: [
                   // sa borne dans la salle d'arcade
-                  Center(child: ArcadeCabinet(d: FloorData.of(p!), width: 150)),
+                  Center(
+                    child: ArcadeCabinet(
+                      d: FloorData.of(p!),
+                      width: 150,
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CabinetPage(f: FloorData.of(p!)))),
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   Row(children: [
                     AvatarPulseSquare((p!['avatar'] as num? ?? 0).toInt(), size: 60),

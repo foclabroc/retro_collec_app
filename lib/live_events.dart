@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'cab_games.dart';
 import 'chat.dart';
 import 'connect4.dart';
 import 'defis.dart';
@@ -61,6 +62,13 @@ class LiveEvents {
       final pid = m['pid'] as String?;
       if ((ev == 'player' || ev == 'online') && pid != null) _later('player:$pid', 80, () => _player.add(pid));
       if (ev == 'player') return;
+      if (ev == 'me' && m['k'] == 'cabrec') {
+        // quelqu'un a battu le record de ma borne
+        final g = kCabGames[m['game']];
+        toast(t('🏆 ${m['name']} a battu le record de ta borne${g == null ? '' : ' sur ${g.fr}'} : ${m['score']}',
+            '🏆 ${m['name']} beat your cabinet\'s record${g == null ? '' : ' on ${g.en}'}: ${m['score']}'));
+        return;
+      }
       final key = ev == 'me' ? 'me:${m['k']}' : ev;
       _later(key, ev == 'chat' ? 0 : 80, () => _run(ev, m['k'] as String?));
     });
@@ -110,6 +118,8 @@ class LiveEvents {
         if (_tab == 5) NeighborsScreenState.current?.load();
       case 'mail':
         _inbox();
+      case 'cab':
+        if (_tab == 5) NeighborsScreenState.current?.load(); // record ou jeu d'une borne changé
       case 'tour':
         Tours.ping.value++;
         DuelWatch.i.refresh();

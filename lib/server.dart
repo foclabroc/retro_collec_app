@@ -739,6 +739,33 @@ class RcServer {
     await _rpc('rc_set_house', {'p_device': d, 'p_house': house, 'p_sig': _sig('$d|house|$house')});
   }
 
+  // ── Bornes jouables ─────────────────────────────────────────────────────
+  /// [{pid, game, rec, rec_name}] : jeu et record de la semaine de chaque borne
+  static Future<List<Map<String, dynamic>>> cabBoard() async => _list(await _rpc('rc_cab_board', {}));
+
+  /// {pid, name, game, me, top: [{pid, name, avatar, score}], best, paid} (+ plays, comm, held si c'est la mienne)
+  static Future<Map<String, dynamic>> cabGet(String pid) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_cab_get', {'p_device': d, 'p_pid': pid, 'p_sig': _sig('$d|cab|$pid')}));
+  }
+
+  static Future<bool> cabSetGame(String game) async {
+    final d = await deviceId();
+    return (await _rpc('rc_cab_set_game', {'p_device': d, 'p_game': game, 'p_sig': _sig('$d|cabgame|$game')})) == true;
+  }
+
+  /// {run, game, rec}
+  static Future<Map<String, dynamic>> cabStart(String pid) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_cab_start', {'p_device': d, 'p_pid': pid, 'p_sig': _sig('$d|cabstart|$pid')}));
+  }
+
+  /// {score, best, newrec, gain, coins, rec}
+  static Future<Map<String, dynamic>> cabEnd(int run, int score) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_cab_end', {'p_device': d, 'p_run': run, 'p_score': score, 'p_sig': _sig('$d|cabend|$run|$score')}));
+  }
+
   // ── Joueurs ─────────────────────────────────────────────────────────────
   /// [{pid, name, avatar, score, cards, showcase}]
   static Future<List<Map<String, dynamic>>> board() async => _list(await _rpc('rc_board', {}));

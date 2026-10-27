@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'cab_games.dart';
 import 'catalog.dart';
 import 'packs.dart';
 import 'game.dart';
@@ -65,7 +66,13 @@ class FloorData {
   final bool busy; // en duel en direct (rc_board)
   final DateTime? seenAt; // dernière connexion
   final String trophies; // vitrine de trophées « type:palier,,type:palier »
+  final String? cabGame; // mini-jeu de la borne (rc_cab_board), null si pas encore chargé
+  final int? cabRec; // record de la semaine
+  final String? cabRecName; // pseudo du détenteur du record
   const FloorData({
+    this.cabGame,
+    this.cabRec,
+    this.cabRecName,
     this.trophies = '',
     this.seenAt,
     required this.pid,
@@ -85,7 +92,11 @@ class FloorData {
   factory FloorData.of(Map<String, dynamic> p, {int? rank}) {
     final pid = p['pid'] as String? ?? '';
     final me = pid == Game.i.pid;
+    final cab = CabBoard.of(pid);
     return FloorData(
+      cabGame: cab?['game'] as String?,
+      cabRec: (cab?['rec'] as num?)?.toInt(),
+      cabRecName: cab?['rec_name'] as String?,
       pid: pid,
       name: p['name'] as String? ?? '?',
       avatar: me ? Game.i.avatar : (p['avatar'] as num? ?? 0).toInt(),
@@ -247,13 +258,15 @@ class _Scanlines extends CustomPainter {
 }
 
 /// Une borne d'arcade : image de l'habillage, pseudo sur le fronton, écran avec
-/// avatar / score / PLAYING ou OFFLINE, 🎁 et badge 1P.
+/// avatar / score / PLAYING ou OFFLINE en alternance avec le mini-jeu de la borne
+/// et son record (mode démo, 3 s chacun), 🎁 et badge 1P.
 class ArcadeCabinet extends StatefulWidget {
   final FloorData d;
   final double width;
   final VoidCallback? onTap, onGift;
   final bool showName; // pseudo sur le fronton
-  const ArcadeCabinet({super.key, required this.d, required this.width, this.onTap, this.onGift, this.showName = true});
+  final bool game; // écran du mini-jeu en permanence (page de la borne, Ma borne)
+  const ArcadeCabinet({super.key, required this.d, required this.width, this.onTap, this.onGift, this.showName = true, this.game = false});
 
   @override
   State<ArcadeCabinet> createState() => _ArcadeCabinetState();
@@ -265,10 +278,15 @@ class ArcadeCabinet extends StatefulWidget {
 ///  · écran qui pulse + reflet qui balaie la vitre · lumière de l'écran sur le panneau · lueur au sol
 class _ArcadeCabinetState extends State<ArcadeCabinet> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(seconds: 6));
+  bool _alt = false; // mode démo : moitié du tour sur l'avatar, moitié sur le jeu
 
   @override
   void initState() {
     super.initState();
+    _c.addListener(() {
+      final a = _c.value >= 0.5;
+      if (a != _alt && mounted) setState(() => _alt = a);
+    });
     _sync();
   }
 
@@ -316,6 +334,8 @@ class _ArcadeCabinetState extends State<ArcadeCabinet> with SingleTickerProvider
     final showGift = onGift != null && !d.me && (Notifs.i.canGift || gifted);
     final tro = parseTrophyShow(d.trophies).whereType<(String, int)>().toList();
     final g = (w / 110).clamp(0.6, 2.2); // échelle des textes
+    // écran du mini-jeu : toujours sur la page de la borne ; sinon en alternance (en ligne) ou fixe (hors ligne), jamais en duel
+    final showGame = d.cabGame != null && !d.busy && (widget.game || !on || !_alt);
 
     final screen = Container(
       decoration: BoxDecoration(
@@ -326,7 +346,9 @@ class _ArcadeCabinetState extends State<ArcadeCabinet> with SingleTickerProvider
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(children: [
+        if (showGame) Positioned.fill(child: CabScreen(d: d, sr: sr, on: on, start: widget.game)),
         // contenu de l'écran agrandi au maximum : avatar en grand, score et statut sur toute la largeur
+        if (!showGame)
         Positioned.fill(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: sr.width * 0.06, vertical: sr.height * 0.05),
@@ -726,6 +748,7 @@ class FloorThemePage extends StatefulWidget {
 class _FloorThemePageState extends State<FloorThemePage> {
   late int sel = floorThemeOf(Game.i.house, Game.i.pid);
   bool busy = false;
+  String? cabGame = CabBoard.of(Game.i.pid)?['game'] as String?; // jeu de ma borne (aperçu)
 
   Future<void> _apply() async {
     setState(() => busy = true);
@@ -747,11 +770,26 @@ class _FloorThemePageState extends State<FloorThemePage> {
     final ok = g.cards >= th.need;
     final current = floorThemeOf(g.house, g.pid);
     final unlocked = kFloorThemes.where((x) => g.cards >= x.need).length;
-    final me = FloorData(pid: g.pid, name: g.name, avatar: g.avatar, score: g.score, cards: g.cards, coins: g.coins, pixels: g.pixels, theme: sel, online: true, me: true);
+    final cab = CabBoard.of(g.pid);
+    final me = FloorData(
+        pid: g.pid, name: g.name, avatar: g.avatar, score: g.score, cards: g.cards, coins: g.coins, pixels: g.pixels, theme: sel, online: true, me: true,
+        cabGame: cabGame,
+        cabRec: cab?['game'] == cabGame ? (cab?['rec'] as num?)?.toInt() : null,
+        cabRecName: cab?['game'] == cabGame ? (cab?['rec_name'] as String?) : null);
     return Scaffold(
-      appBar: AppBar(title: Text(t('Habillage de ma borne', 'My cabinet skin'))),
+      appBar: AppBar(title: Text(t('Ma borne : jeu et habillage', 'My cabinet: game and skin'))),
       body: ListView(padding: const EdgeInsets.fromLTRB(12, 8, 12, 24), children: [
-        Center(child: ArcadeCabinet(d: me, width: 150)),
+        Center(child: ArcadeCabinet(d: me, width: 150, game: cabGame != null)),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white12)),
+          child: MyCabGamePicker(onChanged: (x) {
+            if (mounted && x != cabGame) setState(() => cabGame = x);
+          }),
+        ),
+        const SizedBox(height: 14),
+        Text('🎨 ${t('Habillage', 'Skin')}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
         const SizedBox(height: 12),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800), minimumSize: const Size.fromHeight(46)),

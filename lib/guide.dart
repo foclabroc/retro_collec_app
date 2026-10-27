@@ -267,6 +267,10 @@ List<_Section> _sections() {
     _Section('🏘️', t('Voisinage, messages et parrainage', 'Neighbors, messages and referral'), [
       _b(t('Voisinage : la salle d\'arcade, une borne par joueur venu dans les 7 derniers jours. Personnalise la tienne.',
           'Neighbors: the arcade, one cabinet per player seen in the last 7 days. Customize yours.')),
+      _b(t('Bornes jouables : tape une borne pour jouer à son mini-jeu (Snake, Casse-briques ou Esquive), gratuitement. Battre le record d\'une borne rapporte 20 pièces (une fois par jour et par borne, pas sur la tienne). Records remis à zéro chaque lundi.',
+          'Playable cabinets: tap a cabinet to play its mini-game (Snake, Brick breaker or Dodge) for free. Beating a cabinet\'s record earns 20 coins (once a day per cabinet, not on yours). Records reset every Monday.')),
+      _b(t('Ta borne : choisis son jeu (Ma borne → Jeu de ma borne ; changer de jeu remet son record à zéro). Tu gagnes 1 pièce par partie d\'un autre joueur (5 par joueur et 30 en tout par jour).',
+          'Your cabinet: pick its game (My cabinet → My cabinet\'s game; switching resets its record). You earn 1 coin per game played by someone else (5 per player and 30 in total per day).')),
       _b(t('En ligne : un joueur apparaît en ligne dès qu\'il ouvre le jeu, et disparaît quelques secondes après l\'avoir fermé.',
           'Online: a player shows as online as soon as they open the game, and disappears a few seconds after closing it.')),
       _b(t('Messages : tape @ puis un pseudo pour citer quelqu\'un ; il est prévenu.', 'Messages: type @ then a name to mention someone; they get notified.')),

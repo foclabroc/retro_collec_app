@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'audio.dart';
+import 'cab_games.dart';
 import 'connect4.dart';
 import 'duel_watch.dart';
 import 'game.dart';
@@ -92,6 +93,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
   Future<void> load() async {
     try {
       final q = query.trim();
+      final cab = CabBoard.load(); // jeu + record de chaque borne, en même temps
       final r = q.isEmpty ? await RcServer.board() : await RcServer.find(q);
       final me = r.where((p) => p['pid'] == Game.i.pid).firstOrNull;
       if (me != null) {
@@ -101,6 +103,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
         mine = await RcServer.myFloor().catchError((_) => null);
         if (mine != null) Game.i.house = mine!['house'] as String? ?? Game.i.house;
       }
+      await cab;
       if (mounted) {
         setState(() {
           rows = r;
@@ -191,7 +194,8 @@ class NeighborsScreenState extends State<NeighborsScreen> {
       );
       return;
     }
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => f.me ? const MyProfilePage() : PlayerProfilePage(pid: f.pid)));
+    // borne jouable : page de la borne (jouer, records, profil)
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => CabinetPage(f: f)));
   }
 
   @override
@@ -209,7 +213,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
               const SizedBox(width: 6),
               for (final (icon, label, onTap) in <(IconData, String, VoidCallback)>[
                 (Icons.my_location, t('Ma borne', 'My cabinet'), () => goMe()),
-                (Icons.format_paint, t('Thème', 'Theme'), () => _editTheme()),
+                (Icons.tune, t('Jeu & style', 'Game & style'), () => _editTheme()),
                 (Icons.person, t('Profil', 'Profile'), () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyProfilePage()))),
               ]) ...[
                 Expanded(
