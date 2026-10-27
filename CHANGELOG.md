@@ -1,11 +1,15 @@
 # Pixel Trade — Changelog
 
-## v1.0.24
-_Version 1.0.24+25. Pas de cadeau de version._
+## v1.0.25
+_Version 1.0.25+26. Cadeau : celui de la 1.0.23 pour ceux qui ne l'ont pas eu (`sql/2026-10-27_cadeau_1025.sql`)._
 
 - 🚀 **Rétro Jump solo du jour** (`sql/2026-10-27_rj_solo.sql`, `lib/rj_solo.dart`) : parcours du jour (`rc_rj_day.seed`), parties illimitées (`rc_rj_runs`, plafond 60 + 70 pts/s, 3 s entre deux départs, 300 par jour), meilleur score du jour (`rc_rj_best`), 3 premiers payés le lendemain (`rc__rj_solo_pay` : 500 + 2 ▦ / 300 + 1 ▦ / 100, `rc_rj_wins`, Actu `rjsolo`), historique (`rc_rj_solo_winners`). Carte « Solo du jour » dans le salon Rétro Jump (`DuelKind.header`), `RjSoloPage`, `RjSoloRunPage`, `RjWinnersPage`.
 - 🛡️ Défi en direct refusé si l'un des deux est déjà en partie en direct (invitation et acceptation, 4 en ligne / Console Wars / Rétro Jump).
 - 🚀 Héros Rétro Jump : la fusée (`rjDrawRocket`) remplace le robot.
+
+## v1.0.24
+_Version 1.0.24+25. Pas de cadeau de version._
+
 - 🤖 **Duel Rétro Jump en direct** (`sql/2026-10-27_duel_retro_jump.sql`, `lib/rj_engine.dart`, `lib/rj_duel.dart`) : 3e jeu de la Salle de jeux, en direct seulement. Même parcours pour les deux (graine du serveur, `RjRng` mulberry32 identique Android / JS / Wasm), monde fixe 360 × 640, sans bonus, 2 min, le plus haut gagne (gains du 4 en ligne). Fantôme de l'adversaire par le relais (`rjpos`, ≈ 10 / s, `LiveLink.play` / `sendPos` / `positions`), hauteur au serveur toutes les 2 s (`rc_rj_score`, plafond 70 pts/s), déconnexion = tombé après 20 s. Spectateurs, réactions, Actu, journal admin, « En partie » partout (`rc__duel_busy`). Défis seulement vers les appli qui connaissent le jeu (`rc_players.rj_ok`, `rc_duel_ping(…, p_rj)`). **Relais à mettre à jour** (`selfhost/rc-realtime/server.js`).
 
 ## v1.0.23
