@@ -31,7 +31,7 @@ int _int(dynamic v) => (v as num).toInt();
 class RcCard {
   final String id, sys, title, dev, pub, genre, img, desc, genreEn, descEn;
   final String? shot;
-  final String? saga; // carte de saga : id de kSagas ('mario', 'sonic', 'zelda', 'pokemon', 're', 'castlevania'), sinon null
+  final String? saga; // carte de saga : id de kSagas ('mario', 'sonic', 'zelda', 'pokemon', 're', 'castlevania', 'kirby', 'sf'), sinon null
   final String? baseSys; // carte de saga : console de la carte d'origine (images)
   final String? base; // carte de saga : id de la carte d'origine
   final int num, rarity;
@@ -133,6 +133,8 @@ class RcSystem {
         'gamegear' => 'Game Gear',
         '3ds' => '3DS',
         'amigacd32' => 'Amiga CD32',
+        'amiga1200' => 'Amiga 1200',
+        'gb' => 'Game Boy',
         _ => name,
       };
 }
@@ -167,6 +169,12 @@ const kSagas = [
   RcSaga('castlevania', 'Castlevania', Color(0xFF5B2A86), Color(0xFFE8C26A), Color(0xFF14061F),
       ['nes_013', 'nes_014', 'nes_015', 'snes_069', 'megadrive_009', 'psx_020', 'n64_011', 'gba_014', 'gba_013', 'ps2_008'],
       ['nes_013', 'gba_013', 'psx_020']),
+  RcSaga('kirby', 'Kirby', Color(0xFFE8679C), Color(0xFFFFE066), Color(0xFF4A0F2A),
+      ['gb_042', 'nes_045', 'snes_028', 'snes_029', 'n64_040', 'gba_049', 'gba_048', '3ds_008', 'switch_023', 'switch_022'],
+      ['nes_045', 'switch_022', 'gb_042']),
+  RcSaga('sf', 'Street Fighter', Color(0xFFD9441C), Color(0xFFFFC23D), Color(0xFF2A0A04),
+      ['snes_061', 'megadrive_083', 'snes_083', 'amigacd32_037', 'gb_084', 'psx_075', 'dreamcast_038', 'gbc_079', 'gba_092', 'psp_085'],
+      ['megadrive_083', 'psx_075', 'snes_061']),
 ];
 
 RcSaga? sagaById(String? id) {

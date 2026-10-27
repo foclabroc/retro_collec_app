@@ -27,7 +27,7 @@ class TrophyDef {
 const kTrophies = [
   TrophyDef('packs', '📦', 'Ouvreur de paquets', 'Pack opener', 'Ouvrir # paquets', 'Open # packs', [25, 100, 500]),
   TrophyDef('cards', '🗂️', 'Collectionneur', 'Collector', 'Avoir # cartes différentes', 'Own # different cards', [100, 400, 1000]),
-  TrophyDef('consoles', '🎮', 'Console complète', 'Full system', 'Terminer # console(s) à 100 %', 'Complete # system(s) at 100%', [1, 5, 19]),
+  TrophyDef('consoles', '🎮', 'Console complète', 'Full system', 'Terminer # console(s) à 100 %', 'Complete # system(s) at 100%', [1, 5, 23]),
   TrophyDef('legend', '👑', 'Légendes', 'Legends', 'Obtenir # carte(s) légendaire(s)', 'Get # legendary card(s)', [1, 10, 50]),
   TrophyDef('fullart', '🖼️', 'Full art', 'Full art', 'Obtenir # carte(s) Full art', 'Get # Full art card(s)', [1, 10, 30]),
   TrophyDef('fuse', '⚗️', 'Alchimiste', 'Alchemist', 'Faire # fusions', 'Make # fusions', [5, 25, 100]),
@@ -37,7 +37,7 @@ const kTrophies = [
   TrophyDef('trades', '🤝', 'Négociateur', 'Negotiator', 'Réussir # échanges', 'Complete # trades', [5, 25, 100]),
   TrophyDef('gamedle', '🟨', 'Détective', 'Detective', 'Réussir # Gamedle', 'Solve # Gamedles', [10, 50, 200]),
   TrophyDef('chest', '🏆', 'Semaine parfaite', 'Perfect week', 'Ouvrir # fois le coffre des défis', 'Open the challenge chest # times', [1, 5, 20]),
-  TrophyDef('sagas', '📖', 'Sagas', 'Sagas', 'Terminer # saga(s) à 100 %', 'Complete # saga(s) at 100%', [1, 3, 6]),
+  TrophyDef('sagas', '📖', 'Sagas', 'Sagas', 'Terminer # saga(s) à 100 %', 'Complete # saga(s) at 100%', [1, 3, 8]),
   TrophyDef('days', '📅', 'Fidèle', 'Loyal', 'Se connecter # jours', 'Log in on # days', [7, 30, 100]),
   TrophyDef('epics', '💜', 'Épiques', 'Epics', 'Obtenir # cartes épiques', 'Get # epic cards', [10, 50, 200]),
   TrophyDef('holo', '✨', 'Brillant', 'Shiny', 'Obtenir # cartes brillantes', 'Get # holo cards', [10, 50, 200]),
