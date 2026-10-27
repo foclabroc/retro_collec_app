@@ -1,5 +1,10 @@
 # Pixel Trade — Changelog
 
+## v1.0.27
+_Version 1.0.27+28. Cadeau : celui de la 1.0.23 pour ceux qui ne l'ont pas eu (`sql/2026-10-27_cadeau_1027.sql`)._
+
+- 🛠 Carte « Solo du jour » : colonne des boutons Jouer / Scores à largeur fixe (`SizedBox(width: 112)`), le texte s'affichait lettre par lettre.
+
 ## v1.0.26
 _Version 1.0.26+27. Cadeau : celui de la 1.0.23 pour ceux qui ne l'ont pas eu (`sql/2026-10-27_cadeau_1026.sql`)._
 

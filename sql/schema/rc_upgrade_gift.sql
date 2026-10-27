@@ -16,8 +16,8 @@ begin
          app_at = now()
    where device = p_device;
   v_ver := split_part(coalesce(p_ver, ''), '|', 1);
-  -- 1.0.24 à 1.0.26 sans cadeau propre : donnent le cadeau 1.0.23 à ceux qui ne l'ont pas eu (une seule fois en tout)
-  if v_ver in ('1.0.24', '1.0.25', '1.0.26') then v_ver := '1.0.23'; end if;
+  -- 1.0.24 à 1.0.27 sans cadeau propre : donnent le cadeau 1.0.23 à ceux qui ne l'ont pas eu (une seule fois en tout)
+  if v_ver in ('1.0.24', '1.0.25', '1.0.26', '1.0.27') then v_ver := '1.0.23'; end if;
   -- cadeau par version (même JSON que les récompenses → rc__grant) + date de sortie de la version :
   -- seuls les comptes créés avant la sortie le reçoivent (un nouveau compte ne peut pas réclamer les anciens)
   select x.rw, x.out_at into v_rw, v_out from (values
