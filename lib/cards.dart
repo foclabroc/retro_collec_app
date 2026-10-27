@@ -158,7 +158,12 @@ class CardView extends StatelessWidget {
     }
     // full art (épiques et légendaires) : un tout autre modèle de carte
     if (owned && finish == 3) {
-      return FullArtFace(card: card, width: w, cover: ResizeImage.resizeIfNeeded(cacheW, null, img), manualTilt: manualTilt);
+      return FullArtFace(
+          card: card,
+          width: w,
+          cover: ResizeImage.resizeIfNeeded(cacheW, null, img),
+          backdrop: ResizeImage.resizeIfNeeded((cacheW / 10).round().clamp(16, 96), null, img),
+          manualTilt: manualTilt);
     }
 
     Widget picture = Image(
@@ -508,8 +513,9 @@ class FullArtFace extends StatefulWidget {
   final RcCard card;
   final double width;
   final ImageProvider cover;
+  final ImageProvider? backdrop; // jaquette minuscule, agrandie = flou sans filtre coûteux
   final Offset? manualTilt;
-  const FullArtFace({super.key, required this.card, required this.width, required this.cover, this.manualTilt});
+  const FullArtFace({super.key, required this.card, required this.width, required this.cover, this.backdrop, this.manualTilt});
   @override
   State<FullArtFace> createState() => _FullArtFaceState();
 }
@@ -580,17 +586,23 @@ class _FullArtFaceState extends State<FullArtFace> {
           transform: GradientRotation(turn + o.dx * 1.0),
         );
 
-    return ClipRRect(
+    return RepaintBoundary(
+      child: ClipRRect(
       borderRadius: BorderRadius.circular(rad),
       child: Stack(fit: StackFit.expand, children: [
         // décor : l'écran du jeu (gros pixels), sinon la jaquette floutée
         if (shot != null)
-          Image(image: shot, fit: BoxFit.cover, filterQuality: FilterQuality.none, errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF14183A)))
+          Image(
+              image: ResizeImage.resizeIfNeeded((w * MediaQuery.of(context).devicePixelRatio).round().clamp(64, 700), null, shot),
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.none,
+              errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF14183A)))
         else
-          ImageFiltered(
-            imageFilter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Image(image: widget.cover, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF14183A))),
-          ),
+          Image(
+              image: widget.backdrop ?? widget.cover,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.medium,
+              errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF14183A))),
         const DecoratedBox(
           decoration: BoxDecoration(
             gradient: RadialGradient(center: Alignment(0, -0.2), radius: 0.9, colors: [Color(0x1A000000), Color(0x80000000)], stops: [0.45, 1]),
@@ -692,7 +704,7 @@ class _FullArtFaceState extends State<FullArtFace> {
         ),
         IgnorePointer(child: HoloSheen(manualTilt: widget.manualTilt)),
       ]),
-    );
+    ));
   }
 }
 
@@ -707,17 +719,21 @@ class _PrismPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final s = max(1.0, stripe);
-    final p = Paint()..blendMode = BlendMode.softLight;
     final diag = sqrt(size.width * size.width + size.height * size.height);
+    // une seule passe : dégradé à arêtes vives répété (4 couleurs), au lieu d'une centaine de rectangles
+    final cols = [for (final c in _colors) c.withOpacity(alpha)];
+    final p = Paint()
+      ..blendMode = BlendMode.softLight
+      ..shader = LinearGradient(
+        colors: [for (final c in cols) ...[c, c]],
+        stops: const [0, 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1],
+        tileMode: TileMode.repeated,
+      ).createShader(Rect.fromLTWH(-diag / 2, -diag / 2, s * _colors.length, diag));
     canvas.save();
     canvas.clipRect(Offset.zero & size);
     canvas.translate(size.width / 2, size.height / 2);
     canvas.rotate(pi / 6 + tilt.dx * 0.7 + tilt.dy * 0.3);
-    var k = 0;
-    for (var x = -diag / 2; x < diag / 2; x += s) {
-      p.color = _colors[k++ % _colors.length].withOpacity(alpha);
-      canvas.drawRect(Rect.fromLTWH(x, -diag / 2, s, diag), p);
-    }
+    canvas.drawRect(Rect.fromLTWH(-diag / 2, -diag / 2, diag, diag), p);
     canvas.restore();
   }
 

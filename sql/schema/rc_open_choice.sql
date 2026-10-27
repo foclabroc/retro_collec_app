@@ -52,7 +52,7 @@ begin
   for i in 1..6 loop
     packs := packs || jsonb_build_array(public.rc__draw_pack(case when p_kind = 'gift' then coalesce(gk, 'gift') else p_kind end, p_sys, v.pity));
   end loop;
-  insert into public.rc_pending (device, kind, sys, packs) values (p_device, p_kind, p_sys, packs);
+  insert into public.rc_pending (device, kind, sys, packs, gk) values (p_device, p_kind, p_sys, packs, gk);
 
   select * into v from public.rc_players where device = p_device;
   return jsonb_build_object('choose', 6, 'kind', p_kind, 'sys', p_sys, 'resumed', false,

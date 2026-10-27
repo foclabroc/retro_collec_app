@@ -33,6 +33,8 @@ class DuelWatch extends ChangeNotifier {
   final _handled = <String>{}; // défis déjà montrés (jeu:id)
   final _replies = <String>{}; // réponses à mes défis déjà annoncées (jeu:id:texte)
   bool _showing = false;
+  final _out = <String, DateTime>{}; // défis en direct que j'ai lancés (jeu:id → fin de suivi)
+  bool _outBusy = false;
   int inGame = 0; // pages de partie ouvertes : pas de fenêtre par-dessus
 
   int get badge => invites + turns;
@@ -78,6 +80,7 @@ class DuelWatch extends ChangeNotifier {
       _announceReplies(r['replies']);
       _maybeShow();
       TourWatch.handle(r['tour']); // tournoi : mon match commence, partie suivante prête
+      _checkOut();
     } catch (_) {
       // serveur pas encore à jour ou hors ligne : on réessaiera
     }
@@ -115,6 +118,45 @@ class DuelWatch extends ChangeNotifier {
           ),
         ));
       break; // une à la fois ; les suivantes au prochain passage
+    }
+  }
+
+  /// Défi en direct lancé : si l'autre accepte alors que je ne suis plus dans le salon, la page de la partie s'ouvre toute seule.
+  void watchOut(String game, int id) => _out['$game:$id'] = DateTime.now().add(const Duration(minutes: 3));
+
+  Future<void> _checkOut() async {
+    if (_outBusy || _out.isEmpty) return;
+    final now = DateTime.now();
+    _out.removeWhere((_, end) => end.isBefore(now));
+    if (_out.isEmpty || duelLobbiesOpen > 0 || inGame > 0 || packOpening || TourWatch.busy) return; // le salon ouvert s'en charge
+    _outBusy = true;
+    try {
+      for (final key in _out.keys.toList()) {
+        final bs = key.startsWith('bs:');
+        final id = int.tryParse(key.substring(3)) ?? -1;
+        final kind = bs ? kBsDuel : kC4Duel;
+        final list = await kind.list();
+        Map<String, dynamic>? g;
+        for (final x in list) {
+          if ((x['id'] as num?)?.toInt() == id) g = x;
+        }
+        if (g == null || g['status'] == 'done') {
+          _out.remove(key); // refusé, annulé ou expiré
+          continue;
+        }
+        if (g['status'] != 'playing') continue; // toujours en attente
+        _out.remove(key);
+        final nav = HomeShellState.current?.context;
+        if (nav == null || !nav.mounted || duelLobbiesOpen > 0 || inGame > 0 || packOpening || TourWatch.busy) return;
+        RcAudio.sfx('powerup');
+        await Navigator.of(nav).push(MaterialPageRoute(builder: (_) => kind.page(g!)));
+        Game.i.sync();
+        return;
+      }
+    } catch (_) {
+      // hors ligne : on réessaiera au prochain passage
+    } finally {
+      _outBusy = false;
     }
   }
 

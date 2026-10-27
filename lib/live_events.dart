@@ -8,6 +8,7 @@ import 'defis.dart';
 import 'duel_watch.dart';
 import 'events.dart';
 import 'feed.dart';
+import 'game.dart';
 import 'inbox.dart';
 import 'live_link.dart';
 import 'main.dart';
@@ -79,6 +80,7 @@ class LiveEvents {
     switch (ev) {
       case 'me':
         Notifs.i.refresh();
+        if (k == 'trade' || k == 'sale' || k == 'gift') Game.i.sync(); // collection, consoles, pièces à jour tout de suite
         if (k == 'trade') TradesScreenState.current?.load();
         if (k == 'react' && _tab == 6) FeedScreenState.current?.load();
         if (k == 'prog') {

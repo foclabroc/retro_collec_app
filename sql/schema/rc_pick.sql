@@ -7,7 +7,7 @@ as $function$
 declare
   v public.rc_players;
   pd public.rc_pending;
-  e jsonb; c text; f int; r int; is_new boolean; got_epic boolean := false; nnew int := 0; s text;
+  kk text; e jsonb; c text; f int; r int; is_new boolean; got_epic boolean := false; nnew int := 0; s text;
   res jsonb := '[]'::jsonb; ev jsonb := '[]'::jsonb; miss jsonb; miss_b int;
 begin
   perform public.rc__check(p_sig, p_device || '|pick|' || p_choice);
@@ -43,11 +43,13 @@ begin
   end if;
 
   delete from public.rc_pending where device = p_device;
+  kk := case when pd.kind = 'gift' then pd.gk else pd.kind end;  -- type réel (un cadeau peut être un premium)
   insert into public.rc_pack_log (device, kind, sys) values (p_device, pd.kind, pd.sys);  -- stats admin
   update public.rc_players set packs = packs + 1, pity = case when got_epic then 0 else pity + 1 end,
          pixels = pixels + case when public.rc__special_cost(pd.kind) is null then 1 else 0 end
    where device = p_device;
   ev := ev || public.rc__bump(p_device, 'open', 1);
+  if kk in ('free', 'premium') then perform public.rc__wbump(p_device, kk, 1); end if;  -- défis + trophée : paquet gratuit, premium
   if got_epic then  -- défi : carte épique ou mieux
     perform public.rc__wbump(p_device, 'epic', 1);
     perform public.rc__ev_bump(p_device, 'epics', 1);

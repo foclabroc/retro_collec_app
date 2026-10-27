@@ -349,7 +349,7 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
   final want = <(String, int)>[];
   final give = <(String, int)>[];
   String sys = '';
-  bool onlyMissing = true, onlyDupes = false, sending = false;
+  bool onlyMissing = true, onlyDupes = false, onlyNew = true, sending = false; // onlyNew : seulement les cartes que l'autre n'a pas
 
   @override
   void initState() {
@@ -455,6 +455,23 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
                   ),
                 ]),
               ),
+              AnimatedBuilder(
+                animation: tabs,
+                builder: (_, __) => tabs.index == 1
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: FilterChip(
+                            label: Text(t('Qu\'il n\'a pas', 'He doesn\'t have')),
+                            selected: onlyNew,
+                            selectedColor: const Color(0xFF412402),
+                            onSelected: (v) => setState(() => onlyNew = v),
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
               Expanded(
                 child: TabBarView(controller: tabs, children: [
                   _picker(theirs!, want, mine: false),
@@ -507,6 +524,7 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
       for (var f = 0; f < kFinishes; f++) {
         if (q[f] <= 0) continue;
         if (mine && onlyDupes && qSum(q) < 2) continue;
+        if (mine && onlyNew && qSum(theirs?[id] ?? const <int>[]) > 0) continue; // il l'a déjà, quelle que soit la finition
         items.add((c, f, q[f]));
       }
     });

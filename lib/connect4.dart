@@ -311,6 +311,9 @@ class Connect4Lobby extends StatefulWidget {
   State<Connect4Lobby> createState() => _Connect4LobbyState();
 }
 
+/// Salons de duel ouverts : s'il y en a un, c'est lui qui ouvre la partie quand mon défi est accepté (sinon `DuelWatch`).
+int duelLobbiesOpen = 0;
+
 class _Connect4LobbyState extends State<Connect4Lobby> {
   DuelKind get k => widget.kind ?? kC4Duel;
   List<Map<String, dynamic>> games = [], online = [], top = [];
@@ -326,6 +329,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
   @override
   void initState() {
     super.initState();
+    duelLobbiesOpen++;
     _load(full: true).then((_) {
       final p = widget.inviteOnOpen;
       if (p != null && mounted) _invite(p.$1, p.$2, p.$3, 'live');
@@ -349,6 +353,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
 
   @override
   void dispose() {
+    duelLobbiesOpen = (duelLobbiesOpen - 1).clamp(0, 99);
     LiveEvents.online.removeListener(_onOnline);
     _rt?.cancel();
     _poll?.cancel();
@@ -453,6 +458,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
     try {
       final g = await k.invite(pid, mode);
       RcAudio.sfx('continue');
+      if (mode == 'live') DuelWatch.i.watchOut(k.code, _i(g['id'])); // si je quitte le salon, la partie s'ouvrira quand même
       if (msg.isNotEmpty) RcServer.duelMsg(k.code, _i(g['id']), msg).catchError((_) {});
       if (mode == 'live') {
         _waitId = _i(g['id']);
