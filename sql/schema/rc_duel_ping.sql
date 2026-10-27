@@ -16,6 +16,10 @@ begin
     perform public.rc__tour_tick();
   exception when others then null;
   end;
+  begin
+    perform public.rc__rj_solo_pay();  -- Rétro Jump solo : 3 premiers de la veille
+  exception when others then null;
+  end;
   select coalesce(jsonb_agg(x order by x->>'created_at'), '[]'::jsonb) into live from (
     select jsonb_build_object('game', 'c4', 'id', g.id, 'stake', g.stake, 'friendly', public.rc__duel_why(g.p1, g.p2), 'created_at', g.created_at, 'msg', g.msg,
              'deadline', g.created_at + interval '2 minutes', 'now', now(),

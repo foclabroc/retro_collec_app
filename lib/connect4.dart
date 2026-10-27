@@ -21,6 +21,7 @@ import 'watchers.dart';
 
 part 'battleship.dart';
 part 'rj_duel.dart';
+part 'rj_solo.dart';
 part 'spectate.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -277,6 +278,7 @@ class DuelKind {
   final Widget Function(Map g) thumb; // miniature d'une partie tour par tour
   final Widget Function(Map<String, dynamic> g) page; // écran de jeu
   final bool liveOnly; // pas de tour par tour (Rétro Jump)
+  final Widget? header; // sous l'en-tête du salon (Rétro Jump : mode solo du jour)
   const DuelKind({
     required this.code,
     required this.title,
@@ -291,6 +293,7 @@ class DuelKind {
     required this.thumb,
     required this.page,
     this.liveOnly = false,
+    this.header,
   });
 }
 
@@ -710,6 +713,7 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
 
     final children = <Widget>[
       _hero(),
+      if (k.header != null) Padding(padding: const EdgeInsets.only(top: 10), child: k.header!),
       // invitations reçues
       for (final g in invitesIn)
         Padding(

@@ -377,6 +377,28 @@ class RcServer {
 
   static Future<Map<String, dynamic>> rjWatch(int id) async => _map(await _rpc('rc_rj_watch', {'p_id': id}));
 
+  // ── Rétro Jump solo du jour (rc_rj_solo_*) ──
+  /// Départ : {run, seed (parcours du jour), day, best}
+  static Future<Map<String, dynamic>> rjSoloStart() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rj_solo_start', {'p_device': d, 'p_sig': _sig('$d|rjsstart')}));
+  }
+
+  /// Fin : classement du jour + {score (retenu), record}
+  static Future<Map<String, dynamic>> rjSoloEnd(int run, int score) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rj_solo_end', {'p_device': d, 'p_run': run, 'p_score': score, 'p_sig': _sig('$d|rjsend|$run|$score')}));
+  }
+
+  /// Classement du jour : {day, best, rank, players, prizes, top, yesterday}
+  static Future<Map<String, dynamic>> rjSoloBoard() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rj_solo_board', {'p_device': d}));
+  }
+
+  /// Historique des gagnants : [{day, list: [{place, pid, name, avatar, score, reward}]}]
+  static Future<List<Map<String, dynamic>>> rjSoloWinners() async => _list(await _rpc('rc_rj_solo_winners', {'p_days': 60}));
+
   // ── Console Wars, bataille navale (rc_bs_*) ────────────────────────────
   static Future<List<Map<String, dynamic>>> bsOnline() async {
     final d = await deviceId();

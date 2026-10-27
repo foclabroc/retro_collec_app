@@ -28,6 +28,7 @@ final kRjDuel = DuelKind(
   thumb: (g) => const SizedBox(width: 40),
   page: (g) => RjGamePage(initial: g),
   liveOnly: true,
+  header: const RjSoloCard(),
 );
 
 /// Case de la Salle de jeux
@@ -133,7 +134,7 @@ class _RetroJumpTileState extends State<RetroJumpTile> {
   }
 }
 
-/// Miniature : deux cartouches et le robot qui saute, son fantôme bleu derrière
+/// Miniature : trois cartouches et la fusée qui saute, son fantôme bleu derrière
 class _RjThumbPainter extends CustomPainter {
   const _RjThumbPainter();
   @override
@@ -149,12 +150,12 @@ class _RjThumbPainter extends CustomPainter {
     canvas.save();
     canvas.translate(size.width * 0.38, size.height * 0.62);
     canvas.scale(0.55);
-    rjDrawRobot(canvas, true, kRjBlue, opacity: 0.5);
+    rjDrawRocket(canvas, true, kRjBlue, 0, opacity: 0.5);
     canvas.restore();
     canvas.save();
     canvas.translate(size.width * 0.66, size.height * 0.42);
     canvas.scale(0.6);
-    rjDrawRobot(canvas, false, kRjRed);
+    rjDrawRocket(canvas, false, kRjRed, 0);
     canvas.restore();
   }
 

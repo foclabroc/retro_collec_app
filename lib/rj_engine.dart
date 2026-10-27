@@ -276,50 +276,46 @@ const _kCartColors = [
 const kRjRed = Color(0xFFE02020), kRjBlue = Color(0xFF2F8CFF);
 const _dark = Color(0xFF0D0F14);
 
-const _robotMap = [
-  '......Y......',
-  '......X......',
-  '..XXXXXXXXX..',
-  '.XXXXXXXXXXX.',
-  '.XWWXXXXXWWX.',
-  '.XWBXXXXXWBX.',
-  '.XXXXXXXXXXX.',
-  '.XXXKKKKKXXX.',
-  '..XXXXXXXXX..',
-  '...XX...XX...',
-  '..XXX...XXX..',
-];
-
 const _bugFrames = [
   ['...HHH...', '..HWHWH..', 'L.XXDXX.L', '.XXSDSXX.', 'LXXXDXXXL', '.XSXDXSX.', 'L.XXDXX.L'],
   ['...HHH...', '..HWHWH..', '..XXDXX..', 'LXXSDSXXL', '.XXXDXXX.', 'LXSXDXSXL', '..XXDXX..'],
 ];
 
-/// Robot de Rétro Jump, pieds en (0, 0), dans la couleur [body]
-void rjDrawRobot(Canvas c, bool right, Color body, {double opacity = 1}) {
-  const p = 3.4;
-  final cols = _robotMap.first.length;
-  final rows = _robotMap.length;
-  final ox = -cols * p / 2;
-  final oy = -rows * p;
-  final dark = Color.lerp(body, Colors.black, 0.6)!;
-  final paint = Paint();
-  for (var r = 0; r < rows; r++) {
-    final row = right ? _robotMap[r] : _robotMap[r].replaceAll('WB', 'BW');
-    for (var col = 0; col < cols; col++) {
-      final ch = row[col];
-      if (ch == '.') continue;
-      final color = switch (ch) {
-        'X' => body,
-        'W' => Colors.white,
-        'Y' => const Color(0xFFFFD740),
-        'K' => dark,
-        _ => _dark,
-      };
-      paint.color = color.withOpacity(opacity);
-      c.drawRect(Rect.fromLTWH(ox + col * p, oy + r * p, p + 0.2, p + 0.2), paint);
-    }
+/// Fusée de Rétro Jump (héros « Fusée »), pieds en (0, 0) : ailerons et nez dans la couleur [accent]
+/// (rouge = moi, bleu = l'adversaire), flamme qui vacille avec [time].
+void rjDrawRocket(Canvas c, bool right, Color accent, double time, {double opacity = 1}) {
+  if (opacity < 1) c.saveLayer(const Rect.fromLTRB(-24, -56, 24, 16), Paint()..color = Colors.white.withOpacity(opacity));
+  final fl = 5 + sin(time * 25) * 2;
+  c.drawPath(Path()..moveTo(-5, -6)..lineTo(0, -6 + fl)..lineTo(5, -6)..close(), Paint()..color = const Color(0xFFFFAB00));
+  final fin = Paint()..color = accent;
+  c.drawPath(Path()..moveTo(-10, -20)..lineTo(-17, -4)..lineTo(-8, -8)..close(), fin);
+  c.drawPath(Path()..moveTo(10, -20)..lineTo(17, -4)..lineTo(8, -8)..close(), fin);
+  c.drawPath(
+      Path()
+        ..moveTo(0, -48)
+        ..cubicTo(13, -38, 12, -16, 9, -7)
+        ..lineTo(-9, -7)
+        ..cubicTo(-12, -16, -13, -38, 0, -48)
+        ..close(),
+      Paint()..color = const Color(0xFFECEFF1));
+  c.drawPath(
+      Path()
+        ..moveTo(0, -48)
+        ..cubicTo(6, -44, 8, -41, 9, -38)
+        ..lineTo(-9, -38)
+        ..cubicTo(-8, -41, -6, -44, 0, -48)
+        ..close(),
+      fin);
+  c.drawCircle(const Offset(0, -26), 7.5, Paint()..color = const Color(0xFF90A4AE)); // hublot
+  c.drawCircle(const Offset(0, -26), 6, Paint()..color = const Color(0xFF263238));
+  // yeux qui regardent vers le déplacement
+  final look = (right ? 1 : -1) * 2.2 * 0.4;
+  for (final ex in const [-2.6, 2.6]) {
+    c.drawCircle(Offset(ex, -26), 2.2, Paint()..color = Colors.white);
+    c.drawCircle(Offset(ex + look, -25.5), 1.05, Paint()..color = _dark);
   }
+  c.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(-9, -11, 18, 3), const Radius.circular(1)), Paint()..color = const Color(0xFFB0BEC5));
+  if (opacity < 1) c.restore();
 }
 
 /// Un coureur à dessiner (moi, l'adversaire en fantôme, ou un joueur vu en spectateur)
@@ -501,9 +497,9 @@ class RjPainter extends CustomPainter {
     canvas.translate(r.x, sy);
     canvas.scale(1 + 0.15 * r.squash, 1 - 0.2 * r.squash);
     if (r.dead) canvas.rotate(pi);
-    rjDrawRobot(canvas, r.right, r.color, opacity: op);
+    rjDrawRocket(canvas, r.right, r.color, t, opacity: op);
     canvas.restore();
-    if (r.label != null) _text(canvas, r.label!, Offset(r.x, sy - 52), Colors.white.withOpacity(r.ghost ? 0.75 : 0.95), 10, center: true);
+    if (r.label != null) _text(canvas, r.label!, Offset(r.x, sy - 64), Colors.white.withOpacity(r.ghost ? 0.75 : 0.95), 10, center: true);
   }
 
   void _arrow(Canvas canvas, double x, double y, bool up, Color color, String? label) {

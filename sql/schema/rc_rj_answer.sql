@@ -17,6 +17,8 @@ begin
   else
     if p_device <> g.p2 then raise exception 'partie inconnue'; end if;
     perform public.rc__not_blocked(p_device);
+    if public.rc__duel_busy(p_device) then raise exception 'tu es déjà en partie'; end if;
+    if public.rc__duel_busy(g.p1) then raise exception 'joueur déjà en partie'; end if;
     if exists (select 1 from public.rc_players where device = g.p1 and blocked) then raise exception 'joueur indisponible'; end if;
     update public.rc_players set seen_at = now() where device = p_device;
     -- départ dans 6 s : le temps d'ouvrir la partie des deux côtés + 3, 2, 1

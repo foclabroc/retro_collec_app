@@ -16,6 +16,8 @@ begin
   else
     if p_device <> g.p2 then raise exception 'partie inconnue'; end if;
     perform public.rc__not_blocked(p_device);
+    if g.mode = 'live' and public.rc__duel_busy(p_device) then raise exception 'tu es déjà en partie'; end if;
+    if g.mode = 'live' and public.rc__duel_busy(g.p1) then raise exception 'joueur déjà en partie'; end if;
     if exists (select 1 from public.rc_players where device = g.p1 and blocked) then raise exception 'joueur indisponible'; end if;
     -- mises : 50 pièces chacun, prélevées maintenant
     select coins into c1 from public.rc_players where device = g.p1 for update;

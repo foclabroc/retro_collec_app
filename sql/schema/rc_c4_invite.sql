@@ -15,6 +15,8 @@ begin
   perform public.rc__not_blocked(p_device);
   if o.blocked then raise exception 'joueur indisponible'; end if;
   if p_mode = 'live' and coalesce(o.seen_at < now() - interval '2 minutes', true) then raise exception 'joueur hors ligne'; end if;
+  if p_mode = 'live' and public.rc__duel_busy(v.device) then raise exception 'tu es déjà en partie'; end if;
+  if p_mode = 'live' and public.rc__duel_busy(o.device) then raise exception 'joueur déjà en partie'; end if;
   if exists (select 1 from public.rc_c4 g where g.status in ('invite', 'playing') and g.mode = p_mode
               and ((g.p1 = v.device and g.p2 = o.device) or (g.p1 = o.device and g.p2 = v.device))
               and now() <= case when g.status = 'invite' then g.created_at + public.rc__c4_invite_limit(g.mode)

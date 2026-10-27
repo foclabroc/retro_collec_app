@@ -70,7 +70,7 @@ class FeedScreenState extends State<FeedScreen> {
   String filter = 'all';
 
   static String _cat(String kind) => switch (kind) {
-        'c4' || 'c4draw' || 'bs' || 'bsdraw' || 'rj' || 'rjdraw' || 'tour' || 'tournew' => 'duel',
+        'c4' || 'c4draw' || 'bs' || 'bsdraw' || 'rj' || 'rjdraw' || 'rjsolo' || 'tour' || 'tournew' => 'duel',
         'trade' || 'gift' => 'trade',
         'join' || 'streak' || 'packs' => 'player',
         _ => 'card',
@@ -269,6 +269,7 @@ class _FeedTile extends StatelessWidget {
       'bs' => (s('$a a coulé la flotte de $b à Console Wars$how', '$a sank $b\'s fleet in Console Wars$how'), const Color(0xFF3EC7FF), '🚢', n > 0 ? '+$n 🪙' : null),
       'bsdraw' => (s('$a et $b ont fait match nul à Console Wars', '$a and $b drew in Console Wars'), const Color(0xFF99AAAA), '🤝', null),
       'rj' => (s('$a est monté plus haut que $b à Rétro Jump$how', '$a climbed higher than $b at Rétro Jump$how'), const Color(0xFF69F0AE), '🤖', n > 0 ? '+$n 🪙' : null),
+      'rjsolo' => (s('$a a gagné le Rétro Jump solo d\'hier avec **$n points** !', '$a won yesterday\'s solo Rétro Jump with **$n points**!'), const Color(0xFF69F0AE), '🚀', null),
       'rjdraw' => (s('$a et $b ont fait égalité à Rétro Jump', '$a and $b tied at Rétro Jump'), const Color(0xFF99AAAA), '🤝', null),
       'tour' => (
           duo

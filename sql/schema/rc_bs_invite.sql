@@ -15,6 +15,8 @@ begin
   perform public.rc__not_blocked(p_device);
   if o.blocked then raise exception 'joueur indisponible'; end if;
   if p_mode = 'live' and coalesce(o.seen_at < now() - interval '2 minutes', true) then raise exception 'joueur hors ligne'; end if;
+  if p_mode = 'live' and public.rc__duel_busy(v.device) then raise exception 'tu es déjà en partie'; end if;
+  if p_mode = 'live' and public.rc__duel_busy(o.device) then raise exception 'joueur déjà en partie'; end if;
   -- parties dépassées (abandonnées) : réglées d'abord, sinon elles bloqueraient les contrôles ci-dessous
   for x in select g.id from public.rc_bs g
             where g.status in ('invite', 'setup', 'playing') and v.device in (g.p1, g.p2)
