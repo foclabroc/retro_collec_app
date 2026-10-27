@@ -1,14 +1,18 @@
 # Pixel Trade — Changelog
 
+## v1.0.26
+_Version 1.0.26+27. Cadeau : celui de la 1.0.23 pour ceux qui ne l'ont pas eu (`sql/2026-10-27_cadeau_1026.sql`)._
+
+- 🏆 **Tournois Rétro Jump** (`sql/2026-10-27_rj_tournoi.sql`) : `rc_tour.game` accepte `rj` (`rc_admin_tour_save`, formulaire admin), manches en duel Rétro Jump (`rc__tour_game` : départ 8 s, 2 min), sans gains par manche (`rc__rj_finish`), égalité rejouée, absents des deux côtés → tirage au sort (`rc__rj_settle`), réglées par `rc__tour_tick`, comptées par `rc_rj_tour` → `rc__tour_game_done` ; ouverture auto (`TourWatch._openGame` → `rjState`), note du tournoi dans `RjGamePage`.
+- 🎯 Partie solo : pas de fenêtre de défi pendant la partie (`DuelWatch.inGame`), joueur compté « en partie » pendant au plus 3 min (`rc__duel_busy` lit `rc_rj_runs`), fin envoyée même à 0 en quittant ; bouton « 🏆 Scores » dans la carte Solo du jour.
+- ⚔ Joueurs en ligne (Voisinage) : bouton « 🚀 Rétro Jump » à côté de 4 en ligne / Console Wars.
+
 ## v1.0.25
 _Version 1.0.25+26. Cadeau : celui de la 1.0.23 pour ceux qui ne l'ont pas eu (`sql/2026-10-27_cadeau_1025.sql`)._
 
 - 🚀 **Rétro Jump solo du jour** (`sql/2026-10-27_rj_solo.sql`, `lib/rj_solo.dart`) : parcours du jour (`rc_rj_day.seed`), parties illimitées (`rc_rj_runs`, plafond 60 + 70 pts/s, 3 s entre deux départs, 300 par jour), meilleur score du jour (`rc_rj_best`), 3 premiers payés le lendemain (`rc__rj_solo_pay` : 500 + 2 ▦ / 300 + 1 ▦ / 100, `rc_rj_wins`, Actu `rjsolo`), historique (`rc_rj_solo_winners`). Carte « Solo du jour » dans le salon Rétro Jump (`DuelKind.header`), `RjSoloPage`, `RjSoloRunPage`, `RjWinnersPage`.
 - 🛡️ Défi en direct refusé si l'un des deux est déjà en partie en direct (invitation et acceptation, 4 en ligne / Console Wars / Rétro Jump).
 - 🚀 Héros Rétro Jump : la fusée (`rjDrawRocket`) remplace le robot.
-- 🏆 **Tournois Rétro Jump** (`sql/2026-10-27_rj_tournoi.sql`) : `rc_tour.game` accepte `rj` (`rc_admin_tour_save`, formulaire admin), manches en duel Rétro Jump (`rc__tour_game` : départ 8 s, 2 min), sans gains par manche (`rc__rj_finish`), égalité rejouée, absents des deux côtés → tirage au sort (`rc__rj_settle`), réglées par `rc__tour_tick`, comptées par `rc_rj_tour` → `rc__tour_game_done` ; ouverture auto (`TourWatch._openGame` → `rjState`), note du tournoi dans `RjGamePage`.
-- 🎯 Partie solo : pas de fenêtre de défi pendant la partie (`DuelWatch.inGame`), joueur compté « en partie » pendant au plus 3 min (`rc__duel_busy` lit `rc_rj_runs`), fin envoyée même à 0 en quittant ; bouton « 🏆 Scores » dans la carte Solo du jour.
-- ⚔ Joueurs en ligne (Voisinage) : bouton « 🚀 Rétro Jump » à côté de 4 en ligne / Console Wars.
 
 ## v1.0.24
 _Version 1.0.24+25. Pas de cadeau de version._

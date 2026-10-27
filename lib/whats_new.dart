@@ -14,17 +14,15 @@ import 'update_check.dart';
 const _kNews = <(String, String, String)>[
   ('🎁', 'Cadeau de mise à jour (si tu ne l\'as pas déjà eu) : 600 pièces et un booster premium, dans Paquets → Cadeaux reçus',
       'Update gift (if you haven\'t had it yet): 600 coins and a premium pack, in Packs → Gifts received'),
-  ('🚀', 'Rétro Jump solo du jour : même parcours pour tous, joue autant que tu veux. Le lendemain, les 3 meilleurs gagnent 500, 300 et 100 pièces (+ pixels) ; historique des gagnants dans le salon',
-      'Daily solo Rétro Jump: same course for everyone, play as much as you like. The next day, the top 3 win 500, 300 and 100 coins (+ pixels); winners history in the lobby'),
-  ('🛡️', 'Plus de défi quand tu es déjà en partie (ou ton adversaire), et la fusée remplace le robot dans Rétro Jump',
-      'No more challenges while you (or your opponent) are already in a game, and the rocket replaces the robot in Rétro Jump'),
   ('🏆', 'Tournois de Rétro Jump : l\'admin peut maintenant en organiser, et tu peux défier un joueur en ligne à Rétro Jump depuis la liste des joueurs en ligne',
       'Rétro Jump tournaments: the admin can now set them up, and you can challenge an online player to Rétro Jump from the online list'),
   ('🎯', 'Plus de défi qui arrive pendant une partie solo, et un bouton Scores dans « Solo du jour »',
       'No more challenges popping up during a solo run, and a Scores button in "Daily solo"'),
-  ('#', 'Aussi depuis la 1.0.24', 'Also since 1.0.24'),
-  ('🤖', 'Nouveau duel dans la Salle de jeux : Rétro Jump en direct ! Même parcours pour vous deux, ton adversaire apparaît en fantôme, 2 minutes et le plus haut gagne',
-      'New duel in the Game room: live Rétro Jump! Same course for both of you, your opponent shows up as a ghost, 2 minutes and the highest wins'),
+  ('#', 'Aussi depuis la 1.0.25', 'Also since 1.0.25'),
+  ('🚀', 'Rétro Jump solo du jour : même parcours pour tous, joue autant que tu veux. Le lendemain, les 3 meilleurs gagnent 500, 300 et 100 pièces (+ pixels) ; historique des gagnants dans le salon',
+      'Daily solo Rétro Jump: same course for everyone, play as much as you like. The next day, the top 3 win 500, 300 and 100 coins (+ pixels); winners history in the lobby'),
+  ('🛡️', 'Plus de défi quand tu es déjà en partie (ou ton adversaire), et la fusée remplace le robot dans Rétro Jump',
+      'No more challenges while you (or your opponent) are already in a game, and the rocket replaces the robot in Rétro Jump'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';
