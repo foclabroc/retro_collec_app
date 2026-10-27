@@ -22,3 +22,6 @@ begin
   return true;
 end $function$;
 alter function public.rc_set_house(text, text, text) owner to rc_owner;
+
+-- PostgREST : prendre en compte les nouvelles fonctions
+notify pgrst, 'reload schema';

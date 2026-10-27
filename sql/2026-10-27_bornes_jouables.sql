@@ -279,3 +279,6 @@ as $function$
   delete from public.rc_cab_best where week < public.rc__cab_week() - 35;
   delete from public.rc_cab_paid where day < public.rc__today() - 7; $function$;
 alter function public.rc__cab_clean() owner to rc_owner;
+
+-- PostgREST : prendre en compte les nouvelles fonctions
+notify pgrst, 'reload schema';
