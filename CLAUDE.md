@@ -8,7 +8,7 @@ Web : https://foclabroc.github.io/retro_collec_app/
 - Répondre **en français**, court et direct.
 - **Ne jamais pousser sans accord** : montrer les changements, commit en local, pousser seulement après « pousse ».
 - **SQL avant le code** : donner le fichier SQL d'abord, l'utilisateur le lance sur le serveur maison (`psql -U postgres -d postgres -f fichier.sql`, ou pgAdmin), puis il dit « pousse ». Le connecteur MCP Supabase ne touche plus Pixel Trade (seulement Rétro Jump).
-- Fichiers SQL **relançables** (`create or replace`, `if not exists`), rangés dans `sql/AAAA-MM-JJ_sujet.sql`.
+- Fichiers SQL **relançables** (`create or replace`, `if not exists`), rangés dans `sql/AAAA-MM-JJ_sujet.sql`. Toujours finir par `notify pgrst, 'reload schema';` (sinon PostgREST ne voit pas les nouvelles fonctions : « Could not find the function … in the schema cache », oubli du 27/10).
 - **Tables : aucun droit pour l'API** (`anon` / `authenticated` n'ont plus rien sur les tables ni les séquences depuis le 21/10, y compris par défaut) : tout passe par des RPC `security definer`. Ne jamais faire de `grant` de table à `anon`.
 - **Propriétaire** : les objets du jeu appartiennent à `rc_owner` (pas superutilisateur). Nouvelle fonction / table créée en `postgres` → `alter … owner to rc_owner` dans le fichier SQL (via le MCP c'est automatique). Les fonctions internes `rc__…` sont fermées à l'API automatiquement (déclencheur `rc_ddl_lock`) ; les RPC `rc_…` restent ouvertes.
 - **Maquette HTML : toujours demander d'abord** (« je te fais une maquette ? »), ne jamais en lancer une sans accord. Pour une petite retouche, coder directement.
