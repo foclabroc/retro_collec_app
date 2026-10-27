@@ -56,7 +56,8 @@ List<String> get _sysSortLabels => [
 
 class _LibraryScreenState extends State<LibraryScreen> {
   int sysSort = 0;
-  bool sagas = false; // onglet « Sagas » au lieu de « Consoles » (mémorisé)
+  int mode = 0; // onglet : 0 Consoles, 1 Sagas, 2 Full art (mémorisé)
+  bool get sagas => mode == 1;
   bool dashOpen = false; // tableau de bord déplié (mémorisé, replié par défaut)
 
   @override
@@ -66,7 +67,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     SharedPreferences.getInstance().then((p) {
       final v = p.getInt(_kSysSortKey);
       if (v != null && mounted) setState(() => sysSort = v.clamp(0, 5));
-      if (p.getBool('rc_coll_sagas') == true && mounted) setState(() => sagas = true);
+      final m = p.getInt('rc_coll_mode') ?? (p.getBool('rc_coll_sagas') == true ? 1 : 0);
+      if (m != 0 && mounted) setState(() => mode = m.clamp(0, 2));
       if (p.getBool('rc_dash_open') == true && mounted) setState(() => dashOpen = true);
     }).catchError((_) {});
   }
@@ -76,30 +78,30 @@ class _LibraryScreenState extends State<LibraryScreen> {
     SharedPreferences.getInstance().then((p) => p.setBool('rc_dash_open', dashOpen)).catchError((_) => false);
   }
 
-  void _setSagas(bool v) {
-    setState(() => sagas = v);
-    SharedPreferences.getInstance().then((p) => p.setBool('rc_coll_sagas', v)).catchError((_) => false);
+  void _setMode(int v) {
+    setState(() => mode = v);
+    SharedPreferences.getInstance().then((p) => p.setInt('rc_coll_mode', v)).catchError((_) => false);
   }
 
-  /// Sélecteur « Consoles | Sagas »
+  /// Sélecteur « Consoles | Sagas | Full art »
   Widget _seg() {
-    Widget b(bool v, String label) => Expanded(
+    Widget b(int v, String label) => Expanded(
           child: GestureDetector(
-            onTap: () => _setSagas(v),
+            onTap: () => _setMode(v),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
               padding: const EdgeInsets.symmetric(vertical: 7),
-              decoration: BoxDecoration(color: sagas == v ? kGold : Colors.transparent, borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: mode == v ? kGold : Colors.transparent, borderRadius: BorderRadius.circular(10)),
               child: Text(label,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: sagas == v ? const Color(0xFF2A1800) : Colors.white70)),
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: mode == v ? const Color(0xFF2A1800) : Colors.white70)),
             ),
           ),
         );
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(13)),
-      child: Row(children: [b(false, t('🎮 Consoles', '🎮 Systems')), b(true, t('🌈 Sagas', '🌈 Sagas'))]),
+      child: Row(children: [b(0, t('🎮 Consoles', '🎮 Systems')), b(1, t('📚 Sagas', '📚 Sagas')), b(2, t('★★ Full art', '★★ Full art'))]),
     );
   }
 
@@ -153,6 +155,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final g = Game.i;
         final systems = _sortedSystems(g);
         final sagaList = [for (final s in kSagas) if (Catalog.bySys[s.sys] != null) s];
+        final faList = mode == 2 ? fullArtCards() : const <RcCard>[];
+        final faMine = [for (final c in faList) if ((g.owned[c.id]?[3] ?? 0) > 0) c.id].length;
         return Column(children: [
           TabHeader(t('Collection', 'Collection'), icon: 'collection', actions: [
             IconButton(
@@ -173,15 +177,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   Row(children: [
                     Expanded(
                       child: Text(
-                          sagas
-                              ? t('Cartes holo : ${livePct('saga')} de chance par carte de paquet', 'Holo cards: ${livePct('saga')} chance per pack card')
-                              : t('Mes consoles', 'My systems'),
+                          switch (mode) {
+                            1 => t('Cartes holo : ${livePct('saga')} de chance par carte de paquet', 'Holo cards: ${livePct('saga')} chance per pack card'),
+                            2 => t('$faMine / ${faList.length} · ${livePct('fullart')} par épique ou légendaire', '$faMine / ${faList.length} · ${livePct('fullart')} per epic or legendary'),
+                            _ => t('Mes consoles', 'My systems'),
+                          },
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: Colors.white60)),
                     ),
                     // menu déroulant : ordre des consoles
-                    if (!sagas)
+                    if (mode == 0)
                     DropdownButtonHideUnderline(
                       child: DropdownButton<int>(
                         value: sysSort,
@@ -202,6 +208,23 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ]),
                 ),
               ),
+              if (mode == 2)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+                  // 3 cartes par ligne sur téléphone, plus sur grand écran
+                  sliver: SliverLayoutBuilder(
+                    builder: (context, box) => SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: adaptiveCols(context, box.crossAxisExtent, phone: 3, minTile: 130, max: 8),
+                        childAspectRatio: 5 / 7,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      delegate: SliverChildBuilderDelegate((_, i) => _FullArtSlot(card: faList[i], list: faList), childCount: faList.length),
+                    ),
+                  ),
+                )
+              else
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
                 // 2 posters par ligne sur téléphone, 3 à 5 sur tablette / PC
@@ -313,10 +336,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
           // cartes par rareté
           Expanded(
             child: Column(children: [
-              _bar('🌈 ${t('Sagas', 'Sagas')}', sagaMine, sagaTotal, const Color(0xFFFF8AD8), const Color(0xFFFFB3E6),
-                  sagaTotal > 0 ? () => _setSagas(true) : null),
+              _bar('📚 ${t('Sagas', 'Sagas')}', sagaMine, sagaTotal, const Color(0xFFFF8AD8), const Color(0xFFFFB3E6),
+                  sagaTotal > 0 ? () => _setMode(1) : null),
               _bar('★★ ${t('Full art', 'Full art')}', faMine, faTotal, const Color(0xFFFF9FE5), const Color(0xFFFFC6F0),
-                  faMine > 0 ? () => _openCards(show: 6, sort: 1) : null),
+                  faTotal > 0 ? () => _setMode(2) : null),
               // toucher une rareté : mes cartes de cette rareté
               for (var r = 4; r >= 0; r--)
                 InkWell(
@@ -426,7 +449,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(children: [
-                        mini('🌈', sagaMine, const Color(0xFFFFB3E6)),
+                        mini('📚', sagaMine, const Color(0xFFFFB3E6)),
                         mini('★★', g.fullArtCount, const Color(0xFFFF9FE5)),
                         mini('★', g.goldCount, const Color(0xFFFFD54F)),
                         mini('✦', g.holoCount, const Color(0xFFB4A9FF)),
@@ -846,4 +869,54 @@ class _SparkPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SparkPainter old) => false;
+}
+
+/// Toutes les cartes qui peuvent sortir en full art (épiques et légendaires des consoles),
+/// dans l'ordre des consoles, puis légendaires d'abord, puis numéro.
+List<RcCard> fullArtCards() => [
+      for (final sys in Catalog.systems)
+        ...([for (final c in Catalog.bySys[sys.id] ?? const <RcCard>[]) if (!c.isSaga && c.rarity >= 3) c]
+          ..sort((a, b) => a.rarity != b.rarity ? b.rarity - a.rarity : a.num - b.num)),
+    ];
+
+/// Case de la page Full art : la carte en full art si je l'ai, sinon une case vide.
+class _FullArtSlot extends StatelessWidget {
+  final RcCard card;
+  final List<RcCard> list;
+  const _FullArtSlot({required this.card, required this.list});
+
+  @override
+  Widget build(BuildContext context) {
+    final has = (Game.i.owned[card.id]?[3] ?? 0) > 0;
+    if (has) {
+      return GestureDetector(
+        onTap: () => openCardDetail(context, card, list: [for (final c in list) if ((Game.i.owned[c.id]?[3] ?? 0) > 0) c]),
+        child: CardView(card: card, finish: 3),
+      );
+    }
+    final sys = Catalog.system(card.sys);
+    return LayoutBuilder(builder: (context, box) {
+      final w = box.maxWidth;
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.28),
+          borderRadius: BorderRadius.circular(w * 0.075),
+          border: Border.all(color: kRarityColor[card.rarity].withOpacity(0.35), width: 1.5),
+        ),
+        child: Stack(alignment: Alignment.center, children: [
+          Text('★★', style: TextStyle(color: Colors.white.withOpacity(0.12), fontSize: w * 0.22, fontWeight: FontWeight.w900)),
+          Positioned(
+            left: 4,
+            right: 4,
+            bottom: w * 0.06,
+            child: Text('${sys?.short ?? card.sys} #${card.num}',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.white38, fontSize: max(9, w * 0.085), fontWeight: FontWeight.w700)),
+          ),
+        ]),
+      );
+    });
+  }
 }
