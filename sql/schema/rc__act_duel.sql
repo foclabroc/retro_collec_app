@@ -4,7 +4,7 @@ create or replace function public.rc__act_duel()
  security definer
  set search_path to 'public'
 as $function$
-declare jeu text := case when tg_table_name = 'rc_bs' then 'Console Wars' else '4 en ligne' end;
+declare jeu text := case tg_table_name when 'rc_bs' then 'Console Wars' when 'rc_rj' then 'Rétro Jump' else '4 en ligne' end;
         how text; ami text;
 begin
   begin

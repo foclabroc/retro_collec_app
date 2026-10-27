@@ -7,7 +7,7 @@ import 'main.dart';
 import 'tournament.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Onglet « Salle de jeux » (8) : tournois (TourTile), les jeux à 2 joueurs (4 en ligne, Console Wars),
+// Onglet « Salle de jeux » (8) : tournois (TourTile), les jeux à 2 joueurs (4 en ligne, Console Wars, Rétro Jump),
 // sortis de « Bonus / Jeux », et le bouton « Jeux en cours » (duels en direct
 // des autres joueurs, à regarder en spectateur : WatchList de spectate.dart).
 // ═══════════════════════════════════════════════════════════════════════════
@@ -51,6 +51,8 @@ class GamesRoomScreenState extends State<GamesRoomScreen> {
             Connect4Tile(),
             SizedBox(height: 12),
             BattleTile(),
+            SizedBox(height: 12),
+            RetroJumpTile(),
           ]),
         ),
       ),
@@ -67,7 +69,7 @@ class _LiveGamesButton extends StatelessWidget {
     return ListenableBuilder(
       listenable: LiveGames.i,
       builder: (context, _) {
-        final n = LiveGames.i.others('c4').length + LiveGames.i.others('bs').length;
+        final n = LiveGames.i.others('c4').length + LiveGames.i.others('bs').length + LiveGames.i.others('rj').length;
         return Material(
           color: kPanel,
           borderRadius: BorderRadius.circular(14),
@@ -119,7 +121,7 @@ class LiveGamesPage extends StatelessWidget {
           child: ListenableBuilder(
             listenable: LiveGames.i,
             builder: (context, _) {
-              final empty = LiveGames.i.others('c4').isEmpty && LiveGames.i.others('bs').isEmpty;
+              final empty = LiveGames.i.others('c4').isEmpty && LiveGames.i.others('bs').isEmpty && LiveGames.i.others('rj').isEmpty;
               return ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 24), children: [
                 Text(t('Touche une partie pour la regarder en direct', 'Tap a game to watch it live'),
                     style: const TextStyle(color: Colors.white38, fontSize: 12)),

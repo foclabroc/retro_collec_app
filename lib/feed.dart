@@ -70,7 +70,7 @@ class FeedScreenState extends State<FeedScreen> {
   String filter = 'all';
 
   static String _cat(String kind) => switch (kind) {
-        'c4' || 'c4draw' || 'bs' || 'bsdraw' || 'tour' || 'tournew' => 'duel',
+        'c4' || 'c4draw' || 'bs' || 'bsdraw' || 'rj' || 'rjdraw' || 'tour' || 'tournew' => 'duel',
         'trade' || 'gift' => 'trade',
         'join' || 'streak' || 'packs' => 'player',
         _ => 'card',
@@ -268,6 +268,8 @@ class _FeedTile extends StatelessWidget {
       'c4draw' => (s('$a et $b ont fait match nul au 4 en ligne', '$a and $b drew at Connect 4'), const Color(0xFF99AAAA), '🤝', null),
       'bs' => (s('$a a coulé la flotte de $b à Console Wars$how', '$a sank $b\'s fleet in Console Wars$how'), const Color(0xFF3EC7FF), '🚢', n > 0 ? '+$n 🪙' : null),
       'bsdraw' => (s('$a et $b ont fait match nul à Console Wars', '$a and $b drew in Console Wars'), const Color(0xFF99AAAA), '🤝', null),
+      'rj' => (s('$a est monté plus haut que $b à Rétro Jump$how', '$a climbed higher than $b at Rétro Jump$how'), const Color(0xFF69F0AE), '🤖', n > 0 ? '+$n 🪙' : null),
+      'rjdraw' => (s('$a et $b ont fait égalité à Rétro Jump', '$a and $b tied at Rétro Jump'), const Color(0xFF99AAAA), '🤝', null),
       'tour' => (
           duo
               ? s('$a a gagné le tournoi **${x ?? ''}** (${_tourGame(e['sys'])}) en battant $b en finale !', '$a won the **${x ?? ''}** tournament (${_tourGame(e['sys'])}), beating $b in the final!')
@@ -301,7 +303,7 @@ class _FeedTile extends StatelessWidget {
     if (what.isEmpty) return const SizedBox.shrink();
 
     final av1 = (e['avatar'] as num? ?? 0).toInt(), av2 = (e['avatar2'] as num? ?? 0).toInt();
-    final loserGrey = kind == 'c4' || kind == 'bs';
+    final loserGrey = kind == 'c4' || kind == 'bs' || kind == 'rj';
     final anyMe = me || me2;
     return Material(
       color: kPanel,

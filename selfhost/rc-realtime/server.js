@@ -19,6 +19,9 @@
 //  · 5 s après sa dernière connexion → rc__rt_gone(canal) : hors ligne tout de suite ;
 //  · un spectateur quitte le canal d'une partie (ou se déconnecte) → rc__rt_unwatch(joueur, partie).
 // Protection : 12 connexions max par IP, 40 messages max par connexion et par 10 s.
+// Duel Rétro Jump (27/10) : un joueur peut diffuser sa position (événement 'rjpos', ~10 par seconde) aux autres
+// abonnés du canal de la partie (l'adversaire et les spectateurs), sans passer par Postgres. Comptés à part :
+// 150 max par 10 s (au-delà, ignorés), 300 caractères max, jamais sur rc_all ni sur le canal du joueur.
 // ═══════════════════════════════════════════════════════════════════════════
 'use strict';
 const http = require('http');
@@ -33,6 +36,8 @@ const GONE_MS = 5000; // délai avant « hors ligne » après la dernière conne
 const ALL = 'realtime:rc_all';
 const MAX_PER_IP = 12; // connexions WebSocket ouvertes en même temps par adresse IP (plusieurs onglets / appareils d'une maison)
 const MAX_MSG = 40; // messages reçus par connexion et par tranche de 10 s (au-delà : connexion coupée)
+const MAX_BC = 150; // positions 'rjpos' diffusées par connexion et par tranche de 10 s (au-delà : ignorées)
+const BC_EVENTS = new Set(['rjpos']); // seuls événements qu'un client peut diffuser lui-même
 
 /** topic → ensemble des sockets abonnées */
 const topics = new Map();
@@ -120,14 +125,28 @@ wss.on('connection', (ws) => {
   ws.on('pong', () => (ws.alive = true));
 
   ws.msgs = 0;
+  ws.bc = 0;
   ws.on('message', (raw) => {
-    if (++ws.msgs > MAX_MSG) return ws.terminate(); // trop de messages : client fou ou malveillant
     let m;
     try {
       m = JSON.parse(raw);
     } catch {
+      m = null;
+    }
+    if (m && m.event === 'broadcast') {
+      // position d'un joueur de duel → les autres abonnés du canal de la partie
+      ws.alive = true;
+      if (++ws.bc > MAX_BC) return;
+      const t = m.topic, p = m.payload;
+      if (typeof t !== 'string' || t === ALL || t === ws.player || !ws.topics.has(t)) return;
+      if (!p || typeof p !== 'object' || !BC_EVENTS.has(p.event) || !p.payload || typeof p.payload !== 'object') return;
+      const body = JSON.stringify(p.payload);
+      if (body.length > 300) return;
+      const out = `{"topic":${JSON.stringify(t)},"event":"broadcast","payload":{"type":"broadcast","event":"${p.event}","payload":${body}},"ref":null}`;
+      for (const o of topics.get(t) || []) if (o !== ws && o.readyState === 1) o.send(out);
       return;
     }
+    if (++ws.msgs > MAX_MSG) return ws.terminate(); // trop de messages : client fou ou malveillant
     if (!m || typeof m !== 'object') return;
     ws.alive = true;
     const reply = (status = 'ok', response = {}) =>
@@ -186,7 +205,10 @@ setInterval(() => {
 
 // remise à zéro du compteur de messages
 setInterval(() => {
-  for (const ws of wss.clients) ws.msgs = 0;
+  for (const ws of wss.clients) {
+    ws.msgs = 0;
+    ws.bc = 0;
+  }
 }, 10000);
 
 function broadcast(topic, event, payload) {

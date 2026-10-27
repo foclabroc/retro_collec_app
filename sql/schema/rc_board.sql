@@ -8,11 +8,8 @@ as $function$
          coalesce(p.seen_at > now() - interval '75 seconds', false),
          coalesce(p.seen_at, (p.last_login::timestamp + interval '12 hours') at time zone 'Europe/Paris'),
          public.rc__tshow(p.device),
-         -- en duel en direct (même règle que rc_c4_online / rc_bs_online)
-         exists (select 1 from public.rc_c4 g where g.mode = 'live' and g.status = 'playing'
-                  and p.device in (g.p1, g.p2) and now() <= g.move_at + interval '60 seconds')
-         or exists (select 1 from public.rc_bs g where g.mode = 'live' and g.status in ('setup', 'playing')
-                  and p.device in (g.p1, g.p2) and now() <= g.move_at + interval '2 minutes')
+         -- en duel en direct (4 en ligne, Console Wars, Rétro Jump)
+         public.rc__duel_busy(p.device)
     from public.rc_players p
    where p.packs > 0 and greatest(p.seen_at, p.last_login::timestamptz) > now() - interval '7 days'
    order by p.score desc, p.created_at asc limit 100 $function$;

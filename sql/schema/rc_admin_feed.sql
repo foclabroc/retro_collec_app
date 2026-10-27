@@ -48,7 +48,8 @@ begin
                                     'result', case when x.winner = 0 then 'draw' when x.winner is null then null
                                                    when x.winner = 1 then 'win' else 'loss' end)
             from (select 'c4' jeu, p1, p2, status, reason, winner, created_at from public.rc_c4
-                  union all select 'bs', p1, p2, status, reason, winner, created_at from public.rc_bs) x
+                  union all select 'bs', p1, p2, status, reason, winner, created_at from public.rc_bs
+                  union all select 'rj', p1, p2, status, reason, winner, created_at from public.rc_rj) x
            where x.created_at < b
           union all
           select c.created_at, c.device, null::text,

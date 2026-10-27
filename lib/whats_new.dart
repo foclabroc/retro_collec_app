@@ -14,6 +14,8 @@ import 'update_check.dart';
 const _kNews = <(String, String, String)>[
   ('🎁', 'Cadeau de mise à jour : 600 pièces et un booster premium (dans Paquets → Cadeaux reçus)',
       'Update gift: 600 coins and a premium pack (in Packs → Gifts received)'),
+  ('🤖', 'Nouveau duel dans la Salle de jeux : Rétro Jump en direct ! Même parcours pour vous deux, ton adversaire apparaît en fantôme, 2 minutes et le plus haut gagne',
+      'New duel in the Game room: live Rétro Jump! Same course for both of you, your opponent shows up as a ghost, 2 minutes and the highest wins'),
   ('🕹️', 'Bornes jouables : tape une borne du Voisinage pour jouer à son mini-jeu (Snake, Casse-briques ou Esquive). Bats le record de la semaine pour gagner 20 pièces !',
       'Playable cabinets: tap a cabinet in Neighbors to play its mini-game (Snake, Brick breaker or Dodge). Beat the weekly record to earn 20 coins!'),
   ('🎮', 'Choisis le jeu de ta borne (Voisinage → Jeu & style) : tu gagnes 1 pièce à chaque partie d\'un autre joueur',

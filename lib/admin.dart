@@ -546,7 +546,7 @@ class AdminPlayerPage extends StatelessWidget {
     case 'gift_in':
       return (t('🎁 cadeau reçu de $other', '🎁 gift from $other'), null);
     case 'duel':
-      final game = e['game'] == 'bs' ? t('Bataille navale', 'Battleship') : t('4 en ligne', 'Connect 4');
+      final game = switch (e['game']) { 'bs' => t('Bataille navale', 'Battleship'), 'rj' => 'Rétro Jump', _ => t('4 en ligne', 'Connect 4') };
       final res = switch (e['result']) {
         'win' => t('victoire', 'win'),
         'loss' => t('défaite', 'loss'),
@@ -900,7 +900,7 @@ class _StatsTab extends StatelessWidget {
       'sales' => ('${_i(r['price'])} 🪙', '${_cardName(r['card'])}${_finish(r['f'])} → ${r['other'] ?? '?'}'),
       'duels' => (
           at == null ? '' : '${_two(at.hour)}:${_two(at.minute)}',
-          '${r['game'] == 'bs' ? 'Console Wars' : t('4 en ligne', 'Connect 4')} ${t('contre', 'vs')} ${r['other'] ?? '?'} · ${switch (_i(r['winner'])) { 1 => t('gagne', 'wins'), 2 => t('perd', 'loses'), _ => t('nul', 'draw') }}'
+          '${switch (r['game']) { 'bs' => 'Console Wars', 'rj' => 'Rétro Jump', _ => t('4 en ligne', 'Connect 4') }} ${t('contre', 'vs')} ${r['other'] ?? '?'} · ${switch (_i(r['winner'])) { 1 => t('gagne', 'wins'), 2 => t('perd', 'loses'), _ => t('nul', 'draw') }}'
         ),
       _ => ('', ''),
     };

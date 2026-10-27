@@ -15,7 +15,8 @@ begin
     'packs_today', coalesce((select packs from public.rc_daily where day = today), 0),
     'sales_today', (select count(*) from public.rc_market where buyer is not null and (sold_at at time zone 'Europe/Paris')::date = today),
     'market_open', (select count(*) from public.rc_market where buyer is null),
-    'duels_today', (select count(*) from (select status, reason, move_at from public.rc_c4 union all select status, reason, move_at from public.rc_bs) d
+    'duels_today', (select count(*) from (select status, reason, move_at from public.rc_c4 union all select status, reason, move_at from public.rc_bs
+                                         union all select status, reason, move_at from public.rc_rj) d
                      where d.status = 'done' and coalesce(d.reason, '') not in ('declined', 'cancelled', 'expired')
                        and (d.move_at at time zone 'Europe/Paris')::date = today),
     'coins', (select coalesce(sum(coins), 0) from public.rc_players),
@@ -26,4 +27,4 @@ begin
     'days', coalesce((select jsonb_agg(jsonb_build_object('day', d.day::date, 'players', coalesce(x.players, 0), 'packs', coalesce(x.packs, 0)) order by d.day)
                         from generate_series(today - 6, today, interval '1 day') d(day)
                         left join public.rc_daily x on x.day = d.day::date), '[]'::jsonb));
-end $function$
+end $function$;

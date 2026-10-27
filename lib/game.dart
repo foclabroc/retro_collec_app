@@ -612,6 +612,8 @@ String errText(Object e) {
       'joueur hors ligne' => t('Ce joueur n\'est plus en ligne', 'This player is no longer online'),
       'partie déjà en cours' => t('Vous avez déjà une partie en cours', 'You already have a game going'),
       'trop de parties' => t('Trop de parties en cours (15 max.)', 'Too many games (15 max)'),
+      'trop de défis' => t('Trop de défis d\'un coup : attends un peu', 'Too many challenges at once: wait a bit'),
+      'joueur à mettre à jour' => t('Ce joueur doit mettre à jour son appli pour jouer à Rétro Jump', 'This player must update the app to play Rétro Jump'),
       'invitation expirée' => t('Cette invitation a expiré', 'This invitation has expired'),
       'adversaire sans pièces' => t('Ton adversaire n\'a plus assez de pièces', 'Your opponent doesn\'t have enough coins'),
       'déjà récupéré' => t('Récompense déjà récupérée', 'Reward already claimed'),

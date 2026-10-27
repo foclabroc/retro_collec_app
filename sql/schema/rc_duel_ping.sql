@@ -1,4 +1,4 @@
-create or replace function public.rc_duel_ping(p_device text, p_bg boolean DEFAULT false)
+create or replace function public.rc_duel_ping(p_device text, p_bg boolean DEFAULT false, p_rj boolean DEFAULT false)
  returns jsonb
  language plpgsql
  security definer
@@ -11,6 +11,7 @@ begin
     update public.rc_players set seen_at = now()
      where device = p_device and (seen_at is null or seen_at < now() - interval '30 seconds');
   end if;
+  if p_rj then update public.rc_players set rj_ok = true where device = p_device and not rj_ok; end if;
   begin
     perform public.rc__tour_tick();
   exception when others then null;
@@ -30,7 +31,15 @@ begin
                       'w', (select count(*) from public.rc_bs h where h.status = 'done' and ((h.p1 = o.device and h.winner = 1) or (h.p2 = o.device and h.winner = 2))),
                       'l', (select count(*) from public.rc_bs h where h.status = 'done' and ((h.p1 = o.device and h.winner = 2) or (h.p2 = o.device and h.winner = 1)))))
       from public.rc_bs g join public.rc_players o on o.device = g.p1
-     where g.p2 = p_device and g.status = 'invite' and g.mode = 'live' and g.created_at > now() - interval '2 minutes') t;
+     where g.p2 = p_device and g.status = 'invite' and g.mode = 'live' and g.created_at > now() - interval '2 minutes'
+    union all
+    select jsonb_build_object('game', 'rj', 'id', g.id, 'stake', g.stake, 'friendly', public.rc__duel_why(g.p1, g.p2), 'created_at', g.created_at, 'msg', g.msg,
+             'deadline', g.created_at + interval '2 minutes', 'now', now(),
+             'opp', jsonb_build_object('pid', o.pid, 'name', o.name, 'avatar', o.avatar,
+                      'w', (select count(*) from public.rc_rj h where h.status = 'done' and ((h.p1 = o.device and h.winner = 1) or (h.p2 = o.device and h.winner = 2))),
+                      'l', (select count(*) from public.rc_rj h where h.status = 'done' and ((h.p1 = o.device and h.winner = 2) or (h.p2 = o.device and h.winner = 1)))))
+      from public.rc_rj g join public.rc_players o on o.device = g.p1
+     where p_rj and g.p2 = p_device and g.status = 'invite' and g.created_at > now() - interval '2 minutes') t;
 
   select (select count(*) from public.rc_c4 g where g.p2 = p_device and g.status = 'invite' and g.mode = 'turn' and g.created_at > now() - interval '24 hours')
        + (select count(*) from public.rc_bs g where g.p2 = p_device and g.status = 'invite' and g.mode = 'turn' and g.created_at > now() - interval '24 hours')
@@ -52,7 +61,10 @@ begin
            where p1 = p_device and status = 'invite' and reply is not null and created_at > now() - interval '24 hours'
           union all
           select 'bs', id, p2, reply, mode from public.rc_bs
-           where p1 = p_device and status = 'invite' and reply is not null and created_at > now() - interval '24 hours') r
+           where p1 = p_device and status = 'invite' and reply is not null and created_at > now() - interval '24 hours'
+          union all
+          select 'rj', id, p2, reply, mode from public.rc_rj
+           where p1 = p_device and status = 'invite' and reply is not null and created_at > now() - interval '2 minutes') r
     join public.rc_players o on o.device = r.p2;
   -- joueurs en ligne (même règle que rc_board : vus il y a moins de 75 s), pour le compteur du menu
   select count(*) into onl from public.rc_players

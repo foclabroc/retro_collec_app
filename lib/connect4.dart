@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 
 import 'audio.dart';
 import 'cards.dart';
@@ -13,10 +15,12 @@ import 'live_link.dart';
 import 'layout.dart';
 import 'main.dart';
 import 'retro_theme.dart';
+import 'rj_engine.dart';
 import 'server.dart';
 import 'watchers.dart';
 
 part 'battleship.dart';
+part 'rj_duel.dart';
 part 'spectate.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -272,6 +276,7 @@ class DuelKind {
   final Future<Map<String, dynamic>> Function(int id, bool accept) answer;
   final Widget Function(Map g) thumb; // miniature d'une partie tour par tour
   final Widget Function(Map<String, dynamic> g) page; // écran de jeu
+  final bool liveOnly; // pas de tour par tour (Rétro Jump)
   const DuelKind({
     required this.code,
     required this.title,
@@ -285,8 +290,23 @@ class DuelKind {
     required this.answer,
     required this.thumb,
     required this.page,
+    this.liveOnly = false,
   });
 }
+
+/// Jeu d'un duel d'après son code ('c4', 'bs', 'rj')
+DuelKind duelKindOf(String? code) => switch (code) {
+      'bs' => kBsDuel,
+      'rj' => kRjDuel,
+      _ => kC4Duel,
+    };
+
+/// Nom du jeu d'un duel
+String duelGameName(String? code) => switch (code) {
+      'bs' => 'Console Wars',
+      'rj' => 'Rétro Jump',
+      _ => t('4 en ligne', 'Connect 4'),
+    };
 
 final kC4Duel = DuelKind(
   code: 'c4',
@@ -739,10 +759,10 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
           ),
         ),
       const SizedBox(height: 12),
-      _tabs(online.length, myTurn.length),
+      if (!k.liveOnly) _tabs(online.length, myTurn.length),
     ];
 
-    if (tab == 0) {
+    if (tab == 0 || k.liveOnly) {
       children.addAll([
         if (liveGames.isNotEmpty) ...[
           _section(t('Parties en cours', 'Games in progress')),
@@ -750,7 +770,10 @@ class _Connect4LobbyState extends State<Connect4Lobby> {
             _card(
               lead: _avatar(_av(g), ring: _kTeal),
               title: Text(_name(g)),
-              lines: [Text(g['turn'] == g['side'] ? t('À toi de jouer !', 'Your turn!') : t('Son tour', 'Their turn'), style: const TextStyle(color: kGold, fontWeight: FontWeight.w800))],
+              lines: [
+                Text(k.liveOnly ? t('Partie en cours !', 'Game in progress!') : g['turn'] == g['side'] ? t('À toi de jouer !', 'Your turn!') : t('Son tour', 'Their turn'),
+                    style: const TextStyle(color: kGold, fontWeight: FontWeight.w800))
+              ],
               btns: [_btn(t('Reprendre', 'Resume'), () => _openGame(g))],
               border: kGold,
               glow: kGold,
@@ -1849,6 +1872,8 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
     final reason = g['reason'];
     final win = w == widget.side, draw = w == 0;
     final icon = win ? '🏆' : draw ? '🤝' : '💥';
+    final rj = g.containsKey('h_me'); // duel Rétro Jump : hauteurs au lieu de pions
+    final hMe = _i(g['h_me']), hOpp = _i(g['h_opp']);
     final title = win ? t('VICTOIRE !', 'VICTORY!') : draw ? t('MATCH NUL', 'DRAW') : t('DÉFAITE', 'DEFEAT');
     final sub = draw
         ? (stake > 0 ? t('Chacun récupère sa mise', 'Both players get their bet back') : t('$kDuelLose pièces chacun', '$kDuelLose coins each'))
@@ -1863,6 +1888,11 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                 : reason == 'resign'
                     ? t('Tu as abandonné', 'You resigned')
                     : t('$opp a aligné quatre pions', '$opp got four in a row'));
+    final subRj = draw
+        ? t('Égalité à $hMe points · $kDuelLose pièces chacun', 'Tie at $hMe points · $kDuelLose coins each')
+        : win
+            ? (reason == 'timeout' ? t('$opp a été déconnecté · $hMe contre $hOpp', '$opp disconnected · $hMe vs $hOpp') : t('Tu es monté à $hMe, $opp à $hOpp', 'You reached $hMe, $opp $hOpp'))
+            : (reason == 'timeout' ? t('Connexion perdue · $hMe contre $hOpp', 'Connection lost · $hMe vs $hOpp') : t('$opp est monté à $hOpp, toi à $hMe', '$opp reached $hOpp, you $hMe'));
     final gain = duelTour(g) ? '' : duelFriendly(g) ? '0' : win ? '+$shown' : draw ? (stake > 0 ? '+$stake' : '+$kDuelLose') : duelLoseText(stake);
     return Stack(children: [
       // confettis
@@ -1894,7 +1924,8 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                 const SizedBox(height: 6),
                 Text(px(title), style: pixelStyle(size: 15, color: win ? _kGoldHi : draw ? Colors.white : const Color(0xFFFF8A95), shadow: false)),
                 const SizedBox(height: 6),
-                Text(duelTour(g) ? '$sub\n${duelTourNote(g)}' : duelFriendly(g) ? '$sub\n$duelFriendlyText' : sub, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
+                Text(duelTour(g) ? '$sub\n${duelTourNote(g)}' : duelFriendly(g) ? '${rj ? subRj : sub}\n$duelFriendlyText' : rj ? subRj : sub,
+                    textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
                 const SizedBox(height: 10),
                 if (!duelTour(g)) Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   const _Coin(size: 22),
@@ -1907,8 +1938,8 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                 ]),
                 const SizedBox(height: 8),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(t('Coups ', 'Moves '), style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                  Text('${_i(g['moves'])}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                  Text(rj ? t('Hauteur ', 'Height ') : t('Coups ', 'Moves '), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  Text('${rj ? hMe : _i(g['moves'])}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                   const SizedBox(width: 14),
                   Text(t('Série ', 'Streak '), style: const TextStyle(color: Colors.white54, fontSize: 12)),
                   Text('${_i(widget.stats['streak'])}${_i(widget.stats['streak']) > 1 ? ' 🔥' : ''}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
@@ -1932,7 +1963,7 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                     OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(t('Salon', 'Lobby'))),
                   ],
                   // tournoi : pas de « voir le plateau », la manche suivante s'ouvre en quittant la partie
-                  if (!duelTour(g)) TextButton(onPressed: () => Navigator.pop(context), child: Text(t('Voir le plateau', 'See the board'))),
+                  if (!duelTour(g) && !rj) TextButton(onPressed: () => Navigator.pop(context), child: Text(t('Voir le plateau', 'See the board'))),
                 ]),
               ]),
             ),

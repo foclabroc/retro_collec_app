@@ -9,8 +9,7 @@ begin
   return coalesce((
     select jsonb_agg(jsonb_build_object('pid', p.pid, 'name', p.name, 'avatar', p.avatar, 'score', p.score,
              'coins_ok', true, 'friendly', public.rc__duel_why(p_device, p.device),
-             'busy', exists (select 1 from public.rc_bs g where g.mode = 'live' and g.status in ('setup', 'playing')
-                              and p.device in (g.p1, g.p2) and now() <= g.move_at + interval '2 minutes'),
+             'busy', public.rc__duel_busy(p.device),
              'w', (select count(*) from public.rc_bs g where g.status = 'done'
                      and ((g.p1 = p.device and g.winner = 1) or (g.p2 = p.device and g.winner = 2))),
              'l', (select count(*) from public.rc_bs g where g.status = 'done'
@@ -19,4 +18,4 @@ begin
       from (select * from public.rc_players q
              where q.device <> p_device and q.packs > 0 and q.seen_at > now() - interval '75 seconds'
              order by q.seen_at desc limit 50) p), '[]'::jsonb);
-end $function$
+end $function$;

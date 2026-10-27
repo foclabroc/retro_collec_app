@@ -39,7 +39,8 @@ begin
                                                          'other', b.name, 'other_pid', b.pid, 'game', d.jeu, 'winner', d.winner, 'reason', d.reason)
                                       order by d.move_at desc)
                        from (select 'c4' jeu, p1, p2, status, reason, winner, move_at from public.rc_c4
-                             union all select 'bs', p1, p2, status, reason, winner, move_at from public.rc_bs) d
+                             union all select 'bs', p1, p2, status, reason, winner, move_at from public.rc_bs
+                  union all select 'rj', p1, p2, status, reason, winner, move_at from public.rc_rj) d
                        join public.rc_players a on a.device = d.p1
                        left join public.rc_players b on b.device = d.p2
                       where d.status = 'done' and coalesce(d.reason, '') not in ('declined', 'cancelled', 'expired')

@@ -332,8 +332,50 @@ class RcServer {
   /// Défis reçus : {live: [défis en direct], invites, turns, last_from}. bg = vérification appli fermée.
   static Future<Map<String, dynamic>> duelPing({bool bg = false}) async {
     final d = await deviceId();
-    return _map(await _rpc('rc_duel_ping', {'p_device': d, 'p_bg': bg}));
+    return _map(await _rpc('rc_duel_ping', {'p_device': d, 'p_bg': bg, 'p_rj': true})); // p_rj : je connais le duel Rétro Jump
   }
+
+  // ── Duel Rétro Jump en direct (rc_rj_*, 27/10) ─────────────────────────
+  static Future<List<Map<String, dynamic>>> rjOnline() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_rj_online', {'p_device': d}));
+  }
+
+  static Future<List<Map<String, dynamic>>> rjList() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_rj_list', {'p_device': d}));
+  }
+
+  static Future<Map<String, dynamic>> rjState(int id) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rj_state', {'p_device': d, 'p_id': id}));
+  }
+
+  /// Défier un joueur en ligne (en direct seulement : [mode] ignoré, gardé pour le salon commun)
+  static Future<Map<String, dynamic>> rjInvite(String pid, String mode) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rj_invite', {'p_device': d, 'p_pid': pid, 'p_sig': _sig('$d|rjinv|$pid')}));
+  }
+
+  static Future<Map<String, dynamic>> rjAnswer(int id, bool accept) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rj_answer', {'p_device': d, 'p_id': id, 'p_accept': accept, 'p_sig': _sig('$d|rjans|$id|${accept ? 1 : 0}')}));
+  }
+
+  /// Ma hauteur (points) ; [dead] : tombé, abandon ou fin des 2 minutes
+  static Future<Map<String, dynamic>> rjScore(int id, int h, bool dead) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rj_score', {'p_device': d, 'p_id': id, 'p_h': h, 'p_dead': dead, 'p_sig': _sig('$d|rjsc|$id|$h|${dead ? 1 : 0}')}));
+  }
+
+  static Future<Map<String, dynamic>> rjStats() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rj_stats', {'p_device': d}));
+  }
+
+  static Future<List<Map<String, dynamic>>> rjTop() async => _list(await _rpc('rc_rj_top', {}));
+
+  static Future<Map<String, dynamic>> rjWatch(int id) async => _map(await _rpc('rc_rj_watch', {'p_id': id}));
 
   // ── Console Wars, bataille navale (rc_bs_*) ────────────────────────────
   static Future<List<Map<String, dynamic>>> bsOnline() async {
@@ -506,7 +548,7 @@ class RcServer {
   }
 
   // ── Messages des duels ──────────────────────────────────────────────────
-  /// Petit mot joint à mon défi (game : 'c4' ou 'bs')
+  /// Petit mot joint à mon défi (game : 'c4', 'bs' ou 'rj')
   static Future<void> duelMsg(String game, int id, String msg) async {
     final d = await deviceId();
     await _rpc('rc_duel_msg', {'p_device': d, 'p_game': game, 'p_id': id, 'p_msg': msg, 'p_sig': _sig('$d|dmsg|$game|$id|$msg')});

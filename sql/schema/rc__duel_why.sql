@@ -11,5 +11,8 @@ AS $function$
                and (g.move_at at time zone 'Europe/Paris')::date = (now() at time zone 'Europe/Paris')::date
             union all
             select 1 from public.rc_bs g where g.paid and ((g.p1 = p_a and g.p2 = p_b) or (g.p1 = p_b and g.p2 = p_a))
+               and (g.move_at at time zone 'Europe/Paris')::date = (now() at time zone 'Europe/Paris')::date
+            union all
+            select 1 from public.rc_rj g where g.paid and ((g.p1 = p_a and g.p2 = p_b) or (g.p1 = p_b and g.p2 = p_a))
                and (g.move_at at time zone 'Europe/Paris')::date = (now() at time zone 'Europe/Paris')::date) x) >= 4 then 'limit'
-  end $function$
+  end $function$;

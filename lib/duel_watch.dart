@@ -16,7 +16,7 @@ import 'server.dart';
 import 'tournament.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Défis reçus (4 en ligne, Console Wars), appli ouverte : toutes les 10 s,
+// Défis reçus (4 en ligne, Console Wars, Rétro Jump), appli ouverte : toutes les 10 s,
 // une petite requête (rc_duel_ping, ~60 octets quand il n'y a rien).
 //  · défi en direct → fenêtre par-dessus l'écran (Accepter / Refuser / Plus tard)
 //  · invitations tour par tour et parties où c'est mon tour → pastille sur « Bonus / Jeux »
@@ -93,7 +93,7 @@ class DuelWatch extends ChangeNotifier {
       if (x is! Map) continue;
       final key = '${x['game']}:${x['id']}:${x['reply']}';
       if (!_replies.add(key)) continue;
-      final bs = x['game'] == 'bs';
+      final code = x['game']?.toString();
       final name = x['name']?.toString() ?? '?';
       RcAudio.sfx('logo');
       rcMessenger.currentState
@@ -104,7 +104,7 @@ class DuelWatch extends ChangeNotifier {
           content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(t('💬 $name a répondu à ton défi', '💬 $name replied to your challenge'), style: const TextStyle(fontWeight: FontWeight.w900)),
             Text('« ${x['reply']} »', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-            Text(t('${bs ? 'Console Wars' : '4 en ligne'} · le défi attend toujours', '${bs ? 'Console Wars' : 'Connect 4'} · the challenge is still pending'),
+            Text(t('${duelGameName(code)} · le défi attend toujours', '${duelGameName(code)} · the challenge is still pending'),
                 style: const TextStyle(fontSize: 11.5, color: Color(0xFFCFCAFF))),
           ]),
           action: SnackBarAction(
@@ -113,7 +113,7 @@ class DuelWatch extends ChangeNotifier {
             onPressed: () {
               final ctx = HomeShellState.current?.context;
               if (ctx == null || !ctx.mounted) return;
-              Navigator.of(ctx).push(MaterialPageRoute(builder: (_) => Connect4Lobby(kind: bs ? kBsDuel : kC4Duel)));
+              Navigator.of(ctx).push(MaterialPageRoute(builder: (_) => Connect4Lobby(kind: duelKindOf(code))));
             },
           ),
         ));
@@ -132,9 +132,8 @@ class DuelWatch extends ChangeNotifier {
     _outBusy = true;
     try {
       for (final key in _out.keys.toList()) {
-        final bs = key.startsWith('bs:');
         final id = int.tryParse(key.substring(3)) ?? -1;
-        final kind = bs ? kBsDuel : kC4Duel;
+        final kind = duelKindOf(key.substring(0, 2));
         final list = await kind.list();
         Map<String, dynamic>? g;
         for (final x in list) {
@@ -176,7 +175,7 @@ class DuelWatch extends ChangeNotifier {
     _handled.add(key);
     _showing = true;
     RcAudio.sfx('logo');
-    final kind = next['game'] == 'bs' ? kBsDuel : kC4Duel;
+    final kind = duelKindOf(next['game'] as String?);
     final choice = await showGeneralDialog<bool>(
       context: ctx,
       barrierDismissible: false,
@@ -256,8 +255,9 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
 
   @override
   Widget build(BuildContext context) {
-    final bs = widget.x['game'] == 'bs';
-    final col = bs ? const Color(0xFF3EC7FF) : const Color(0xFFFF4757);
+    final code = widget.x['game'] as String?;
+    final bs = code == 'bs', rj = code == 'rj';
+    final col = bs ? const Color(0xFF3EC7FF) : rj ? const Color(0xFF69F0AE) : const Color(0xFFFF4757);
     final opp = widget.x['opp'] as Map? ?? const {};
     final name = opp['name'] as String? ?? '?';
     final stake = (widget.x['stake'] as num? ?? 0).toInt();
@@ -324,11 +324,11 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(13)),
               child: Row(children: [
-                Icon(bs ? Icons.directions_boat : Icons.grid_on, color: col, size: 30),
+                Icon(bs ? Icons.directions_boat : rj ? Icons.keyboard_double_arrow_up : Icons.grid_on, color: col, size: 30),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(bs ? 'Console Wars' : t('4 en ligne', 'Connect 4'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                    Text(duelGameName(code), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
                     Text(
                         stake > 0
                             ? t('$stake pièces chacun · le gagnant rafle ${stake * 2} + 1 pixel', '$stake coins each · the winner takes ${stake * 2} + 1 pixel')
@@ -350,7 +350,12 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
               ]),
             ),
             const SizedBox(height: 4),
-            Text(bs ? t('2 min pour placer ta flotte, puis 30 s par tir', '2 min to place your fleet, then 30 s per shot') : t('1 minute par coup', '1 minute per move'),
+            Text(
+                bs
+                    ? t('2 min pour placer ta flotte, puis 30 s par tir', '2 min to place your fleet, then 30 s per shot')
+                    : rj
+                        ? t('Même parcours, 2 minutes, le plus haut gagne', 'Same course, 2 minutes, the highest wins')
+                        : t('1 minute par coup', '1 minute per move'),
                 style: const TextStyle(fontSize: 11.5, color: Colors.white38)),
             const SizedBox(height: 12),
             Row(children: [
@@ -379,7 +384,7 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
             Text(t('ou réponds-lui :', 'or reply:'), style: const TextStyle(color: Colors.white54, fontSize: 11.5, fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
             ReplyChips(
-              game: bs ? 'bs' : 'c4',
+              game: code ?? 'c4',
               id: (widget.x['id'] as num? ?? 0).toInt(),
               to: name,
               onSent: () {

@@ -43,10 +43,14 @@ class LiveGames extends ChangeNotifier {
 /// Ouvre une partie en spectateur
 Future<void> watchGame(BuildContext context, String game, int id) async {
   try {
-    final st = game == 'bs' ? await RcServer.bsWatch(id) : await RcServer.c4Watch(id);
+    final st = switch (game) { 'bs' => await RcServer.bsWatch(id), 'rj' => await RcServer.rjWatch(id), _ => await RcServer.c4Watch(id) };
     if (!context.mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => game == 'bs' ? BattleGamePage(initial: st, watch: true) : Connect4GamePage(initial: st, watch: true)));
+        builder: (_) => switch (game) {
+              'bs' => BattleGamePage(initial: st, watch: true),
+              'rj' => RjGamePage(initial: st, watch: true),
+              _ => Connect4GamePage(initial: st, watch: true),
+            }));
   } catch (e) {
     toast(t('Cette partie est terminée', 'This game is over'));
     LiveGames.i.refresh();
@@ -74,7 +78,7 @@ class WatchGameRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p1 = g['p1'] as Map? ?? const {}, p2 = g['p2'] as Map? ?? const {};
-    final bs = g['game'] == 'bs';
+    final bs = g['game'] == 'bs', rj = g['game'] == 'rj';
     final setup = g['phase'] == 'setup';
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -90,7 +94,7 @@ class WatchGameRow extends StatelessWidget {
           height: 38,
           child: Stack(children: [
             Positioned(left: 0, child: _avatar(_i(p1['avatar']), size: 34, ring: bs ? _kCyan : _kRed)),
-            Positioned(left: 26, child: _avatar(_i(p2['avatar']), size: 34, ring: bs ? _kNeon : _kYellow)),
+            Positioned(left: 26, child: _avatar(_i(p2['avatar']), size: 34, ring: bs ? _kNeon : rj ? kRjBlue : _kYellow)),
           ]),
         ),
         const SizedBox(width: 8),
@@ -99,8 +103,12 @@ class WatchGameRow extends StatelessWidget {
             Text('${p1['name'] ?? '?'}  vs  ${p2['name'] ?? '?'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5)),
             Text(
               [
-                if (showGame) bs ? '🚢 Console Wars' : t('🔴 4 en ligne', '🔴 Connect 4'),
-                setup ? t('placement des flottes', 'placing fleets') : t('${_i(g['moves'])} coups', '${_i(g['moves'])} moves'),
+                if (showGame) bs ? '🚢 Console Wars' : rj ? '🤖 Rétro Jump' : t('🔴 4 en ligne', '🔴 Connect 4'),
+                rj
+                    ? '${_i(g['h1'])} – ${_i(g['h2'])} pts'
+                    : setup
+                        ? t('placement des flottes', 'placing fleets')
+                        : t('${_i(g['moves'])} coups', '${_i(g['moves'])} moves'),
               ].join(' · '),
               style: const TextStyle(fontSize: 11.5, color: Colors.white60),
             ),
@@ -118,7 +126,7 @@ class WatchGameRow extends StatelessWidget {
 
 /// Liste des duels à regarder (se recharge toute seule tant qu'elle est affichée)
 class WatchList extends StatefulWidget {
-  final String? game; // null : les deux jeux
+  final String? game; // null : tous les jeux
   final Widget Function(int n)? header;
   const WatchList({super.key, this.game, this.header});
   @override
@@ -145,7 +153,7 @@ class _WatchListState extends State<WatchList> {
 
   @override
   Widget build(BuildContext context) {
-    final l = widget.game == null ? [...LiveGames.i.others('c4'), ...LiveGames.i.others('bs')] : LiveGames.i.others(widget.game!);
+    final l = widget.game == null ? [...LiveGames.i.others('c4'), ...LiveGames.i.others('bs'), ...LiveGames.i.others('rj')] : LiveGames.i.others(widget.game!);
     if (l.isEmpty) return const SizedBox.shrink();
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       if (widget.header != null) widget.header!(l.length),

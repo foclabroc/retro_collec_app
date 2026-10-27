@@ -44,6 +44,42 @@ class LiveLink {
   /// Partie regardée (spectateur) : son canal, rejoint en plus (et à chaque reconnexion)
   String? _watch;
 
+  /// Duel Rétro Jump que je joue : canal de la partie (positions de l'adversaire, j'y envoie les miennes)
+  String? _play;
+
+  final _pos = StreamController<Map<String, dynamic>>.broadcast();
+
+  /// Positions des joueurs d'un duel Rétro Jump ('rjpos', ≈ 10 par seconde) sur le canal
+  /// de la partie jouée ou regardée : {s: camp, t: ms depuis le départ, x, h, r, sc, d}
+  Stream<Map<String, dynamic>> get positions => _pos.stream;
+
+  /// Jouer un duel Rétro Jump : rejoint le canal de la partie (sans être compté spectateur)
+  void play(String game, int id) {
+    unplay();
+    _play = 'realtime:${watchTopicOf(game, id)}';
+    if (_ch != null) _send(_play!, 'phx_join', _cfg);
+  }
+
+  void unplay() {
+    final w = _play;
+    _play = null;
+    if (w != null && _ch != null) _send(w, 'phx_leave', {});
+  }
+
+  /// Ma position aux autres abonnés du canal de la partie (relayée sans passer par la base)
+  void sendPos(Map<String, dynamic> p) {
+    final topic = _play;
+    if (topic == null || !_joined) return;
+    try {
+      _ch?.sink.add(jsonEncode({
+        'topic': topic,
+        'event': 'broadcast',
+        'payload': {'type': 'broadcast', 'event': 'rjpos', 'payload': p},
+        'ref': null,
+      }));
+    } catch (_) {}
+  }
+
   static String watchTopicOf(String game, int id) =>
       'rc_${sha256.convert(utf8.encode('watch|$game|$id')).toString().substring(0, 24)}';
 
@@ -98,6 +134,7 @@ class LiveLink {
       _send(_topic!, 'phx_join', _cfg); // ref 1 : mon canal (le relais le reconnaît comme celui du joueur)
       _send(_all, 'phx_join', _cfg); // ref 2 : canal commun
       if (_watch != null) _send(_watch!, 'phx_join', _cfg); // partie regardée
+      if (_play != null) _send(_play!, 'phx_join', _cfg); // duel Rétro Jump en cours
       _beat?.cancel();
       _beat = Timer.periodic(const Duration(seconds: 25), (_) => _send('phoenix', 'heartbeat', {}));
     } catch (_) {
@@ -129,11 +166,13 @@ class LiveLink {
     final ev = m['event'];
     final p = m['payload'];
     final topic = m['topic'];
-    if (topic != _topic && topic != _all && topic != _watch) return;
+    if (topic != _topic && topic != _all && topic != _watch && topic != _play) return;
     if (ev == 'phx_reply' && p is Map && m['ref'] == '1') {
       // réponse à l'abonnement à mon canal (premier message envoyé sur cette connexion)
       _joined = p['status'] == 'ok';
       if (_joined) _fails = 0;
+    } else if (ev == 'broadcast' && p is Map && p['event'] == 'rjpos' && p['payload'] is Map) {
+      if (topic == _play || topic == _watch) _pos.add(Map<String, dynamic>.from(p['payload'] as Map));
     } else if (ev == 'broadcast' && p is Map && p['event'] == 'duel' && p['payload'] is Map) {
       _proven = true;
       _events.add(Map<String, dynamic>.from(p['payload'] as Map));

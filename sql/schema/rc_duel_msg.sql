@@ -11,9 +11,11 @@ begin
     update public.rc_c4 set msg = public.rc__duel_text(p_msg) where id = p_id and p1 = p_device and status = 'invite';
   elsif p_game = 'bs' then
     update public.rc_bs set msg = public.rc__duel_text(p_msg) where id = p_id and p1 = p_device and status = 'invite';
+  elsif p_game = 'rj' then
+    update public.rc_rj set msg = public.rc__duel_text(p_msg) where id = p_id and p1 = p_device and status = 'invite';
   else
     raise exception 'jeu inconnu';
   end if;
   get diagnostics n = row_count;
   return n > 0;
-end $function$
+end $function$;
