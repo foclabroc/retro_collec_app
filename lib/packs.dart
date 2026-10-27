@@ -376,7 +376,7 @@ class _PacksScreenState extends State<PacksScreen> {
       listenable: Listenable.merge([Game.i, Notifs.i]),
       builder: (context, _) {
         final g = Game.i, n = Notifs.i;
-        final stock = n.gifts + n.lots + (pending != null ? 1 : 0);
+        final stock = n.gifts + n.cardStock + n.lots + (pending != null ? 1 : 0);
         final pk = pending?['kind'];
         Widget shop(String kind, String label, String title, String sub, VoidCallback onTap) {
           final price = kPackPrice[kind]!;
@@ -425,6 +425,16 @@ class _PacksScreenState extends State<PacksScreen> {
                         count: n.gifts,
                         enabled: !busy,
                         onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GiftsPage())),
+                      ),
+                    if (n.cardStock > 0)
+                      _StockTile(
+                        kind: 'gift',
+                        label: t('Carte', 'Card'),
+                        title: n.cardStock == 1 ? t('Carte à ranger', 'Card to store') : t('Cartes à ranger', 'Cards to store'),
+                        color: const Color(0xFFC8962A),
+                        count: n.cardStock,
+                        enabled: !busy,
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CardStockPage())),
                       ),
                     if (n.lots > 0)
                       _StockTile(
@@ -1905,6 +1915,163 @@ class _LotArt extends StatelessWidget {
           ),
         ),
       ]),
+    );
+  }
+}
+
+/// Cartes offertes en récompense : on les voit ici avant de les ranger dans la collection
+class CardStockPage extends StatefulWidget {
+  const CardStockPage({super.key});
+  @override
+  State<CardStockPage> createState() => _CardStockPageState();
+}
+
+class _CardStockPageState extends State<CardStockPage> {
+  List<Map<String, dynamic>>? rows;
+  String? error;
+  bool busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load() async {
+    try {
+      final r = await RcServer.stockList();
+      if (mounted) {
+        setState(() {
+          rows = r;
+          error = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => error = errText(e));
+    }
+  }
+
+  Future<void> _take(int? id) async {
+    if (busy) return;
+    setState(() => busy = true);
+    try {
+      final r = await RcServer.stockTake(id);
+      RcAudio.sfx('powerup');
+      Game.i.emit(r['events']);
+      final n = (r['cards'] as List? ?? const []).length;
+      toast(n == 1 ? t('🃏 Carte rangée dans ta collection', '🃏 Card added to your collection') : t('🃏 $n cartes rangées dans ta collection', '🃏 $n cards added to your collection'));
+      await Game.i.sync();
+      await Notifs.i.refresh();
+      await load();
+    } catch (e) {
+      toast(errText(e));
+    }
+    if (mounted) {
+      setState(() => busy = false);
+      if (rows != null && rows!.isEmpty) Navigator.pop(context);
+    }
+  }
+
+  /// La carte en grand, avec « Ranger »
+  Future<void> _view(Map<String, dynamic> g) async {
+    final card = Catalog.cards[g['c']];
+    if (card == null) return;
+    final f = (g['f'] as num? ?? 0).toInt();
+    final id = (g['id'] as num).toInt();
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: kBg,
+        insetPadding: const EdgeInsets.all(18),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            if (g['n'] == true) Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(t('✨ NOUVELLE CARTE', '✨ NEW CARD'), style: pixelStyle(size: 10, color: kGold))),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 280),
+              child: CardView(card: card, finish: f),
+            ),
+            const SizedBox(height: 10),
+            Text(t('Offerte par ${g['from'] ?? 'Pixel Trade'}', 'From ${g['from'] ?? 'Pixel Trade'}'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
+            const SizedBox(height: 12),
+            Row(children: [
+              Expanded(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Plus tard', 'Later')))),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(t('Ranger', 'Add'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                ),
+              ),
+            ]),
+          ]),
+        ),
+      ),
+    );
+    if (go == true) await _take(id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final n = rows?.length ?? 0;
+    return Scaffold(
+      appBar: AppBar(title: Text(t('Cartes à ranger', 'Cards to store'))),
+      body: error != null
+          ? Center(child: TextButton(onPressed: load, child: Text('$error\n${t('Réessayer', 'Retry')}', textAlign: TextAlign.center)))
+          : rows == null
+              ? const Center(child: CircularProgressIndicator(color: kGold))
+              : rows!.isEmpty
+                  ? Center(child: Text(t('Aucune carte à ranger', 'No cards to store'), style: const TextStyle(color: Colors.white54)))
+                  : Column(children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+                        child: Text(t('Touche une carte pour la voir, puis range-la dans ta collection.', 'Tap a card to look at it, then add it to your collection.'),
+                            style: const TextStyle(color: Colors.white60)),
+                      ),
+                      Expanded(
+                        child: GridView.builder(
+                          padding: const EdgeInsets.all(14),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 5 / 7.4, crossAxisSpacing: 10, mainAxisSpacing: 10),
+                          itemCount: n,
+                          itemBuilder: (_, i) {
+                            final g = rows![i];
+                            final card = Catalog.cards[g['c']];
+                            if (card == null) return const SizedBox();
+                            return GestureDetector(
+                              onTap: busy ? null : () => _view(g),
+                              child: Stack(clipBehavior: Clip.none, children: [
+                                Positioned.fill(child: Align(alignment: Alignment.topCenter, child: CardView(card: card, finish: (g['f'] as num? ?? 0).toInt()))),
+                                if (g['n'] == true)
+                                  Positioned(
+                                    top: -4,
+                                    left: -4,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                      decoration: BoxDecoration(color: kGold, borderRadius: BorderRadius.circular(8)),
+                                      child: Text(t('NEW', 'NEW'), style: const TextStyle(color: Color(0xFF2A1800), fontSize: 10, fontWeight: FontWeight.w900)),
+                                    ),
+                                  ),
+                              ]),
+                            );
+                          },
+                        ),
+                      ),
+                      SafeArea(
+                        top: false,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(backgroundColor: kGold, foregroundColor: const Color(0xFF2A1800)),
+                              onPressed: busy ? null : () => _take(null),
+                              child: Text(t('Tout ranger ($n)', 'Add all ($n)'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ]),
     );
   }
 }

@@ -28,11 +28,12 @@ begin
     for i in 1 .. v::int loop
       select id into c from public.rc_cards where rarity = k::int and saga is null order by random() limit 1;
       if c is not null then
-        perform public.rc__give(p_dev, c, 0, 1);
-        cards := cards || jsonb_build_object('c', c, 'r', k::int, 'f', 0);
+        -- la carte attend dans le stock « Cartes à ranger » : le joueur la voit avant qu'elle entre dans sa collection
+        insert into public.rc_card_stock (device, card, finish, giver_name)
+        values (p_dev, c, 0, coalesce(nullif(current_setting('rc.gift_from', true), ''), 'Pixel Trade'));
+        cards := cards || jsonb_build_object('c', c, 'r', k::int, 'f', 0, 'stock', true);
       end if;
     end loop;
   end loop;
-  if jsonb_array_length(cards) > 0 then perform public.rc__rescore(p_dev); end if;
   return r || jsonb_build_object('cards', cards);
 end $function$;

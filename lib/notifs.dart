@@ -30,13 +30,14 @@ class Notifs extends ChangeNotifier {
   int reacts = 0; // réactions à mes nouvelles pas encore vues
   bool lotFree = false; // samedi : lot de 5 paquets gratuit
   int gifts = 0; // paquets cadeaux reçus à ouvrir
+  int cardStock = 0; // cartes de récompense à ranger dans la collection
   String giftFrom = '';
   int chat = 0; // messages non lus
   bool mention = false; // quelqu'un t'a cité (@pseudo)
   int chatLast = 0; // dernier message (pour rafraîchir l'écran Messages)
   int _lastMention = -1;
   bool chatOpen = false; // écran Messages affiché : pas de pastille
-  int _lastGifts = -1;
+  int _lastGifts = -1, _lastCards = -1;
   List<Map<String, dynamic>> sales = []; // ventes pas encore vues
   final Set<int> freshSales = {}; // ventes vues pendant cette session (mises en avant dans « Vendre »)
 
@@ -89,6 +90,12 @@ class Notifs extends ChangeNotifier {
       if (_lastGifts >= 0 && g0 > _lastGifts) {
         toast(t('🎁 ${r['gift_from'] ?? '?'} t\'a offert un paquet !', '🎁 ${r['gift_from'] ?? '?'} gave you a pack!'), color: const Color(0xFF854F0B));
       }
+      final c0 = (r['cards'] as num? ?? 0).toInt();
+      if (_lastCards >= 0 && c0 > _lastCards) {
+        toast(t('🃏 Une carte t\'attend dans ton stock !', '🃏 A card is waiting in your stock!'), color: const Color(0xFF854F0B));
+      }
+      _lastCards = c0;
+      cardStock = c0;
       final m0 = (r['mention'] as num? ?? 0).toInt();
       if (!chatOpen && _lastMention >= 0 && m0 > _lastMention && m0 > 0) {
         toast(t('💬 On t\'a mentionné dans les messages', '💬 You were mentioned in the messages'), color: const Color(0xFF3C3489));
@@ -127,7 +134,7 @@ class Notifs extends ChangeNotifier {
   }
 
   /// Nombre total de notifications (pastille du bouton menu)
-  int get total => trades + sales.length + chat + gifts + (wheel ? 1 : 0) + (mention ? 1 : 0);
+  int get total => trades + sales.length + chat + gifts + cardStock + (wheel ? 1 : 0) + (mention ? 1 : 0);
 
   /// Les ventes ont été vues (ouverture du Marché)
   Future<void> salesSeen() async {

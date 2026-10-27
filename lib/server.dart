@@ -454,6 +454,18 @@ class RcServer {
     return _list(await _rpc('rc_gifts_list', {'p_device': d}));
   }
 
+  /// Cartes de récompense à ranger : [{id, c, f, r, from, at, n}]
+  static Future<List<Map<String, dynamic>>> stockList() async {
+    final d = await deviceId();
+    return _list(await _rpc('rc_stock_list', {'p_device': d, 'p_sig': _sig('$d|stock')}));
+  }
+
+  /// Range une carte du stock (ou toutes si [id] est null) dans la collection : {cards, events, coins, pixels, score, left}
+  static Future<Map<String, dynamic>> stockTake([int? id]) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_stock_take', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|stocktake|${id ?? 0}')}));
+  }
+
   /// Offre un paquet à un joueur (3 par jour, un par joueur)
   static Future<void> gift(String toPid) async {
     final d = await deviceId();

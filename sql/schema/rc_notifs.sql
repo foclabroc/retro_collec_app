@@ -15,6 +15,7 @@ as $function$
     'wheel', (select wheel_day is distinct from public.rc__today() from public.rc_players where device = p_device),
     'gifts', (select count(*)::int from public.rc_gifts g where g.receiver = p_device and g.opened_at is null),
     'gift_from', (select g.giver_name from public.rc_gifts g where g.receiver = p_device and g.opened_at is null order by g.id desc limit 1),
+    'cards', (select count(*)::int from public.rc_card_stock s where s.device = p_device and s.taken_at is null),
     'gift_last', (select coalesce(max(g.id), 0) from public.rc_gifts g where g.receiver = p_device),
     'gifts_left', (select 3 - case when gift_day = public.rc__today() then gift_n else 0 end from public.rc_players where device = p_device),
     'can_gift', (select gift_day is distinct from public.rc__today() or gift_n < 3 from public.rc_players where device = p_device),
