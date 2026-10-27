@@ -14,6 +14,12 @@ import 'update_check.dart';
 const _kNews = <(String, String, String)>[
   ('🎁', 'Cadeau de mise à jour : 600 pièces et un booster premium (dans Paquets → Cadeaux reçus)',
       'Update gift: 600 coins and a premium pack (in Packs → Gifts received)'),
+  ('🕹️', 'Bornes jouables : tape une borne du Voisinage pour jouer à son mini-jeu (Snake, Casse-briques ou Esquive). Bats le record de la semaine pour gagner 20 pièces !',
+      'Playable cabinets: tap a cabinet in Neighbors to play its mini-game (Snake, Brick breaker or Dodge). Beat the weekly record to earn 20 coins!'),
+  ('🎮', 'Choisis le jeu de ta borne (Voisinage → Jeu & style) : tu gagnes 1 pièce à chaque partie d\'un autre joueur',
+      'Pick your cabinet\'s game (Neighbors → Game & style): you earn 1 coin each time someone else plays it'),
+  ('🎨', '7 nouveaux habillages de borne : Game Boy, Bonbons, Forêt enchantée, Pirate, Égypte, Cyberpunk et Noël',
+      '7 new cabinet skins: Game Boy, Candy, Enchanted forest, Pirate, Egypt, Cyberpunk and Christmas'),
   ('🎮', '4 nouvelles consoles : Game Boy et Amiga 1200 (100 cartes), Lynx et Supervision (50 cartes) : 1 900 cartes en tout',
       '4 new systems: Game Boy and Amiga 1200 (100 cards), Lynx and Supervision (50 cards): 1,900 cards in all'),
   ('📚', '2 nouvelles sagas en cartes holo : Kirby et Street Fighter',
