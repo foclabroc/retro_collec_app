@@ -3,6 +3,11 @@
 ## v1.0.23
 _Version 1.0.23+24._
 
+- 🎁 Cadeau de version : 600 pièces + 1 booster premium (`sql/2026-10-27_cadeau_1023.sql`, comptes créés avant le 27/10 9 h).
+- 🎮 4 consoles : Game Boy et Amiga 1200 (100 cartes), Lynx et Supervision (50 cartes) → 23 consoles, 1 900 cartes ; sagas Kirby et Street Fighter (`sql/2026-10-27_consoles_gb_amiga1200_lynx_supervision_sagas.sql`) ; trophées or : 23 consoles, 8 sagas.
+- ★★ Collection : onglet Full art (`library.dart`, `fullArtCards`, `_FullArtSlot`) ; icône des sagas 📚.
+- 🔒 Limite d'inscriptions / connexions par IP : IPv6 comptée par /64 (`sql/2026-10-27_ip_v6_64.sql`, `rc__ip_key`).
+- 🛠 `setState` après `await` protégés par `mounted` (13 endroits).
 - ⭐ Paquets premium (achetés ou reçus en cadeau) et paquet gratuit comptés dans les défis et le trophée Premium (`sql/2026-10-27_premium_defis.sql` : `rc_pending.gk`, `rc_pick`).
 - 🃏 Cartes de récompense dans un stock « Cartes à ranger » (`sql/2026-10-27_stock_cartes.sql` : `rc_card_stock`, `rc_stock_list`, `rc_stock_take`, `rc__grant`, `rc_notifs.cards`) ; page `CardStockPage` (`packs.dart`).
 - 🚀 Full art allégé (`cards.dart`) : prisme en un dessin, fond sans flou, capture réduite, couche en cache.

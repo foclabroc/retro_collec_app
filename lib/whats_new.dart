@@ -12,6 +12,14 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎁', 'Cadeau de mise à jour : 600 pièces et un booster premium (dans Paquets → Cadeaux reçus)',
+      'Update gift: 600 coins and a premium pack (in Packs → Gifts received)'),
+  ('🎮', '4 nouvelles consoles : Game Boy et Amiga 1200 (100 cartes), Lynx et Supervision (50 cartes) : 1 900 cartes en tout',
+      '4 new systems: Game Boy and Amiga 1200 (100 cards), Lynx and Supervision (50 cards): 1,900 cards in all'),
+  ('📚', '2 nouvelles sagas en cartes holo : Kirby et Street Fighter',
+      '2 new holo sagas: Kirby and Street Fighter'),
+  ('★★', 'Collection : nouvel onglet Full art avec toutes les épiques et légendaires, case vide tant que tu ne l\'as pas en full art',
+      'Collection: new Full art tab with every epic and legendary, empty slot until you own it in full art'),
   ('🃏', 'Cartes offertes en récompense : elles attendent dans « Cartes à ranger » (onglet Paquets) pour les voir avant de les ranger dans ta collection',
       'Reward cards now wait in "Cards to store" (Packs tab) so you can look at them before adding them to your collection'),
   ('⭐', 'Les paquets premium (achetés ou reçus) et le paquet gratuit comptent enfin pour les défis de la semaine et le trophée Premium',

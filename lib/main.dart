@@ -556,7 +556,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     });
   }
 
-  /// Cadeau de mise à jour (1.0.16 : 500 pièces ; 1.0.18 : 600 pièces, 8 pixels, 1 booster premium),
+  /// Cadeau de mise à jour (1.0.16 : 500 pièces ; 1.0.18 : 600 pièces, 8 pixels, 1 booster premium ; 1.0.23 : 600 pièces, 1 booster premium),
   /// versé une seule fois par le serveur. `reward` = même JSON que les récompenses (rewards.dart).
   Future<void> _upgradeGift() async {
     try {
