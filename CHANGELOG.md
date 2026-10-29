@@ -1,14 +1,10 @@
 # Pixel Trade — Changelog
 
-## v1.0.30
-_Version 1.0.30+31. Pas de cadeau de version. SQL : `sql/2026-10-29_sagas_crash_dk_mk_ff.sql`._
-
-- 📚 **4 sagas** : Crash Bandicoot (`crash`), Donkey Kong (`dk`), Mortal Kombat (`mk`), Final Fantasy (`ff`), 10 cartes holo chacune (`kSagas`, cartes serveur `sg_<id>_NN`), logos `assets/sagas/<id>.webp` (FF : liseré bleu nuit pour fond clair) ; trophée `sagas` or = 12 (`rc__tpool`, `trophies.dart`), README.
-
 ## v1.0.29
-_Version 1.0.29+30. Pas de cadeau de version. SQL : `sql/2026-10-29_consoles_2600_coleco_saturn_wii_wiiu_xbox.sql`._
+_Version 1.0.29+30. Pas de cadeau de version. SQL : `sql/2026-10-29_consoles_2600_coleco_saturn_wii_wiiu_xbox.sql`, puis `sql/2026-10-29_sagas_crash_dk_mk_ff.sql`._
 
 - 🎮 **6 consoles** (400 cartes) tirées des gamelists de `E:\roms` sur le mini PC : Atari 2600 (100), Wii (100), ColecoVision, Saturn, Wii U, Xbox (50). Rareté par la note du gamelist (100 : 55/25/12/6/2, 50 : 28/12/6/3/1), numéros par ordre alphabétique ; jeux adultes et « -presentation- » exclus ; genres normalisés + traduits, descriptions anglaises vides. Dépôt `retro_collec_assets` : jaquettes 300×400, captures (titleshots) 480×360, packs, `catalog.json`. Appli : `assets/consoles` + `assets/logos`, `kConsoleBrand` / `kConsoleYear` / `kConsoleAccent`, `short`, `_kDarkBoardLogos` (saturn, wii, wiiu), trophée `consoles` or = 29 (`rc__tpool`), README.
+- 📚 **4 sagas** : Crash Bandicoot (`crash`), Donkey Kong (`dk`), Mortal Kombat (`mk`), Final Fantasy (`ff`), 10 cartes holo chacune (`kSagas`, cartes serveur `sg_<id>_NN`), logos `assets/sagas/<id>.webp` (FF : liseré bleu nuit pour fond clair) ; trophée `sagas` or = 12 (`rc__tpool`, `trophies.dart`), README.
 
 ## v1.0.28
 _Version 1.0.28+29. Pas de cadeau de version. SQL : `sql/2026-10-29_full_art_carte_a_part.sql`._
