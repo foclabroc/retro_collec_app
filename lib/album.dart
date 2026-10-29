@@ -486,7 +486,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
             child: OutlinedButton.icon(
               icon: const Icon(Icons.recycling),
               label: Text(t('Recycler +${recycleValue(c.rarity, finish)}', 'Recycle +${recycleValue(c.rarity, finish)}')),
-              onPressed: busy || total <= 1 || x[finish] == 0 ? null : () => _recycle(c),
+              onPressed: busy || !qDupeOf(x, finish) || x[finish] == 0 ? null : () => _recycle(c),
             ),
           ),
           const SizedBox(width: 8),

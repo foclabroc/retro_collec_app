@@ -15,7 +15,7 @@ begin
             where device = p_device and taken_at is null and (p_id is null or id = p_id)
             order by id for update loop
     select rarity, sys into r, sy from public.rc_cards where id = s.card;
-    is_new := not exists (select 1 from public.rc_owned where device = p_device and card = s.card);
+    is_new := public.rc__is_new(p_device, s.card, s.finish);
     if is_new then nnew := nnew + 1; end if;
     perform public.rc__give(p_device, s.card, s.finish, 1);
     update public.rc_card_stock set taken_at = now() where id = s.id;

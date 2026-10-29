@@ -383,7 +383,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final a2 = action('⚡', '${g.fusable}', t('fusions', 'fusions'), g.fusable > 0 ? kGold : Colors.white54, () => _openCards(show: 3, sort: 5));
     final a3 = action('✦', '${g.holoCount}', t('brillantes', 'holo'), const Color(0xFFB4A9FF), () => _openCards(show: 4, sort: 1));
     final a4 = action('★', '${g.goldCount}', t('dorées', 'gold'), const Color(0xFFFFD54F), () => _openCards(show: 5, sort: 1));
-    final a5 = action('★★', '${g.fullArtCount}', t('full art', 'full art'), const Color(0xFFFF9FE5), () => _openCards(show: 6, sort: 1));
+    final a5 = action('★★', '${g.fullArtCount}', t('full art', 'full art'), const Color(0xFFFF9FE5), () => _setMode(2)); // full art : seulement dans son onglet
     // dernières cartes
     final latest = recent.isEmpty
         ? const SizedBox()

@@ -45,7 +45,7 @@ Future<bool> buyLot(BuildContext context, Map<String, dynamic> row) async {
         Text('${finishName(f)} — ${row['seller']}'),
         const SizedBox(height: 6),
         CoinChip(price),
-        if (Game.i.has(c.id)) ...[
+        if (Game.i.hasF(c.id, f)) ...[
           const SizedBox(height: 8),
           Text(t('Tu possèdes déjà cette carte', 'You already own this card'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
         ],
@@ -424,7 +424,7 @@ class MarketGroupsState extends State<MarketGroups> {
       final c = Catalog.cards[r['card']];
       if (c == null) return false;
       if (sys.isNotEmpty && c.sys != sys) return false;
-      if (missing && Game.i.has(c.id)) return false;
+      if (missing && Game.i.hasF(c.id, (r['finish'] as num).toInt())) return false;
       if (rarities.isNotEmpty && !rarities.contains(c.rarity)) return false;
       if (finish != null && (r['finish'] as num).toInt() != finish) return false;
       if (q.isNotEmpty && !c.title.toLowerCase().contains(q)) return false;
@@ -733,7 +733,7 @@ class MarketGroupsState extends State<MarketGroups> {
     final list = _apply(all);
     final sections = <Widget>[];
     if (!_filtered) {
-      final miss = all.where((r) => !Game.i.has(r['card'] as String)).toList();
+      final miss = all.where((r) => !Game.i.hasF(r['card'] as String, (r['finish'] as num).toInt())).toList();
       final deals = all.where((r) => _discount(r) >= 20).toList()..sort((a, b) => _discount(b).compareTo(_discount(a)));
       final fresh = all.where(_isNew).toList();
       sections.addAll([
@@ -786,7 +786,7 @@ class MarketGroupsState extends State<MarketGroups> {
                   crossAxisSpacing: 4,
                   mainAxisSpacing: 4,
                 ),
-                delegate: SliverChildBuilderDelegate((_, i) => _tile(list[i], tag: Game.i.has(list[i]['card'] as String) ? null : t('Manque', 'Missing')), childCount: list.length),
+                delegate: SliverChildBuilderDelegate((_, i) => _tile(list[i], tag: Game.i.hasF(list[i]['card'] as String, (list[i]['finish'] as num).toInt()) ? null : t('Manque', 'Missing')), childCount: list.length),
               ),
             ),
           ),
@@ -1100,10 +1100,8 @@ class _SellPickerPageState extends State<SellPickerPage> {
       final c = Catalog.cards[id];
       if (c == null || (sys.isNotEmpty && c.sys != sys)) return;
       if (this.q.isNotEmpty && !c.title.toLowerCase().contains(this.q.toLowerCase())) return;
-      final total = qSum(q);
-      if (onlyDupes && total < 2) return;
       for (var f = 0; f < kFinishes; f++) {
-        if (q[f] > 0) out.add((c, f, q[f]));
+        if (q[f] > 0 && (!onlyDupes || qDupeOf(q, f))) out.add((c, f, q[f])); // full art = carte à part
       }
     });
     out.sort((a, b) => b.$1.rarity != a.$1.rarity

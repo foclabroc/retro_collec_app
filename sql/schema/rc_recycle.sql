@@ -10,7 +10,9 @@ begin
   perform public.rc__check(p_sig, p_device || '|recycle|' || p_card || '|' || p_finish || '|' || p_qty);
   if p_qty < 1 then raise exception 'quantité invalide'; end if;
   perform 1 from public.rc_players where device = p_device for update;
-  select coalesce(sum(qty), 0) into total from public.rc_owned where device = p_device and card = p_card;
+  -- le full art est une carte à part : on garde 1 exemplaire normal / brillant / doré ET 1 full art
+  select coalesce(sum(qty), 0) into total from public.rc_owned
+   where device = p_device and card = p_card and (finish = 3) = (p_finish = 3);
   if total - p_qty < 1 then raise exception 'dernier exemplaire'; end if;
   if not public.rc__take(p_device, p_card, p_finish, p_qty) then raise exception 'pas assez d''exemplaires'; end if;
   select rarity into r from public.rc_cards where id = p_card;

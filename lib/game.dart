@@ -1,4 +1,4 @@
-import 'dart:math' show Random, sin, pi;
+import 'dart:math' show Random, sin, pi, min;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -68,10 +68,25 @@ String finishName(int f) => [t('Normale', 'Normal'), t('Brillante', 'Holo'), t('
 /// Nombre total d'exemplaires (toutes finitions)
 int qSum(List<int> q) => q.fold(0, (a, b) => a + b);
 
-/// Meilleure finition possédée (full art > dorée > brillante > normale)
-int bestFinish(List<int>? q) {
+/// Le full art (finition 3) compte comme une carte à part : normale, brillante et dorée sont des versions
+/// d'une même carte, mais une normale + une full art ne font pas un doublon.
+/// Vrai si un exemplaire de finition [f] a un autre exemplaire dans son groupe (normal/brillant/doré, ou full art).
+bool qDupeOf(List<int> q, int f) => q.length < 4 ? qSum(q) > 1 : (f == 3 ? q[3] > 1 : q[0] + q[1] + q[2] > 1);
+
+/// Au moins un doublon (dans un groupe ou l'autre)
+bool qDupe(List<int> q) => qDupeOf(q, 0) || qDupeOf(q, 3);
+
+/// Exemplaires normaux / brillants / dorés (ceux qui comptent dans les consoles ; le full art a son propre onglet)
+int qBase(List<int> q) => q.length < 4 ? qSum(q) : q[0] + q[1] + q[2];
+
+/// Exemplaires du groupe de la finition [f] (full art à part)
+int qGroup(List<int> q, int f) => q.length < 4 ? qSum(q) : (f == 3 ? q[3] : q[0] + q[1] + q[2]);
+
+/// Meilleure finition possédée (full art > dorée > brillante > normale) ;
+/// [full] faux : sans le full art (grilles des consoles, le full art n'est que dans son onglet)
+int bestFinish(List<int>? q, {bool full = true}) {
   if (q == null) return 0;
-  for (var f = q.length - 1; f > 0; f--) {
+  for (var f = full ? q.length - 1 : min(q.length - 1, 2); f > 0; f--) {
     if (q[f] > 0) return f;
   }
   return 0;
@@ -322,7 +337,11 @@ class Game extends ChangeNotifier {
     return finish == null ? qSum(q) : q[finish];
   }
 
-  bool has(String card) => qty(card) > 0;
+  /// Carte possédée dans les consoles : normale, brillante ou dorée (le full art compte à part, voir [hasF])
+  bool has(String card) => qBase(owned[card] ?? const []) > 0;
+
+  /// Possédée dans le groupe de la finition [f] (full art, ou normale / brillante / dorée)
+  bool hasF(String card, int f) => qGroup(owned[card] ?? const [], f) > 0;
 
   int ownedIn(String sys) => (Catalog.bySys[sys] ?? const []).where((c) => has(c.id)).length;
 

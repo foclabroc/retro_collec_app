@@ -58,7 +58,7 @@ begin
     f := public.rc__roll_finish(r);
     sg := public.rc__saga_roll();  -- carte de saga
     if sg is not null then c := sg; r := 3; f := 0; got_epic := true; end if;
-    is_new := not exists (select 1 from public.rc_owned where device = p_device and card = c);
+    is_new := public.rc__is_new(p_device, c, f);
     if is_new then nnew := nnew + 1; end if;
     perform public.rc__give(p_device, c, f, 1);
     res := res || jsonb_build_object('c', c, 'f', f, 'r', r, 'n', is_new);

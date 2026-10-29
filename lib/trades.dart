@@ -520,11 +520,11 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
     owned.forEach((id, q) {
       final c = Catalog.cards[id];
       if (c == null || (sys.isNotEmpty && c.sys != sys)) return;
-      if (!mine && onlyMissing && Game.i.has(id)) return;
       for (var f = 0; f < kFinishes; f++) {
         if (q[f] <= 0) continue;
-        if (mine && onlyDupes && qSum(q) < 2) continue;
-        if (mine && onlyNew && qSum(theirs?[id] ?? const <int>[]) > 0) continue; // il l'a déjà, quelle que soit la finition
+        if (!mine && onlyMissing && Game.i.hasF(id, f)) continue; // full art = carte à part
+        if (mine && onlyDupes && !qDupeOf(q, f)) continue; // full art = carte à part
+        if (mine && onlyNew && qGroup(theirs?[id] ?? const <int>[], f) > 0) continue; // il l'a déjà (full art à part)
         items.add((c, f, q[f]));
       }
     });
@@ -590,7 +590,7 @@ class TradeDetailPage extends StatelessWidget {
     final name = trade['other_name'] as String? ?? '?';
     int value(List<(String, int)> l) => l.fold(0, (a, x) => a + (Catalog.cards[x.$1] == null ? 0 : recycleValue(Catalog.cards[x.$1]!.rarity, x.$2)));
     final vGet = value(iGet), vGive = value(iGive);
-    final fresh = iGet.where((x) => Game.i.qty(x.$1) == 0).length;
+    final fresh = iGet.where((x) => !Game.i.hasF(x.$1, x.$2)).length;
 
     Widget row((String, int) it, {required bool mine}) {
       final c = Catalog.cards[it.$1];

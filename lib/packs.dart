@@ -1597,11 +1597,18 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         ? 'lot'
         : widget.kind == 'gift' && giftsLeft > 0
             ? 'gift'
-            : (widget.kind == 'free' || widget.kind == 'gift' || widget.kind == 'lot' || kSpecialPrice.containsKey(widget.kind) ? 'mixte' : widget.kind);
-    final price = kPackPrice[again]!;
+            : widget.kind == 'lot'
+                ? 'buylot' // lot de 5 terminé : en racheter un
+                : (widget.kind == 'free' || widget.kind == 'gift' ? 'mixte' : widget.kind); // même catégorie que le paquet acheté
+    final pix = kSpecialPrice[again]; // paquet spécial : payé en pixels
+    final lotFree = Notifs.i.lotFree;
+    final price = again == 'buylot' ? (lotFree ? 0 : lotPrice) : (pix == null ? kPackPrice[again]! : 0);
+    final canPay = pix == null ? Game.i.coins >= price : Game.i.pixels >= pix;
     final againLabel = switch (again) {
       'lot' => t('Déchirer le suivant ($lotsLeft en stock)', 'Tear the next one ($lotsLeft in stock)'),
       'gift' => t('Cadeau suivant ($giftsLeft)', 'Next gift ($giftsLeft)'),
+      'buylot' => lotFree ? t('Récupérer un autre lot (gratuit)', 'Claim another bundle (free)') : t('Racheter un lot de 5 ($price)', 'Buy another bundle of 5 ($price)'),
+      _ when pix != null => t('Ouvrir un autre ($pix ▦)', 'Open another ($pix ▦)'),
       _ => t('Ouvrir un autre ($price)', 'Open another ($price)'),
     };
     return Positioned.fill(
@@ -1657,9 +1664,9 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                 },
                 child: Text(t('Voir ma collection', 'View my collection')),
               ),
-              if (again != 'console' || widget.sys != null)
+              if ((again != 'console' && again != 'sconsole') || widget.sys != null)
                 ElevatedButton(
-                  onPressed: Game.i.coins >= price && !_againBusy ? () => _again(again) : null,
+                  onPressed: canPay && !_againBusy ? () => _again(again) : null,
                   child: Text(againLabel),
                 ),
             ]),
@@ -1717,7 +1724,15 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     if (_againBusy) return;
     setState(() => _againBusy = true);
     try {
-      final sys = kind == 'console' ? widget.sys : null; // cadeau suivant : le plus ancien
+      if (kind == 'buylot') {
+        // lot de 5 terminé : on en rachète un puis on déchire le 1er
+        await RcServer.buyLot();
+        RcAudio.sfx('powerup');
+        await Game.i.sync();
+        await Notifs.i.refresh();
+        kind = 'lot';
+      }
+      final sys = kind == 'console' || kind == 'sconsole' ? widget.sys : null; // cadeau suivant : le plus ancien
       final r = await Game.i.openChoice(kind, sys);
       Notifs.i.refresh();
       if (!mounted) return;
@@ -1727,7 +1742,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       _packFlows++;
       Navigator.of(context)
           .pushReplacement(PageRouteBuilder(
-            pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: k, sys: k == 'console' ? (r.containsKey('kind') ? r['sys'] as String? : sys) : null),
+            pageBuilder: (_, __, ___) => PackOpeningPage(result: r, kind: k, sys: k == 'console' || k == 'sconsole' ? (r.containsKey('kind') ? r['sys'] as String? : sys) : null),
             transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
           ))
           .whenComplete(() {

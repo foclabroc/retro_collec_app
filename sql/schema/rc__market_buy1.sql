@@ -13,7 +13,7 @@ begin
   perform public.rc__not_blocked(m.seller);
   select * into v from public.rc_players where device = p_device for update;
   if v.coins < m.price then raise exception 'pas assez de pièces'; end if;
-  is_new := not exists (select 1 from public.rc_owned where device = p_device and card = m.card);
+  is_new := public.rc__is_new(p_device, m.card, m.finish);
   update public.rc_market set buyer = p_device, sold_at = now() where id = m.id;
   update public.rc_players set coins = coins - m.price where device = p_device;
   update public.rc_players set coins = coins + m.price where device = m.seller;

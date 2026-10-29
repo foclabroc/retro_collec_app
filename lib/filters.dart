@@ -36,14 +36,13 @@ class CardFilter {
     final q = query.trim().toLowerCase();
     final out = cards.where((c) {
       final own = g.owned[c.id] ?? const [0, 0, 0, 0];
-      final n = qSum(own);
+      final n = qBase(own); // consoles : sans le full art (onglet à part)
       final ok = switch (show) {
         1 => n > 0,
         2 => n == 0,
-        3 => n > 1,
-        4 => own[1] + own[2] + own[3] > 0,
+        3 => qDupe(own),
+        4 => own[1] + own[2] > 0,
         5 => own[2] > 0,
-        6 => own[3] > 0,
         _ => true,
       };
       if (!ok) return false;
@@ -89,7 +88,7 @@ List<String> get _showLabels => [
       t('Doublons', 'Duplicates'),
       t('Brillantes ✦', 'Holo ✦'),
       t('Dorées ★', 'Gold ★'),
-      t('Full art ★★', 'Full art ★★'),
+      // pas de « Full art » ici : les full art ne sont que dans leur onglet de la Collection
     ];
 
 List<String> get _sortLabels => [
@@ -252,8 +251,8 @@ class CardGrid extends StatelessWidget {
       itemBuilder: (_, i) {
         final c = cards[i];
         final q = g.owned[c.id];
-        final best = q == null ? 0 : bestFinish(q);
-        final n = g.qty(c.id);
+        final best = q == null ? 0 : bestFinish(q, full: false);
+        final n = q == null ? 0 : qBase(q); // le full art n'est que dans son onglet
         return GestureDetector(
           onTap: () => openCardDetail(context, c, list: cards),
           child: Stack(clipBehavior: Clip.none, children: [

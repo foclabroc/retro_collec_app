@@ -39,7 +39,7 @@ begin
     r := case when minr = 4 then 4 else public.rc__roll(minr) end;
     select id, rarity into c, r from public.rc_cards where rarity <= r and saga is null order by rarity desc, random() limit 1;
     f := public.rc__roll_finish(r);
-    is_new := not exists (select 1 from public.rc_owned o where o.device = p_device and o.card = c);
+    is_new := public.rc__is_new(p_device, c, f);
     perform public.rc__give(p_device, c, f, 1);
     card := jsonb_build_object('c', c, 'f', f, 'r', r, 'n', is_new);
     ev := ev || public.rc__milestones(p_device);

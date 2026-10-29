@@ -1009,15 +1009,15 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
   /// Sa collection, partagée avec ses albums ouverts (mis à jour en direct)
   final ownedLive = ValueNotifier<Map<String, List<int>>>({});
 
-  int _in(String sys) => (Catalog.bySys[sys] ?? const <RcCard>[]).where((c) => (owned[c.id]?.fold<int>(0, (a, b) => a + b) ?? 0) > 0).length;
+  int _in(String sys) => (Catalog.bySys[sys] ?? const <RcCard>[]).where((c) => qBase(owned[c.id] ?? const []) > 0).length;
 
-  int _his(String id) => owned[id] == null ? 0 : qSum(owned[id]!);
+  int _his(String id) => owned[id] == null ? 0 : qBase(owned[id]!);
 
   /// Ses cartes que je n'ai pas : ses doubles d'abord, puis les plus rares
   List<RcCard> get _theyHave {
     final l = [
       for (final e in owned.entries)
-        if (qSum(e.value) > 0 && !Game.i.has(e.key) && Catalog.cards[e.key] != null) Catalog.cards[e.key]!
+        if (qBase(e.value) > 0 && !Game.i.has(e.key) && Catalog.cards[e.key] != null) Catalog.cards[e.key]!
     ];
     l.sort((a, b) {
       final d = (_his(b.id) > 1 ? 1 : 0) - (_his(a.id) > 1 ? 1 : 0);
@@ -1030,7 +1030,7 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
   List<RcCard> get _iHave {
     final l = [
       for (final e in Game.i.owned.entries)
-        if (qSum(e.value) > 0 && _his(e.key) == 0 && Catalog.cards[e.key] != null) Catalog.cards[e.key]!
+        if (qBase(e.value) > 0 && _his(e.key) == 0 && Catalog.cards[e.key] != null) Catalog.cards[e.key]!
     ];
     l.sort((a, b) {
       final d = (Game.i.qty(b.id) > 1 ? 1 : 0) - (Game.i.qty(a.id) > 1 ? 1 : 0);
@@ -1282,11 +1282,11 @@ class _DiffCard extends StatelessWidget {
   const _DiffCard({required this.card, required this.q, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    final n = q == null ? 0 : qSum(q!);
+    final n = q == null ? 0 : qBase(q!);
     return GestureDetector(
       onTap: onTap,
       child: Stack(children: [
-        Positioned.fill(child: CardView(card: card, finish: q == null ? 0 : bestFinish(q!), owned: true)),
+        Positioned.fill(child: CardView(card: card, finish: q == null ? 0 : bestFinish(q!, full: false), owned: true)),
         if (n > 1)
           Positioned(
             top: 3,
@@ -1346,8 +1346,8 @@ class OtherAlbumPage extends StatelessWidget {
         itemBuilder: (_, i) {
           final c = list[i];
           final q = owned[c.id];
-          final has = q != null && qSum(q) > 0;
-          final best = q == null ? 0 : bestFinish(q);
+          final has = q != null && qBase(q) > 0; // full art : onglet à part
+          final best = q == null ? 0 : bestFinish(q, full: false);
           return GestureDetector(
             onTap: () {
               if (has && !Game.i.has(c.id)) {

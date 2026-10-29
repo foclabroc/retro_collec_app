@@ -14,7 +14,7 @@ begin
   cost := public.rc__craft_cost(r);
   select * into v from public.rc_players where device = p_device for update;
   if v.coins < cost then raise exception 'pas assez de pièces'; end if;
-  is_new := not exists (select 1 from public.rc_owned where device = p_device and card = p_card);
+  is_new := public.rc__is_new(p_device, p_card, 0);
   update public.rc_players set coins = coins - cost where device = p_device;
   perform public.rc__give(p_device, p_card, 0, 1);
   ev := public.rc__milestones(p_device);

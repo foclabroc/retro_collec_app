@@ -8,7 +8,7 @@ begin
   for rec in
     select c.sys, count(*) as total, count(o.card) as mine
       from public.rc_cards c
-      left join (select distinct card from public.rc_owned where device = p_dev) o on o.card = c.id
+      left join (select distinct card from public.rc_owned where device = p_dev and qty > 0 and finish <> 3) o on o.card = c.id  -- full art : onglet à part
      group by c.sys
   loop
     foreach s in array case when rec.sys like 'sg\_%' then array[50, 100] else array[25, 50, 75, 100] end loop

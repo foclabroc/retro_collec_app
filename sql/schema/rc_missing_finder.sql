@@ -10,11 +10,11 @@ begin
   perform public.rc__check(p_sig, p_device || '|missing');
   return (
     with mine as (
-      select distinct card from public.rc_owned where device = p_device and qty > 0
+      select distinct card from public.rc_owned where device = p_device and qty > 0 and finish <> 3  -- full art = carte à part
     ), dbl as (
       select o.device, o.card, sum(o.qty)::int as q
         from public.rc_owned o
-       where o.device <> p_device and not exists (select 1 from mine m where m.card = o.card)
+       where o.device <> p_device and o.finish <> 3 and not exists (select 1 from mine m where m.card = o.card)
        group by o.device, o.card
       having sum(o.qty) >= 2
     ), per as (
