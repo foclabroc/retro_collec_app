@@ -31,7 +31,7 @@ int _int(dynamic v) => (v as num).toInt();
 class RcCard {
   final String id, sys, title, dev, pub, genre, img, desc, genreEn, descEn;
   final String? shot;
-  final String? saga; // carte de saga : id de kSagas ('mario', 'sonic', 'zelda', 'pokemon', 're', 'castlevania', 'kirby', 'sf'), sinon null
+  final String? saga; // carte de saga : id de kSagas ('mario', 'sonic', 'zelda', 'pokemon', 're', 'castlevania', 'kirby', 'sf', 'crash', 'dk', 'mk', 'ff'), sinon null
   final String? baseSys; // carte de saga : console de la carte d'origine (images)
   final String? base; // carte de saga : id de la carte d'origine
   final int num, rarity;
@@ -178,6 +178,18 @@ const kSagas = [
   RcSaga('sf', 'Street Fighter', Color(0xFFD9441C), Color(0xFFFFC23D), Color(0xFF2A0A04),
       ['snes_061', 'megadrive_083', 'snes_083', 'amigacd32_037', 'gb_084', 'psx_075', 'dreamcast_038', 'gbc_079', 'gba_092', 'psp_085'],
       ['megadrive_083', 'psx_075', 'snes_061']),
+  RcSaga('crash', 'Crash Bandicoot', Color(0xFFE8701E), Color(0xFF3DD9FF), Color(0xFF2A1203),
+      ['psx_024', 'psx_025', 'psx_026', 'psx_028', 'gba_016', 'gba_015', 'ps2_009', 'gamecube_014', 'xbox_010', 'psp_008'],
+      ['psx_024', 'psx_025', 'psx_028']),
+  RcSaga('dk', 'Donkey Kong', Color(0xFF8B4A1C), Color(0xFFFFD23B), Color(0xFF241005),
+      ['colecovision_010', 'atari7800_015', 'nes_020', 'snes_010', 'snes_011', 'gb_026', 'n64_021', 'gba_057', 'wii_016', 'wiiu_007'],
+      ['snes_010', 'wiiu_007', 'n64_021']),
+  RcSaga('mk', 'Mortal Kombat', Color(0xFFC9A227), Color(0xFFFF4D4D), Color(0xFF1A1405),
+      ['mastersystem_052', 'megadrive_052', 'snes_040', 'gb_059', 'gamegear_058', 'snes_097', 'n64_049', 'dreamcast_024', 'psp_055', 'wii_053'],
+      ['snes_040', 'megadrive_052', 'n64_049']),
+  RcSaga('ff', 'Final Fantasy', Color(0xFF2B5DAA), Color(0xFFE8E8F8), Color(0xFF07142E),
+      ['psx_038', 'psx_039', 'psx_037', 'gba_034', 'gba_032', 'ps2_015', 'gamecube_029', 'psp_010', 'psp_015', 'wii_020'],
+      ['psx_038', 'psp_010', 'psx_037']),
 ];
 
 RcSaga? sagaById(String? id) {
