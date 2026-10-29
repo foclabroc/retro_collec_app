@@ -1,5 +1,10 @@
 # Pixel Trade — Changelog
 
+## v1.0.30
+_Version 1.0.30+31. Pas de cadeau de version. SQL : `sql/2026-10-29_sagas_crash_dk_mk_ff.sql`._
+
+- 📚 **4 sagas** : Crash Bandicoot (`crash`), Donkey Kong (`dk`), Mortal Kombat (`mk`), Final Fantasy (`ff`), 10 cartes holo chacune (`kSagas`, cartes serveur `sg_<id>_NN`), logos `assets/sagas/<id>.webp` (FF : liseré bleu nuit pour fond clair) ; trophée `sagas` or = 12 (`rc__tpool`, `trophies.dart`), README.
+
 ## v1.0.29
 _Version 1.0.29+30. Pas de cadeau de version. SQL : `sql/2026-10-29_consoles_2600_coleco_saturn_wii_wiiu_xbox.sql`._
 

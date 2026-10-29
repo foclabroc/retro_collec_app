@@ -12,13 +12,12 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('🎮', '6 nouvelles consoles : Atari 2600 et Wii (100 cartes), ColecoVision, Saturn, Wii U et Xbox (50 cartes) : 400 cartes de plus à collectionner',
-      '6 new systems: Atari 2600 and Wii (100 cards), ColecoVision, Saturn, Wii U and Xbox (50 cards): 400 more cards to collect'),
-  ('🏆', 'Trophée « Console complète » : l\'or demande maintenant les 29 consoles', '"Full system" trophy: gold now needs all 29 systems'),
-  ('#', 'Aussi depuis la 1.0.28', 'Also since 1.0.28'),
-  ('★', 'Les full art comptent comme des cartes à part, seulement dans l\'onglet Full art, et s\'ajoutent au total',
-      'Full arts count as separate cards, only in the Full art tab, and add to the total'),
-  ('📦', '« Ouvrir un autre » propose le même paquet que celui que tu viens d\'ouvrir', '"Open another" offers the same pack you just opened'),
+  ('📚', '4 nouvelles sagas en cartes holo : Crash Bandicoot, Donkey Kong, Mortal Kombat et Final Fantasy (10 cartes chacune)',
+      '4 new holo sagas: Crash Bandicoot, Donkey Kong, Mortal Kombat and Final Fantasy (10 cards each)'),
+  ('🏆', 'Trophée « Sagas » : l\'or demande maintenant les 12 sagas', '"Sagas" trophy: gold now needs all 12 sagas'),
+  ('#', 'Aussi depuis la 1.0.29', 'Also since 1.0.29'),
+  ('🎮', '6 nouvelles consoles : Atari 2600, Wii, ColecoVision, Saturn, Wii U et Xbox (400 cartes)',
+      '6 new systems: Atari 2600, Wii, ColecoVision, Saturn, Wii U and Xbox (400 cards)'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';
