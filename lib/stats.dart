@@ -22,14 +22,15 @@ class StatsPanel extends StatelessWidget {
     for (final c in Catalog.cards.values) {
       totalByR[c.rarity]++;
     }
-    var copies = 0, holo = 0, gold = 0, full = 0, value = 0;
+    var copies = 0, holo = 0, gold = 0, full = 0, value = 0, faOwn = 0;
     final best = <(RcCard, int)>[];
     owned.forEach((id, q) {
       final c = Catalog.cards[id];
       if (c == null) return;
       final n = qSum(q);
       if (n <= 0) return;
-      ownByR[c.rarity]++;
+      if (qBase(q) > 0) ownByR[c.rarity]++;
+      if (q[3] > 0) faOwn++; // full art = carte à part
       copies += n;
       holo += q[1];
       gold += q[2];
@@ -43,8 +44,8 @@ class StatsPanel extends StatelessWidget {
       final va = recycleValue(a.$1.rarity, a.$2), vb = recycleValue(b.$1.rarity, b.$2);
       return vb != va ? vb.compareTo(va) : a.$1.id.compareTo(b.$1.id);
     });
-    final distinct = ownByR.fold<int>(0, (a, b) => a + b);
-    final total = Catalog.cards.length;
+    final distinct = ownByR.fold<int>(0, (a, b) => a + b) + faOwn;
+    final total = Catalog.total; // full art comptées à part
     // console la plus avancée
     String? bestSys;
     var bestPct = -1.0;

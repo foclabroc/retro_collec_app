@@ -278,7 +278,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   // ── Tableau de bord : progression, raretés, raccourcis, dernières cartes ──
   Widget _dashboard(Game g) {
-    final total = Catalog.cards.length;
+    final total = Catalog.total; // full art comptées à part
     final pct = total == 0 ? 0.0 : g.cards / total;
     final totalByR = List<int>.filled(5, 0), ownByR = List<int>.filled(5, 0);
     var sagaTotal = 0, sagaMine = 0, faTotal = 0, faMine = 0;

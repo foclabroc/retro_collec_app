@@ -138,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       listenable: Game.i,
       builder: (context, _) {
         final g = Game.i;
-        final total = Catalog.cards.length;
+        final total = Catalog.total; // full art comptées à part
         return Column(children: [
           TabHeader(widget.embedded ? '' : t('Profil', 'Profile'), icon: 'profile', actions: [
             IconButton(

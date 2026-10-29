@@ -369,7 +369,7 @@ class _StartScreenState extends State<StartScreen> with TickerProviderStateMixin
       });
     }
     final g = Game.i;
-    final total = Catalog.cards.length;
+    final total = Catalog.total; // full art comptées à part
     // Écran titre : appuyer 2 fois sur retour pour quitter
     return PopScope(
       canPop: false,

@@ -158,7 +158,7 @@ String lastSeenLong(DateTime? d) {
   return '$when ($ago)';
 }
 
-String pctOf(int cards) => '${Catalog.cards.isEmpty ? 0 : (cards * 100 ~/ Catalog.cards.length)} %';
+String pctOf(int cards) => '${Catalog.cards.isEmpty ? 0 : (cards * 100 ~/ Catalog.total)} %';
 
 /// Joueurs à qui j'ai offert un paquet aujourd'hui (🎁 grisé)
 final kGiftedToday = <String>{};

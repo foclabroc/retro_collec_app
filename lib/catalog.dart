@@ -193,6 +193,10 @@ class Catalog {
   static String version = '';
   static List<RcSystem> systems = [];
   static Map<String, RcCard> cards = {};
+
+  /// Total à collectionner : toutes les cartes + une full art possible par épique / légendaire des consoles
+  /// (le full art compte comme une carte à part, onglet Full art). Même règle que `rc__rescore` (champ `cards`).
+  static int get total => cards.length + cards.values.where((c) => !c.isSaga && c.rarity >= 3).length;
   static Map<String, List<RcCard>> bySys = {};
   static late String dir; // dossier local des images
 
