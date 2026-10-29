@@ -12,14 +12,14 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('🎁', 'Cadeau de mise à jour (si tu ne l\'as pas déjà eu) : 600 pièces et un booster premium, dans Paquets → Cadeaux reçus',
-      'Update gift (if you haven\'t had it yet): 600 coins and a premium pack, in Packs → Gifts received'),
+  ('★', 'Les full art comptent maintenant comme des cartes à part : elles ne sont plus que dans l\'onglet Full art de la Collection, et une normale + une full art ne font plus un doublon (« Nouvelle ! » à l\'ouverture)',
+      'Full arts now count as separate cards: they only appear in the Collection\'s Full art tab, and a normal + a full art are no longer a duplicate ("New!" when opened)'),
+  ('♻️', 'Recyclage : ta dernière full art d\'une carte est toujours gardée, même si tu as la normale',
+      'Recycling: your last full art of a card is always kept, even if you own the normal one'),
+  ('📦', '« Ouvrir un autre » propose le même paquet que celui que tu viens d\'ouvrir : lot de 5 racheté, paquets à pixels payés en pixels',
+      '"Open another" offers the same pack you just opened: bundle of 5 bought again, pixel packs paid in pixels'),
+  ('#', 'Aussi depuis la 1.0.27', 'Also since 1.0.27'),
   ('🛠', 'Carte « Solo du jour » réparée : le texte ne s\'affiche plus lettre par lettre', 'Daily solo card fixed: the text no longer shows one letter per line'),
-  ('#', 'Aussi depuis la 1.0.26', 'Also since 1.0.26'),
-  ('🏆', 'Tournois de Rétro Jump : l\'admin peut maintenant en organiser, et tu peux défier un joueur en ligne à Rétro Jump depuis la liste des joueurs en ligne',
-      'Rétro Jump tournaments: the admin can now set them up, and you can challenge an online player to Rétro Jump from the online list'),
-  ('🎯', 'Plus de défi qui arrive pendant une partie solo, et un bouton Scores dans « Solo du jour »',
-      'No more challenges popping up during a solo run, and a Scores button in "Daily solo"'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';

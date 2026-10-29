@@ -1,5 +1,11 @@
 # Pixel Trade — Changelog
 
+## v1.0.28
+_Version 1.0.28+29. Pas de cadeau de version. SQL : `sql/2026-10-29_full_art_carte_a_part.sql`._
+
+- ★ **Full art = carte à part** : `rc__is_new(device, card, finish)` (groupe normal / brillant / doré, ou full art) pour « Nouvelle ! » et le défi « nouvelles cartes » (`rc_open`, `rc_pick`, `rc_stock_take`, `rc_wheel`, `rc_craft`, `rc_market_buy`, `rc__market_buy1`) ; `rc_recycle` garde 1 exemplaire de chaque groupe ; full art hors des consoles : `rc__milestones`, `rc__rescore` (`cards`, recalculé pour tous), `rc_missing_finder`, `rc_market_groups` (manquantes par groupe). Appli : `qBase` / `qGroup` / `qDupeOf` / `qDupe`, `Game.has` (sans full art) / `hasF`, `bestFinish(full: false)` dans les grilles de console, filtre « Full art » retiré des consoles (raccourci ★★ → onglet Full art), doublons par groupe (Collection, Vente, Échanges, bouton Recycler), Bourse / échanges « manquante » par groupe, Guide.
+- 📦 « Ouvrir un autre » : même catégorie que le paquet ouvert (paquets à pixels payés en pixels, `sconsole` avec sa console ; lot de 5 terminé → « Racheter un lot de 5 » via `rc_buy_lot`, gratuit le samedi).
+
 ## v1.0.27
 _Version 1.0.27+28. Cadeau : celui de la 1.0.23 pour ceux qui ne l'ont pas eu (`sql/2026-10-27_cadeau_1027.sql`)._
 
