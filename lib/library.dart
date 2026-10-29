@@ -39,6 +39,12 @@ const Map<String, Color> kConsoleBrand = {
   'amiga1200': Color(0xFF1F6F8B),
   'lynx': Color(0xFFE8A317),
   'supervision': Color(0xFF2FA89A),
+  'atari2600': Color(0xFF8B5A2B),
+  'colecovision': Color(0xFF2B2B33),
+  'saturn': Color(0xFF3B4A9E),
+  'wii': Color(0xFF8FA3B8),
+  'wiiu': Color(0xFF009AC7),
+  'xbox': Color(0xFF107C10),
 };
 
 class LibraryScreen extends StatefulWidget {
@@ -548,12 +554,14 @@ const Map<String, int> kConsoleYear = {
   'gbc': 1998, 'megadrive': 1988, 'mastersystem': 1986, 'neogeo': 1990, 'switch': 2017,
   '3ds': 2011, 'sg1000': 1983, 'dreamcast': 1998, 'atari7800': 1986, 'amigacd32': 1993,
   'gb': 1989, 'amiga1200': 1992, 'lynx': 1989, 'supervision': 1992,
+  'atari2600': 1977, 'colecovision': 1982, 'saturn': 1995, 'wii': 2006, 'wiiu': 2012, 'xbox': 2002,
 };
 const Map<String, Color> kConsoleAccent = {
   'nes': Color(0xFFFFD23B), 'snes': Color(0xFFFF5D8F), 'n64': Color(0xFFFFD23B), 'psx': Color(0xFF3DD9FF), 'gba': Color(0xFFFFD23B),
   'gbc': Color(0xFFFFD23B), 'megadrive': Color(0xFFFFD23B), 'mastersystem': Color(0xFF3DD9FF), 'neogeo': Color(0xFFE60012), 'switch': Color(0xFF3DD9FF),
   '3ds': Color(0xFF3DD9FF), 'sg1000': Color(0xFFFFD23B), 'dreamcast': Color(0xFF3DD9FF), 'atari7800': Color(0xFFFFD23B), 'amigacd32': Color(0xFFFF5D8F),
   'gb': Color(0xFF9BBC0F), 'amiga1200': Color(0xFFFF5D8F), 'lynx': Color(0xFFFFD23B), 'supervision': Color(0xFF3DD9FF),
+  'atari2600': Color(0xFFFF8C3B), 'colecovision': Color(0xFF3DD9FF), 'saturn': Color(0xFFFFD23B), 'wii': Color(0xFF3DD9FF), 'wiiu': Color(0xFFFFD23B), 'xbox': Color(0xFF9BE15D),
 };
 
 const _kPaper = Color(0xFFF3E6C8); // papier d'affiche

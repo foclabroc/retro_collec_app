@@ -135,6 +135,9 @@ class RcSystem {
         'amigacd32' => 'Amiga CD32',
         'amiga1200' => 'Amiga 1200',
         'gb' => 'Game Boy',
+        'atari2600' => 'Atari 2600',
+        'colecovision' => 'ColecoVision',
+        'wiiu' => 'Wii U',
         _ => name,
       };
 }

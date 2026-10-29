@@ -27,7 +27,7 @@ class TrophyDef {
 const kTrophies = [
   TrophyDef('packs', '📦', 'Ouvreur de paquets', 'Pack opener', 'Ouvrir # paquets', 'Open # packs', [25, 100, 500]),
   TrophyDef('cards', '🗂️', 'Collectionneur', 'Collector', 'Avoir # cartes différentes', 'Own # different cards', [100, 400, 1000]),
-  TrophyDef('consoles', '🎮', 'Console complète', 'Full system', 'Terminer # console(s) à 100 %', 'Complete # system(s) at 100%', [1, 5, 23]),
+  TrophyDef('consoles', '🎮', 'Console complète', 'Full system', 'Terminer # console(s) à 100 %', 'Complete # system(s) at 100%', [1, 5, 29]),
   TrophyDef('legend', '👑', 'Légendes', 'Legends', 'Obtenir # carte(s) légendaire(s)', 'Get # legendary card(s)', [1, 10, 50]),
   TrophyDef('fullart', '🖼️', 'Full art', 'Full art', 'Obtenir # carte(s) Full art', 'Get # Full art card(s)', [1, 10, 30]),
   TrophyDef('fuse', '⚗️', 'Alchimiste', 'Alchemist', 'Faire # fusions', 'Make # fusions', [5, 25, 100]),

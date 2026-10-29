@@ -35,13 +35,13 @@
 
 ## 🎮 Le jeu
 
-**1900 cartes** de jaquettes de jeux, réparties en **23 séries** (100 cartes, 50 pour la PS2, la 3DS, la SG-1000, la Dreamcast, l'Atari 7800, l'Amiga CD32, la Lynx et la Supervision), plus **8 sagas** en cartes holo (Mario, Sonic, Zelda, Pokémon, Resident Evil, Castlevania, Kirby, Street Fighter) :
+**2300 cartes** de jaquettes de jeux, réparties en **29 séries** (100 cartes, 50 pour la PS2, la 3DS, la SG-1000, la Dreamcast, l'Atari 7800, l'Amiga CD32, la Lynx, la Supervision, la ColecoVision, la Saturn, la Wii U et la Xbox), plus **8 sagas** en cartes holo (Mario, Sonic, Zelda, Pokémon, Resident Evil, Castlevania, Kirby, Street Fighter) :
 
 | Sega | Nintendo | Autres |
 |---|---|---|
-| SG-1000 · Master System | NES · Super Nintendo · Nintendo 64 · GameCube | PlayStation · PS2 · PSP |
-| Mega Drive · Game Gear · Dreamcast | Game Boy · Game Boy Color · Game Boy Advance · 3DS · Switch | Neo Geo · Atari 7800 · Lynx |
-| | | Amiga 1200 · Amiga CD32 · Supervision |
+| SG-1000 · Master System | NES · Super Nintendo · Nintendo 64 · GameCube | PlayStation · PS2 · PSP · Xbox |
+| Mega Drive · Game Gear · Saturn · Dreamcast | Game Boy · Game Boy Color · Game Boy Advance · 3DS | Neo Geo · Atari 2600 · Atari 7800 · Lynx |
+| | Wii · Wii U · Switch | ColecoVision · Amiga 1200 · Amiga CD32 · Supervision |
 
 Chaque carte a une **rareté** (commune, peu commune, rare, épique, légendaire) et une **finition** (normale, brillante, dorée). Sa fiche donne la capture d'écran, l'année, le développeur, l'éditeur, le genre et la description du jeu.
 
