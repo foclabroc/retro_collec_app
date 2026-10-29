@@ -12,14 +12,13 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
-  ('★', 'Les full art comptent maintenant comme des cartes à part : elles ne sont plus que dans l\'onglet Full art de la Collection, et une normale + une full art ne font plus un doublon (« Nouvelle ! » à l\'ouverture)',
-      'Full arts now count as separate cards: they only appear in the Collection\'s Full art tab, and a normal + a full art are no longer a duplicate ("New!" when opened)'),
-  ('♻️', 'Recyclage : ta dernière full art d\'une carte est toujours gardée, même si tu as la normale',
-      'Recycling: your last full art of a card is always kept, even if you own the normal one'),
-  ('📦', '« Ouvrir un autre » propose le même paquet que celui que tu viens d\'ouvrir : lot de 5 racheté, paquets à pixels payés en pixels',
-      '"Open another" offers the same pack you just opened: bundle of 5 bought again, pixel packs paid in pixels'),
-  ('#', 'Aussi depuis la 1.0.27', 'Also since 1.0.27'),
-  ('🛠', 'Carte « Solo du jour » réparée : le texte ne s\'affiche plus lettre par lettre', 'Daily solo card fixed: the text no longer shows one letter per line'),
+  ('🎮', '6 nouvelles consoles : Atari 2600 et Wii (100 cartes), ColecoVision, Saturn, Wii U et Xbox (50 cartes) : 400 cartes de plus à collectionner',
+      '6 new systems: Atari 2600 and Wii (100 cards), ColecoVision, Saturn, Wii U and Xbox (50 cards): 400 more cards to collect'),
+  ('🏆', 'Trophée « Console complète » : l\'or demande maintenant les 29 consoles', '"Full system" trophy: gold now needs all 29 systems'),
+  ('#', 'Aussi depuis la 1.0.28', 'Also since 1.0.28'),
+  ('★', 'Les full art comptent comme des cartes à part, seulement dans l\'onglet Full art, et s\'ajoutent au total',
+      'Full arts count as separate cards, only in the Full art tab, and add to the total'),
+  ('📦', '« Ouvrir un autre » propose le même paquet que celui que tu viens d\'ouvrir', '"Open another" offers the same pack you just opened'),
 ];
 
 String get _prefKey => 'rc_news_hide_$kRetroCollecVersion';
