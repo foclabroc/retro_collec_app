@@ -1045,6 +1045,11 @@ class TabHeader extends StatelessWidget {
           ListenableBuilder(
             listenable: Game.i,
             builder: (_, __) => Row(mainAxisSize: MainAxisSize.min, children: [
+              GestureDetector(
+                onTap: () => toast(t('Fragments de full art : gagnés en recyclant, dépensés dans l\'onglet Full art', 'Full art fragments: earned by recycling, spent in the Full art tab')),
+                child: FragmentChip(Game.i.fragments),
+              ),
+              const SizedBox(width: 6),
               GestureDetector(onTap: () => _goPacks(context, pixels: true), child: PixelChip(Game.i.pixels)),
               const SizedBox(width: 6),
               GestureDetector(onTap: () => _goPacks(context, pixels: false), child: CoinChip(Game.i.coins)),

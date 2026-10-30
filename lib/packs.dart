@@ -2559,6 +2559,22 @@ class PixelChip extends StatelessWidget {
       );
 }
 
+/// Fragments de full art (recyclage), à côté des pixels et des pièces
+class FragmentChip extends StatelessWidget {
+  final int n;
+  const FragmentChip(this.n, {super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+        decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(20)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          const Text('★★', style: TextStyle(color: Color(0xFFFF9FE5), fontSize: 11, fontWeight: FontWeight.w900)),
+          const SizedBox(width: 5),
+          Text('$n', style: const TextStyle(color: Color(0xFFFF9FE5), fontWeight: FontWeight.w900)),
+        ]),
+      );
+}
+
 /// Jauge des pixels (en haut de la boutique), repères aux prix des boosters spéciaux
 class _PixelsGauge extends StatelessWidget {
   final int pixels;
