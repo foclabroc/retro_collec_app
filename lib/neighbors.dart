@@ -553,6 +553,11 @@ class _OnlineRowState extends State<_OnlineRow> {
                 onPressed: () => _challenge(kRjDuel),
                 child: const Text('🚀 Rétro Jump', style: TextStyle(fontWeight: FontWeight.w900)),
               ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFFE08A1E), foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
+                onPressed: () => _challenge(kRnDuel),
+                child: Text('🏃 ${t('Course', 'Cover Run')}', style: const TextStyle(fontWeight: FontWeight.w900)),
+              ),
             ]),
           ),
       ]),

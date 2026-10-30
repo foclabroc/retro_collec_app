@@ -336,9 +336,9 @@ class RcServer {
   }
 
   // ── Duel Rétro Jump en direct (rc_rj_*, 27/10) ─────────────────────────
-  static Future<List<Map<String, dynamic>>> rjOnline() async {
+  static Future<List<Map<String, dynamic>>> rjOnline([String kind = 'jump']) async {
     final d = await deviceId();
-    return _list(await _rpc('rc_rj_online', {'p_device': d}));
+    return _list(await _rpc('rc_rj_online', {'p_device': d, if (kind != 'jump') 'p_kind': kind}));
   }
 
   static Future<List<Map<String, dynamic>>> rjList() async {
@@ -368,12 +368,35 @@ class RcServer {
     return _map(await _rpc('rc_rj_score', {'p_device': d, 'p_id': id, 'p_h': h, 'p_dead': dead, 'p_sig': _sig('$d|rjsc|$id|$h|${dead ? 1 : 0}')}));
   }
 
-  static Future<Map<String, dynamic>> rjStats() async {
+  static Future<Map<String, dynamic>> rjStats([String kind = 'jump']) async {
     final d = await deviceId();
-    return _map(await _rpc('rc_rj_stats', {'p_device': d}));
+    return _map(await _rpc('rc_rj_stats', {'p_device': d, if (kind != 'jump') 'p_kind': kind}));
   }
 
-  static Future<List<Map<String, dynamic>>> rjTop() async => _list(await _rpc('rc_rj_top', {}));
+  static Future<List<Map<String, dynamic>>> rjTop([String kind = 'jump']) async => _list(await _rpc('rc_rj_top', {if (kind != 'jump') 'p_kind': kind}));
+
+  // ── Course de jaquettes (30/10) : duel = rc_rj avec kind 'run', solo = rc_rn_* ──
+  static Future<Map<String, dynamic>> rnInvite(String pid, String mode) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rj_invite', {'p_device': d, 'p_pid': pid, 'p_kind': 'run', 'p_sig': _sig('$d|rjinv|$pid|run')}));
+  }
+
+  static Future<Map<String, dynamic>> rnSoloStart() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rn_solo_start', {'p_device': d, 'p_sig': _sig('$d|rnsstart')}));
+  }
+
+  static Future<Map<String, dynamic>> rnSoloEnd(int run, int score) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rn_solo_end', {'p_device': d, 'p_run': run, 'p_score': score, 'p_sig': _sig('$d|rnsend|$run|$score')}));
+  }
+
+  static Future<Map<String, dynamic>> rnSoloBoard() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_rn_solo_board', {'p_device': d}));
+  }
+
+  static Future<List<Map<String, dynamic>>> rnSoloWinners() async => _list(await _rpc('rc_rn_solo_winners', {'p_days': 60}));
 
   static Future<Map<String, dynamic>> rjWatch(int id) async => _map(await _rpc('rc_rj_watch', {'p_id': id}));
 

@@ -15,7 +15,7 @@ as $function$
       from public.rc_bs g
      where g.mode = 'live' and g.status in ('setup', 'playing') and now() <= g.move_at + interval '2 minutes'
     union all
-    select g.created_at, jsonb_build_object('game', 'rj', 'id', g.id, 'phase', g.status, 'moves', g.moves,
+    select g.created_at, jsonb_build_object('game', 'rj', 'id', g.id, 'phase', g.status, 'moves', g.moves, 'kind', g.kind,
              'h1', g.h1, 'h2', g.h2, 'end_at', g.end_at, 'now', now(),
              'p1', public.rc__pinfo(g.p1), 'p2', public.rc__pinfo(g.p2))
       from public.rc_rj g

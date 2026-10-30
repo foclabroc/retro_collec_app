@@ -70,7 +70,7 @@ class FeedScreenState extends State<FeedScreen> {
   String filter = 'all';
 
   static String _cat(String kind) => switch (kind) {
-        'c4' || 'c4draw' || 'bs' || 'bsdraw' || 'rj' || 'rjdraw' || 'rjsolo' || 'tour' || 'tournew' => 'duel',
+        'c4' || 'c4draw' || 'bs' || 'bsdraw' || 'rj' || 'rjdraw' || 'rjsolo' || 'rn' || 'rndraw' || 'rnsolo' || 'tour' || 'tournew' => 'duel',
         'trade' || 'gift' => 'trade',
         'join' || 'streak' || 'packs' => 'player',
         _ => 'card',
@@ -270,6 +270,9 @@ class _FeedTile extends StatelessWidget {
       'bsdraw' => (s('$a et $b ont fait match nul à Console Wars', '$a and $b drew in Console Wars'), const Color(0xFF99AAAA), '🤝', null),
       'rj' => (s('$a est monté plus haut que $b à Rétro Jump$how', '$a climbed higher than $b at Rétro Jump$how'), const Color(0xFF69F0AE), '🚀', n > 0 ? '+$n 🪙' : null),
       'rjsolo' => (s('$a a gagné le Rétro Jump solo d\'hier avec **$n points** !', '$a won yesterday\'s solo Rétro Jump with **$n points**!'), const Color(0xFF69F0AE), '🚀', null),
+      'rn' => (s('$a a couru plus loin que $b à la Course de jaquettes$how', '$a ran farther than $b at Cover Run$how'), const Color(0xFFFFB74D), '🏃', n > 0 ? '+$n 🪙' : null),
+      'rnsolo' => (s('$a a gagné la Course de jaquettes solo d\'hier avec **$n m** !', '$a won yesterday\'s solo Cover Run with **$n m**!'), const Color(0xFFFFB74D), '🏃', null),
+      'rndraw' => (s('$a et $b ont fait égalité à la Course de jaquettes', '$a and $b tied at Cover Run'), const Color(0xFF99AAAA), '🤝', null),
       'rjdraw' => (s('$a et $b ont fait égalité à Rétro Jump', '$a and $b tied at Rétro Jump'), const Color(0xFF99AAAA), '🤝', null),
       'tour' => (
           duo
@@ -304,7 +307,7 @@ class _FeedTile extends StatelessWidget {
     if (what.isEmpty) return const SizedBox.shrink();
 
     final av1 = (e['avatar'] as num? ?? 0).toInt(), av2 = (e['avatar2'] as num? ?? 0).toInt();
-    final loserGrey = kind == 'c4' || kind == 'bs' || kind == 'rj';
+    final loserGrey = kind == 'c4' || kind == 'bs' || kind == 'rj' || kind == 'rn';
     final anyMe = me || me2;
     return Material(
       color: kPanel,

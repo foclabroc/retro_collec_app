@@ -4,7 +4,7 @@ create or replace function public.rc_rj_score(p_device text, p_id bigint, p_h in
  security definer
  set search_path to 'public', 'extensions'
 as $function$
-declare g public.rc_rj; side int; cap int;
+declare g public.rc_rj; side int; cap int; sec numeric;
 begin
   perform public.rc__check(p_sig, p_device || '|rjsc|' || p_id || '|' || p_h || '|' || case when p_dead then 1 else 0 end);
   select * into g from public.rc_rj where id = p_id for update;
@@ -12,8 +12,9 @@ begin
   side := case when g.p1 = p_device then 1 else 2 end;
   if g.status = 'playing' and now() <= g.end_at + interval '5 seconds'
      and (case when side = 1 then g.dead1 else g.dead2 end) is null then
-    -- plafond : 70 points par seconde de jeu (sans bonus, on monte bien moins vite)
-    cap := 60 + floor(70 * greatest(0, extract(epoch from (least(now(), g.end_at) - g.start_at))))::int;
+    sec := greatest(0, extract(epoch from (least(now(), g.end_at) - g.start_at)));
+    -- Rétro Jump : 70 points par seconde ; course : 24 mètres par seconde (vitesse max 22)
+    cap := case when g.kind = 'run' then 100 + floor(24 * sec)::int else 60 + floor(70 * sec)::int end;
     p_h := least(greatest(coalesce(p_h, 0), 0), cap);
     if side = 1 then
       update public.rc_rj set h1 = greatest(h1, p_h), seen1 = now(), moves = moves + 1,

@@ -12,6 +12,11 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🏃', 'Nouveau jeu dans la Salle de jeux : la Course de jaquettes ! Saute et glisse pour aller le plus loin possible',
+      'New game in the Game room: Cover Run! Jump and slide to go as far as you can'),
+  ('🥇', 'Course solo du jour (même parcours pour tous, lots pour les 3 meilleurs) et duels en direct avec le fantôme de l\'adversaire',
+      'Daily solo run (same course for everyone, prizes for the top 3) and live duels with your opponent\'s ghost'),
+  ('#', 'Aussi depuis la 1.0.31', 'Also since 1.0.31'),
   ('★★', 'Onglet Full art : touche une carte que tu n\'as pas pour ouvrir la page « Fabriquer » et la fabriquer avec tes fragments',
       'Full art tab: tap a card you don\'t have to open the "Craft" page and craft it with your fragments'),
   ('🔢', 'Ton compteur de fragments est affiché en haut de l\'onglet Full art',

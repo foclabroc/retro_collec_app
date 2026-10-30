@@ -16,12 +16,14 @@ import 'layout.dart';
 import 'main.dart';
 import 'retro_theme.dart';
 import 'rj_engine.dart';
+import 'rn_engine.dart';
 import 'server.dart';
 import 'watchers.dart';
 
 part 'battleship.dart';
 part 'rj_duel.dart';
 part 'rj_solo.dart';
+part 'rn_game.dart';
 part 'spectate.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -301,13 +303,18 @@ class DuelKind {
 DuelKind duelKindOf(String? code) => switch (code) {
       'bs' => kBsDuel,
       'rj' => kRjDuel,
+      'rn' => kRnDuel,
       _ => kC4Duel,
     };
+
+/// Code client d'une partie : la Course de jaquettes est une partie 'rj' du serveur avec kind 'run'
+String duelCode(Map g) => g['game'] == 'rj' && g['kind'] == 'run' ? 'rn' : (g['game'] as String? ?? 'c4');
 
 /// Nom du jeu d'un duel
 String duelGameName(String? code) => switch (code) {
       'bs' => 'Console Wars',
       'rj' => 'Rétro Jump',
+      'rn' => t('Course de jaquettes', 'Cover Run'),
       _ => t('4 en ligne', 'Connect 4'),
     };
 
@@ -1892,7 +1899,14 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                 : reason == 'resign'
                     ? t('Tu as abandonné', 'You resigned')
                     : t('$opp a aligné quatre pions', '$opp got four in a row'));
-    final subRj = draw
+    final rn = g['kind'] == 'run';
+    final subRj = rn
+        ? (draw
+            ? t('Égalité à $hMe m · $kDuelLose pièces chacun', 'Tie at $hMe m · $kDuelLose coins each')
+            : win
+                ? (reason == 'timeout' ? t('$opp a été déconnecté · $hMe m contre $hOpp m', '$opp disconnected · $hMe m vs $hOpp m') : t('Tu as couru $hMe m, $opp $hOpp m', 'You ran $hMe m, $opp $hOpp m'))
+                : (reason == 'timeout' ? t('Connexion perdue · $hMe m contre $hOpp m', 'Connection lost · $hMe m vs $hOpp m') : t('$opp a couru $hOpp m, toi $hMe m', '$opp ran $hOpp m, you $hMe m')))
+        : draw
         ? t('Égalité à $hMe points · $kDuelLose pièces chacun', 'Tie at $hMe points · $kDuelLose coins each')
         : win
             ? (reason == 'timeout' ? t('$opp a été déconnecté · $hMe contre $hOpp', '$opp disconnected · $hMe vs $hOpp') : t('Tu es monté à $hMe, $opp à $hOpp', 'You reached $hMe, $opp $hOpp'))
@@ -1942,7 +1956,7 @@ class _ResultDialogState extends State<_ResultDialog> with SingleTickerProviderS
                 ]),
                 const SizedBox(height: 8),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(rj ? t('Hauteur ', 'Height ') : t('Coups ', 'Moves '), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  Text(rj ? (rn ? t('Distance ', 'Distance ') : t('Hauteur ', 'Height ')) : t('Coups ', 'Moves '), style: const TextStyle(color: Colors.white54, fontSize: 12)),
                   Text('${rj ? hMe : _i(g['moves'])}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                   const SizedBox(width: 14),
                   Text(t('Série ', 'Streak '), style: const TextStyle(color: Colors.white54, fontSize: 12)),

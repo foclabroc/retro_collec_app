@@ -23,7 +23,7 @@ class LiveGames extends ChangeNotifier {
     if (_busy) return;
     _busy = true;
     try {
-      list = await RcServer.liveGames();
+      list = [for (final g in await RcServer.liveGames()) {...g, 'game': duelCode(g)}];
       notifyListeners();
     } catch (_) {
     } finally {
@@ -43,12 +43,13 @@ class LiveGames extends ChangeNotifier {
 /// Ouvre une partie en spectateur
 Future<void> watchGame(BuildContext context, String game, int id) async {
   try {
-    final st = switch (game) { 'bs' => await RcServer.bsWatch(id), 'rj' => await RcServer.rjWatch(id), _ => await RcServer.c4Watch(id) };
+    final st = switch (game) { 'bs' => await RcServer.bsWatch(id), 'rj' || 'rn' => await RcServer.rjWatch(id), _ => await RcServer.c4Watch(id) };
     if (!context.mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => switch (game) {
               'bs' => BattleGamePage(initial: st, watch: true),
               'rj' => RjGamePage(initial: st, watch: true),
+              'rn' => RnGamePage(initial: st, watch: true),
               _ => Connect4GamePage(initial: st, watch: true),
             }));
   } catch (e) {
@@ -78,7 +79,7 @@ class WatchGameRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p1 = g['p1'] as Map? ?? const {}, p2 = g['p2'] as Map? ?? const {};
-    final bs = g['game'] == 'bs', rj = g['game'] == 'rj';
+    final bs = g['game'] == 'bs', rn = g['game'] == 'rn', rj = g['game'] == 'rj' || rn;
     final setup = g['phase'] == 'setup';
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -103,9 +104,9 @@ class WatchGameRow extends StatelessWidget {
             Text('${p1['name'] ?? '?'}  vs  ${p2['name'] ?? '?'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5)),
             Text(
               [
-                if (showGame) bs ? '🚢 Console Wars' : rj ? '🚀 Rétro Jump' : t('🔴 4 en ligne', '🔴 Connect 4'),
+                if (showGame) bs ? '🚢 Console Wars' : rn ? '🏃 ${t('Course de jaquettes', 'Cover Run')}' : rj ? '🚀 Rétro Jump' : t('🔴 4 en ligne', '🔴 Connect 4'),
                 rj
-                    ? '${_i(g['h1'])} – ${_i(g['h2'])} pts'
+                    ? '${_i(g['h1'])} – ${_i(g['h2'])} ${rn ? 'm' : 'pts'}'
                     : setup
                         ? t('placement des flottes', 'placing fleets')
                         : t('${_i(g['moves'])} coups', '${_i(g['moves'])} moves'),
@@ -153,7 +154,7 @@ class _WatchListState extends State<WatchList> {
 
   @override
   Widget build(BuildContext context) {
-    final l = widget.game == null ? [...LiveGames.i.others('c4'), ...LiveGames.i.others('bs'), ...LiveGames.i.others('rj')] : LiveGames.i.others(widget.game!);
+    final l = widget.game == null ? [...LiveGames.i.others('c4'), ...LiveGames.i.others('bs'), ...LiveGames.i.others('rj'), ...LiveGames.i.others('rn')] : LiveGames.i.others(widget.game!);
     if (l.isEmpty) return const SizedBox.shrink();
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       if (widget.header != null) widget.header!(l.length),

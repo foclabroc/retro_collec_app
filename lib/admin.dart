@@ -546,7 +546,7 @@ class AdminPlayerPage extends StatelessWidget {
     case 'gift_in':
       return (t('🎁 cadeau reçu de $other', '🎁 gift from $other'), null);
     case 'duel':
-      final game = switch (e['game']) { 'bs' => t('Bataille navale', 'Battleship'), 'rj' => 'Rétro Jump', _ => t('4 en ligne', 'Connect 4') };
+      final game = switch (e['game']) { 'bs' => t('Bataille navale', 'Battleship'), 'rj' => (e['kind'] == 'run' ? t('Course de jaquettes', 'Cover Run') : 'Rétro Jump'), _ => t('4 en ligne', 'Connect 4') };
       final res = switch (e['result']) {
         'win' => t('victoire', 'win'),
         'loss' => t('défaite', 'loss'),

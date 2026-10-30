@@ -10,6 +10,8 @@ as $function$
                   and p_device in (g.p1, g.p2) and now() <= g.move_at + interval '2 minutes')
       or exists (select 1 from public.rc_rj g where g.status = 'playing'
                   and p_device in (g.p1, g.p2) and now() <= g.end_at + interval '10 seconds')
-      -- partie solo de Rétro Jump en cours (au plus 3 min, si l'appli a été quittée sans finir)
+      -- partie solo de Rétro Jump / de course en cours (au plus 3 min, si l'appli a été quittée sans finir)
       or exists (select 1 from public.rc_rj_runs r where r.device = p_device and r.ended_at is null
+                  and r.started_at > now() - interval '3 minutes')
+      or exists (select 1 from public.rc_rn_runs r where r.device = p_device and r.ended_at is null
                   and r.started_at > now() - interval '3 minutes') $function$;

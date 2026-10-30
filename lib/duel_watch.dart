@@ -70,7 +70,10 @@ class DuelWatch extends ChangeNotifier {
   Future<void> refresh() async {
     try {
       final r = await RcServer.duelPing();
-      live = [for (final x in (r['live'] as List? ?? const [])) Map<String, dynamic>.from(x as Map)];
+      live = [
+        for (final x in (r['live'] as List? ?? const []))
+          {...Map<String, dynamic>.from(x as Map), 'game': duelCode(x as Map)}
+      ];
       invites = (r['invites'] as num? ?? 0).toInt();
       turns = (r['turns'] as num? ?? 0).toInt();
       online = (r['online'] as num?)?.toInt();
@@ -256,8 +259,8 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
   @override
   Widget build(BuildContext context) {
     final code = widget.x['game'] as String?;
-    final bs = code == 'bs', rj = code == 'rj';
-    final col = bs ? const Color(0xFF3EC7FF) : rj ? const Color(0xFF69F0AE) : const Color(0xFFFF4757);
+    final bs = code == 'bs', rj = code == 'rj' || code == 'rn';
+    final col = bs ? const Color(0xFF3EC7FF) : code == 'rn' ? const Color(0xFFFFB74D) : rj ? const Color(0xFF69F0AE) : const Color(0xFFFF4757);
     final opp = widget.x['opp'] as Map? ?? const {};
     final name = opp['name'] as String? ?? '?';
     final stake = (widget.x['stake'] as num? ?? 0).toInt();

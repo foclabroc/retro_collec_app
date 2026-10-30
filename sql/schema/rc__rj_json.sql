@@ -5,7 +5,7 @@ create or replace function public.rc__rj_json(g public.rc_rj, p_device text)
  set search_path to 'public'
 as $function$
   select jsonb_build_object(
-    'id', g.id, 'mode', g.mode, 'status', g.status,
+    'id', g.id, 'mode', g.mode, 'status', g.status, 'kind', g.kind,
     'side', case when g.p1 = p_device then 1 else 2 end,
     'winner', g.winner, 'reason', g.reason, 'stake', g.stake, 'paid', g.paid,
     'friendly', case when g.tmatch is null and g.stake = 0 and g.status <> 'done' then public.rc__duel_why(g.p1, g.p2) end,

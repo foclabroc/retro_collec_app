@@ -53,6 +53,8 @@ class GamesRoomScreenState extends State<GamesRoomScreen> {
             BattleTile(),
             SizedBox(height: 12),
             RetroJumpTile(),
+            SizedBox(height: 12),
+            CoverRunTile(),
           ]),
         ),
       ),
@@ -69,7 +71,7 @@ class _LiveGamesButton extends StatelessWidget {
     return ListenableBuilder(
       listenable: LiveGames.i,
       builder: (context, _) {
-        final n = LiveGames.i.others('c4').length + LiveGames.i.others('bs').length + LiveGames.i.others('rj').length;
+        final n = LiveGames.i.others('c4').length + LiveGames.i.others('bs').length + LiveGames.i.others('rj').length + LiveGames.i.others('rn').length;
         return Material(
           color: kPanel,
           borderRadius: BorderRadius.circular(14),
@@ -121,7 +123,7 @@ class LiveGamesPage extends StatelessWidget {
           child: ListenableBuilder(
             listenable: LiveGames.i,
             builder: (context, _) {
-              final empty = LiveGames.i.others('c4').isEmpty && LiveGames.i.others('bs').isEmpty && LiveGames.i.others('rj').isEmpty;
+              final empty = LiveGames.i.others('c4').isEmpty && LiveGames.i.others('bs').isEmpty && LiveGames.i.others('rj').isEmpty && LiveGames.i.others('rn').isEmpty;
               return ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 24), children: [
                 Text(t('Touche une partie pour la regarder en direct', 'Tap a game to watch it live'),
                     style: const TextStyle(color: Colors.white38, fontSize: 12)),

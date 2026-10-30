@@ -1,4 +1,4 @@
-create or replace function public.rc_rj_invite(p_device text, p_pid text, p_sig text)
+create or replace function public.rc_rj_invite(p_device text, p_pid text, p_sig text, p_kind text default 'jump')
  returns jsonb
  language plpgsql
  security definer
@@ -6,14 +6,16 @@ create or replace function public.rc_rj_invite(p_device text, p_pid text, p_sig 
 as $function$
 declare v public.rc_players; o public.rc_players; gid bigint;
 begin
-  perform public.rc__check(p_sig, p_device || '|rjinv|' || coalesce(p_pid, ''));
+  if p_kind not in ('jump', 'run') then raise exception 'jeu inconnu'; end if;
+  perform public.rc__check(p_sig, p_device || '|rjinv|' || coalesce(p_pid, '') || case when p_kind = 'run' then '|run' else '' end);
   select * into v from public.rc_players where device = p_device;
   select * into o from public.rc_players where pid = p_pid;
   if v.device is null or o.device is null then raise exception 'joueur inconnu'; end if;
   if o.device = v.device then raise exception 'pas contre toi-même'; end if;
   perform public.rc__not_blocked(p_device);
   if o.blocked then raise exception 'joueur indisponible'; end if;
-  if not o.rj_ok then raise exception 'joueur à mettre à jour'; end if;
+  if p_kind = 'jump' and not o.rj_ok then raise exception 'joueur à mettre à jour'; end if;
+  if p_kind = 'run' and not public.rc__rn_ok(o.device) then raise exception 'joueur à mettre à jour'; end if;
   if coalesce(o.seen_at < now() - interval '2 minutes', true) then raise exception 'joueur hors ligne'; end if;
   if public.rc__duel_busy(v.device) then raise exception 'tu es déjà en partie'; end if;
   if public.rc__duel_busy(o.device) then raise exception 'joueur déjà en partie'; end if;
@@ -28,6 +30,6 @@ begin
     raise exception 'trop de défis';
   end if;
   update public.rc_players set seen_at = now() where device = p_device;
-  insert into public.rc_rj (p1, p2) values (v.device, o.device) returning id into gid;
+  insert into public.rc_rj (p1, p2, kind) values (v.device, o.device, p_kind) returning id into gid;
   return public.rc__rj_json((select g from public.rc_rj g where g.id = gid), p_device);
 end $function$;

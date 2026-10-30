@@ -20,6 +20,10 @@ begin
     perform public.rc__rj_solo_pay();  -- Rétro Jump solo : 3 premiers de la veille
   exception when others then null;
   end;
+  begin
+    perform public.rc__rn_solo_pay();  -- course solo : 3 premiers de la veille
+  exception when others then null;
+  end;
   select coalesce(jsonb_agg(x order by x->>'created_at'), '[]'::jsonb) into live from (
     select jsonb_build_object('game', 'c4', 'id', g.id, 'stake', g.stake, 'friendly', public.rc__duel_why(g.p1, g.p2), 'created_at', g.created_at, 'msg', g.msg,
              'deadline', g.created_at + interval '2 minutes', 'now', now(),
@@ -37,13 +41,14 @@ begin
       from public.rc_bs g join public.rc_players o on o.device = g.p1
      where g.p2 = p_device and g.status = 'invite' and g.mode = 'live' and g.created_at > now() - interval '2 minutes'
     union all
-    select jsonb_build_object('game', 'rj', 'id', g.id, 'stake', g.stake, 'friendly', public.rc__duel_why(g.p1, g.p2), 'created_at', g.created_at, 'msg', g.msg,
+    select jsonb_build_object('game', 'rj', 'kind', g.kind, 'id', g.id, 'stake', g.stake, 'friendly', public.rc__duel_why(g.p1, g.p2), 'created_at', g.created_at, 'msg', g.msg,
              'deadline', g.created_at + interval '2 minutes', 'now', now(),
              'opp', jsonb_build_object('pid', o.pid, 'name', o.name, 'avatar', o.avatar,
-                      'w', (select count(*) from public.rc_rj h where h.status = 'done' and ((h.p1 = o.device and h.winner = 1) or (h.p2 = o.device and h.winner = 2))),
-                      'l', (select count(*) from public.rc_rj h where h.status = 'done' and ((h.p1 = o.device and h.winner = 2) or (h.p2 = o.device and h.winner = 1)))))
+                      'w', (select count(*) from public.rc_rj h where h.status = 'done' and h.kind = g.kind and ((h.p1 = o.device and h.winner = 1) or (h.p2 = o.device and h.winner = 2))),
+                      'l', (select count(*) from public.rc_rj h where h.status = 'done' and h.kind = g.kind and ((h.p1 = o.device and h.winner = 2) or (h.p2 = o.device and h.winner = 1)))))
       from public.rc_rj g join public.rc_players o on o.device = g.p1
-     where p_rj and g.p2 = p_device and g.status = 'invite' and g.created_at > now() - interval '2 minutes') t;
+     where p_rj and g.p2 = p_device and g.status = 'invite' and g.created_at > now() - interval '2 minutes'
+       and (g.kind = 'jump' or public.rc__rn_ok(p_device))) t;
 
   select (select count(*) from public.rc_c4 g where g.p2 = p_device and g.status = 'invite' and g.mode = 'turn' and g.created_at > now() - interval '24 hours')
        + (select count(*) from public.rc_bs g where g.p2 = p_device and g.status = 'invite' and g.mode = 'turn' and g.created_at > now() - interval '24 hours')

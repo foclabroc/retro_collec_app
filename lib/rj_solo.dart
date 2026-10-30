@@ -26,23 +26,24 @@ String _rjDay(String? d) {
 const _kPlaceIcons = ['🥇', '🥈', '🥉'];
 
 /// Lance une partie solo puis revient avec le classement à jour (null si pas lancée)
-Future<Map<String, dynamic>?> _rjSoloPlay(BuildContext context) async {
+Future<Map<String, dynamic>?> _rjSoloPlay(BuildContext context, {bool rn = false}) async {
   Map<String, dynamic> st;
   try {
-    st = await RcServer.rjSoloStart();
+    st = rn ? await RcServer.rnSoloStart() : await RcServer.rjSoloStart();
   } catch (e) {
     toast(errText(e));
     return null;
   }
   if (!context.mounted) return null;
-  final r = await Navigator.of(context).push<Map<String, dynamic>>(MaterialPageRoute(builder: (_) => RjSoloRunPage(start: st)));
+  final r = await Navigator.of(context).push<Map<String, dynamic>>(MaterialPageRoute(builder: (_) => rn ? RnSoloRunPage(start: st) : RjSoloRunPage(start: st)));
   Game.i.sync();
   return r;
 }
 
 /// Case du salon : mon record du jour, le leader, les lots, Jouer
 class RjSoloCard extends StatefulWidget {
-  const RjSoloCard({super.key});
+  final bool rn; // Course de jaquettes
+  const RjSoloCard({super.key, this.rn = false});
   @override
   State<RjSoloCard> createState() => _RjSoloCardState();
 }
@@ -58,7 +59,7 @@ class _RjSoloCardState extends State<RjSoloCard> {
 
   Future<void> _load() async {
     try {
-      final r = await RcServer.rjSoloBoard();
+      final r = widget.rn ? await RcServer.rnSoloBoard() : await RcServer.rjSoloBoard();
       if (mounted) setState(() => b = r);
     } catch (_) {}
   }
@@ -74,7 +75,7 @@ class _RjSoloCardState extends State<RjSoloCard> {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () async {
-          await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RjSoloPage()));
+          await Navigator.of(context).push(MaterialPageRoute(builder: (_) => RjSoloPage(rn: widget.rn)));
           _load();
         },
         child: Container(
@@ -85,7 +86,10 @@ class _RjSoloCardState extends State<RjSoloCard> {
             gradient: const LinearGradient(colors: [Color(0xFF123A3A), Color(0xFF12184E)], begin: Alignment.topLeft, end: Alignment.bottomRight),
           ),
           child: Row(children: [
-            const SizedBox(width: 44, height: 56, child: CustomPaint(painter: _RjRocketIcon())),
+            if (widget.rn)
+              const SizedBox(width: 44, height: 56, child: Center(child: Text('🏃', style: TextStyle(fontSize: 34))))
+            else
+              const SizedBox(width: 44, height: 56, child: CustomPaint(painter: _RjRocketIcon())),
             const SizedBox(width: 10),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -114,7 +118,7 @@ class _RjSoloCardState extends State<RjSoloCard> {
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: _kRjGreen, foregroundColor: const Color(0xFF06281B), visualDensity: VisualDensity.compact),
                 onPressed: () async {
-                  final r = await _rjSoloPlay(context);
+                  final r = await _rjSoloPlay(context, rn: widget.rn);
                   if (r != null && mounted) setState(() => b = r);
                 },
                 child: Text(t('Jouer', 'Play'), style: const TextStyle(fontWeight: FontWeight.w900)),
@@ -123,7 +127,7 @@ class _RjSoloCardState extends State<RjSoloCard> {
               OutlinedButton(
                 style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact, side: BorderSide(color: _kRjGreen.withOpacity(0.7)), foregroundColor: _kRjGreen),
                 onPressed: () async {
-                  await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RjSoloPage()));
+                  await Navigator.of(context).push(MaterialPageRoute(builder: (_) => RjSoloPage(rn: widget.rn)));
                   _load();
                 },
                 child: Text(t('🏆 Scores', '🏆 Scores'), style: const TextStyle(fontWeight: FontWeight.w900)),
@@ -151,7 +155,8 @@ class _RjRocketIcon extends CustomPainter {
 
 /// Page du solo : lots, mon record, classement du jour, gagnants d'hier, historique
 class RjSoloPage extends StatefulWidget {
-  const RjSoloPage({super.key});
+  final bool rn;
+  const RjSoloPage({super.key, this.rn = false});
   @override
   State<RjSoloPage> createState() => _RjSoloPageState();
 }
@@ -167,7 +172,7 @@ class _RjSoloPageState extends State<RjSoloPage> {
 
   Future<void> _load() async {
     try {
-      final r = await RcServer.rjSoloBoard();
+      final r = widget.rn ? await RcServer.rnSoloBoard() : await RcServer.rjSoloBoard();
       if (mounted) setState(() => b = r);
     } catch (e) {
       toast(errText(e));
@@ -210,7 +215,7 @@ class _RjSoloPageState extends State<RjSoloPage> {
           actions: [
             IconButton(
               tooltip: t('Historique des gagnants', 'Winners history'),
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RjWinnersPage())),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => RjWinnersPage(rn: widget.rn))),
               icon: const Icon(Icons.emoji_events_outlined),
             ),
           ],
@@ -251,7 +256,7 @@ class _RjSoloPageState extends State<RjSoloPage> {
                         FilledButton.icon(
                           style: FilledButton.styleFrom(backgroundColor: _kRjGreen, foregroundColor: const Color(0xFF06281B)),
                           onPressed: () async {
-                            final r = await _rjSoloPlay(context);
+                            final r = await _rjSoloPlay(context, rn: widget.rn);
                             if (r != null && mounted) setState(() => b = r);
                           },
                           icon: const Icon(Icons.play_arrow_rounded),
@@ -276,7 +281,7 @@ class _RjSoloPageState extends State<RjSoloPage> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: TextButton.icon(
-                      onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RjWinnersPage())),
+                      onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => RjWinnersPage(rn: widget.rn))),
                       icon: const Icon(Icons.history),
                       label: Text(t('Historique des gagnants', 'Winners history')),
                     ),
@@ -290,7 +295,8 @@ class _RjSoloPageState extends State<RjSoloPage> {
 
 /// Historique des gagnants (60 derniers jours)
 class RjWinnersPage extends StatefulWidget {
-  const RjWinnersPage({super.key});
+  final bool rn;
+  const RjWinnersPage({super.key, this.rn = false});
   @override
   State<RjWinnersPage> createState() => _RjWinnersPageState();
 }
@@ -301,7 +307,7 @@ class _RjWinnersPageState extends State<RjWinnersPage> {
   @override
   void initState() {
     super.initState();
-    RcServer.rjSoloWinners().then((l) {
+    (widget.rn ? RcServer.rnSoloWinners() : RcServer.rjSoloWinners()).then((l) {
       if (mounted) setState(() => days = l);
     }).catchError((e) {
       if (mounted) setState(() => days = []);
