@@ -46,7 +46,15 @@ jobs:
           cache: true
 
       - run: flutter pub get
-      - run: flutter build apk --release
+      - name: Compilation (3 essais : le NDK se télécharge parfois mal)
+        run: |
+          for i in 1 2 3; do
+            flutter build apk --release && exit 0
+            echo "::warning::Essai $i échoué, nettoyage du NDK et nouvel essai"
+            rm -rf "$ANDROID_HOME"/ndk
+            sleep 10
+          done
+          exit 1
 
       - name: Vérification de la signature (même clé que l'appli publiée)
         run: |
