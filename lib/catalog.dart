@@ -220,6 +220,8 @@ class Catalog {
   static late String dir; // dossier local des images
 
   static List<RcSystem> sagaSystems = []; // albums des sagas (pas dans « systems » : ce ne sont pas des consoles)
+  /// Série Pokémon (barre de progression des profils)
+  static RcSystem get pkSet => RcSystem('pk', 'Pokémon', (bySys['pk'] ?? const <RcCard>[]).length, '', '', 0, '', '', 0);
 
   static bool get loaded => cards.isNotEmpty;
   static RcSystem? system(String id) {

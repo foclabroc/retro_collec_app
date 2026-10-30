@@ -1,5 +1,10 @@
 # Pixel Trade — Changelog
 
+## v1.0.36
+_Version 1.0.36+37. Pas de cadeau de version. Pas de SQL._
+
+- 🃏 Ligne « Pokémon » (possédées/185) dans « Mes séries » / « Ses séries » et dans la comparaison entre joueurs.
+
 ## v1.0.35
 _Version 1.0.35+36. Pas de cadeau de version. SQL : `sql/2026-10-30_profil_vitrine.sql` (à lancer)._
 

@@ -12,6 +12,9 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🃏', 'Le nombre de cartes Pokémon apparaît maintenant dans les profils (séries et comparaison entre joueurs)',
+      'The number of Pokémon cards now shows in profiles (sets and player comparison)'),
+  ('#', 'Aussi depuis la 1.0.35', 'Also since 1.0.35'),
   ('🛠', 'Correction : changer d\'avatar ou de pseudo ne bloque plus quand une carte de la vitrine n\'est plus possédée',
       'Fix: changing avatar or name no longer fails when a showcase card is no longer owned'),
   ('#', 'Aussi depuis la 1.0.34', 'Also since 1.0.34'),
