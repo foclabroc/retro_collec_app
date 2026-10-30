@@ -1450,7 +1450,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                   child: Opacity(opacity: d.clamp(0, 1).toDouble(), child: child),
                 );
               },
-              child: SizedBox(width: cw, child: faceUp ? CardView(card: pulled[idx + k].card, finish: pulled[idx + k].f) : const CardBack()),
+              child: SizedBox(width: cw, child: faceUp ? CardView(card: pulled[idx + k].card, finish: pulled[idx + k].f) : CardBack(pk: pulled[idx + k].card.sys == 'pk')),
             ),
           if (remaining > 0) _topCard(cw),
           Positioned(
@@ -1495,7 +1495,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
           ..rotateY(angle);
         Widget face = showFront
             ? CardView(card: p.card, finish: p.f, manualTilt: fingerTilt)
-            : CardBack(aura: p.r >= 2 ? kRarityColor[p.r] : null, glow: auraCtl.value);
+            : CardBack(aura: p.r >= 2 ? kRarityColor[p.r] : null, glow: auraCtl.value, pk: p.card.sys == 'pk');
         // ouvert de face : le halo de rareté pulse autour de la carte, comme sur le dos
         if (showFront && faceUp && p.r >= 2) {
           final g = auraCtl.value, a = kRarityColor[p.r];

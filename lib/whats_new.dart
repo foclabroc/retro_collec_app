@@ -12,6 +12,11 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🃏', 'Les cartes Pokémon s\'affichent en plein cadre, avec leur propre dos de carte',
+      'Pokémon cards now show full frame, with their own card back'),
+  ('⚡', 'Fiche Pokémon épurée (nom, Bourse, Vitrine) et nouvelle ligne Pokémon dans la progression de la Collection',
+      'Cleaner Pokémon card page (name, Exchange, Showcase) and a new Pokémon line in the Collection progress'),
+  ('#', 'Aussi depuis la 1.0.33', 'Also since 1.0.33'),
   ('🃏', 'Nouvel onglet « Pokémon » dans la Collection : 185 cartes très très rares à trouver dans les paquets',
       'New "Pokémon" tab in the Collection: 185 very very rare cards to find in packs'),
   ('✨', 'À partir de la carte 152, les cartes Pokémon sortent toujours brillantes',

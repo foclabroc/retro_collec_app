@@ -419,7 +419,9 @@ class _CardDetailPageState extends State<CardDetailPage> {
               const SizedBox(height: 16),
               if (shot != null)
                 ClipRRect(borderRadius: BorderRadius.circular(10), child: Image(image: shot, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox())),
-              if (owned || myTotal > 0) ...[
+              if (c.sys == 'pk')
+                const SizedBox()
+              else if (owned || myTotal > 0) ...[
                 const SizedBox(height: 14),
                 _info(t('Console', 'System'), Catalog.system(c.sys)?.name ?? c.sys),
                 _info(t('Année', 'Year'), '${c.year ?? '?'}'),
@@ -482,14 +484,16 @@ class _CardDetailPageState extends State<CardDetailPage> {
       const SizedBox(height: 14),
       if (total > 0) ...[
         Row(children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.recycling),
-              label: Text(t('Recycler +${recycleValue(c.rarity, finish)}', 'Recycle +${recycleValue(c.rarity, finish)}')),
-              onPressed: busy || !qDupeOf(x, finish) || x[finish] == 0 ? null : () => _recycle(c),
+          if (c.sys != 'pk') ...[
+            Expanded(
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.recycling),
+                label: Text(t('Recycler +${recycleValue(c.rarity, finish)}', 'Recycle +${recycleValue(c.rarity, finish)}')),
+                onPressed: busy || !qDupeOf(x, finish) || x[finish] == 0 ? null : () => _recycle(c),
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
+            const SizedBox(width: 8),
+          ],
           Expanded(
             child: OutlinedButton.icon(
               icon: Icon(inShowcase ? Icons.star : Icons.star_border, color: kGold),
@@ -500,6 +504,12 @@ class _CardDetailPageState extends State<CardDetailPage> {
         ]),
         const SizedBox(height: 8),
       ],
+      if (c.sys != 'pk') ..._extraActions(c, x, total, cost, g),
+    ];
+  }
+
+  List<Widget> _extraActions(RcCard c, List<int> x, int total, int cost, Game g) {
+    return [
       // fusion : 5 normales → brillante, 3 brillantes → dorée (boutons toujours visibles, grisés s'il manque des cartes)
       if (total > 0 && !c.isSaga)
         for (final f in [0, 1])

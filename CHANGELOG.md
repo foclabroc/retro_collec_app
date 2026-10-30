@@ -1,5 +1,11 @@
 # Pixel Trade — Changelog
 
+## v1.0.34
+_Version 1.0.34+35. Pas de cadeau de version. Pas de SQL._
+
+- 🃏 Cartes Pokémon en plein cadre (image seule, sans cadre) avec leur dos bleu (`assets/card_back_pk.jpg`).
+- ⚡ Fiche Pokémon épurée : nom, Bourse, Vitrine. Ligne « Pokémon » dans la progression de la Collection.
+
 ## v1.0.33
 _Version 1.0.33+34. Pas de cadeau de version. SQL : `sql/2026-10-30_serie_pokemon.sql` (lancé avant la mise en ligne)._
 

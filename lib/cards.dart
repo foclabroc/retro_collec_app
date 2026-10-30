@@ -156,6 +156,26 @@ class CardView extends StatelessWidget {
     if (card.isSaga) {
       return SagaFace(card: card, width: w, cover: ResizeImage.resizeIfNeeded(cacheW, null, img), owned: owned, manualTilt: manualTilt);
     }
+    // série Pokémon : l'image occupe toute la carte, sans cadre ni ornement
+    if (card.sys == 'pk') {
+      final rr = BorderRadius.circular(w * 0.05);
+      return ClipRRect(
+        borderRadius: rr,
+        child: owned
+            ? Image(
+                image: ResizeImage.resizeIfNeeded(cacheW, null, img),
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                errorBuilder: (_, __, ___) => Container(
+                    color: const Color(0xFF11131D),
+                    child: Icon(Icons.image_not_supported, color: Colors.white24, size: w * 0.2)))
+            : Container(
+                color: const Color(0xFF26262C),
+                alignment: Alignment.center,
+                child: Text('?', style: TextStyle(color: Colors.white24, fontSize: w * 0.28, fontWeight: FontWeight.w900))),
+      );
+    }
     // full art (épiques et légendaires) : un tout autre modèle de carte
     if (owned && finish == 3) {
       return FullArtFace(
@@ -745,7 +765,8 @@ class _PrismPainter extends CustomPainter {
 class CardBack extends StatelessWidget {
   final Color? aura; // halo de la couleur de la rareté (suspense)
   final double glow; // 0..1 pulsation
-  const CardBack({super.key, this.aura, this.glow = 0});
+  final bool pk; // dos des cartes Pokémon
+  const CardBack({super.key, this.aura, this.glow = 0, this.pk = false});
 
   @override
   Widget build(BuildContext context) {
@@ -769,7 +790,7 @@ class CardBack extends StatelessWidget {
           child: ClipRRect(
             borderRadius: r,
             child: Image.asset(
-              'assets/card_back.jpg',
+              pk ? 'assets/card_back_pk.jpg' : 'assets/card_back.jpg',
               fit: BoxFit.cover,
               width: w,
               height: w * 7 / 5,
@@ -932,7 +953,7 @@ class _SpinCardState extends State<SpinCard> with SingleTickerProviderStateMixin
           final back = cos(ay) < 0;
           final sheen = Offset((sin(ay) * 1.6).clamp(-1.0, 1.0), (-sin(ax) * 1.6).clamp(-1.0, 1.0));
           final face = back
-              ? Transform(alignment: Alignment.center, transform: Matrix4.identity()..rotateY(pi), child: const CardBack())
+              ? Transform(alignment: Alignment.center, transform: Matrix4.identity()..rotateY(pi), child: CardBack(pk: widget.card.sys == 'pk'))
               : CardView(card: widget.card, finish: widget.finish, owned: widget.owned, manualTilt: sheen);
           return Transform(
             alignment: Alignment.center,

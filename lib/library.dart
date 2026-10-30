@@ -323,7 +323,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final total = Catalog.total; // full art comptées à part
     final pct = total == 0 ? 0.0 : g.cards / total;
     final totalByR = List<int>.filled(5, 0), ownByR = List<int>.filled(5, 0);
-    var sagaTotal = 0, sagaMine = 0, faTotal = 0, faMine = 0;
+    var sagaTotal = 0, sagaMine = 0, faTotal = 0, faMine = 0, pkTotal = 0, pkMine = 0;
     for (final c in Catalog.cards.values) {
       if (c.isSaga) {
         // cartes de saga : ligne à part (pas dans les épiques)
@@ -331,9 +331,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
         if (g.has(c.id)) sagaMine++;
         continue;
       }
+      if (c.sys == 'pk') {
+        pkTotal++;
+        if (g.has(c.id)) pkMine++;
+      }
       totalByR[c.rarity]++;
       if (g.has(c.id)) ownByR[c.rarity]++;
-      if (c.rarity >= 3) {
+      if (c.rarity >= 3 && c.sys != 'pk') {
         // full art : possible pour les épiques et légendaires
         faTotal++;
         if ((g.owned[c.id]?[3] ?? 0) > 0) faMine++;
@@ -386,6 +390,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   sagaTotal > 0 ? () => _setMode(1) : null),
               _bar('★★ ${t('Full art', 'Full art')}', faMine, faTotal, const Color(0xFFFF9FE5), const Color(0xFFFFC6F0),
                   faTotal > 0 ? () => _setMode(2) : null),
+              _bar('⚡ ${t('Pokémon', 'Pokémon')}', pkMine, pkTotal, const Color(0xFFFFD54F), const Color(0xFFFFE082),
+                  pkTotal > 0 ? () => _setMode(3) : null),
               // toucher une rareté : mes cartes de cette rareté
               for (var r = 4; r >= 0; r--)
                 InkWell(
