@@ -98,7 +98,15 @@ class _CoverRunTileState extends State<CoverRunTile> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text(t('Course de jaquettes', 'Cover Run'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                    Row(children: [
+                      Flexible(child: Text(t('Course de jaquettes', 'Cover Run'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(color: const Color(0x33FFB74D), borderRadius: BorderRadius.circular(6), border: Border.all(color: const Color(0xFFFFB74D))),
+                        child: Text(t('(bêta test)', '(beta test)'), style: const TextStyle(color: Color(0xFFFFB74D), fontSize: 10, fontWeight: FontWeight.w700)),
+                      ),
+                    ]),
                     const SizedBox(height: 3),
                     Text(t('Saute ou glisse entre les obstacles : solo du jour avec lots, ou duel en direct ($kDuelWin pièces + 1 pixel)',
                             'Jump or slide past the obstacles: daily solo with prizes, or live duel ($kDuelWin coins + 1 pixel)'),

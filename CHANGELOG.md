@@ -3,7 +3,7 @@
 ## v1.0.32
 _Version 1.0.32+33. Pas de cadeau de version. SQL : `sql/2026-10-30_course_jaquettes.sql` (à lancer avant la mise en ligne)._
 
-- 🏃 **Course de jaquettes** (Salle de jeux) : runner saut / glisse, 2 minutes, mêmes obstacles pour tous (graine serveur), distance en mètres. Réutilise les duels Rétro Jump (`rc_rj.kind` = `jump` / `run`).
+- 🏃 **Course de jaquettes** (bêta test, Salle de jeux) : runner saut / glisse, 2 minutes, mêmes obstacles pour tous (graine serveur), distance en mètres. Réutilise les duels Rétro Jump (`rc_rj.kind` = `jump` / `run`).
 - 🥇 **Solo du jour** : classement, lots 500 + 2 ▦ / 300 + 1 ▦ / 100 (`rc_rn_*`). **Duel en direct** avec fantôme, spectateurs, tournoi non géré. Seules les appli ≥ 1.0.32 reçoivent les défis de course.
 - Actu : `rn` / `rndraw` / `rnsolo`. Guide et « Nouveautés » à jour.
 
