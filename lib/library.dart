@@ -10,6 +10,7 @@ import 'filters.dart';
 import 'layout.dart';
 import 'game.dart';
 import 'main.dart';
+import 'packs.dart' show FragmentChip;
 import 'sagas.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -218,6 +219,23 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ]),
                 ),
               ),
+              if (mode == 2)
+                SliverToBoxAdapter(
+                  child: ListenableBuilder(
+                    listenable: Game.i,
+                    builder: (_, __) => Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                      child: Row(children: [
+                        FragmentChip(Game.i.fragments),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(t('fragments · touche une carte pour la fabriquer', 'fragments · tap a card to craft it'),
+                              style: const TextStyle(color: Colors.white60, fontSize: 11.5)),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ),
               if (mode == 2)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
