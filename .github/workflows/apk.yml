@@ -46,7 +46,7 @@ jobs:
           cache: true
 
       - run: flutter pub get
-      - name: Compilation (3 essais : le NDK se télécharge parfois mal)
+      - name: "Compilation (3 essais, le NDK se télécharge parfois mal)"
         run: |
           for i in 1 2 3; do
             flutter build apk --release && exit 0
