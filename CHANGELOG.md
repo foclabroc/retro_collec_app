@@ -1,4 +1,10 @@
-# Pixel Trade — Changelog
+﻿# Pixel Trade — Changelog
+
+## v1.0.30
+_Version 1.0.30+31. Pas de cadeau de version. SQL : `sql/2026-10-30_fragments_full_art.sql`._
+
+- ♻ **Fragments de full art** : `rc_recycle` / `rc_recycle_dupes` donnent des fragments (`rc_players.fragments`, même table `rc__recycle_value`, `recycle_x` gardé) et plus de pièces ; `rc_me` les renvoie.
+- ★★ **Fabriquer une full art** : `rc_craft_full` (finition 3, épique / légendaire de console hors saga, une fois par carte) pour `rc__fragment_cost` = 3 000 / 10 000 fragments ; bouton sur la fiche de la carte, compteur sur le raccourci ♻ de la Collection, Guide à jour. Fabriquer une carte normale reste en pièces.
 
 ## v1.0.29
 _Version 1.0.29+30. Pas de cadeau de version. SQL : `sql/2026-10-29_consoles_2600_coleco_saturn_wii_wiiu_xbox.sql`, puis `sql/2026-10-29_sagas_crash_dk_mk_ff.sql`._
