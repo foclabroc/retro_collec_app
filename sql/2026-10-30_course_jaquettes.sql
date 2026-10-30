@@ -440,7 +440,7 @@ create or replace function public.rc__feed_duel()
  security definer
  set search_path to 'public'
 as $function$
-declare k text := case tg_table_name when 'rc_bs' then 'bs' when 'rc_rj' then case when new.kind = 'run' then 'rn' else 'rj' end else 'c4' end;
+declare k text := case tg_table_name when 'rc_bs' then 'bs' when 'rc_rj' then case when to_jsonb(new)->>'kind' = 'run' then 'rn' else 'rj' end else 'c4' end;
 begin
   if new.status <> 'done' or old.status = 'done' then return new; end if;
   if new.tmatch is not null then return new; end if;  -- tournoi : une seule nouvelle à la fin
