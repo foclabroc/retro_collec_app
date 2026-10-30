@@ -47,7 +47,7 @@ begin
     'pid', v.pid, 'name', v.name, 'avatar', v.avatar, 'coins', v.coins, 'score', v.score,
     'cards', v.cards, 'packs', v.packs, 'pity', v.pity, 'streak', v.streak,
     'free', public.rc__free_in(p_device) = 0, 'free_in', public.rc__free_in(p_device),
-    'showcase', v.showcase, 'pixels', v.pixels,
+    'showcase', v.showcase, 'pixels', v.pixels, 'fragments', v.fragments,
     'missions', jsonb_build_object('open', v.d_open, 'recycle', v.d_recycle, 'trade', v.d_trade, 'done', v.d_done),
     'milestones', (select coalesce(jsonb_agg(jsonb_build_array(sys, step)), '[]'::jsonb)
                      from public.rc_milestones where device = p_device),

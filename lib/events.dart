@@ -610,7 +610,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       'promo' => ('-$v %', t('${_promoTarget(e['arg'])} : $v % de réduction dans la boutique.', '${_promoTarget(e['arg'])}: $v% off in the shop.')),
       'holo_x' => ('×$v', t('Cartes brillantes et dorées $v fois plus fréquentes.', 'Holo and gold cards $v times more frequent.')),
       'rare_x' => ('×$v', t('Cartes épiques et légendaires $v fois plus fréquentes.', 'Epic and legendary cards $v times more frequent.')),
-      'recycle_x' => ('×$v', t('Le recyclage des doublons rapporte $v fois plus de pièces.', 'Recycling duplicates gives $v times more coins.')),
+      'recycle_x' => ('×$v', t('Le recyclage des doublons rapporte $v fois plus de fragments.', 'Recycling duplicates gives $v times more fragments.')),
       'duel_x' => ('×$v', t('Les duels rapportent $v fois plus de pièces.', 'Duels give $v times more coins.')),
       'lot_free' => ('🎁', t('Le lot de 5 paquets mixtes est gratuit (une fois par jour).', 'The bundle of 5 mixed packs is free (once a day).')),
       _ => ('★', ''),

@@ -1640,7 +1640,7 @@ Map<String, String> get _kEffectHelp => {
       'promo': t('Prix barré dans la boutique, appliqué par le serveur.', 'Struck-through price in the shop, applied by the server.'),
       'holo_x': t('Multiplie les chances de brillante et de dorée (max ×5).', 'Multiplies holo and gold odds (max ×5).'),
       'rare_x': t('Multiplie les chances d\'épique et de légendaire (max ×5).', 'Multiplies epic and legendary odds (max ×5).'),
-      'recycle_x': t('Les pièces du recyclage sont multipliées (max ×5).', 'Recycling coins are multiplied (max ×5).'),
+      'recycle_x': t('Les fragments du recyclage sont multipliés (max ×5).', 'Recycling fragments are multiplied (max ×5).'),
       'duel_x': t('Les pièces des duels classés sont multipliées (max ×5).', 'Ranked duel coins are multiplied (max ×5).'),
       'lot_free': t('Comme le samedi : une fois par joueur et par jour pendant l\'événement.', 'Like Saturdays: once per player per day during the event.'),
     };

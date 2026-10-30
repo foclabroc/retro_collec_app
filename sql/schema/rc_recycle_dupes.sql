@@ -19,9 +19,9 @@ begin
   end loop;
   gain := gain * least(coalesce(public.rc__effect('recycle_x'), 1), 5);
   if n > 0 then
-    update public.rc_players set coins = coins + gain where device = p_device;
+    update public.rc_players set fragments = fragments + gain where device = p_device;
     ev := public.rc__bump(p_device, 'recycle', n);
   end if;
   return jsonb_build_object('gain', gain, 'count', n,
-                            'coins', (select coins from public.rc_players where device = p_device), 'events', ev);
+                            'fragments', (select fragments from public.rc_players where device = p_device), 'events', ev);
 end $function$;

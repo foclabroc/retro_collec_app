@@ -130,8 +130,8 @@ Future<void> recycleAllDupes(BuildContext context) async {
     builder: (ctx) => AlertDialog(
       title: Text(t('Recycler les doublons', 'Recycle duplicates')),
       content: Text(t(
-        '${g.dupes} doublon(s) → ${g.dupesValue} pièces.\nUn exemplaire de chaque carte et de chaque finition est gardé.\n\nAstuce : les doublons servent aussi pour les échanges.',
-        '${g.dupes} duplicate(s) → ${g.dupesValue} coins.\nOne copy of each card and finish is kept.\n\nTip: duplicates are also useful for trades.',
+        '${g.dupes} doublon(s) → ${g.dupesValue} fragments de full art.\nUn exemplaire de chaque carte et de chaque finition est gardé.\n\nAstuce : les doublons servent aussi pour les échanges.',
+        '${g.dupes} duplicate(s) → ${g.dupesValue} full art fragments.\nOne copy of each card and finish is kept.\n\nTip: duplicates are also useful for trades.',
       )),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
@@ -143,7 +143,7 @@ Future<void> recycleAllDupes(BuildContext context) async {
   try {
     final (n, gain) = await g.recycleDupes();
     RcAudio.sfx('coin');
-    toast(t('$n doublon(s) recyclé(s) : +$gain pièces', '$n duplicate(s) recycled: +$gain coins'));
+    toast(t('$n doublon(s) recyclé(s) : +$gain fragments', '$n duplicate(s) recycled: +$gain fragments'));
   } catch (e) {
     toast(errText(e));
   }
@@ -534,11 +534,22 @@ class _CardDetailPageState extends State<CardDetailPage> {
         Text(t('Carte de saga : on ne la trouve que dans les paquets (${livePct('saga')} de chance par carte), à la Bourse ou en échange.',
                 'Saga card: only found in packs (${livePct('saga')} chance per card), on the Exchange or in trades.'),
             textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: Colors.white54)),
+      if (!c.isSaga && c.rarity >= 3) ...[
+        const SizedBox(height: 8),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.auto_awesome),
+          label: Text(x.length > 3 && x[3] > 0
+              ? t('Full art déjà possédée', 'Full art already owned')
+              : t('Fabriquer la full art (${fmt(fragmentCost(c.rarity))} fragments · tu as ${fmt(g.fragments)})',
+                  'Craft the full art (${fmt(fragmentCost(c.rarity))} fragments · you have ${fmt(g.fragments)})')),
+          onPressed: busy || (x.length > 3 && x[3] > 0) || g.fragments < fragmentCost(c.rarity) ? null : () => _craftFull(c),
+        ),
+      ],
       if (total > 1)
         Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
-            t('Recycler rapporte des pièces (on garde toujours un exemplaire).', 'Recycling gives coins (you always keep one copy).'),
+            t('Recycler rapporte des fragments de full art (on garde toujours un exemplaire).', 'Recycling gives full art fragments (you always keep one copy).'),
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 11, color: Colors.white38),
           ),
@@ -559,7 +570,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
   void _recycle(RcCard c) => _run(() async {
         final gain = await Game.i.recycle(c.id, finish, 1);
         RcAudio.sfx('coin');
-        toast(t('+$gain pièces', '+$gain coins'));
+        toast(t('+$gain fragments', '+$gain fragments'));
         final x = q;
         if (x[finish] == 0) setState(() => finish = bestFinish(x));
       });
@@ -619,6 +630,25 @@ class _CardDetailPageState extends State<CardDetailPage> {
             ),
           ),
         );
+      });
+
+  void _craftFull(RcCard c) => _run(() async {
+        final cost = fragmentCost(c.rarity);
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(t('Fabriquer la full art ?', 'Craft the full art?')),
+            content: Text(t('Coût : ${fmt(cost)} fragments de full art.', 'Cost: ${fmt(cost)} full art fragments.')),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
+              ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: Text(t('Fabriquer', 'Craft'))),
+            ],
+          ),
+        );
+        if (ok != true) return;
+        await Game.i.craftFull(c.id);
+        Game.i.playSound(c.rarity);
+        toast(t('Full art fabriquée !', 'Full art crafted!'));
       });
 
   void _craft(RcCard c, int cost) => _run(() async {

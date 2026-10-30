@@ -215,8 +215,10 @@ List<_Section> _sections() {
           'Rare currency: 1 pixel per duel won, and in some rewards (challenges, trophies, milestones, chest). They buy special boosters.')),
     ]),
     _Section('♻️', t('Doublons : recycler, fusionner, fabriquer', 'Duplicates: recycle, fuse, craft'), [
-      _b(t('Recycler : un doublon rapporte des pièces (commune 2, peu commune 5, rare 20, épique 60, légendaire 200), ×3 en brillante, ×10 en dorée, ×30 en full art.',
-          'Recycle: a duplicate gives coins (common 2, uncommon 5, rare 20, epic 60, legendary 200), ×3 holo, ×10 gold, ×30 full art.')),
+      _b(t('Recycler : un doublon rapporte des fragments de full art (commune 2, peu commune 5, rare 20, épique 60, légendaire 200), ×3 en brillante, ×10 en dorée, ×30 en full art. Le recyclage ne donne plus de pièces.',
+          'Recycle: a duplicate gives full art fragments (common 2, uncommon 5, rare 20, epic 60, legendary 200), ×3 holo, ×10 gold, ×30 full art. Recycling no longer gives coins.')),
+      _b(t('Fabriquer une full art : 3 000 fragments pour une épique, 10 000 pour une légendaire (cartes de console, une seule fois par carte), depuis la fiche de la carte.',
+          'Craft a full art: 3,000 fragments for an epic, 10,000 for a legendary (console cards, once per card), from the card page.')),
       _b(t('Fusionner : 5 exemplaires normaux → 1 brillant ; 3 brillants → 1 doré. Le full art ne s\'obtient qu\'en paquet.',
           'Fuse: 5 normal copies → 1 holo; 3 holo → 1 gold. Full art only comes from packs.')),
       _b(t('Fabriquer une carte manquante : commune 50, peu commune 150, rare 500, épique 1 500, légendaire 5 000 pièces.',

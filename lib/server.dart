@@ -482,6 +482,11 @@ class RcServer {
     return _map(await _rpc('rc_recycle_dupes', {'p_device': d, 'p_sig': _sig('$d|dupes')}));
   }
 
+  static Future<Map<String, dynamic>> craftFull(String card) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_craft_full', {'p_device': d, 'p_card': card, 'p_sig': _sig('$d|craftfull|$card')}));
+  }
+
   static Future<Map<String, dynamic>> craft(String card) async {
     final d = await deviceId();
     return _map(await _rpc('rc_craft', {'p_device': d, 'p_card': card, 'p_sig': _sig('$d|craft|$card')}));

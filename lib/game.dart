@@ -96,6 +96,8 @@ int bestFinish(List<int>? q, {bool full = true}) {
 /// Pièces données par le recyclage (même table que rc__recycle_value côté serveur, baissée le 23/10)
 int recycleValue(int r, int f) => const [2, 5, 20, 60, 200][r] * const [1, 3, 10, 30][f];
 int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
+/// Fragments pour fabriquer une full art (épique / légendaire), même valeurs que rc__fragment_cost
+int fragmentCost(int r) => r == 3 ? 3000 : 10000;
 /// Boosters spéciaux payés en pixels (1 pixel par booster ouvert)
 const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40};
 final kPackPrice = <String, int>{'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0, 'lot': 0};
@@ -322,6 +324,7 @@ class Game extends ChangeNotifier {
   int avatar = 0, coins = 0, score = 0, cards = 0, packs = 0, pity = 0, streak = 0;
   bool free = false;
   int pixels = 0; // 1 par booster ouvert, échangeables contre des boosters spéciaux
+  int fragments = 0; // fragments de full art (recyclage), échangeables contre une full art
   DateTime? freeAt; // prochain paquet gratuit (toutes les 6 h) ; null = inconnu (ancien serveur : minuit)
   Map<String, dynamic> missions = {};
   Set<String> milestones = {};
@@ -413,7 +416,8 @@ class Game extends ChangeNotifier {
     streak = (m['streak'] as num? ?? streak).toInt();
     free = m['free'] as bool? ?? free;
     pixels = (m['pixels'] as num? ?? pixels).toInt();
-    final fi = (m['free_in'] as num?)?.toInt();
+    fragments = (m['fragments'] as num? ?? fragments).toInt();
+    final fi =  (m['free_in'] as num?)?.toInt();
     freeAt = fi == null || free ? null : DateTime.now().add(Duration(seconds: fi));
     showcase = m['showcase'] as String? ?? showcase;
     if (m['missions'] is Map) missions = Map<String, dynamic>.from(m['missions'] as Map);
@@ -577,6 +581,14 @@ class Game extends ChangeNotifier {
     await sync();
     emit(r['events']);
     return (r['f'] as num? ?? finish + 1).toInt();
+  }
+
+  Future<void> craftFull(String card) async {
+    final r = await RcServer.craftFull(card);
+    fragments = (r['fragments'] as num? ?? fragments).toInt();
+    addRecent(card, 3);
+    await sync();
+    emit(r['events']);
   }
 
   Future<void> craft(String card) async {

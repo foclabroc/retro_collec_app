@@ -17,8 +17,8 @@ begin
   if not public.rc__take(p_device, p_card, p_finish, p_qty) then raise exception 'pas assez d''exemplaires'; end if;
   select rarity into r from public.rc_cards where id = p_card;
   gain := public.rc__recycle_value(r, p_finish) * p_qty * least(coalesce(public.rc__effect('recycle_x'), 1), 5);
-  update public.rc_players set coins = coins + gain where device = p_device;
+  update public.rc_players set fragments = fragments + gain where device = p_device;
   ev := public.rc__bump(p_device, 'recycle', p_qty);
   perform public.rc__rescore(p_device);
-  return jsonb_build_object('gain', gain, 'coins', (select coins from public.rc_players where device = p_device), 'events', ev);
+  return jsonb_build_object('gain', gain, 'fragments', (select fragments from public.rc_players where device = p_device), 'events', ev);
 end $function$;
