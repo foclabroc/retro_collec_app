@@ -599,7 +599,21 @@ class Game extends ChangeNotifier {
   }
 
   Future<void> setProfile({String? newName, int? newAvatar, String? newShowcase}) async {
-    final res = await RcServer.setProfile(newName ?? name, newAvatar ?? avatar, newShowcase ?? showcase);
+    // vitrine inchangée : on retire les cartes qu'on n'a plus (vendues, échangées…) pour ne pas bloquer le profil
+    String showcaseOk() {
+      final used = <String, int>{};
+      final keep = <String>[];
+      for (final (id, f) in showcaseItems) {
+        final k = '$id:$f';
+        final n = (used[k] ?? 0) + 1;
+        if (n <= qty(id, f)) {
+          used[k] = n;
+          keep.add(k);
+        }
+      }
+      return keep.join(',');
+    }
+    final res = await RcServer.setProfile(newName ?? name, newAvatar ?? avatar, newShowcase ?? showcaseOk());
     if (res == 'taken') throw RcError(t('Ce pseudo est déjà pris', 'This name is already taken'));
     if (res == 'showcase') throw RcError(t('Carte de vitrine non possédée', 'Showcase card not owned'));
     name = newName ?? name;

@@ -12,6 +12,9 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🛠', 'Correction : changer d\'avatar ou de pseudo ne bloque plus quand une carte de la vitrine n\'est plus possédée',
+      'Fix: changing avatar or name no longer fails when a showcase card is no longer owned'),
+  ('#', 'Aussi depuis la 1.0.34', 'Also since 1.0.34'),
   ('🃏', 'Les cartes Pokémon s\'affichent en plein cadre, avec leur propre dos de carte',
       'Pokémon cards now show full frame, with their own card back'),
   ('⚡', 'Fiche Pokémon épurée (nom, Bourse, Vitrine) et nouvelle ligne Pokémon dans la progression de la Collection',

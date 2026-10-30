@@ -1,5 +1,10 @@
 # Pixel Trade — Changelog
 
+## v1.0.35
+_Version 1.0.35+36. Pas de cadeau de version. SQL : `sql/2026-10-30_profil_vitrine.sql` (à lancer)._
+
+- 🛠 Changer d'avatar / de pseudo ne dit plus « Carte de vitrine non possédée » : les cartes qu'on n'a plus sont retirées de la vitrine (`rc_set_profile` + appli).
+
 ## v1.0.34
 _Version 1.0.34+35. Pas de cadeau de version. Pas de SQL._
 
