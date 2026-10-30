@@ -26,7 +26,7 @@ import 'web_img_stub.dart' if (dart.library.js_interop) 'web_img_web.dart';
 
 const kAssetsBase = 'https://foclabroc.github.io/retro_collec_assets/';
 
-/// Série « Pokémon » : images hébergées sur le serveur de l'utilisateur (001.png … 185.png, voir selfhost/pk_prepare.ps1)
+/// Série « Pokémon » : images hébergées sur le serveur de l'utilisateur (001.jpg … 185.jpg, voir selfhost/pk_prepare.ps1)
 const kPkBase = 'https://api.foclabroc.duckdns.org/pk/';
 
 // (hors de RcCard : dans la classe, « num » désigne le champ et non le type)
@@ -313,7 +313,7 @@ class Catalog {
           pub: '',
           genre: '',
           rarity: i + 1 >= 152 ? 4 : 3,
-          img: '${(i + 1).toString().padLeft(3, '0')}.png',
+          img: '${(i + 1).toString().padLeft(3, '0')}.jpg',
           shot: null,
           desc: '',
         ),
