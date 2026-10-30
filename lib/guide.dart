@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'arcade.dart';
 
@@ -218,8 +218,8 @@ List<_Section> _sections() {
     _Section('♻️', t('Doublons : recycler, fusionner, fabriquer', 'Duplicates: recycle, fuse, craft'), [
       _b(t('Recycler : un doublon rapporte des fragments de full art (commune 2, peu commune 5, rare 20, épique 60, légendaire 200), ×3 en brillante, ×10 en dorée, ×30 en full art. Le recyclage ne donne plus de pièces.',
           'Recycle: a duplicate gives full art fragments (common 2, uncommon 5, rare 20, epic 60, legendary 200), ×3 holo, ×10 gold, ×30 full art. Recycling no longer gives coins.')),
-      _b(t('Fabriquer une full art : 3 000 fragments pour une épique, 10 000 pour une légendaire (cartes de console, une seule fois par carte), depuis la fiche de la carte.',
-          'Craft a full art: 3,000 fragments for an epic, 10,000 for a legendary (console cards, once per card), from the card page.')),
+      _b(t('Fabriquer une full art : 3 000 fragments pour une épique, 10 000 pour une légendaire (cartes de console, une seule fois par carte), depuis l\'onglet Full art de la Collection (touche une case vide) ou la fiche de la carte.',
+          'Craft a full art: 3,000 fragments for an epic, 10,000 for a legendary (console cards, once per card), from the Full art tab of the Collection (tap an empty slot) or the card page.')),
       _b(t('Fusionner : 5 exemplaires normaux → 1 brillant ; 3 brillants → 1 doré.       La full art s\'obtient en paquet ou se fabrique avec des fragments.',
                 'Fuse: 5 normal copies → 1 holo; 3 holo → 1 gold. Full art comes from packs or is crafted with fragments.')),
             _p(t('Fragments : ils ne s\'obtiennent que par le recyclage, se voient sur le raccourci ♻ de la Collection et sur la fiche des cartes épiques / légendaires. Une full art déjà possédée ne se refabrique pas ; les cartes de saga n\'ont pas de full art fabricable.',

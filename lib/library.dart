@@ -909,7 +909,9 @@ class _FullArtSlot extends StatelessWidget {
       );
     }
     final sys = Catalog.system(card.sys);
-    return LayoutBuilder(builder: (context, box) {
+    return GestureDetector(
+      onTap: () => _craftFullPage(context, card),
+      child: LayoutBuilder(builder: (context, box) {
       final w = box.maxWidth;
       return Container(
         decoration: BoxDecoration(
@@ -931,6 +933,58 @@ class _FullArtSlot extends StatelessWidget {
           ),
         ]),
       );
-    });
+    }),
+    );
   }
+}
+
+/// Page « Fabriquer » d'une full art non possédée (ouverte en touchant sa case vide).
+Future<void> _craftFullPage(BuildContext context, RcCard card) async {
+  final cost = fragmentCost(card.rarity);
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) {
+      var busy = false;
+      return StatefulBuilder(builder: (ctx, setS) {
+        final g = Game.i;
+        final ok = g.fragments >= cost;
+        return AlertDialog(
+          title: Text(t('Fabriquer la full art', 'Craft the full art')),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              SizedBox(width: 160, child: Opacity(opacity: 0.55, child: CardView(card: card, finish: 3))),
+              const SizedBox(height: 12),
+              Text(t('Coût : ${fmt(cost)} fragments', 'Cost: ${fmt(cost)} fragments'), style: const TextStyle(fontWeight: FontWeight.w800)),
+              Text(t('Tu as : ${fmt(g.fragments)} fragments', 'You have: ${fmt(g.fragments)} fragments'),
+                  style: TextStyle(color: ok ? Colors.white70 : Colors.redAccent)),
+              const SizedBox(height: 6),
+              Text(t('Les fragments viennent du recyclage des doublons.', 'Fragments come from recycling duplicates.'),
+                  textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, color: Colors.white54)),
+            ]),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(t('Fermer', 'Close'))),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.auto_awesome),
+              label: Text(t('Fabriquer', 'Craft')),
+              onPressed: busy || !ok
+                  ? null
+                  : () async {
+                      setS(() => busy = true);
+                      try {
+                        await g.craftFull(card.id);
+                        g.playSound(card.rarity);
+                        toast(t('Full art fabriquée !', 'Full art crafted!'));
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      } catch (e) {
+                        toast(errText(e));
+                        if (ctx.mounted) setS(() => busy = false);
+                      }
+                    },
+            ),
+          ],
+        );
+      });
+    },
+  );
 }
