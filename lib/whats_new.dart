@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'game.dart';
@@ -12,6 +12,11 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🃏', 'Nouvel onglet « Pokémon » dans la Collection : 185 cartes très très rares à trouver dans les paquets',
+      'New "Pokémon" tab in the Collection: 185 very very rare cards to find in packs'),
+  ('✨', 'À partir de la carte 152, les cartes Pokémon sortent toujours brillantes',
+      'From card 152 on, Pokémon cards always come out shiny'),
+  ('#', 'Aussi depuis la 1.0.32', 'Also since 1.0.32'),
   ('🏃', 'Nouveau jeu dans la Salle de jeux : la Course de jaquettes ! Saute et glisse pour aller le plus loin possible',
       'New game in the Game room: Cover Run! Jump and slide to go as far as you can'),
   ('🥇', 'Course solo du jour (même parcours pour tous, lots pour les 3 meilleurs) et duels en direct avec le fantôme de l\'adversaire',

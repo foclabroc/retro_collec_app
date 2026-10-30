@@ -1,4 +1,10 @@
-﻿# Pixel Trade — Changelog
+# Pixel Trade — Changelog
+
+## v1.0.33
+_Version 1.0.33+34. Pas de cadeau de version. SQL : `sql/2026-10-30_serie_pokemon.sql` (lancé avant la mise en ligne)._
+
+- 🃏 **Onglet Pokémon** dans la Collection : 185 cartes (`pk_001` … `pk_185`), tirage très très rare (0,15 % par carte de paquet, réglage `pk`).
+- ✨ Dès la carte 152 : toujours brillantes. Images hébergées sur le serveur (`kPkBase`).
 
 ## v1.0.32
 _Version 1.0.32+33. Pas de cadeau de version. SQL : `sql/2026-10-30_course_jaquettes.sql` (à lancer avant la mise en ligne)._
