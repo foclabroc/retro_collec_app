@@ -1,5 +1,11 @@
 ﻿# Pixel Trade — Changelog
 
+## v1.0.31
+_Version 1.0.31+32. Pas de cadeau de version. Pas de nouveau SQL (toujours `sql/2026-10-30_fragments_full_art.sql`)._
+
+- ★★ **Fabriquer depuis l'onglet Full art** : toucher une case vide ouvre la page « Fabriquer » (aperçu, coût, solde, bouton).
+- 🔢 **Compteur de fragments** en haut de l'onglet Full art.
+
 ## v1.0.30
 _Version 1.0.30+31. Pas de cadeau de version. SQL : `sql/2026-10-30_fragments_full_art.sql`._
 

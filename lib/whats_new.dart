@@ -12,15 +12,15 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('★★', 'Onglet Full art : touche une carte que tu n\'as pas pour ouvrir la page « Fabriquer » et la fabriquer avec tes fragments',
+      'Full art tab: tap a card you don\'t have to open the "Craft" page and craft it with your fragments'),
+  ('🔢', 'Ton compteur de fragments est affiché en haut de l\'onglet Full art',
+      'Your fragment counter is shown at the top of the Full art tab'),
+  ('#', 'Aussi depuis la 1.0.30', 'Also since 1.0.30'),
   ('♻', 'Le recyclage ne donne plus de pièces mais des fragments de full art (mêmes quantités qu\'avant)',
       'Recycling no longer gives coins but full art fragments (same amounts as before)'),
-  ('★★', 'Fabrique une full art avec tes fragments : 3 000 pour une épique, 10 000 pour une légendaire (touche une case vide de l\'onglet Full art)',
-      'Craft a full art with your fragments: 3,000 for an epic, 10,000 for a legendary (tap an empty slot in the Full art tab)'),
-  ('#', 'Aussi depuis la 1.0.29', 'Also since 1.0.29'),
-  ('♻', 'Le recyclage ne donne plus de pièces mais des fragments de full art (mêmes quantités qu\'avant)',
-      'Recycling no longer gives coins but full art fragments (same amounts as before)'),
-  ('★★', 'Fabrique une full art avec tes fragments : 3 000 pour une épique, 10 000 pour une légendaire (touche une case vide de l\'onglet Full art)',
-      'Craft a full art with your fragments: 3,000 for an epic, 10,000 for a legendary (tap an empty slot in the Full art tab)'),
+  ('★', 'Une full art coûte 3 000 fragments (épique) ou 10 000 (légendaire)',
+      'A full art costs 3,000 fragments (epic) or 10,000 (legendary)'),
   ('#', 'Aussi depuis la 1.0.29', 'Also since 1.0.29'),
   ('🎮', '6 nouvelles consoles : Atari 2600 et Wii (100 cartes), ColecoVision, Saturn, Wii U et Xbox (50 cartes) : 400 cartes de plus à collectionner',
       '6 new systems: Atari 2600 and Wii (100 cards), ColecoVision, Saturn, Wii U and Xbox (50 cards): 400 more cards to collect'),
