@@ -174,17 +174,51 @@ class RnInput extends StatelessWidget {
           onPointerDown: (e) {
             final h = hero;
             if (h == null || !enabled) return;
+            if (e.localPosition.dy > box.maxHeight - _kRnBtnZone) return; // zone des boutons
             if (e.localPosition.dy < box.maxHeight / 2) {
               h.jumpReq = true;
             } else {
               h.slideReq = true;
             }
           },
-          child: child,
+          child: Stack(children: [
+            Positioned.fill(child: child),
+            if (enabled && hero != null)
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 10,
+                child: Row(children: [
+                  Expanded(child: _btn(t('SAUTER', 'JUMP'), Icons.arrow_upward_rounded, () => hero?.jumpReq = true)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _btn(t('GLISSER', 'SLIDE'), Icons.arrow_downward_rounded, () => hero?.slideReq = true)),
+                ]),
+              ),
+          ]),
         ),
       );
     });
   }
+
+  static const _kRnBtnZone = 84.0;
+
+  Widget _btn(String label, IconData icon, VoidCallback go) => Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: (_) => go(),
+        child: Container(
+          height: 60,
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.45),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white54, width: 2),
+          ),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(icon, color: Colors.white, size: 22),
+            const SizedBox(width: 6),
+            Text(label, style: pixelStyle(size: 10, color: Colors.white, shadow: false)),
+          ]),
+        ),
+      );
 }
 
 // ─── Piste d'un autre joueur (positions reçues en direct) ──────────────────

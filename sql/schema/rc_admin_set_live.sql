@@ -10,7 +10,7 @@ begin
   j := p_values::jsonb;
   for k in select jsonb_object_keys(j) loop
     n := (j->>k)::numeric;
-    if k in ('saga', 'holo', 'gold', 'fullart') then
+    if k in ('saga', 'holo', 'gold', 'fullart', 'pk') then
       if n < 0 or n > 50 then raise exception 'chance entre 0 et 50 %%'; end if;
     elsif k in ('mixte', 'console', 'premium', 'mystery', 'chest_coins', 'chest_pixels') then
       if n < 0 or n > 10000 or n <> round(n) then raise exception 'nombre entier entre 0 et 10000'; end if;

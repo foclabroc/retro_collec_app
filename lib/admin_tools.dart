@@ -564,6 +564,7 @@ class _ToolsTab extends StatelessWidget {
           line(t('Cartes de saga (par carte)', 'Saga cards (per card)'), '${v('saga')} %'),
           line(t('Brillante · dorée', 'Holo · gold'), '${v('holo')} % · ${v('gold')} %'),
           line(t('Full art (épiques et légendaires)', 'Full art (epic & legendary)'), '${v('fullart')} %'),
+          line(t('Pokémon (par carte de paquet)', 'Pokémon (per pack card)'), '${v('pk')} %'),
           line(t('Paquets mixte · console · premium · mystère', 'Packs mixed · console · premium · mystery'),
               '${v('mixte')} · ${v('console')} · ${v('premium')} · ${v('mystery')} 🪙'),
           line(t('Coffre des défis', 'Challenge chest'), '${v('chest_coins')} 🪙 + ${v('chest_pixels')} ▦ + 1 premium'),
@@ -579,7 +580,7 @@ class _ToolsTab extends StatelessWidget {
                 if (ok != true) return;
                 await _run(
                     () => RcServer.adminSetLive(const {
-                          'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 3, 'mixte': 100, 'console': 150,
+                          'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 3, 'pk': 0.15, 'mixte': 100, 'console': 150,
                           'premium': 400, 'mystery': 120, 'chest_coins': 500, 'chest_pixels': 2,
                         }).then(applyLive),
                     t('Valeurs d\'origine remises', 'Defaults restored'),
@@ -592,8 +593,9 @@ class _ToolsTab extends StatelessWidget {
   }
 
   Future<void> _editLive(BuildContext context, Map<String, dynamic> live, Future<void> Function() reload) async {
-    const keys = ['saga', 'holo', 'gold', 'fullart', 'mixte', 'console', 'premium', 'mystery', 'chest_coins', 'chest_pixels'];
+    const keys = ['saga', 'holo', 'gold',     'fullart', 'pk', 'mixte', 'console', 'premium', 'mystery', 'chest_coins', 'chest_pixels'];
     final labels = {
+          'pk': t('Pokémon (%)', 'Pokémon (%)'),
       'saga': t('Saga (%)', 'Saga (%)'),
       'holo': t('Brillante (%)', 'Holo (%)'),
       'gold': t('Dorée (%)', 'Gold (%)'),

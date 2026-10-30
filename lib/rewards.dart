@@ -79,6 +79,10 @@ List<String> rewardParts(dynamic r, {bool icons = true}) {
   }
   if (_n(x['lots']) > 0) parts.add(t('${x['lots']} lot ×5', '${x['lots']} bundle ×5'));
   for (final e in ((x['cards'] as Map?) ?? const {}).entries) {
+    if (e.key == 'pk') {
+      parts.add(t('${e.value} carte Pokémon', '${e.value} Pokémon card'));
+      continue;
+    }
     parts.add(t('${e.value} carte ${rarityName(_n(e.key)).toLowerCase()}', '${e.value} ${rarityName(_n(e.key)).toLowerCase()} card'));
   }
   return parts;
@@ -143,6 +147,7 @@ class _RewardEditorState extends State<RewardEditor> {
         'pixels' => ('▦', t('Pixels', 'Pixels')),
         'lots' => ('📦', t('Lot de 5 paquets mixtes', 'Bundle of 5 mixed packs')),
         'packs' => (rewardPackIcon(sub ?? ''), rewardPackName(sub ?? '')),
+        _ when sub == 'pk' => ('⚡', t('Carte Pokémon au hasard', 'Random Pokémon card')),
         _ => ('🃏', t('Carte ${rarityName(_n(sub)).toLowerCase()} au hasard', 'Random ${rarityName(_n(sub)).toLowerCase()} card')),
       };
 
@@ -193,7 +198,7 @@ class _RewardEditorState extends State<RewardEditor> {
       ('pixels', null),
       for (final p in kRewardPacks) ('packs', p),
       ('lots', null),
-      for (final c in const ['1', '2', '3', '4']) ('cards', c),
+      for (final c in const ['1', '2', '3', '4', 'pk']) ('cards', c),
     ];
     final pick = await showModalBottomSheet<(String, String?)>(
       context: context,

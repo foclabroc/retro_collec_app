@@ -12,6 +12,9 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🕹️', 'Snake : un joystick tactile remplace les flèches. Course de jaquettes : boutons « Sauter » et « Glisser » en bas de l\'écran',
+      'Snake: a touch joystick replaces the arrows. Cover Run: "Jump" and "Slide" buttons at the bottom of the screen'),
+  ('#', 'Aussi depuis la 1.0.36', 'Also since 1.0.36'),
   ('🃏', 'Le nombre de cartes Pokémon apparaît maintenant dans les profils (séries et comparaison entre joueurs)',
       'The number of Pokémon cards now shows in profiles (sets and player comparison)'),
   ('#', 'Aussi depuis la 1.0.35', 'Also since 1.0.35'),

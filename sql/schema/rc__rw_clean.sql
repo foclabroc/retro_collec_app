@@ -17,7 +17,7 @@ begin
   m := '{}'::jsonb;
   for k, v in select key, value from jsonb_each_text(coalesce(r->'cards', '{}'::jsonb)) loop
     n := least(greatest(coalesce(v::int, 0), 0), 10);
-    if k in ('0', '1', '2', '3', '4') and n > 0 then m := m || jsonb_build_object(k, n); end if;
+    if k in ('0', '1', '2', '3', '4', 'pk') and n > 0 then m := m || jsonb_build_object(k, n); end if;
   end loop;
   if m <> '{}'::jsonb then out := out || jsonb_build_object('cards', m); end if;
   return out;

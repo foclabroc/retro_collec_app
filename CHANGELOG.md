@@ -1,5 +1,12 @@
 # Pixel Trade — Changelog
 
+## v1.0.37
+_Version 1.0.37+38. Pas de cadeau de version. SQL : `sql/2026-10-30_admin_pokemon.sql`._
+
+- 🛠️ Admin : « Carte Pokémon au hasard » dans les récompenses / cadeaux, et réglage « Pokémon (%) » dans les réglages en direct.
+- 🕹️ Snake : joystick tactile à la place des 4 flèches.
+- 🏃 Course de jaquettes : boutons « Sauter » et « Glisser » côte à côte en bas.
+
 ## v1.0.36
 _Version 1.0.36+37. Pas de cadeau de version. Pas de SQL._
 

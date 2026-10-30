@@ -613,21 +613,13 @@ class _CabPlayPageState extends State<CabPlayPage> {
           if (game == 'snake')
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: Column(children: [
-                _pad(Icons.keyboard_arrow_up, 0, -1),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  _pad(Icons.keyboard_arrow_left, -1, 0),
-                  const SizedBox(width: 58),
-                  _pad(Icons.keyboard_arrow_right, 1, 0),
-                ]),
-                _pad(Icons.keyboard_arrow_down, 0, 1),
-              ]),
+              child: _Joystick(onDir: (dx, dy) => _view.currentState?.turn(dx, dy)),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
             child: Text(
               game == 'snake'
-                  ? t('Glisse sur le jeu, utilise les flèches ou les boutons', 'Swipe on the game, use arrow keys or the buttons')
+                  ? t('Glisse sur le jeu, utilise le joystick ou les flèches du clavier', 'Swipe on the game, use the joystick or arrow keys')
                   : t('Glisse le doigt (ou la souris) pour bouger', 'Drag your finger (or the mouse) to move'),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12, color: Colors.white60),
@@ -637,17 +629,69 @@ class _CabPlayPageState extends State<CabPlayPage> {
       ),
     );
   }
+}
 
-  Widget _pad(IconData icon, int dx, int dy) => Padding(
-        padding: const EdgeInsets.all(3),
-        child: Material(
-          color: const Color(0xFF1F1440),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: Color(0xFF3A2A6A), width: 2)),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(10),
-            onTapDown: (_) => _view.currentState?.turn(dx, dy),
-            child: SizedBox(width: 58, height: 44, child: Icon(icon, size: 28)),
-          ),
+/// Joystick tactile : le pouce glisse depuis le centre, l'axe dominant donne la direction.
+class _Joystick extends StatefulWidget {
+  final void Function(int dx, int dy) onDir;
+  const _Joystick({required this.onDir});
+  @override
+  State<_Joystick> createState() => _JoystickState();
+}
+
+class _JoystickState extends State<_Joystick> {
+  static const size = 132.0, knob = 54.0, dead = 16.0;
+  Offset off = Offset.zero;
+  (int, int) last = (0, 0);
+
+  void _move(Offset local) {
+    var d = local - const Offset(size / 2, size / 2);
+    const max = (size - knob) / 2;
+    if (d.distance > max) d = d / d.distance * max;
+    setState(() => off = d);
+    if (d.distance < dead) return;
+    final dir = d.dx.abs() > d.dy.abs() ? (d.dx > 0 ? 1 : -1) : 0;
+    final dirY = d.dx.abs() > d.dy.abs() ? 0 : (d.dy > 0 ? 1 : -1);
+    if ((dir, dirY) == last) return;
+    last = (dir, dirY);
+    widget.onDir(dir, dirY);
+  }
+
+  void _end() {
+    setState(() => off = Offset.zero);
+    last = (0, 0);
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onPanStart: (d) => _move(d.localPosition),
+        onPanUpdate: (d) => _move(d.localPosition),
+        onPanEnd: (_) => _end(),
+        onPanCancel: _end,
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Stack(alignment: Alignment.center, children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF1F1440),
+                border: Border.all(color: const Color(0xFF3A2A6A), width: 3),
+              ),
+            ),
+            Transform.translate(
+              offset: off,
+              child: Container(
+                width: knob,
+                height: knob,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF6B4FD8),
+                  border: Border.all(color: Colors.white38, width: 2),
+                ),
+              ),
+            ),
+          ]),
         ),
       );
 }
