@@ -385,7 +385,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
         ]);
     // raccourcis
-    final a1 = action('♻', '${g.dupes}', t('doublons', 'duplicates'), Colors.white, g.dupes > 0 ? () => recycleAllDupes(context) : null);
+    final a1 = action('♻', '${g.dupes}', t('doublons · ${g.fragments} fragm.', 'duplicates · ${g.fragments} frag.'), Colors.white, g.dupes > 0 ? () => recycleAllDupes(context) : null);
     final a2 = action('⚡', '${g.fusable}', t('fusions', 'fusions'), g.fusable > 0 ? kGold : Colors.white54, () => _openCards(show: 3, sort: 5));
     final a3 = action('✦', '${g.holoCount}', t('brillantes', 'holo'), const Color(0xFFB4A9FF), () => _openCards(show: 4, sort: 1));
     final a4 = action('★', '${g.goldCount}', t('dorées', 'gold'), const Color(0xFFFFD54F), () => _openCards(show: 5, sort: 1));
