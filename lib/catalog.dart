@@ -27,7 +27,7 @@ import 'web_img_stub.dart' if (dart.library.js_interop) 'web_img_web.dart';
 const kAssetsBase = 'https://foclabroc.github.io/retro_collec_assets/';
 
 /// Série « Pokémon » : images hébergées sur le serveur de l'utilisateur (001.jpg … 185.jpg, voir selfhost/pk_prepare.ps1)
-const kPkBase = 'https://api.foclabroc.duckdns.org/pk/';
+const kPkBase = 'https://foclabroc.duckdns.org/pk/';
 
 // (hors de RcCard : dans la classe, « num » désigne le champ et non le type)
 int _int(dynamic v) => (v as num).toInt();
