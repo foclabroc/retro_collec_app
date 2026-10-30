@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'game.dart';
+import 'pk_list.dart';
 import 'web_img_stub.dart' if (dart.library.js_interop) 'web_img_web.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -24,6 +25,9 @@ import 'web_img_stub.dart' if (dart.library.js_interop) 'web_img_web.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const kAssetsBase = 'https://foclabroc.github.io/retro_collec_assets/';
+
+/// Série « Pokémon » : images hébergées sur le serveur de l'utilisateur (001.png … 185.png, voir selfhost/pk_prepare.ps1)
+const kPkBase = 'https://api.foclabroc.duckdns.org/pk/';
 
 // (hors de RcCard : dans la classe, « num » désigne le champ et non le type)
 int _int(dynamic v) => (v as num).toInt();
@@ -211,7 +215,7 @@ class Catalog {
 
   /// Total à collectionner : toutes les cartes + une full art possible par épique / légendaire des consoles
   /// (le full art compte comme une carte à part, onglet Full art). Même règle que `rc__rescore` (champ `cards`).
-  static int get total => cards.length + cards.values.where((c) => !c.isSaga && c.rarity >= 3).length;
+  static int get total => cards.length + cards.values.where((c) => !c.isSaga && c.sys != 'pk' && c.rarity >= 3).length;
   static Map<String, List<RcCard>> bySys = {};
   static late String dir; // dossier local des images
 
@@ -246,8 +250,9 @@ class Catalog {
       });
 
   /// Jaquette de la carte (fichier local sur Android, image en ligne sur le web)
-  static ImageProvider image(RcCard c) =>
-      kIsWeb ? CachedWebImage(_url(c.img, c.baseSys ?? c.sys)) : FileImage(File('$dir/${c.img}')) as ImageProvider;
+  static ImageProvider image(RcCard c) => c.sys == 'pk'
+      ? (kIsWeb ? CachedWebImage('$kPkBase${c.img}') : NetworkImage('$kPkBase${c.img}') as ImageProvider)
+      : kIsWeb ? CachedWebImage(_url(c.img, c.baseSys ?? c.sys)) : FileImage(File('$dir/${c.img}')) as ImageProvider;
 
   /// Capture d'écran du jeu, ou null si absente (pas encore téléchargée sur Android)
   static ImageProvider? shot(RcCard c) {
@@ -295,6 +300,28 @@ class Catalog {
     for (final l in bySys.values) {
       l.sort((a, b) => a.num.compareTo(b.num));
     }
+    // série Pokémon : cartes construites ici (serveur : saga = 'pk'), rangées dans « pk »
+    final pk = <RcCard>[
+      for (var i = 0; i < kPkList.length; i++)
+        RcCard(
+          id: 'pk_${(i + 1).toString().padLeft(3, '0')}',
+          sys: 'pk',
+          num: i + 1,
+          title: kPkList[i][1],
+          year: null,
+          dev: kPkList[i][2],
+          pub: '',
+          genre: '',
+          rarity: i + 1 >= 152 ? 4 : 3,
+          img: '${(i + 1).toString().padLeft(3, '0')}.png',
+          shot: null,
+          desc: '',
+        ),
+    ];
+    for (final c in pk) {
+      cards[c.id] = c;
+    }
+    bySys['pk'] = pk;
   }
 
   /// Charge le catalogue déjà téléchargé. Faux si rien en local (premier lancement).

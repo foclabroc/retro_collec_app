@@ -79,7 +79,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final v = p.getInt(_kSysSortKey);
       if (v != null && mounted) setState(() => sysSort = v.clamp(0, 5));
       final m = p.getInt('rc_coll_mode') ?? (p.getBool('rc_coll_sagas') == true ? 1 : 0);
-      if (m != 0 && mounted) setState(() => mode = m.clamp(0, 2));
+      if (m != 0 && mounted) setState(() => mode = m.clamp(0, 3));
       if (p.getBool('rc_dash_open') == true && mounted) setState(() => dashOpen = true);
     }).catchError((_) {});
   }
@@ -112,7 +112,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(13)),
-      child: Row(children: [b(0, t('🎮 Consoles', '🎮 Systems')), b(1, t('📚 Sagas', '📚 Sagas')), b(2, t('★★ Full art', '★★ Full art'))]),
+      child: Row(children: [b(0, t('🎮 Consoles', '🎮 Systems')), b(1, t('📚 Sagas', '📚 Sagas')), b(2, t('★★ Full art', '★★ Full art')), b(3, 'Pokémon')]),
     );
   }
 
@@ -167,6 +167,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final systems = _sortedSystems(g);
         final sagaList = [for (final s in kSagas) if (Catalog.bySys[s.sys] != null) s];
         final faList = mode == 2 ? fullArtCards() : const <RcCard>[];
+        final pkList = mode == 3 ? (Catalog.bySys['pk'] ?? const <RcCard>[]) : const <RcCard>[];
+        final pkMine = [for (final c in pkList) if (g.owned[c.id]?.any((q) => q > 0) ?? false) c.id].length;
         final faMine = [for (final c in faList) if ((g.owned[c.id]?[3] ?? 0) > 0) c.id].length;
         return Column(children: [
           TabHeader(t('Collection', 'Collection'), icon: 'collection', actions: [
@@ -191,6 +193,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           switch (mode) {
                             1 => t('Cartes holo : ${livePct('saga')} de chance par carte de paquet', 'Holo cards: ${livePct('saga')} chance per pack card'),
                             2 => t('$faMine / ${faList.length} · ${livePct('fullart')} par épique ou légendaire', '$faMine / ${faList.length} · ${livePct('fullart')} per epic or legendary'),
+                            3 => t('$pkMine / ${pkList.length} · très très rare, dès la 152 : brillantes', '$pkMine / ${pkList.length} · very very rare, from #152: shiny'),
                             _ => t('Mes consoles', 'My systems'),
                           },
                           maxLines: 1,
@@ -236,7 +239,22 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     ),
                   ),
                 ),
-              if (mode == 2)
+              if (mode == 3)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+                  sliver: SliverLayoutBuilder(
+                    builder: (context, box) => SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: adaptiveCols(context, box.crossAxisExtent, phone: 3, minTile: 130, max: 8),
+                        childAspectRatio: 5 / 7,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      delegate: SliverChildBuilderDelegate((_, i) => _PkSlot(card: pkList[i], list: pkList), childCount: pkList.length),
+                    ),
+                  ),
+                )
+              else if (mode == 2)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
                   // 3 cartes par ligne sur téléphone, plus sur grand écran
@@ -953,6 +971,37 @@ class _FullArtSlot extends StatelessWidget {
       );
     }),
     );
+  }
+}
+
+/// Case de l'onglet Pokémon : la carte (meilleure finition possédée) ou une case vide numérotée.
+class _PkSlot extends StatelessWidget {
+  final RcCard card;
+  final List<RcCard> list;
+  const _PkSlot({required this.card, required this.list});
+
+  @override
+  Widget build(BuildContext context) {
+    final q = Game.i.owned[card.id];
+    final best = q == null ? -1 : q.lastIndexWhere((n) => n > 0);
+    if (best >= 0) {
+      return GestureDetector(
+        onTap: () => openCardDetail(context, card, list: [for (final c in list) if (Game.i.owned[c.id]?.any((n) => n > 0) ?? false) c]),
+        child: CardView(card: card, finish: best),
+      );
+    }
+    return LayoutBuilder(builder: (context, box) {
+      final w = box.maxWidth;
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.28),
+          borderRadius: BorderRadius.circular(w * 0.075),
+          border: Border.all(color: kRarityColor[card.rarity].withOpacity(0.35), width: 1.5),
+        ),
+        alignment: Alignment.center,
+        child: Text('#${card.num}', style: TextStyle(color: Colors.white38, fontSize: max(10, w * 0.12), fontWeight: FontWeight.w800)),
+      );
+    });
   }
 }
 

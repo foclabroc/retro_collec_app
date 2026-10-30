@@ -32,7 +32,7 @@ begin
     if p_kind = 'sconsole' and i = n - 1 then f := greatest(f, 1); end if;   -- une brillante garantie
     if p_kind = 'gold' and i = n and r < 4 then f := 2; end if;              -- sinon légendaire : dorée garantie
     sg := public.rc__saga_roll();  -- carte de saga
-    if sg is not null then c := sg; r := 3; f := 0; got_epic := true; end if;
+    if sg is not null then c := sg; r := 3; f := case when sg like 'pk\_%' and substr(sg, 4)::int >= 152 then 1 else 0 end; got_epic := true; end if;
     res := res || jsonb_build_object('c', c, 'f', f, 'r', r);
     c := null;
   end loop;

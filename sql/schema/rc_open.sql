@@ -57,7 +57,7 @@ begin
     if r >= 3 then got_epic := true; end if;
     f := public.rc__roll_finish(r);
     sg := public.rc__saga_roll();  -- carte de saga
-    if sg is not null then c := sg; r := 3; f := 0; got_epic := true; end if;
+    if sg is not null then c := sg; r := 3; f := case when sg like 'pk\_%' and substr(sg, 4)::int >= 152 then 1 else 0 end; got_epic := true; end if;
     is_new := public.rc__is_new(p_device, c, f);
     if is_new then nnew := nnew + 1; end if;
     perform public.rc__give(p_device, c, f, 1);
