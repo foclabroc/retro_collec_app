@@ -123,19 +123,41 @@ class RnPainter extends CustomPainter {
     canvas.save();
     canvas.scale(size.width / kRnW, size.height / kRnH);
     const rect = Rect.fromLTWH(0, 0, kRnW, kRnH);
-    canvas.drawRect(rect, Paint()..shader = const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF1B2A6B), Color(0xFF3B1F6E), Color(0xFF07051A)]).createShader(rect));
-    // collines lointaines (défilement lent)
-    final far = Paint()..color = Colors.white.withOpacity(0.06);
-    for (var k = -1; k < 8; k++) {
-      final bx = k * 90.0 - (camX * kRnPxM * 0.25) % 90;
-      canvas.drawRect(Rect.fromLTWH(bx, kRnGround - 70 - (k % 3) * 24, 60, 70 + (k % 3) * 24), far);
+    canvas.drawRect(rect, Paint()..shader = const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF0B1040), Color(0xFF5A1F7A), Color(0xFFFF6F61)], stops: [0.0, 0.6, 1.0]).createShader(rect));
+    // étoiles
+    final star = Paint()..color = Colors.white.withOpacity(0.8);
+    for (var i = 0; i < 40; i++) {
+      final sx = (i * 97.0 - camX * kRnPxM * 0.03) % kRnW;
+      canvas.drawRect(Rect.fromLTWH(sx < 0 ? sx + kRnW : sx, (i * 53) % 190 + 4.0, i % 3 == 0 ? 2 : 1, i % 3 == 0 ? 2 : 1), star);
     }
+    // soleil rétro
+    final sun = Paint()..color = const Color(0xFFFFD166).withOpacity(0.9);
+    canvas.drawCircle(const Offset(270, 250), 46, sun);
+    for (var k = 0; k < 5; k++) {
+      canvas.drawRect(Rect.fromLTWH(220, 262 + k * 10.0, 100, 2 + k * 1.2), Paint()..color = const Color(0xFF5A1F7A));
+    }
+    // villes en parallaxe (deux couches)
+    void skyline(double speed, Color col, double hMax, double wBlock) {
+      final p = Paint()..color = col;
+      final off = (camX * kRnPxM * speed) % (wBlock * 6);
+      for (var k = -1; k < 9; k++) {
+        final idx = k + (camX * kRnPxM * speed / (wBlock * 6)).floor() * 6;
+        final h = 40 + ((idx * 37) % 7) * hMax / 7;
+        canvas.drawRect(Rect.fromLTWH(k * wBlock - off, kRnGround - h, wBlock - 3, h), p);
+      }
+    }
+    skyline(0.12, const Color(0xFF2A1450), 120, 46);
+    skyline(0.3, const Color(0xFF160A33), 80, 38);
     // sol
     canvas.drawRect(const Rect.fromLTWH(0, kRnGround, kRnW, kRnH - kRnGround), Paint()..color = const Color(0xFF0D0F14));
-    canvas.drawRect(const Rect.fromLTWH(0, kRnGround, kRnW, 3), Paint()..color = _green.withOpacity(0.7));
-    final tick = Paint()..color = Colors.white24;
-    for (var m = (camX - 5).floorToDouble(); m < camX + 16; m++) {
-      if (m % 5 == 0) canvas.drawRect(Rect.fromLTWH(_sx(m), kRnGround + 8, 2, 8), tick);
+    canvas.drawRect(const Rect.fromLTWH(0, kRnGround, kRnW, 3), Paint()..color = _green);
+    canvas.drawRect(const Rect.fromLTWH(0, kRnGround + 3, kRnW, 6), Paint()..color = _green.withOpacity(0.18));
+    final grid = Paint()..color = _green.withOpacity(0.22);
+    for (var m = (camX - 5).floorToDouble(); m < camX + 18; m++) {
+      canvas.drawRect(Rect.fromLTWH(_sx(m), kRnGround + 10, 1, kRnH - kRnGround - 10), grid);
+    }
+    for (var y = kRnGround + 24; y < kRnH; y += 22) {
+      canvas.drawRect(Rect.fromLTWH(0, y, kRnW, 1), grid);
     }
     world.generateUntil(camX + 20);
     for (final o in world.obs) {
@@ -161,37 +183,70 @@ class RnPainter extends CustomPainter {
 
   static const _cols = [Color(0xFF26A69A), Color(0xFFEC407A), Color(0xFF5C6BC0), Color(0xFFFFA726)];
 
+  // boîtier de jeu : tranche colorée, étiquette claire, pastille de couleur
+  void _box(Canvas canvas, Rect r, Color c) {
+    canvas.drawRRect(RRect.fromRectAndRadius(r.shift(const Offset(2, 2)), const Radius.circular(3)), Paint()..color = Colors.black38);
+    canvas.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(3)), Paint()..color = c);
+    canvas.drawRect(Rect.fromLTWH(r.left, r.top, 4, r.height), Paint()..color = Colors.black26);
+    canvas.drawRect(Rect.fromLTWH(r.left + 7, r.top + 4, r.width - 11, r.height * 0.5), Paint()..color = Colors.white.withOpacity(0.88));
+    canvas.drawRect(Rect.fromLTWH(r.left + 9, r.top + 6, r.width - 15, 3), Paint()..color = c.withOpacity(0.8));
+    canvas.drawCircle(Offset(r.left + r.width / 2 + 2, r.bottom - r.height * 0.22), r.height * 0.1, Paint()..color = Colors.white70);
+    canvas.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(3)), Paint()..style = PaintingStyle.stroke..strokeWidth = 1.5..color = Colors.white.withOpacity(0.5));
+  }
+
   void _obstacle(Canvas canvas, RnObs o, double px) {
     final c = _cols[(o.x.floor() ~/ 7) % _cols.length];
     final w = _obsW * kRnPxM;
     if (!o.air) {
       final h = _gndH * kRnPxM;
-      final r = RRect.fromRectAndRadius(Rect.fromLTWH(px, kRnGround - h, w, h), const Radius.circular(3));
-      canvas.drawRRect(r, Paint()..color = c);
-      canvas.drawRect(Rect.fromLTWH(px + 4, kRnGround - h + 4, w - 8, 5), Paint()..color = Colors.white.withOpacity(0.3));
-      canvas.drawRect(Rect.fromLTWH(px + 4, kRnGround - 6, w - 8, 3), Paint()..color = Colors.black26);
+      _box(canvas, Rect.fromLTWH(px, kRnGround - h, w, h), c);
     } else {
       final top = kRnGround - _airHigh * kRnPxM;
       final h = (_airHigh - _airLow) * kRnPxM;
-      final r = RRect.fromRectAndRadius(Rect.fromLTWH(px, top, w, h), const Radius.circular(3));
-      canvas.drawRRect(r, Paint()..color = c);
-      canvas.drawRect(Rect.fromLTWH(px + 3, top + 3, w - 6, 3), Paint()..color = Colors.white.withOpacity(0.3));
-      // poteaux
-      canvas.drawRect(Rect.fromLTWH(px + 2, top + h, 2, 4), Paint()..color = Colors.white30);
-      canvas.drawRect(Rect.fromLTWH(px + w - 4, top + h, 2, 4), Paint()..color = Colors.white30);
+      // câbles de suspension
+      final cable = Paint()..color = Colors.white38..strokeWidth = 1;
+      canvas.drawLine(Offset(px + 4, top), Offset(px + 4, 0), cable);
+      canvas.drawLine(Offset(px + w - 4, top), Offset(px + w - 4, 0), cable);
+      _box(canvas, Rect.fromLTWH(px, top, w, h), c);
     }
   }
 
   void _runner(Canvas canvas, RnRunner r) {
     final op = r.ghost ? 0.5 : 1.0;
+    final col = (r.dead ? Colors.grey : r.color).withOpacity(op);
     final h = (r.sliding ? _slideH : _heroH) * kRnPxM;
     final w = (r.sliding ? 1.0 : 0.7) * kRnPxM;
     final px = _sx(r.x) - w / 2;
     final top = kRnGround - r.y * kRnPxM - h;
-    final body = RRect.fromRectAndRadius(Rect.fromLTWH(px, top, w, h), const Radius.circular(4));
-    canvas.drawRRect(body, Paint()..color = (r.dead ? Colors.grey : r.color).withOpacity(op));
-    canvas.drawRect(Rect.fromLTWH(px + w - 8, top + 4, 4, 4), Paint()..color = Colors.white.withOpacity(op));
-    canvas.drawRect(Rect.fromLTWH(px + w - 7, top + 5, 2, 2), Paint()..color = Colors.black.withOpacity(op));
+    final white = Paint()..color = Colors.white.withOpacity(op);
+    final dark = Paint()..color = Colors.black.withOpacity(op);
+    final air = r.y > 0.05;
+    // jambes qui alternent selon la distance
+    if (!r.sliding) {
+      final ph = (r.x * 1.6).floor().isEven;
+      final leg = Paint()..color = col;
+      final lh = air ? 5.0 : 6.0;
+      canvas.drawRect(Rect.fromLTWH(px + 2, top + h - lh, 5, lh + (air || ph ? 0 : -2)), leg);
+      canvas.drawRect(Rect.fromLTWH(px + w - 7, top + h - lh, 5, lh + (air || !ph ? 0 : -2)), leg);
+    }
+    // ombre au sol
+    if (air) canvas.drawOval(Rect.fromCenter(center: Offset(px + w / 2, kRnGround + 2), width: w * (1 - r.y / 6).clamp(0.3, 1.0), height: 4), Paint()..color = Colors.black38);
+    // corps : cartouche
+    final body = RRect.fromRectAndRadius(Rect.fromLTWH(px, top, w, h - (r.sliding ? 0 : 5)), const Radius.circular(4));
+    canvas.drawRRect(body, Paint()..color = col);
+    canvas.drawRect(Rect.fromLTWH(px + 3, top + 3, w - 6, (h - 5) * 0.32), Paint()..color = Colors.black.withOpacity(0.28 * op));
+    // visage
+    final ex = px + w - (r.sliding ? 10 : 8);
+    canvas.drawRect(Rect.fromLTWH(ex, top + (r.sliding ? 5 : 6), 5, 5), white);
+    canvas.drawRect(Rect.fromLTWH(ex + 2, top + (r.sliding ? 6 : 7), 2, 3), dark);
+    // traînée de vitesse
+    if (!r.dead && !r.ghost) {
+      final t = Paint()..color = Colors.white.withOpacity(0.25);
+      for (var i = 0; i < 3; i++) {
+        canvas.drawRect(Rect.fromLTWH(px - 8 - i * 6, top + 6 + i * 7, 6.0 - i, 2), t);
+      }
+    }
+    canvas.drawRRect(body, Paint()..style = PaintingStyle.stroke..strokeWidth = 1.5..color = Colors.white.withOpacity(0.7 * op));
     if (r.label != null) _text(canvas, r.label!, Offset(px - 10, top - 14), r.color, 10);
   }
 
