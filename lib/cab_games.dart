@@ -640,7 +640,7 @@ class _Joystick extends StatefulWidget {
 }
 
 class _JoystickState extends State<_Joystick> {
-  static const size = 132.0, knob = 54.0, dead = 16.0;
+  static const size = 132.0, knob = 54.0, dead = 12.0;
   Offset off = Offset.zero;
   (int, int) last = (0, 0);
 
@@ -650,8 +650,11 @@ class _JoystickState extends State<_Joystick> {
     if (d.distance > max) d = d / d.distance * max;
     setState(() => off = d);
     if (d.distance < dead) return;
-    final dir = d.dx.abs() > d.dy.abs() ? (d.dx > 0 ? 1 : -1) : 0;
-    final dirY = d.dx.abs() > d.dy.abs() ? 0 : (d.dy > 0 ? 1 : -1);
+    // hystérésis : on change d'axe seulement si l'autre domine nettement (pas de zigzag près de la diagonale)
+    final ax = d.dx.abs(), ay = d.dy.abs();
+    final horiz = last.$1 != 0 ? ax * 1.35 > ay : last.$2 != 0 ? ax > ay * 1.35 : ax > ay;
+    final dir = horiz ? (d.dx > 0 ? 1 : -1) : 0;
+    final dirY = horiz ? 0 : (d.dy > 0 ? 1 : -1);
     if ((dir, dirY) == last) return;
     last = (dir, dirY);
     widget.onDir(dir, dirY);
@@ -721,7 +724,7 @@ class _Snake extends _Mini {
   static const cols = 17, rows = 22;
   final body = <math.Point<int>>[const math.Point(5, 11), const math.Point(4, 11), const math.Point(3, 11)];
   math.Point<int> dir = const math.Point(1, 0);
-  final turns = <math.Point<int>>[]; // virages en attente (2 max)
+  final turns = <math.Point<int>>[]; // virages en attente (3 max)
   late math.Point<int> food = _place();
   int every = 8, wait = 0, eaten = 0;
 
@@ -735,7 +738,7 @@ class _Snake extends _Mini {
   @override
   void turn(int dx, int dy) {
     final cur = turns.isEmpty ? dir : turns.last;
-    if (turns.length >= 2 || (dx == -cur.x && dy == -cur.y) || (dx == cur.x && dy == cur.y)) return;
+    if (turns.length >= 3 || (dx == -cur.x && dy == -cur.y) || (dx == cur.x && dy == cur.y)) return;
     turns.add(math.Point(dx, dy));
   }
 
@@ -1053,7 +1056,7 @@ class MiniGameViewState extends State<MiniGameView> with SingleTickerProviderSta
             point(d.localPosition);
             if (g is _Snake) {
               _drag += d.delta;
-              if (_drag.distance > 18) {
+              if (_drag.distance > 10) {
                 if (_drag.dx.abs() > _drag.dy.abs()) {
                   g.turn(_drag.dx > 0 ? 1 : -1, 0);
                 } else {

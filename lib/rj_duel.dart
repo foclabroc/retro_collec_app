@@ -2,13 +2,13 @@ part of 'connect4.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Duel Rétro Jump en direct (27/10) : même parcours pour les deux (graine du serveur),
-// sans bonus, 2 minutes max, le plus haut gagne. Mêmes gains que le 4 en ligne.
+// sans bonus, sans limite de temps, le plus haut gagne. Mêmes gains que le 4 en ligne.
 //  · Moteur : rj_engine.dart (monde 360 × 640, physique de Rétro Jump à pas fixe).
 //  · Fantôme : ma position part ≈ 10 fois par seconde sur le canal de la partie
 //    (LiveLink.sendPos → relais, sans passer par la base) ; celle de l'adversaire arrive
 //    par LiveLink.positions et s'affiche en transparence (RjTrack, lissée).
 //  · Serveur (sql/2026-10-27_duel_retro_jump.sql) : ma hauteur toutes les 2 s (rc_rj_score),
-//    à la chute et à la fin des 2 min ; il décide du gagnant (rc__rj_settle).
+//    à la chute ; il décide du gagnant (rc__rj_settle).
 //  · Spectateur : les deux joueurs en fantômes, caméra sur le plus haut.
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -17,7 +17,7 @@ const _kRjGreen = Color(0xFF69F0AE);
 final kRjDuel = DuelKind(
   code: 'rj',
   title: 'RÉTRO JUMP',
-  liveSub: '2 min · le plus haut gagne',
+  liveSub: 'sans limite de temps · le plus haut gagne',
   turnSub: '',
   list: RcServer.rjList,
   online: RcServer.rjOnline,
@@ -108,8 +108,8 @@ class _RetroJumpTileState extends State<RetroJumpTile> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                     const Text('Rétro Jump', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                     const SizedBox(height: 3),
-                    Text(t('Course en direct sur le même parcours : 2 minutes, le plus haut gagne $kDuelWin pièces + 1 pixel',
-                            'Live race on the same course: 2 minutes, the highest wins $kDuelWin coins + 1 pixel'),
+                    Text(t('Course en direct sur le même parcours : sans limite de temps, le plus haut gagne $kDuelWin pièces + 1 pixel',
+                            'Live race on the same course: no time limit, the highest wins $kDuelWin coins + 1 pixel'),
                         style: const TextStyle(color: Colors.white60, fontSize: 12)),
                     if (online > 0) ...[
                       const SizedBox(height: 4),
@@ -463,7 +463,7 @@ class _RjGamePageState extends State<RjGamePage> with SingleTickerProviderStateM
 
   // ── affichage ──
   String _clock() {
-    final left = (kRjDuration - max(0.0, _now)).clamp(0, kRjDuration).ceil();
+    final left = max(0.0, _now).clamp(0, kRjDuration).floor();
     return '${left ~/ 60}:${(left % 60).toString().padLeft(2, '0')}';
   }
 
@@ -556,7 +556,7 @@ class _RjGamePageState extends State<RjGamePage> with SingleTickerProviderStateM
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(10), border: Border.all(color: _kRjGreen.withOpacity(0.6))),
-                    child: Text(_started ? _clock() : '2:00', style: pixelStyle(size: 12, color: now > kRjDuration - 10 && playing ? const Color(0xFFFF8A95) : Colors.white, shadow: false)),
+                    child: Text(_started ? _clock() : '0:00', style: pixelStyle(size: 12, color: Colors.white, shadow: false)),
                   ),
                   _scoreChip(oppName, _i(opp['avatar']), oppTr.score, kRjBlue, dead: oppTr.dead, right: true),
                 ]),

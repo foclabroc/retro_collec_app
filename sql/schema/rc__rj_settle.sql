@@ -26,7 +26,7 @@ begin
     g.dead2 := coalesce(g.seen2, g.start_at); g.gone2 := true;
     update public.rc_rj set dead2 = g.dead2, gone2 = true where id = p_id;
   end if;
-  over := now() > g.end_at + interval '5 seconds';  -- 2 min passées (+ 5 s pour la dernière hauteur)
+  over := now() > g.end_at + interval '5 seconds';  -- garde-fou 1 h passé (+ 5 s pour la dernière hauteur)
   d1 := g.dead1 is not null or over;
   d2 := g.dead2 is not null or over;
   if d1 and d2 then

@@ -12,6 +12,11 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🏃', 'Course de jaquettes : plus de limite de temps, ça dure jusqu\'à ta chute et la vitesse augmente doucement. Rétro Jump : plus de limite de 2 minutes non plus',
+      'Cover Run: no more time limit, it lasts until you fall and the speed slowly keeps rising. Retro Jump: no 2-minute limit either'),
+  ('🕹️', 'Snake : virages plus faciles (swipe plus sensible, joystick plus stable, virages enchaînés mieux pris en compte)',
+      'Snake: easier turns (more sensitive swipe, steadier joystick, chained turns handled better)'),
+  ('#', 'Aussi depuis la 1.0.37', 'Also since 1.0.37'),
   ('🕹️', 'Snake : un joystick tactile remplace les flèches. Course de jaquettes : boutons « Sauter » et « Glisser » en bas de l\'écran',
       'Snake: a touch joystick replaces the arrows. Cover Run: "Jump" and "Slide" buttons at the bottom of the screen'),
   ('#', 'Aussi depuis la 1.0.36', 'Also since 1.0.36'),

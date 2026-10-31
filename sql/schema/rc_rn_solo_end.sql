@@ -10,7 +10,7 @@ begin
   select * into r from public.rc_rn_runs where id = p_run and device = p_device for update;
   if r.id is null then raise exception 'partie inconnue'; end if;
   if r.ended_at is not null then raise exception 'partie terminée'; end if;
-  cap := 100 + floor(24 * extract(epoch from (now() - r.started_at)))::int;
+  cap := 100 + floor(40 * extract(epoch from (now() - r.started_at)))::int;
   sc := least(greatest(coalesce(p_score, 0), 0), cap);
   update public.rc_rn_runs set score = sc, ended_at = now() where id = p_run;
   select score into old from public.rc_rn_best where day = r.day and device = p_device;
