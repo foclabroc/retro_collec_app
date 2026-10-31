@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const kRjW = 360.0, kRjH = 640.0;
-const kRjDuration = 120; // secondes de jeu
+const kRjDuration = 3600; // garde-fou : plus de limite de temps
 const _gravity = 1800.0, _jumpV = -820.0, _springV = -1300.0, _stompV = -900.0;
 const _moveSpeed = 330.0, _moveAccel = 2200.0;
 const _heroW = 44.0, _heroH = 30.0, _platW = 68.0, _platH = 14.0, _enemyW = 30.0, _enemyH = 23.0;

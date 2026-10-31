@@ -7,13 +7,13 @@ import 'rj_engine.dart' show RjRng;
 // ═══════════════════════════════════════════════════════════════════════════
 // Course de jaquettes (30/10) : runner en mètres, pas fixe 1/120 s (même suite chez tous les joueurs).
 //  · Obstacles tirés de la graine du serveur (RjRng, même suite VM / JS / Wasm) : mêmes pour les deux joueurs.
-//  · Vitesse v(t) = min(10 + 0,1 t, 22) m/s : ≈ 1 900 m en 2 min. Le serveur plafonne à 100 + 24 m/s
-//    (sql/2026-10-30_course_jaquettes.sql : garder synchronisé).
+//  · Vitesse v(t) = 10 + 0,1 t jusqu'à 22 m/s (2 min), puis +0,02 m/s par s jusqu'à 36, sans limite de temps (fin à la chute). Le serveur plafonne à 100 + 40 m/s
+//    (sql/2026-10-30_course_sans_limite.sql : garder synchronisé).
 //  · Toucher en haut = saut, en bas (ou ↓ / S) = glisse ; ↑ / Espace / W = saut.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const kRnW = 360.0, kRnH = 480.0;
-const kRnDuration = 120; // secondes de jeu
+const kRnDuration = 3600; // garde-fou : la course n'a plus de limite de temps
 const kRnStep = 1 / 120;
 const kRnPxM = 20.0; // pixels par mètre
 const kRnHeroX = 80.0; // position du coureur à l'écran
@@ -23,7 +23,14 @@ const _heroHalf = 0.3, _heroH = 1.2, _slideH = 0.6;
 const _obsW = 1.2, _gndH = 0.9, _airLow = 0.8, _airHigh = 1.6;
 const kRnRed = Color(0xFFE02020), kRnBlue = Color(0xFF2F8CFF);
 
-double rnSpeed(double t) => min(10 + 0.1 * max(t, 0), 22.0);
+// +0,1 m/s par seconde jusqu'à 22 m/s (2 min, 1 920 m), puis +0,02 m/s par seconde jusqu'à 36 m/s
+double rnSpeed(double t) {
+  t = max(t, 0);
+  return t <= 120 ? 10 + 0.1 * t : min(22 + 0.02 * (t - 120), 36.0);
+}
+
+// vitesse à une distance donnée (v² = v0² + 2·a·d, même courbe que rnSpeed)
+double _rnSpeedAt(double d) => d <= 1920 ? sqrt(100 + 0.2 * d) : min(sqrt(484 + 0.04 * (d - 1920)), 36.0);
 
 class RnObs {
   final double x;
@@ -41,8 +48,7 @@ class RnWorld {
     while (_next < d) {
       final air = _r.nextDouble() < 0.4;
       obs.add(RnObs(_next, air));
-      final t = (-10 + sqrt(100 + 0.2 * _next)) / 0.1; // instant où l'on atteint cette distance
-      final v = min(10 + 0.1 * t, 22.0);
+      final v = _rnSpeedAt(_next);
       _next += _obsW + 2 + v * (0.95 + _r.nextDouble() * 0.8);
     }
   }

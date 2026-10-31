@@ -3,7 +3,7 @@ part of 'connect4.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 // Course de jaquettes (30/10) : runner à obstacles, mêmes obstacles pour tous (graine du serveur).
 //  · Duel en direct : parties `rc_rj` avec kind 'run' (même serveur que Rétro Jump, code client 'rn'),
-//    2 min max, la plus grande distance gagne ; fantôme par LiveLink.sendPos (événement rjpos).
+//    sans limite de temps (1 h de sécurité), la plus grande distance gagne ; fantôme par LiveLink.sendPos (événement rjpos).
 //  · Solo du jour : rc_rn_solo_* (classement + lots comme Rétro Jump).
 //  · Moteur : rn_engine.dart. SQL : sql/2026-10-30_course_jaquettes.sql.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -11,7 +11,7 @@ part of 'connect4.dart';
 final kRnDuel = DuelKind(
   code: 'rn',
   title: 'COURSE DE JAQUETTES',
-  liveSub: '2 min · la plus longue distance gagne',
+  liveSub: 'sans limite de temps · la plus longue distance gagne',
   turnSub: '',
   list: () async => (await RcServer.rjList()).where((g) => g['kind'] == 'run').toList(),
   online: () => RcServer.rjOnline('run'),
@@ -530,8 +530,8 @@ class _RnGamePageState extends State<RnGamePage> with SingleTickerProviderStateM
   }
 
   String _clock() {
-    final left = (kRnDuration - max(0.0, _now)).clamp(0, kRnDuration).ceil();
-    return '${left ~/ 60}:${(left % 60).toString().padLeft(2, '0')}';
+    final s = max(0.0, _now).clamp(0, kRnDuration).floor();
+    return '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
   }
 
   List<RnRunner> _runners() {
@@ -620,7 +620,7 @@ class _RnGamePageState extends State<RnGamePage> with SingleTickerProviderStateM
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFFFB74D).withOpacity(0.6))),
-                    child: Text(_started ? _clock() : '2:00', style: pixelStyle(size: 12, color: now > kRnDuration - 10 && playing ? const Color(0xFFFF8A95) : Colors.white, shadow: false)),
+                    child: Text(_started ? _clock() : '0:00', style: pixelStyle(size: 12, color: Colors.white, shadow: false)),
                   ),
                   _chip(oppName, _i(opp['avatar']), oppTr.score, kRnBlue, dead: oppTr.dead, right: true),
                 ]),

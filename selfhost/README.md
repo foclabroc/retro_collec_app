@@ -69,6 +69,7 @@ Avec un sous-domaine à toi, un futur déménagement ne demandera plus de nouvel
 ## 6. Sauvegardes (indispensable)
 
 Script `sauvegarde.ps1` : `pg_dump -Fc` du schéma `public` dans `D:\pixeltrade\sauvegardes\rc_AAAA-MM-JJ_HHMM.dump`, vérifié par `pg_restore -l`, garde 7 jours, journal `D:\pixeltrade\sauvegarde.log`.
+Chaque nuit, dans `D:\pixeltrade\sauvegardes` : `rc_…dump` (schéma `public`), `rc_full_…dump` (toute la base), `rc_globals_…sql` (rôles : `pg_dumpall --globals-only`), `rc_config_…zip` (postgresql.conf, pg_hba.conf, postgrest.conf, relais, mcp-sql, Caddyfile, DuckDNS, tâches planifiées, services NSSM ; **contient des secrets, ne jamais le publier**) et `pk\` (images Pokémon, copie miroir). Une partie annexe qui échoue est notée `ERREUR` dans le journal sans bloquer les autres. Variable `$Copie` (début du script) : dossier sur un autre disque / une clé, recopié à chaque sauvegarde (vide = pas de copie). Vérifier les chemins de la liste `$Config` selon ton installation.
 
 1. Copier `sauvegarde.ps1` dans `D:\pixeltrade\`.
 2. Créer `D:\pixeltrade\pgpass.conf` (une ligne, mot de passe de `postgres`) :
@@ -89,7 +90,7 @@ Restaurer (base vide préparée avec `01_avant_import.sql`) :
 ```
 pg_restore -U postgres -d postgres --no-owner --clean --if-exists D:\pixeltrade\sauvegardes\rc_….dump
 ```
-puis `02_apres_import.sql` et `05_securite.sql` (propriétaire `rc_owner`, droits de l'API). Idéalement, copier aussi de temps en temps un `.dump` sur un autre disque ou une clé.
+puis `02_apres_import.sql` et `05_securite.sql` (sur un serveur neuf, restaurer d'abord les rôles : `psql -U postgres -f rc_globals_….sql`) (propriétaire `rc_owner`, droits de l'API). Idéalement, copier aussi de temps en temps un `.dump` sur un autre disque ou une clé.
 
 ## Comment marche le temps réel
 

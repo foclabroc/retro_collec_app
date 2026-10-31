@@ -13,8 +13,8 @@ begin
   if g.status = 'playing' and now() <= g.end_at + interval '5 seconds'
      and (case when side = 1 then g.dead1 else g.dead2 end) is null then
     sec := greatest(0, extract(epoch from (least(now(), g.end_at) - g.start_at)));
-    -- Rétro Jump : 70 points par seconde ; course : 24 mètres par seconde (vitesse max 22)
-    cap := case when g.kind = 'run' then 100 + floor(24 * sec)::int else 60 + floor(70 * sec)::int end;
+    -- Rétro Jump : 70 points par seconde ; course : 40 mètres par seconde (vitesse max 36)
+    cap := case when g.kind = 'run' then 100 + floor(40 * sec)::int else 60 + floor(70 * sec)::int end;
     p_h := least(greatest(coalesce(p_h, 0), 0), cap);
     if side = 1 then
       update public.rc_rj set h1 = greatest(h1, p_h), seen1 = now(), moves = moves + 1,

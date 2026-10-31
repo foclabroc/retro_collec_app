@@ -1,5 +1,13 @@
 # Pixel Trade — Changelog
 
+## v1.0.38
+_Version 1.0.38+39. Pas de cadeau de version. SQL : `sql/2026-10-30_course_sans_limite.sql` (à lancer)._
+
+- 🏃 Course de jaquettes : plus de limite de 2 min (fin à la chute, garde-fou d'1 h). Vitesse : +0,1 m/s par seconde jusqu'à 22 m/s, puis +0,02 m/s par seconde jusqu'à 36 m/s. Plafond serveur 100 + 40 m/s.
+- 🚀 Rétro Jump : plus de limite de 2 min non plus (duel, tournoi), chrono en temps écoulé.
+- 🕹️ Snake : swipe plus sensible (10 px), joystick avec hystérésis et zone morte réduite, 3 virages en attente au lieu de 2.
+- 💾 Sauvegarde de nuit complète (`selfhost/sauvegarde.ps1`) : base entière, rôles, réglages, images Pokémon, copie vers un autre disque.
+
 ## v1.0.37
 _Version 1.0.37+38. Pas de cadeau de version. SQL : `sql/2026-10-30_admin_pokemon.sql`._
 

@@ -23,7 +23,7 @@ begin
     update public.rc_players set seen_at = now() where device = p_device;
     -- départ dans 6 s : le temps d'ouvrir la partie des deux côtés + 3, 2, 1
     update public.rc_rj set status = 'playing', seed = floor(random() * 2147483646)::int + 1,
-           start_at = now() + interval '6 seconds', end_at = now() + interval '126 seconds', move_at = now()
+           start_at = now() + interval '6 seconds', end_at = now() + interval '3606 seconds', move_at = now()
      where id = p_id;
   end if;
   select * into g from public.rc_rj where id = p_id;

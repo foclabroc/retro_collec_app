@@ -357,7 +357,7 @@ class _DuelInviteState extends State<_DuelInvite> with SingleTickerProviderState
                 bs
                     ? t('2 min pour placer ta flotte, puis 30 s par tir', '2 min to place your fleet, then 30 s per shot')
                     : rj
-                        ? t('Même parcours, 2 minutes, le plus haut gagne', 'Same course, 2 minutes, the highest wins')
+                        ? t('Même parcours, sans limite de temps, le plus haut gagne', 'Same course, no time limit, the highest wins')
                         : t('1 minute par coup', '1 minute per move'),
                 style: const TextStyle(fontSize: 11.5, color: Colors.white38)),
             const SizedBox(height: 12),
