@@ -15,7 +15,7 @@ begin
     dp := coalesce(new.pixels, 0) - coalesce(old.pixels, 0);
     if new.last_login is distinct from old.last_login then
       k := 'login'; t := 'connexion du jour (série ' || coalesce((to_jsonb(new) ->> 'streak'), '?') || ')';
-    elsif new.wheel_day is distinct from old.wheel_day then
+    elsif new.wheel_at is distinct from old.wheel_at then
       k := 'wheel'; t := 'tourne la roue';
     elsif new.w_claim is distinct from old.w_claim then
       k := 'week';

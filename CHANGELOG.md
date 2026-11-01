@@ -1,5 +1,12 @@
 # Pixel Trade — Changelog
 
+## v1.0.39
+_Version 1.0.39+40. Pas de cadeau de version. SQL : `sql/2026-11-01_roue_12h_pokemon.sql` puis `sql/2026-11-01_defis_semaine_plus_longs.sql` (à lancer)._
+
+- 🎡 Roue de la fortune : un tour toutes les 12 h, gains doublés (600 max, JACKPOT 2 000 en or), 9e case « Pokémon » (carte au hasard dans « Cartes à ranger »). Roue en or seulement au 1er tour du jour de série multiple de 7.
+- 📅 Défis de la semaine : objectifs ~2,5x plus hauts, récompenses 200 à 300 pièces.
+- 🃏 Pokémon : brillante avec effet dès la 152, « Basic » avant (pas de dorée ni de fusion) ; images gardées sur le disque (Android) pour un affichage instantané.
+
 ## v1.0.38
 _Version 1.0.38+39. Pas de cadeau de version. SQL : `sql/2026-10-30_course_sans_limite.sql` (à lancer)._
 

@@ -162,14 +162,29 @@ class CardView extends StatelessWidget {
       return ClipRRect(
         borderRadius: rr,
         child: owned
-            ? Image(
-                image: ResizeImage.resizeIfNeeded(cacheW, null, img),
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-                errorBuilder: (_, __, ___) => Container(
-                    color: const Color(0xFF11131D),
-                    child: Icon(Icons.image_not_supported, color: Colors.white24, size: w * 0.2)))
+            ? Stack(fit: StackFit.expand, children: [
+                Image(
+                    image: ResizeImage.resizeIfNeeded(cacheW, null, img),
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFF11131D),
+                        child: Icon(Icons.image_not_supported, color: Colors.white24, size: w * 0.2))),
+                // Pokémon : seulement « brillante » (pas de dorée) et seulement dès la carte 152 : reflet holographique + étoiles
+                if (finish > 0 && (int.tryParse(card.id.substring(3)) ?? 0) >= 152)
+                  Positioned.fill(child: IgnorePointer(child: HoloSheen(gold: false, manualTilt: manualTilt))),
+                if (finish > 0 && (int.tryParse(card.id.substring(3)) ?? 0) >= 152)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CardSparkle(
+                        color: const Color(0xFFE6DDFF),
+                        stars: small ? 4 : 9,
+                        seed: card.id.hashCode,
+                      ),
+                    ),
+                  ),
+              ])
             : Container(
                 color: const Color(0xFF26262C),
                 alignment: Alignment.center,

@@ -253,8 +253,35 @@ class Catalog {
 
   /// Jaquette de la carte (fichier local sur Android, image en ligne sur le web)
   static ImageProvider image(RcCard c) => c.sys == 'pk'
-      ? (kIsWeb ? CachedWebImage('$kPkBase${c.img}') : NetworkImage('$kPkBase${c.img}') as ImageProvider)
+      ? (kIsWeb ? CachedWebImage('$kPkBase${c.img}') : _pkImage(c.img))
       : kIsWeb ? CachedWebImage(_url(c.img, c.baseSys ?? c.sys)) : FileImage(File('$dir/${c.img}')) as ImageProvider;
+
+  static final Set<String> _pkBusy = {};
+
+  /// Android : image Pokémon gardée sur le disque (téléchargée une seule fois), sinon en ligne le temps de la copie
+  static ImageProvider _pkImage(String img) {
+    final f = File('$dir/pk/$img');
+    if (f.existsSync()) return FileImage(f);
+    pkFetch([img]);
+    return NetworkImage('$kPkBase$img');
+  }
+
+  /// Télécharge à l'avance les images Pokémon (Android ; le web a son cache)
+  static Future<void> pkFetch(Iterable<String> imgs) async {
+    if (kIsWeb) return;
+    for (final img in imgs) {
+      final f = File('$dir/pk/$img');
+      if (f.existsSync() || !_pkBusy.add(img)) continue;
+      try {
+        final r = await http.get(Uri.parse('$kPkBase$img'));
+        if (r.statusCode == 200 && r.bodyBytes.isNotEmpty) {
+          await f.parent.create(recursive: true);
+          await f.writeAsBytes(r.bodyBytes, flush: true);
+        }
+      } catch (_) {}
+      _pkBusy.remove(img);
+    }
+  }
 
   /// Capture d'écran du jeu, ou null si absente (pas encore téléchargée sur Android)
   static ImageProvider? shot(RcCard c) {

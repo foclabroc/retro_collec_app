@@ -29,30 +29,38 @@ class _Seg {
 }
 
 const _segs = [
-  _Seg('20', 20, Color(0xFF3C6FD8)),
-  _Seg('50', 50, Color(0xFFE2A21F)),
+  _Seg('40', 40, Color(0xFF3C6FD8)),
+  _Seg('100', 100, Color(0xFFE2A21F)),
   _Seg('CARTE', 0, Color(0xFF2FA36B)),
-  _Seg('30', 30, Color(0xFFD8453C)),
-  _Seg('100', 100, Color(0xFF8E5BD9)),
-  _Seg('40', 40, Color(0xFF2A9DB8)),
+  _Seg('60', 60, Color(0xFFD8453C)),
+  _Seg('200', 200, Color(0xFF8E5BD9)),
+  _Seg('80', 80, Color(0xFF2A9DB8)),
   _Seg('RARE', 0, Color(0xFFEF6F2E), rare: true),
-  _Seg('300', 300, Color(0xFFD4A017)),
+  _Seg('600', 600, Color(0xFFD4A017)),
+  _Seg('POKÉMON', 0, Color(0xFFE53935)),
 ];
 
 /// Roue en or (tous les 7 jours de connexion d'affilée) : mêmes cases, gains doublés, JACKPOT
 const _goldSegs = [
-  _Seg('40', 40, Color(0xFFB8860B)),
-  _Seg('100', 100, Color(0xFFE6B422)),
+  _Seg('80', 80, Color(0xFFB8860B)),
+  _Seg('200', 200, Color(0xFFE6B422)),
   _Seg('CARTE', 0, Color(0xFFC9A227)),
-  _Seg('60', 60, Color(0xFFB07A10)),
-  _Seg('200', 200, Color(0xFFF2C94C)),
-  _Seg('80', 80, Color(0xFFA67C00)),
+  _Seg('120', 120, Color(0xFFB07A10)),
+  _Seg('400', 400, Color(0xFFF2C94C)),
+  _Seg('160', 160, Color(0xFFA67C00)),
   _Seg('ÉPIQUE', 0, Color(0xFFD99A00), rare: true),
-  _Seg('JACKPOT', 1000, Color(0xFFFF4F79)),
+  _Seg('JACKPOT', 2000, Color(0xFFFF4F79)),
+  _Seg('POKÉMON', 0, Color(0xFFE53935)),
 ];
 
-/// Vrai le jour de la roue en or (série de connexion multiple de 7)
-bool get _goldDay => Game.i.streak > 0 && Game.i.streak % 7 == 0;
+/// Roue en or : décidée par le serveur (1er tour du jour de série multiple de 7)
+bool get _goldDay => Notifs.i.wheelGold;
+
+String _wheelWait() {
+  final s = Notifs.i.wheelLeft;
+  final h = s ~/ 3600, m = (s % 3600) ~/ 60;
+  return t('Prochain tour dans $h h $m min', 'Next spin in $h h $m min');
+}
 List<_Seg> get _wheelSegs => _goldDay ? _goldSegs : _segs;
 
 class BonusScreen extends StatelessWidget {
@@ -87,12 +95,10 @@ class WheelTile extends StatelessWidget {
         final can = Notifs.i.wheel;
         final gold = _goldDay;
         final accent = gold ? const Color(0xFFFFD54F) : kGold;
-        final now = DateTime.now();
-        final left = DateTime(now.year, now.month, now.day + 1).difference(now);
         final toGold = 7 - Game.i.streak % 7;
         final status = can
             ? (gold ? t('Tour en or disponible : gains doublés !', 'Golden spin ready: double prizes!') : t('Ton tour gratuit est disponible !', 'Your free spin is ready!'))
-            : t('Prochain tour dans ${left.inHours} h ${left.inMinutes % 60} min', 'Next spin in ${left.inHours} h ${left.inMinutes % 60} min');
+            : _wheelWait();
         return Material(
           color: kPanel,
           borderRadius: BorderRadius.circular(14),
@@ -132,7 +138,7 @@ class WheelTile extends StatelessWidget {
                     Text(
                         gold
                             ? t('${Game.i.streak} jours d\'affilée : JACKPOT possible', '${Game.i.streak}-day streak: JACKPOT possible')
-                            : t('Un tour gratuit par jour · roue en or dans $toGold j', 'One free spin a day · golden wheel in $toGold d'),
+                            : t('Un tour gratuit toutes les 12 h · roue en or dans $toGold j', 'One free spin every 12 h · golden wheel in $toGold d'),
                         style: const TextStyle(color: Colors.white60, fontSize: 12)),
                     const SizedBox(height: 4),
                     Text(status, style: TextStyle(color: can ? accent : Colors.white38, fontSize: 12, fontWeight: FontWeight.w700)),
@@ -181,7 +187,7 @@ class _WheelPanelState extends State<WheelPanel> with TickerProviderStateMixin {
     super.initState();
     spin.addListener(() {
       // petit « clic » à chaque case franchie
-      final tick = (angle / (pi / 4)).floor();
+      final tick = (angle / (2 * pi / _wheelSegs.length)).floor();
       if (tick != _lastTick) {
         _lastTick = tick;
         HapticFeedback.selectionClick();
@@ -209,13 +215,15 @@ class _WheelPanelState extends State<WheelPanel> with TickerProviderStateMixin {
       return;
     }
     final seg = (r['seg'] as num).toInt();
+    final pkImg = r['pk'] is Map ? Catalog.cards['${(r['pk'] as Map)['c']}']?.img : null;
+    if (pkImg != null) Catalog.pkFetch([pkImg]);
     // case gagnante en haut, sous le pointeur, après 6 tours
     final segAngle = 2 * pi / _wheelSegs.length;
     final jitter = (Random().nextDouble() - 0.5) * segAngle * 0.6;
     final base = angle % (2 * pi);
     from = angle;
     to = angle - base + 6 * 2 * pi + (2 * pi - (seg + 0.5) * segAngle) + jitter;
-    _lastTick = (from / (pi / 4)).floor();
+    _lastTick = (from / (2 * pi / _wheelSegs.length)).floor();
     RcAudio.sfx('continue');
     await spin.forward(from: 0);
     if (!mounted) return;
@@ -238,7 +246,7 @@ class _WheelPanelState extends State<WheelPanel> with TickerProviderStateMixin {
     final gain = (r['gain'] as num? ?? 0).toInt();
     final cr = r['card'] is Map ? ((r['card'] as Map)['r'] as num? ?? 0).toInt() : -1;
     if (r['gold'] == true && (r['seg'] as num?)?.toInt() == 7) return 3;
-    if (gain >= 300 || cr >= 3) return 2;
+    if (gain >= 300 || cr >= 3 || r['pk'] is Map) return 2;
     if (gain >= 100 || cr >= 0) return 1;
     return 0;
   }
@@ -246,7 +254,12 @@ class _WheelPanelState extends State<WheelPanel> with TickerProviderStateMixin {
   Future<void> _showPrize(Map<String, dynamic> r) async {
     final level = _prizeLevel(r);
     final gain = (r['gain'] as num? ?? 0).toInt();
-    final card = r['card'] is Map ? Map<String, dynamic>.from(r['card'] as Map) : null;
+    final pkWin = r['pk'] is Map;
+    final card = r['card'] is Map
+        ? Map<String, dynamic>.from(r['card'] as Map)
+        : pkWin
+            ? Map<String, dynamic>.from(r['pk'] as Map)
+            : null;
     final c = card == null ? null : Catalog.cards[card['c']];
     final f = (card?['f'] as num? ?? 0).toInt();
     if (c != null) {
@@ -285,16 +298,19 @@ class _WheelPanelState extends State<WheelPanel> with TickerProviderStateMixin {
               const SizedBox(height: 10),
               if (card?['n'] == true)
                 Text(t('Nouvelle carte !', 'New card!'), style: pixelStyle(size: 11, color: const Color(0xFF5DCAA5))),
+              if (pkWin)
+                Text(t('Elle t\'attend dans « Cartes à ranger »', 'It\'s waiting in your card stock'),
+                    textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFFFD54F), fontWeight: FontWeight.w700)),
               if (gain > 0) const SizedBox(height: 10),
             ],
-            if (c == null || gain > 0)
+            if (!pkWin && (c == null || gain > 0))
               Row(mainAxisSize: MainAxisSize.min, children: [
                 Text('+$gain', style: pixelStyle(size: 30)),
                 const SizedBox(width: 10),
                 const Icon(Icons.monetization_on, color: kGold, size: 40),
               ]),
             const SizedBox(height: 16),
-            Text(t('Reviens demain pour un nouveau tour', 'Come back tomorrow for another spin'), style: const TextStyle(color: Colors.white60)),
+            Text(t('Reviens dans 12 h pour un nouveau tour', 'Come back in 12 h for another spin'), style: const TextStyle(color: Colors.white60)),
             const SizedBox(height: 14),
             SizedBox(
               width: double.infinity,
@@ -319,8 +335,6 @@ class _WheelPanelState extends State<WheelPanel> with TickerProviderStateMixin {
       builder: (context, _) {
         final can = Notifs.i.wheel && !busy;
         final gold = _goldDay;
-        final now = DateTime.now();
-        final left = DateTime(now.year, now.month, now.day + 1).difference(now);
         final toGold = 7 - Game.i.streak % 7;
         return AnimatedBuilder(
           animation: shake,
@@ -340,8 +354,8 @@ class _WheelPanelState extends State<WheelPanel> with TickerProviderStateMixin {
             Text(
                 gold
                     ? t('${Game.i.streak} jours d\'affilée : gains doublés et JACKPOT !', '${Game.i.streak}-day streak: double prizes and JACKPOT!')
-                    : t('Un tour gratuit par jour · roue en or dans $toGold jour${toGold > 1 ? 's' : ''} de connexion',
-                        'One free spin a day · golden wheel in $toGold login day${toGold > 1 ? 's' : ''}'),
+                    : t('Un tour gratuit toutes les 12 h · roue en or dans $toGold jour${toGold > 1 ? 's' : ''} de connexion',
+                        'One free spin every 12 h · golden wheel in $toGold login day${toGold > 1 ? 's' : ''}'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: gold ? const Color(0xFFFFE08A) : Colors.white60, fontSize: 12)),
             const SizedBox(height: 14),
@@ -395,7 +409,7 @@ class _WheelPanelState extends State<WheelPanel> with TickerProviderStateMixin {
                       ? t('Ça tourne…', 'Spinning…')
                       : Notifs.i.wheel
                           ? t('TOURNER !', 'SPIN!')
-                          : t('Prochain tour dans ${left.inHours} h ${left.inMinutes % 60} min', 'Next spin in ${left.inHours} h ${left.inMinutes % 60} min'),
+                          : _wheelWait(),
                   style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
                 ),
               ),

@@ -63,6 +63,9 @@ String rarityName(int r) => [
 
 // Finitions : 0 normale, 1 brillante, 2 dorée, 3 full art (épiques et légendaires)
 const kFinishes = 4;
+/// Cartes Pokémon : « Basic » (1 à 151) et « Brillante » (dès la 152), jamais dorée
+String finishNameFor(RcCard c, int f) => c.sys == 'pk' && f == 0 ? 'Basic' : finishName(f);
+
 String finishName(int f) => [t('Normale', 'Normal'), t('Brillante', 'Holo'), t('Dorée', 'Gold'), t('Full art', 'Full art')][f.clamp(0, 3)];
 
 /// Nombre total d'exemplaires (toutes finitions)
@@ -426,6 +429,7 @@ class Game extends ChangeNotifier {
     }
     if (m.containsKey('owned')) {
       owned = parseOwned(m['owned']);
+      Catalog.pkFetch([for (final id in owned.keys) if (id.startsWith('pk_')) Catalog.cards[id]?.img ?? '']..removeWhere((e) => e.isEmpty));
       ownedHash = m['oh'] as String?; // empreinte valable seulement si elle vient avec la collection
     }
   }
