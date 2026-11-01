@@ -67,6 +67,7 @@ List<String> get _sysSortLabels => [
 
 class _LibraryScreenState extends State<LibraryScreen> {
   int sysSort = 0;
+  bool faOwned = false, pkOwned = false; // filtre « Possédées » des onglets Full art / Pokémon
   int mode = 0; // onglet : 0 Consoles, 1 Sagas, 2 Full art (mémorisé)
   bool get sagas => mode == 1;
   bool dashOpen = false; // tableau de bord déplié (mémorisé, replié par défaut)
@@ -158,6 +159,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AllCardsPage()));
   }
 
+  Widget _ownedChip(bool on, VoidCallback tap) => FilterChip(
+        label: Text(t('Possédées', 'Owned'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+        selected: on,
+        showCheckmark: true,
+        visualDensity: VisualDensity.compact,
+        onSelected: (_) => tap(),
+      );
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -166,10 +175,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final g = Game.i;
         final systems = _sortedSystems(g);
         final sagaList = [for (final s in kSagas) if (Catalog.bySys[s.sys] != null) s];
-        final faList = mode == 2 ? fullArtCards() : const <RcCard>[];
-        final pkList = mode == 3 ? (Catalog.bySys['pk'] ?? const <RcCard>[]) : const <RcCard>[];
-        final pkMine = [for (final c in pkList) if (g.owned[c.id]?.any((q) => q > 0) ?? false) c.id].length;
-        final faMine = [for (final c in faList) if ((g.owned[c.id]?[3] ?? 0) > 0) c.id].length;
+        final faAll = mode == 2 ? fullArtCards() : const <RcCard>[];
+        final pkAll = mode == 3 ? (Catalog.bySys['pk'] ?? const <RcCard>[]) : const <RcCard>[];
+        final pkMine = [for (final c in pkAll) if (g.owned[c.id]?.any((q) => q > 0) ?? false) c.id].length;
+        final faMine = [for (final c in faAll) if ((g.owned[c.id]?[3] ?? 0) > 0) c.id].length;
+        final faList = faOwned ? [for (final c in faAll) if ((g.owned[c.id]?[3] ?? 0) > 0) c] : faAll;
+        final pkList = pkOwned ? [for (final c in pkAll) if (g.owned[c.id]?.any((q) => q > 0) ?? false) c] : pkAll;
         return Column(children: [
           TabHeader(t('Collection', 'Collection'), icon: 'collection', actions: [
             IconButton(
@@ -235,8 +246,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           child: Text(t('fragments · touche une carte pour la fabriquer', 'fragments · tap a card to craft it'),
                               style: const TextStyle(color: Colors.white60, fontSize: 11.5)),
                         ),
+                        _ownedChip(faOwned, () => setState(() => faOwned = !faOwned)),
                       ]),
                     ),
+                  ),
+                ),
+              if (mode == 3)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [_ownedChip(pkOwned, () => setState(() => pkOwned = !pkOwned))]),
                   ),
                 ),
               if (mode == 3)

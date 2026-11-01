@@ -1,5 +1,15 @@
 # Pixel Trade — Changelog
 
+## v1.0.40
+_Version 1.0.40+41. Pas de cadeau de version. SQL (dans l'ordre, après ceux de la 1.0.39) : `sql/2026-11-01_actu_reactions_merci_bravo.sql`, `_chat_supprimer.sql`, `_pioche_express.sql`._
+
+- 🃏 Bonus : « Pioche du jour » (1 / jour, 5 cartes face cachée, 1 choisie, toutes retournées, sans Pokémon ni sagas) ; « Défi express » (mission du jour commune, suivie par `rc__wbump` → `rc__xbump`, récompense à récupérer).
+- 👏 Actu : réactions « Merci » et « Bravo » (5 réactions).
+- 🗑 Messages : suppression de son propre message (appui long).
+- 🔎 Collection : filtre « Possédées » (Pokémon, Full art).
+- ✨ Full art : reflet doux sans lignes colorées.
+- 🤝 Échanges : détail corrigé (« dernière carte » seulement si vraiment réservée).
+
 ## v1.0.39
 _Version 1.0.39+40. Pas de cadeau de version. SQL : `sql/2026-11-01_roue_12h_pokemon.sql`, `_defis_semaine_plus_longs.sql`, `_board_solo.sql` puis `_echange_cartes_reservees.sql` (à lancer)._
 

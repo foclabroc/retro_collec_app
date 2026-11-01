@@ -536,6 +536,30 @@ class RcServer {
     return _map(await _rpc('rc_wheel', {'p_device': d, 'p_sig': _sig('$d|wheel')}));
   }
 
+  /// Pioche du jour disponible ?
+  static Future<bool> piocheStatus() async {
+    final d = await deviceId();
+    return (await _rpc('rc_pioche_status', {'p_device': d})) == true;
+  }
+
+  /// Pioche du jour : {cards:[{c,f,r}×5], pick, n, events}
+  static Future<Map<String, dynamic>> pioche(int choice) async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_pioche', {'p_device': d, 'p_choice': choice, 'p_sig': _sig('$d|pioche|$choice')}));
+  }
+
+  /// Défi express du jour : {kind, goal, reward, prog, claimed}
+  static Future<Map<String, dynamic>> expressGet() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_express_get', {'p_device': d}));
+  }
+
+  /// Récupère la récompense du défi express : {reward, coins, pixels, events}
+  static Future<Map<String, dynamic>> expressClaim() async {
+    final d = await deviceId();
+    return _map(await _rpc('rc_express_claim', {'p_device': d, 'p_sig': _sig('$d|expclaim')}));
+  }
+
   /// Lot de 5 paquets mixtes (500 pièces, gratuit le samedi) : {free, lots, coins}
   static Future<Map<String, dynamic>> buyLot() async {
     final d = await deviceId();
@@ -827,6 +851,11 @@ class RcServer {
   static Future<void> chatReport(int id) async {
     final d = await deviceId();
     await _rpc('rc_chat_report', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|report|$id')});
+  }
+
+  static Future<void> chatDelete(int id) async {
+    final d = await deviceId();
+    await _rpc('rc_chat_delete', {'p_device': d, 'p_id': id, 'p_sig': _sig('$d|chatdel|$id')});
   }
 
   /// Maison du Voisinage : 'style.murs.toit.déco'

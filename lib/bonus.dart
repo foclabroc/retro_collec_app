@@ -11,6 +11,7 @@ import 'game.dart';
 import 'layout.dart';
 import 'main.dart';
 import 'notifs.dart';
+import 'pioche.dart';
 import 'quiz.dart';
 import 'retro_theme.dart';
 import 'server.dart';
@@ -73,6 +74,10 @@ class BonusScreen extends StatelessWidget {
       Expanded(
         child: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: const [
           WheelTile(),
+          SizedBox(height: 12),
+          PiocheTile(),
+          SizedBox(height: 12),
+          ExpressTile(),
           SizedBox(height: 12),
           GamedleTile(),
           SizedBox(height: 12),

@@ -122,6 +122,29 @@ begin
   return jsonb_build_object('status', 'accepted', 'events', ev);
 end $function$;
 
+-- la liste renvoie held : l'appli sait si mes cartes proposées sont déjà sorties du stock
+drop function if exists public.rc_trades(text);
+create or replace FUNCTION public.rc_trades(p_device text)
+ RETURNS TABLE(id bigint, incoming boolean, other_name text, other_pid text, give text, want text, status text, created_at timestamp with time zone, done_at timestamp with time zone, held boolean)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  (select t.id, t.receiver = p_device, o.name, o.pid, t.give, t.want, t.status, t.created_at, t.done_at, coalesce(t.held, false)
+     from public.rc_trades t
+     join public.rc_players o on o.device = case when t.receiver = p_device then t.sender else t.receiver end
+    where (t.sender = p_device or t.receiver = p_device) and t.status = 'pending'
+    order by t.created_at desc)
+  union all
+  (select t.id, t.receiver = p_device, o.name, o.pid, t.give, t.want, t.status, t.created_at, t.done_at, coalesce(t.held, false)
+     from public.rc_trades t
+     join public.rc_players o on o.device = case when t.receiver = p_device then t.sender else t.receiver end
+    where (t.sender = p_device or t.receiver = p_device) and t.status <> 'pending'
+    order by t.done_at desc nulls last
+    limit 20) $function$;
+
+alter function public.rc_trades(text) owner to rc_owner;
+grant execute on function public.rc_trades(text) to anon, authenticated;
 alter function public.rc__trade_return(bigint) owner to rc_owner;
 alter function public.rc_trade_offer(text, text, text, text, text) owner to rc_owner;
 alter function public.rc_trade_cancel(text, bigint, text) owner to rc_owner;

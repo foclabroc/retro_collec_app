@@ -386,7 +386,7 @@ class _FeedTile extends StatelessWidget {
   }
 }
 
-/// Réactions 👏 🔥 😮 sous une nouvelle (une par joueur ; toucher la même l'enlève)
+/// Réactions 👏 🔥 😮 🙏 🎉 sous une nouvelle (une par joueur ; toucher la même l'enlève)
 class _Reacts extends StatefulWidget {
   final Map<String, dynamic> e;
   const _Reacts(this.e);
@@ -395,12 +395,12 @@ class _Reacts extends StatefulWidget {
 }
 
 class _ReactsState extends State<_Reacts> {
-  static const _emo = ['👏', '🔥', '😮'];
+  static const _emo = ['👏', '🔥', '😮', '🙏', '🎉'];
   bool busy = false;
 
   List<int> get rx {
     final l = widget.e['rx'];
-    return [for (var i = 0; i < 3; i++) l is List && i < l.length ? (l[i] as num).toInt() : 0];
+    return [for (var i = 0; i < 5; i++) l is List && i < l.length ? (l[i] as num).toInt() : 0];
   }
 
   int get me => (widget.e['me'] as num? ?? -1).toInt();
@@ -435,7 +435,7 @@ class _ReactsState extends State<_Reacts> {
   Widget build(BuildContext context) {
     final r = rx, m = me;
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      for (var j = 0; j < 3; j++)
+      for (var j = 0; j < 5; j++)
         Padding(
           padding: const EdgeInsets.only(left: 4),
           child: Material(
