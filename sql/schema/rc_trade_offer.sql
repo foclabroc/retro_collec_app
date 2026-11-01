@@ -1,10 +1,10 @@
-CREATE OR REPLACE FUNCTION public.rc_trade_offer(p_device text, p_to_pid text, p_give text, p_want text, p_sig text)
+create or replace FUNCTION public.rc_trade_offer(p_device text, p_to_pid text, p_give text, p_want text, p_sig text)
  RETURNS bigint
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
 AS $function$
-declare v_to text; v_id bigint; ng int; nw int;
+declare v_to text; v_id bigint; ng int; nw int; it record;
 begin
   perform public.rc__check(p_sig, p_device || '|offer|' || p_to_pid || '|' || coalesce(p_give, '') || '|' || coalesce(p_want, ''));
   perform public.rc__not_new(p_device);
@@ -19,11 +19,17 @@ begin
      or exists (select 1 from public.rc__items(p_want) i where not exists (select 1 from public.rc_cards c where c.id = i.card)) then
     raise exception 'carte inconnue';
   end if;
+  perform 1 from public.rc_players where device = p_device for update;
   if not public.rc__has(p_device, p_give) then raise exception 'tu ne possèdes pas ces cartes'; end if;
   if (select count(*) from public.rc_trades where sender = p_device and status = 'pending') >= 10 then
     raise exception 'trop d''échanges en attente';
   end if;
-  insert into public.rc_trades (sender, receiver, give, want) values (p_device, v_to, coalesce(p_give, ''), coalesce(p_want, ''))
+  -- les cartes proposées sortent du stock tant que l'échange est en attente (rendues si annulé / refusé / échoué)
+  for it in select * from public.rc__items(p_give) loop
+    if not public.rc__take(p_device, it.card, it.finish, it.n) then raise exception 'tu ne possèdes pas ces cartes'; end if;
+  end loop;
+  insert into public.rc_trades (sender, receiver, give, want, held) values (p_device, v_to, coalesce(p_give, ''), coalesce(p_want, ''), true)
   returning rc_trades.id into v_id;
+  perform public.rc__rescore(p_device);
   return v_id;
 end $function$

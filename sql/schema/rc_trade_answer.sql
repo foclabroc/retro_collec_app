@@ -18,23 +18,25 @@ begin
   end if;
   if not p_accept then
     update public.rc_trades set status = 'refused', done_at = now() where id = t.id;
+    perform public.rc__trade_return(t.id);
     return jsonb_build_object('status', 'refused');
   end if;
   -- verrouille les deux joueurs dans un ordre fixe (pas d'interblocage)
   perform 1 from public.rc_players where device in (t.sender, t.receiver) order by device for update;
-  if not public.rc__has(t.sender, t.give) or not public.rc__has(t.receiver, t.want) then
+  if not (coalesce(t.held, false) or public.rc__has(t.sender, t.give)) or not public.rc__has(t.receiver, t.want) then
     update public.rc_trades set status = 'failed', done_at = now() where id = t.id;
+    perform public.rc__trade_return(t.id);
     return jsonb_build_object('status', 'failed');
   end if;
   for it in select * from public.rc__items(t.give) loop
-    perform public.rc__take(t.sender, it.card, it.finish, it.n);
+    if not coalesce(t.held, false) then perform public.rc__take(t.sender, it.card, it.finish, it.n); end if;
     perform public.rc__give(t.receiver, it.card, it.finish, it.n);
   end loop;
   for it in select * from public.rc__items(t.want) loop
     perform public.rc__take(t.receiver, it.card, it.finish, it.n);
     perform public.rc__give(t.sender, it.card, it.finish, it.n);
   end loop;
-  update public.rc_trades set status = 'accepted', done_at = now() where id = t.id;
+  update public.rc_trades set status = 'accepted', done_at = now(), held = false where id = t.id;
   ev := ev || public.rc__bump(p_device, 'trade', 1) || public.rc__milestones(p_device);
   perform public.rc__bump(t.sender, 'trade', 1);
   perform public.rc__ev_bump(t.sender, 'trades', 1);    -- défi : échanges

@@ -64,7 +64,7 @@ Future<void> watchPlayer(BuildContext context, String pid) async {
   final g = LiveGames.i.ofPid(pid);
   if (!context.mounted) return;
   if (g == null) {
-    toast(t('Sa partie vient de se terminer', 'Their game just ended'));
+    toast(t('Il joue en solo (ou sa partie vient de finir) : seuls les duels se regardent', 'They are playing solo (or just finished): only duels can be watched'));
     return;
   }
   await watchGame(context, g['game'] as String, _i(g['id']));

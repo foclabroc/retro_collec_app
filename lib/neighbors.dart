@@ -166,7 +166,7 @@ class NeighborsScreenState extends State<NeighborsScreen> {
   }
 
   void _open(FloorData f) {
-    if (f.busy) {
+    if (f.busy && !f.solo) {
       // borne « IN GAME » : regarder sa partie ou voir son profil
       showModalBottomSheet<void>(
         context: context,
@@ -503,7 +503,7 @@ class _OnlineRowState extends State<_OnlineRow> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(f.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
               f.busy
-                  ? Text(t('⚔ En partie', '⚔ In a game'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Color(0xFFFFB347)))
+                  ? Text(f.solo ? t('🎮 En solo', '🎮 Playing solo') : t('⚔ En partie', '⚔ In a game'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Color(0xFFFFB347)))
                   : Text(
                       rich
                           ? t('${f.rank == null ? '' : '#${f.rank} · '}${f.score} pts', '${f.rank == null ? '' : '#${f.rank} · '}${f.score} pts')
@@ -511,7 +511,13 @@ class _OnlineRowState extends State<_OnlineRow> {
                       style: const TextStyle(fontSize: 11.5, color: Colors.white60)),
             ]),
           ),
-          f.busy
+          f.solo
+              ? FilledButton(
+                  onPressed: null,
+                  style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+                  child: Text(t('🎮 En solo', '🎮 Solo'), style: const TextStyle(fontWeight: FontWeight.w900)),
+                )
+              : f.busy
               ? FilledButton(
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7B3DFF), foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
                   onPressed: () {

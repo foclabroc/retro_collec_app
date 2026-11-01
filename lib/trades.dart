@@ -79,6 +79,7 @@ class TradesScreenState extends State<TradesScreen> {
     try {
       await RcServer.tradeCancel(id);
       toast(t('Proposition annulée', 'Offer cancelled'));
+      await Game.i.sync();
     } catch (e) {
       toast(errText(e));
     }
@@ -392,6 +393,7 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
     try {
       await RcServer.tradeOffer(widget.pid, itemsToString(give), itemsToString(want));
       RcAudio.sfx('coin');
+      Game.i.sync();
       toast(t('Proposition envoyée à ${widget.name}', 'Offer sent to ${widget.name}'));
       if (mounted) Navigator.pop(context);
     } catch (e) {
