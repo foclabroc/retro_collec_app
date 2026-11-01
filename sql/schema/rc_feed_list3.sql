@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.rc_feed_list3(p_device text, p_after bigint DEFAULT 0)
+create or replace FUNCTION public.rc_feed_list3(p_device text, p_after bigint DEFAULT 0)
  RETURNS jsonb
  LANGUAGE sql
  STABLE SECURITY DEFINER
@@ -10,7 +10,8 @@ AS $function$
                               'pid', p.pid, 'name', p.name, 'avatar', p.avatar,
                               'pid2', o.pid, 'name2', o.name, 'avatar2', o.avatar,
                               'rx', (select jsonb_build_array(count(*) filter (where r.emo = 0), count(*) filter (where r.emo = 1),
-                                                              count(*) filter (where r.emo = 2))
+                                                              count(*) filter (where r.emo = 2), count(*) filter (where r.emo = 3),
+                                                              count(*) filter (where r.emo = 4))
                                        from public.rc_feed_react r where r.feed_id = f.id),
                               'me', coalesce((select r.emo from public.rc_feed_react r where r.feed_id = f.id and r.device = p_device), -1)) as x
       from public.rc_feed f

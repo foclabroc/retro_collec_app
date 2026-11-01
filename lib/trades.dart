@@ -598,7 +598,9 @@ class TradeDetailPage extends StatelessWidget {
       final c = Catalog.cards[it.$1];
       if (c == null) return const SizedBox();
       final have = Game.i.qty(c.id), haveF = Game.i.qty(c.id, it.$2);
-      final sameInTrade = iGive.where((x) => x.$1 == c.id).length;
+      // proposition en attente faite avec la réservation : mes cartes sont déjà sorties du stock
+      final reserved = !incoming && !finished && trade['held'] == true;
+      final sameInTrade = reserved ? 0 : iGive.where((x) => x.$1 == c.id).length;
       final note = mine
           ? (have - sameInTrade <= 0 ? t('⚠ Ta dernière : tu ne l\'auras plus', '⚠ Your last one: you won\'t have it anymore') : t('Il t\'en restera ${have - sameInTrade}', 'You\'ll keep ${have - sameInTrade}'))
           : (have == 0 ? t('✨ Nouvelle pour toi', '✨ New for you') : t('Tu en as déjà $have${haveF > 0 ? ' (dont $haveF ${finishName(it.$2).toLowerCase()})' : ''}', 'You already have $have'));

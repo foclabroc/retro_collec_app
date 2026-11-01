@@ -12,6 +12,19 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🃏', 'Bonus : « Pioche du jour » (5 cartes face cachée, tu en choisis une, pas de seconde chance, toutes les cartes sauf Pokémon) et « Défi express » (une mission du jour, récompense à récupérer)',
+      'Bonus: "Daily draw" (5 face-down cards, pick one, no second chance, any card except Pokémon) and "Express challenge" (a daily mission, reward to claim)'),
+  ('👏', 'Actu : deux nouvelles réactions, « Merci » 🙏 et « Bravo » 🎉',
+      'News: two new reactions, "Thanks" 🙏 and "Bravo" 🎉'),
+  ('🗑', 'Messages : appui long sur ton message pour le supprimer',
+      'Messages: long-press your message to delete it'),
+  ('🔎', 'Collection : bouton « Possédées » sur les onglets Pokémon et Full art',
+      'Collection: "Owned" button on the Pokémon and Full art tabs'),
+  ('✨', 'Full art : reflet arc-en-ciel plus doux, sans lignes colorées qui traversent la carte',
+      'Full art: softer rainbow shine, no coloured lines across the card'),
+  ('🤝', 'Échanges : plus de « ta dernière tu ne l\'auras plus » à tort sur une carte que tu as en double',
+      'Trades: no more wrong "you won\'t have it anymore" on a card you own twice'),
+  ('#', 'Aussi depuis la 1.0.39', 'Also since 1.0.39'),
   ('🎡', 'Roue de la fortune : un tour toutes les 12 h, gains doublés (jusqu\'à 600 pièces, 2 000 en or) et une nouvelle case POKÉMON : la carte t\'attend dans « Cartes à ranger »',
       'Wheel of fortune: one spin every 12 h, doubled prizes (up to 600 coins, 2,000 when golden) and a new POKÉMON slot: the card waits in your card stock'),
   ('📅', 'Défis de la semaine plus longs : objectifs plus hauts et récompenses plus grosses (200 à 300 pièces)',

@@ -204,6 +204,7 @@ List<_Section> _sections() {
     _Section('🪙', t('Pièces et pixels', 'Coins and pixels'), [
       _h(t('Gagner des pièces', 'Earning coins')),
       _b(t('Connexion du jour : +50 pièces, +200 tous les 7 jours d\'affilée.', 'Daily login: +50 coins, +200 every 7 days in a row.')),
+      _b(t('Pioche du jour (Bonus) : 5 cartes face cachée, tu en choisis une (pas de seconde chance), une fois par jour. Défi express : une mission du jour avec une petite récompense.', 'Daily draw (Bonus): 5 face-down cards, pick one (no second chance), once a day. Express challenge: a daily mission with a small reward.')),
       _b(t('Roue de la fortune (Bonus) : un tour gratuit toutes les 12 h, une carte Pokémon peut sortir, roue dorée le 7e jour de série.', 'Wheel of fortune (Bonus): one free spin every 12 h, a Pokémon card can drop, golden wheel on the 7th day of your streak.')),
       _b(t('Gamedle : devine le jeu du jour, de 100 pièces (1er essai) à 20.', 'Gamedle: guess the game of the day, from 100 coins (1st try) down to 20.')),
       _b(t('Quiz : 5 pièces par bonne réponse, jusqu\'à 100 par jour.', 'Quiz: 5 coins per right answer, up to 100 a day.')),

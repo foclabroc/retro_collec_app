@@ -743,7 +743,7 @@ class _FullArtFaceState extends State<FullArtFace> {
   }
 }
 
-/// Fines rayures arc-en-ciel (effet prisme) dont l'angle suit l'inclinaison.
+/// Reflet arc-en-ciel doux (effet prisme, sans rayures) qui glisse avec l'inclinaison.
 class _PrismPainter extends CustomPainter {
   final Offset tilt;
   final double stripe, alpha;
@@ -753,23 +753,25 @@ class _PrismPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final s = max(1.0, stripe);
-    final diag = sqrt(size.width * size.width + size.height * size.height);
-    // une seule passe : dégradé à arêtes vives répété (4 couleurs), au lieu d'une centaine de rectangles
-    final cols = [for (final c in _colors) c.withOpacity(alpha)];
+    // reflet doux (sans lignes) : un large dégradé arc-en-ciel fondu qui glisse avec l'inclinaison
+    final shift = (tilt.dx * 0.6 + tilt.dy * 0.3).clamp(-0.6, 0.6);
+    final a = alpha * 0.55;
     final p = Paint()
       ..blendMode = BlendMode.softLight
       ..shader = LinearGradient(
-        colors: [for (final c in cols) ...[c, c]],
-        stops: const [0, 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1],
-        tileMode: TileMode.repeated,
-      ).createShader(Rect.fromLTWH(-diag / 2, -diag / 2, s * _colors.length, diag));
-    canvas.save();
-    canvas.clipRect(Offset.zero & size);
-    canvas.translate(size.width / 2, size.height / 2);
-    canvas.rotate(pi / 6 + tilt.dx * 0.7 + tilt.dy * 0.3);
-    canvas.drawRect(Rect.fromLTWH(-diag / 2, -diag / 2, diag, diag), p);
-    canvas.restore();
+        begin: Alignment(-1.2 + shift, -1),
+        end: Alignment(1.2 + shift, 1),
+        colors: [
+          _colors[0].withOpacity(0),
+          _colors[0].withOpacity(a),
+          _colors[1].withOpacity(a),
+          _colors[2].withOpacity(a),
+          _colors[3].withOpacity(a),
+          _colors[3].withOpacity(0),
+        ],
+        stops: const [0, 0.2, 0.4, 0.6, 0.8, 1],
+      ).createShader(Offset.zero & size);
+    canvas.drawRect(Offset.zero & size, p);
   }
 
   @override

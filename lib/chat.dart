@@ -162,8 +162,33 @@ class MessagesScreenState extends State<MessagesScreen> {
     if (mounted) setState(() => _sending = false);
   }
 
+  Future<void> _delete(Map<String, dynamic> m) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t('Supprimer ce message ?', 'Delete this message?')),
+        content: Text(t('Il disparaîtra pour tout le monde.', 'It will disappear for everyone.')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFFE24B4A)),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t('Supprimer', 'Delete')),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await RcServer.chatDelete((m['id'] as num).toInt());
+      if (mounted) setState(() => msgs.remove(m));
+    } catch (e) {
+      toast(errText(e));
+    }
+  }
+
   Future<void> _report(Map<String, dynamic> m) async {
-    if (m['me'] == true) return;
+    if (m['me'] == true) return _delete(m);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
