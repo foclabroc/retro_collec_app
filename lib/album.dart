@@ -398,7 +398,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
                   for (var f = 0; f < kFinishes; f++)
                     if (x[f] > 0)
                       ChoiceChip(
-                        label: Text('${finishName(f)} ×${x[f]}'),
+                        label: Text('${finishNameFor(c, f)} ×${x[f]}'),
                         selected: finish == f,
                         selectedColor: f == 3 ? const Color(0xFF6B4A12) : f == 2 ? const Color(0xFF633806) : f == 1 ? const Color(0xFF26215C) : kPanel2,
                         onSelected: (_) => setState(() => finish = f),
@@ -479,7 +479,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
         key: ValueKey('bourse${c.id}$total'),
         card: c,
         onSell: total > 0 && x[finish] > 0 && !busy ? () => _sell(context, c) : null,
-        sellLabel: total > 0 ? t('Vendre (${finishName(finish).toLowerCase()})', 'Sell (${finishName(finish).toLowerCase()})') : null,
+        sellLabel: total > 0 ? t('Vendre (${finishNameFor(c, finish).toLowerCase()})', 'Sell (${finishNameFor(c, finish).toLowerCase()})') : null,
       ),
       const SizedBox(height: 14),
       if (total > 0) ...[

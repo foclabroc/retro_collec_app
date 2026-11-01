@@ -12,6 +12,13 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎡', 'Roue de la fortune : un tour toutes les 12 h, gains doublés (jusqu\'à 600 pièces, 2 000 en or) et une nouvelle case POKÉMON : la carte t\'attend dans « Cartes à ranger »',
+      'Wheel of fortune: one spin every 12 h, doubled prizes (up to 600 coins, 2,000 when golden) and a new POKÉMON slot: the card waits in your card stock'),
+  ('📅', 'Défis de la semaine plus longs : objectifs plus hauts et récompenses plus grosses (200 à 300 pièces)',
+      'Longer weekly challenges: higher goals and bigger rewards (200 to 300 coins)'),
+  ('🃏', 'Cartes Pokémon : effet brillant et étoiles dès la 152 (« Basic » avant), et affichage instantané (images gardées sur l\'appareil)',
+      'Pokémon cards: shiny effect and stars from #152 ("Basic" before), and instant display (images kept on the device)'),
+  ('#', 'Aussi depuis la 1.0.38', 'Also since 1.0.38'),
   ('🏃', 'Course de jaquettes : plus de limite de temps, ça dure jusqu\'à ta chute et la vitesse augmente doucement. Rétro Jump : plus de limite de 2 minutes non plus',
       'Cover Run: no more time limit, it lasts until you fall and the speed slowly keeps rising. Retro Jump: no 2-minute limit either'),
   ('🕹️', 'Snake : virages plus faciles (swipe plus sensible, joystick plus stable, virages enchaînés mieux pris en compte)',

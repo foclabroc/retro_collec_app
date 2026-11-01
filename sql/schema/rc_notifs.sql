@@ -12,7 +12,9 @@ as $function$
                        order by m.sold_at)
         from public.rc_market m, public.rc_players me
        where me.device = p_device and m.seller = p_device and m.buyer is not null and m.sold_at > me.market_seen), '[]'::jsonb),
-    'wheel', (select wheel_day is distinct from public.rc__today() from public.rc_players where device = p_device),
+    'wheel', public.rc__wheel_in(p_device) = 0,
+    'wheel_in', public.rc__wheel_in(p_device),
+    'wheel_gold', public.rc__wheel_gold(p_device),
     'gifts', (select count(*)::int from public.rc_gifts g where g.receiver = p_device and g.opened_at is null),
     'gift_from', (select g.giver_name from public.rc_gifts g where g.receiver = p_device and g.opened_at is null order by g.id desc limit 1),
     'cards', (select count(*)::int from public.rc_card_stock s where s.device = p_device and s.taken_at is null),

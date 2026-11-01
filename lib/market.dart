@@ -42,7 +42,7 @@ Future<bool> buyLot(BuildContext context, Map<String, dynamic> row) async {
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         SizedBox(width: 140, child: CardView(card: c, finish: f)),
         const SizedBox(height: 12),
-        Text('${finishName(f)} — ${row['seller']}'),
+        Text('${finishNameFor(c, f)} — ${row['seller']}'),
         const SizedBox(height: 6),
         CoinChip(price),
         if (Game.i.hasF(c.id, f)) ...[
@@ -191,7 +191,7 @@ class _CardOffersState extends State<_CardOffers> {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${rows![i]['seller']}', style: const TextStyle(fontWeight: FontWeight.w700)),
                   Text(
-                    finishName((rows![i]['finish'] as num).toInt()) + (i == 0 ? t(' · le moins cher', ' · cheapest') : ''),
+                    finishNameFor(c, (rows![i]['finish'] as num).toInt()) + (i == 0 ? t(' · le moins cher', ' · cheapest') : ''),
                     style: TextStyle(color: i == 0 ? kGold : Colors.white54, fontSize: 12),
                   ),
                 ]),

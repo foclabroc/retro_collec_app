@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'catalog.dart';
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PIXEL TRADE — serveur maison (PostgreSQL + PostgREST + relais rc-realtime
 // derrière Caddy, voir selfhost/). Rétro Jump reste sur Supabase.
@@ -549,7 +551,9 @@ class RcServer {
   /// Cartes de récompense à ranger : [{id, c, f, r, from, at, n}]
   static Future<List<Map<String, dynamic>>> stockList() async {
     final d = await deviceId();
-    return _list(await _rpc('rc_stock_list', {'p_device': d, 'p_sig': _sig('$d|stock')}));
+    final l = _list(await _rpc('rc_stock_list', {'p_device': d, 'p_sig': _sig('$d|stock')}));
+    Catalog.pkFetch([for (final x in l) if ('${x['c']}'.startsWith('pk_')) Catalog.cards['${x['c']}']?.img ?? '']..removeWhere((e) => e.isEmpty));
+    return l;
   }
 
   /// Range une carte du stock (ou toutes si [id] est null) dans la collection : {cards, events, coins, pixels, score, left}
