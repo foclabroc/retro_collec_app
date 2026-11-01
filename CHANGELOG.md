@@ -1,5 +1,10 @@
 # Pixel Trade — Changelog
 
+## v1.0.41
+_Version 1.0.41+42 (en préparation). Pas de cadeau de version. Pas de SQL._
+
+- ⚡ Collection : « fusions » = seulement les cartes fusionnables (5 normales ou 3 brillantes, hors sagas) ; filtres « Fusion normales ×5 » et « Fusion brillantes ×3 » (`CardFilter.show` 6 / 7 / 8).
+
 ## v1.0.40
 _Version 1.0.40+41. Pas de cadeau de version. SQL (dans l'ordre, après ceux de la 1.0.39) : `sql/2026-11-01_actu_reactions_merci_bravo.sql`, `_chat_supprimer.sql`, `_pioche_express.sql`._
 

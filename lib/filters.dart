@@ -12,7 +12,7 @@ import 'layout.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 class CardFilter {
-  int show = 0; // 0 toutes, 1 possédées, 2 manquantes, 3 doublons, 4 brillantes ou dorées, 5 dorées
+  int show = 0; // 0 toutes, 1 possédées, 2 manquantes, 3 doublons, 4 brillantes ou dorées, 5 dorées, 6 fusions possibles, 7 normales (5), 8 brillantes (3)
   final rarities = <int>{}; // vide = toutes
   String? genre; // null = tous
   int sort = 0; // 0 numéro, 1 rareté, 2 année ↑, 3 année ↓, 4 nom, 5 exemplaires
@@ -43,6 +43,9 @@ class CardFilter {
         3 => qDupe(own),
         4 => own[1] + own[2] > 0,
         5 => own[2] > 0,
+        6 => !c.isSaga && (own[0] >= 5 || own[1] >= 3),
+        7 => !c.isSaga && own[0] >= 5,
+        8 => !c.isSaga && own[1] >= 3,
         _ => true,
       };
       if (!ok) return false;
@@ -88,6 +91,9 @@ List<String> get _showLabels => [
       t('Doublons', 'Duplicates'),
       t('Brillantes ✦', 'Holo ✦'),
       t('Dorées ★', 'Gold ★'),
+      t('Fusions ⚡', 'Fusions ⚡'),
+      t('Fusion normales ×5', 'Fuse normal ×5'),
+      t('Fusion brillantes ×3', 'Fuse holo ×3'),
       // pas de « Full art » ici : les full art ne sont que dans leur onglet de la Collection
     ];
 
