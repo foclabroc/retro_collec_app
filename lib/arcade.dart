@@ -71,7 +71,8 @@ class FloorData {
   final int avatar, score, cards, coins, pixels, theme;
   final int? rank;
   final bool online, me;
-  final bool busy; // en duel en direct (rc_board)
+  final bool busy; // en duel en direct ou en solo (rc_board)
+  final bool solo; // en solo : pas regardable
   final DateTime? seenAt; // dernière connexion
   final String trophies; // vitrine de trophées « type:palier,,type:palier »
   final String? cabGame; // mini-jeu de la borne (rc_cab_board), null si pas encore chargé
@@ -94,6 +95,7 @@ class FloorData {
     required this.online,
     required this.me,
     this.busy = false,
+    this.solo = false,
     this.rank,
   });
 
@@ -116,6 +118,7 @@ class FloorData {
       online: me || p['online'] == true,
       me: me,
       busy: !me && p['busy'] == true,
+      solo: !me && p['solo'] == true,
       seenAt: DateTime.tryParse(p['seen_at']?.toString() ?? '')?.toLocal(),
       rank: rank ?? (p['rank'] as num?)?.toInt(),
       trophies: (me ? myTrophyShow.value : null) ?? p['trophies'] as String? ?? '',
@@ -378,7 +381,7 @@ class _ArcadeCabinetState extends State<ArcadeCabinet> with SingleTickerProvider
                 child: FittedBox(
                   child: on
                       ? (d.busy
-                          ? _Blink(child: Text('IN GAME', style: pixelStyle(size: 20, color: const Color(0xFFFFB347), shadow: false)))
+                          ? _Blink(child: Text(d.solo ? 'SOLO' : 'IN GAME', style: pixelStyle(size: 20, color: const Color(0xFFFFB347), shadow: false)))
                           : _Blink(child: Text(d.me ? '1P READY' : 'PLAYING', style: pixelStyle(size: 20, color: const Color(0xFF7DFFB0), shadow: false))))
                       : Text('OFFLINE', style: pixelStyle(size: 20, color: const Color(0xFFFF5A6A), shadow: false)),
                 ),
