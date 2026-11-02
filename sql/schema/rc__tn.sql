@@ -13,6 +13,9 @@ as $function$
                      when 'sagas' then (select count(*)::int from public.rc_milestones m
                                          where m.device = p_dev and m.step = 100 and m.sys like 'sg\_%')
                      when 'days' then p.days
+                     when 'react' then (select count(*)::int from public.rc_feed_react r where r.device = p_dev)
+                     when 'sagacards' then (select count(*)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
+                                             where o.device = p_dev and o.qty > 0 and cc.saga is not null and cc.saga <> 'pk')
                      when 'pokemon' then (select count(*)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
                                            where o.device = p_dev and o.qty > 0 and cc.saga = 'pk')
                      else coalesce(c.n, 0) end,

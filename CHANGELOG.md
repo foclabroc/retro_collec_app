@@ -3,7 +3,7 @@
 ## v1.0.41
 _Version 1.0.41+42 (en préparation). Pas de cadeau de version. Pas de SQL._
 
-- 🏆 4 trophées : `pioche` 5/30/100, `express` 5/30/100, `wheel` 10/50/200, `pokemon` 10/50/185 (lu en direct dans `rc__tn`) : `sql/2026-11-02_trophees_pioche_express_roue_pokemon.sql` (à lancer après `_pioche_express.sql`).
+- 🏆 7 trophées (+ `react` 10/50/200 lu en direct, `craft` 5/25/100, `sagacards` 25/75/156 lu en direct) : `pioche` 5/30/100, `express` 5/30/100, `wheel` 10/50/200, `pokemon` 10/50/185 (lu en direct dans `rc__tn`) : `sql/2026-11-02_trophees_pioche_express_roue_pokemon.sql` (à lancer après `_pioche_express.sql`).
 - ⚡ Bonus : Pioche du jour rouverte à minuit (tuile rafraîchie), Défi express en direct (déclencheur `rc_express_rt` → `prog`, dans `sql/2026-11-01_pioche_express.sql` à relancer).
 - ⚡ Collection : « fusions » = seulement les cartes fusionnables (5 normales ou 3 brillantes, hors sagas) ; filtres « Fusion normales ×5 » et « Fusion brillantes ×3 » (`CardFilter.show` 6 / 7 / 8).
 

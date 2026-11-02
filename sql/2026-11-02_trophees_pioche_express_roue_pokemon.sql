@@ -14,7 +14,8 @@ as $function$
          ('gold', 5, 25, 100, 17), ('recycle', 50, 250, 1000, 18), ('quiz', 50, 250, 1000, 19), ('played', 20, 100, 400, 20),
          ('defis', 10, 50, 200, 21), ('premium', 5, 25, 100, 22), ('buys', 5, 25, 100, 23), ('firsttry', 1, 5, 20, 24),
          ('tourney', 1, 3, 10, 25), ('pioche', 5, 30, 100, 26), ('express', 5, 30, 100, 27),
-         ('wheel', 10, 50, 200, 28), ('pokemon', 10, 50, 185, 29) $function$;
+         ('wheel', 10, 50, 200, 28), ('pokemon', 10, 50, 185, 29),
+         ('react', 10, 50, 200, 30), ('craft', 5, 25, 100, 31), ('sagacards', 25, 75, 156, 32) $function$;
 ;
 
 create or replace function public.rc__tn(p_dev text)
@@ -32,6 +33,9 @@ as $function$
                      when 'sagas' then (select count(*)::int from public.rc_milestones m
                                          where m.device = p_dev and m.step = 100 and m.sys like 'sg\_%')
                      when 'days' then p.days
+                     when 'react' then (select count(*)::int from public.rc_feed_react r where r.device = p_dev)
+                     when 'sagacards' then (select count(*)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
+                                             where o.device = p_dev and o.qty > 0 and cc.saga is not null and cc.saga <> 'pk')
                      when 'pokemon' then (select count(*)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
                                            where o.device = p_dev and o.qty > 0 and cc.saga = 'pk')
                      else coalesce(c.n, 0) end,
@@ -168,6 +172,32 @@ begin
   return jsonb_build_object('reward', d.reward, 'coins', v.coins, 'pixels', v.pixels, 'events', ev);
 end $function$;
 
+CREATE OR REPLACE FUNCTION public.rc_craft(p_device text, p_card text, p_sig text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $function$
+declare
+  r int; cost int; v public.rc_players; is_new boolean; ev jsonb := '[]'::jsonb;
+begin
+  perform public.rc__check(p_sig, p_device || '|craft|' || p_card);
+  select rarity into r from public.rc_cards where id = p_card;
+  if r is null then raise exception 'carte inconnue'; end if;
+  if exists (select 1 from public.rc_cards where id = p_card and saga is not null) then raise exception 'carte de saga : seulement dans les paquets'; end if;
+  cost := public.rc__craft_cost(r);
+  select * into v from public.rc_players where device = p_device for update;
+  if v.coins < cost then raise exception 'pas assez de pièces'; end if;
+  is_new := public.rc__is_new(p_device, p_card, 0);
+  update public.rc_players set coins = coins - cost where device = p_device;
+  perform public.rc__tbump(p_device, 'craft', 1);  -- trophée : cartes fabriquées
+  perform public.rc__give(p_device, p_card, 0, 1);
+  ev := public.rc__milestones(p_device);
+  perform public.rc__rescore(p_device);
+  return jsonb_build_object('n', is_new, 'coins', (select coins from public.rc_players where device = p_device), 'events', ev);
+end $function$;
+
+alter function public.rc_craft(text, text, text) owner to rc_owner;
 alter function public.rc__tpool() owner to rc_owner;
 alter function public.rc__tn(text) owner to rc_owner;
 alter function public.rc_wheel(text, text) owner to rc_owner;
