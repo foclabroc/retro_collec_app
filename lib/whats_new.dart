@@ -16,6 +16,8 @@ const _kNews = <(String, String, String)>[
       'Collection: the "fusions" button now only shows cards you can fuse, with two new filters "Fuse normal ×5" and "Fuse holo ×3"'),
   ('⚡', 'Bonus : la Pioche du jour se rouvre à minuit sans quitter l\'onglet, et le Défi express avance en direct',
       'Bonus: the Daily draw reopens at midnight without leaving the tab, and the Express challenge progresses live'),
+  ('🏆', '4 nouveaux trophées : Pioche chanceuse, Éclair (défis express), Roue de la fortune et Dresseur (cartes Pokémon)',
+      '4 new trophies: Lucky draw, Lightning (express challenges), Wheel of fortune and Trainer (Pokémon cards)'),
   ('#', 'Aussi depuis la 1.0.40', 'Also since 1.0.40'),
   ('🃏', 'Bonus : « Pioche du jour » (5 cartes face cachée, tu en choisis une, pas de seconde chance, toutes les cartes sauf Pokémon) et « Défi express » (une mission du jour, récompense à récupérer)',
       'Bonus: "Daily draw" (5 face-down cards, pick one, no second chance, any card except Pokémon) and "Express challenge" (a daily mission, reward to claim)'),
