@@ -12,6 +12,8 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🔴', 'Nouveau booster Pokémon : 5 cartes Pokémon, 100 pixels dans la boutique (peut aussi être offert en récompense)',
+      'New Pokémon booster: 5 Pokémon cards, 100 pixels in the shop (can also be given as a reward)'),
   ('⚡', 'Collection : le bouton « fusions » n\'affiche plus que les cartes fusionnables, avec deux nouveaux filtres « Fusion normales ×5 » et « Fusion brillantes ×3 »',
       'Collection: the "fusions" button now only shows cards you can fuse, with two new filters "Fuse normal ×5" and "Fuse holo ×3"'),
   ('⚡', 'Bonus : la Pioche du jour se rouvre à minuit sans quitter l\'onglet, et le Défi express avance en direct',

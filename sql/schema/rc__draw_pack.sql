@@ -10,6 +10,14 @@ declare
   i int; r int; f int; c text; sg text; got_epic boolean := false;
   res jsonb := '[]'::jsonb;
 begin
+  if p_kind = 'pokemon' then  -- 5 cartes Pokémon au hasard
+    for i in 1..5 loop
+      select id into c from public.rc_cards where saga = 'pk' order by random() limit 1;
+      if c is null then raise exception 'catalogue vide'; end if;
+      res := res || jsonb_build_object('c', c, 'f', case when substr(c, 4)::int >= 152 then 1 else 0 end, 'r', 3);
+    end loop;
+    return res;
+  end if;
   if p_kind = 'mystery' then
     x := random();
     n := case when x < 0.5 then 3 when x < 0.9 then 5 else 8 end;
