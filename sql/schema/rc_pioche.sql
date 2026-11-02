@@ -42,6 +42,7 @@ begin
   select sys into sy from public.rc_cards where id = c;
   perform public.rc__ev_bump(p_device, 'console', 1, sy);
   if is_new then perform public.rc__wbump(p_device, 'new', 1); end if;
+  perform public.rc__tbump(p_device, 'pioche', 1);  -- trophée : pioches du jour
   ev := ev || public.rc__milestones(p_device);
   perform public.rc__rescore(p_device);
   return jsonb_build_object('cards', res, 'pick', p_choice, 'n', is_new, 'events', ev);

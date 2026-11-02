@@ -18,7 +18,7 @@ begin
    where device = p_dev;
   for k, v in select key, value from jsonb_each_text(coalesce(r->'packs', '{}'::jsonb)) loop
     lbl := case k when 'mixte' then 'mixte' when 'premium' then 'premium' when 'mystery' then 'mystère'
-                  when 'star' then 'Étoile' when 'gold' then 'Rétro d''or' end;
+                  when 'star' then 'Étoile' when 'gold' then 'Rétro d''or' when 'pokemon' then 'Pokémon' end;
     for i in 1 .. v::int loop
       insert into public.rc_gifts (receiver, giver, giver_name, kind)
       values (p_dev, null, coalesce(nullif(current_setting('rc.gift_from', true), ''), 'Pixel Trade') || ' · ' || lbl, k);

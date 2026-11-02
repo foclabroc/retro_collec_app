@@ -102,7 +102,7 @@ int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
 /// Fragments pour fabriquer une full art (épique / légendaire), même valeurs que rc__fragment_cost
 int fragmentCost(int r) => r == 3 ? 3000 : 10000;
 /// Boosters spéciaux payés en pixels (1 pixel par booster ouvert)
-const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40};
+const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40, 'pokemon': 100};
 final kPackPrice = <String, int>{'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0, 'lot': 0};
 
 /// Réglages en direct (page admin → rc_config « live ») : chances en %, coffre des défis.

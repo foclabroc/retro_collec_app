@@ -21,7 +21,7 @@ begin
 
   for e in select * from jsonb_array_elements(pd.packs -> p_choice) loop
     c := e ->> 'c'; f := (e ->> 'f')::int; r := (e ->> 'r')::int;
-    if r >= 3 then got_epic := true; end if;
+    if r >= 3 and coalesce(pd.gk, pd.kind) <> 'pokemon' then got_epic := true; end if;
     is_new := public.rc__is_new(p_device, c, f);
     if is_new then nnew := nnew + 1; end if;
     perform public.rc__give(p_device, c, f, 1);

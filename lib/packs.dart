@@ -351,6 +351,7 @@ class _PacksScreenState extends State<PacksScreen> {
           ('sconsole', t('Booster Console+', 'Console+ booster'),
               t('Console au choix : une rare ou mieux et une brillante garanties', 'System of your choice: one rare or better and one holo guaranteed'), const Color(0xFF2F6BFF)),
           ('gold', t('Booster Rétro d\'or', 'Retro Gold booster'), t('Une légendaire… ou une carte dorée garantie', 'A legendary… or a gold card guaranteed'), const Color(0xFFF0A419)),
+          ('pokemon', t('Booster Pokémon', 'Pokémon booster'), t('5 cartes Pokémon', '5 Pokémon cards'), const Color(0xFFE53935)),
         ])
           _PackOffer(
             kind: kind,
@@ -1051,6 +1052,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                     'sconsole' => t('Booster ${Catalog.system(widget.sys ?? '')?.name ?? ''}+', '${Catalog.system(widget.sys ?? '')?.name ?? ''}+ booster'),
                     'star' => t('Booster Étoile', 'Star booster'),
                     'gold' => t('Booster Rétro d\'or', 'Retro Gold booster'),
+                    'pokemon' => t('Booster Pokémon', 'Pokémon booster'),
                     'premium' => t('Paquet premium', 'Premium pack'),
                     'mystery' => t('Paquet mystère', 'Mystery pack'),
                     'gift' => t('Paquet cadeau', 'Gift pack'),
@@ -1294,8 +1296,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                         ),
                       ]),
                     );
-              final Widget frontFace = tearable('assets/booster_front.webp');
-              final Widget backFace = tearable('assets/booster_back.webp');
+              final Widget frontFace = tearable(widget.kind == 'pokemon' ? 'assets/booster_pokemon.webp' : 'assets/booster_front.webp');
+              final Widget backFace = tearable(widget.kind == 'pokemon' ? 'assets/booster_pokemon.webp' : 'assets/booster_back.webp');
               // ── Paquet : recto ou verso selon la rotation (sans épaisseur) ──
               final base = Matrix4.identity()
                 ..setEntry(3, 2, 0.0012)
@@ -1380,7 +1382,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
 
   Widget _chooseStage() => Positioned.fill(
         child: BoosterRing(
-          pack: (i, w, h) => _boosterImg('assets/booster_front.webp', w, h, i),
+          pack: (i, w, h) => widget.kind == 'pokemon' ? _boosterImg('assets/booster_pokemon.webp', w, h, null) : _boosterImg('assets/booster_front.webp', w, h, i),
           label: (widget.kind == 'console' || widget.kind == 'sconsole') && widget.sys != null ? ConsoleLogo(widget.sys!, height: 14) : null,
           onChoose: _choose,
         ),
@@ -1392,6 +1394,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'star' => const Color(0xFF8A3DFF),
         'sconsole' => const Color(0xFF2F6BFF),
         'gold' => const Color(0xFFF0A419),
+        'pokemon' => const Color(0xFFE53935),
         'premium' => const Color(0xFF854F0B),
         'mystery' => const Color(0xFF8E2D8E),
         'gift' => const Color(0xFFD8453C),
@@ -1404,6 +1407,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'sconsole' => '${Catalog.system(widget.sys ?? '')?.name ?? ''}+',
         'star' => t('Étoile', 'Star'),
         'gold' => t('Rétro d\'or', 'Retro Gold'),
+        'pokemon' => 'Pokémon',
         'premium' => t('Premium', 'Premium'),
         'mystery' => t('Mystère', 'Mystery'),
         'gift' => t('Cadeau', 'Gift'),
@@ -1871,7 +1875,7 @@ class _MiniBooster extends StatelessWidget {
               child: ColorFiltered(
                 colorFilter: _kVivid,
                 child: Image.asset(
-                'assets/booster_front.webp',
+                kind == 'pokemon' ? 'assets/booster_pokemon.webp' : 'assets/booster_front.webp',
                 fit: BoxFit.fill,
                 filterQuality: FilterQuality.medium,
                 cacheWidth: (width * MediaQuery.of(context).devicePixelRatio).round().clamp(48, 440),
@@ -2588,6 +2592,7 @@ class _PixelsGauge extends StatelessWidget {
     final nextName = switch (next?.key) {
       'star' => t('Booster Étoile', 'Star booster'),
       'sconsole' => t('Booster Console+', 'Console+ booster'),
+      'pokemon' => t('Booster Pokémon', 'Pokémon booster'),
       _ => t('Booster Rétro d\'or', 'Retro Gold booster'),
     };
     return Container(

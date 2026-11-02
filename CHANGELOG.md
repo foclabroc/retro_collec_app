@@ -1,5 +1,13 @@
 # Pixel Trade — Changelog
 
+## v1.0.41
+_Version 1.0.41+42 (en préparation). Pas de cadeau de version. SQL : voir ci-dessous._
+
+- 🔴 Booster Pokémon : 100 pixels, 5 cartes Pokémon (brillantes dès la 152), aussi en récompense / cadeau admin (`pokemon` dans `kRewardPacks`, `rc__rw_clean`, `rc__grant`) : `sql/2026-11-02_booster_pokemon.sql` (à lancer). Image `assets/booster_pokemon.webp` à déposer par l'utilisateur.
+- 🏆 7 trophées (+ `react` 10/50/200 lu en direct, `craft` 5/25/100, `sagacards` 25/75/156 lu en direct) : `pioche` 5/30/100, `express` 5/30/100, `wheel` 10/50/200, `pokemon` 10/50/185 (lu en direct dans `rc__tn`) : `sql/2026-11-02_trophees_pioche_express_roue_pokemon.sql` (à lancer après `_pioche_express.sql`).
+- ⚡ Bonus : Pioche du jour rouverte à minuit (tuile rafraîchie), Défi express en direct (déclencheur `rc_express_rt` → `prog`, dans `sql/2026-11-01_pioche_express.sql` à relancer).
+- ⚡ Collection : « fusions » = seulement les cartes fusionnables (5 normales ou 3 brillantes, hors sagas) ; filtres « Fusion normales ×5 » et « Fusion brillantes ×3 » (`CardFilter.show` 6 / 7 / 8).
+
 ## v1.0.40
 _Version 1.0.40+41. Pas de cadeau de version. SQL (dans l'ordre, après ceux de la 1.0.39) : `sql/2026-11-01_actu_reactions_merci_bravo.sql`, `_chat_supprimer.sql`, `_pioche_express.sql`._
 
@@ -35,7 +43,7 @@ _Version 1.0.37+38. Pas de cadeau de version. SQL : `sql/2026-10-30_admin_pokemo
 - 🏃 Course de jaquettes : boutons « Sauter » et « Glisser » côte à côte en bas.
 
 ## v1.0.36
-_Version 1.0.36+37. Pas de cadeau de version. Pas de SQL._
+_Version 1.0.36+37. Pas de cadeau de version. SQL : voir ci-dessous._
 
 - 🃏 Ligne « Pokémon » (possédées/185) dans « Mes séries » / « Ses séries » et dans la comparaison entre joueurs.
 
@@ -45,7 +53,7 @@ _Version 1.0.35+36. Pas de cadeau de version. SQL : `sql/2026-10-30_profil_vitri
 - 🛠 Changer d'avatar / de pseudo ne dit plus « Carte de vitrine non possédée » : les cartes qu'on n'a plus sont retirées de la vitrine (`rc_set_profile` + appli).
 
 ## v1.0.34
-_Version 1.0.34+35. Pas de cadeau de version. Pas de SQL._
+_Version 1.0.34+35. Pas de cadeau de version. SQL : voir ci-dessous._
 
 - 🃏 Cartes Pokémon en plein cadre (image seule, sans cadre) avec leur dos bleu (`assets/card_back_pk.jpg`).
 - ⚡ Fiche Pokémon épurée : nom, Bourse, Vitrine. Ligne « Pokémon » dans la progression de la Collection.

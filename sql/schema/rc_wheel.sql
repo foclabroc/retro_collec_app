@@ -31,6 +31,7 @@ begin
     acc := acc + w[k];
     if x < acc then seg := k - 1; exit; end if;
   end loop;
+  perform public.rc__tbump(p_device, 'wheel', 1);  -- trophée : tours de roue
   update public.rc_players set wheel_day = public.rc__today(), wheel_at = now(), coins = coins + prize[seg + 1] where device = p_device;
   -- cases carte (2 = carte, 6 = rare) et, en or, le JACKPOT (7) avec une légendaire
   if seg in (2, 6) or (gold and seg = 7) then

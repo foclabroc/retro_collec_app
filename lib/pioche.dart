@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'audio.dart';
 import 'cards.dart';
 import 'catalog.dart';
 import 'game.dart';
+import 'live_events.dart';
 import 'main.dart';
 import 'rewards.dart';
 import 'server.dart';
@@ -60,13 +63,35 @@ class PiocheTile extends StatefulWidget {
   State<PiocheTile> createState() => _PiocheTileState();
 }
 
-class _PiocheTileState extends State<PiocheTile> {
+class _PiocheTileState extends State<PiocheTile> with WidgetsBindingObserver {
   bool? ready;
+  Timer? _day;
+  int _lastDay = DateTime.now().day;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
+    // minuit : le jour change, la pioche redevient disponible
+    _day = Timer.periodic(const Duration(seconds: 20), (_) {
+      if (DateTime.now().day != _lastDay) {
+        _lastDay = DateTime.now().day;
+        _load();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _day?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState s) {
+    if (s == AppLifecycleState.resumed) _load();
   }
 
   Future<void> _load() async {
@@ -223,16 +248,27 @@ class ExpressTile extends StatefulWidget {
 class _ExpressTileState extends State<ExpressTile> with WidgetsBindingObserver {
   Map<String, dynamic>? d;
   bool busy = false;
+  Timer? _day;
+  int _lastDay = DateTime.now().day;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    LiveEvents.prog.addListener(_load); // progression envoyée en direct par le serveur
     _load();
+    _day = Timer.periodic(const Duration(seconds: 20), (_) {
+      if (DateTime.now().day != _lastDay) {
+        _lastDay = DateTime.now().day;
+        _load();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _day?.cancel();
+    LiveEvents.prog.removeListener(_load);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

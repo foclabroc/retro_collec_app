@@ -10,7 +10,7 @@ import 'game.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Paquets possibles en récompense (le paquet console demande un choix : pas proposé)
-const kRewardPacks = ['mixte', 'premium', 'mystery', 'star', 'gold'];
+const kRewardPacks = ['mixte', 'premium', 'mystery', 'star', 'gold', 'pokemon'];
 
 String rewardPackName(String k, {int n = 1}) => switch (k) {
       'mixte' => t('paquet mixte', 'mixed pack'),
@@ -18,10 +18,11 @@ String rewardPackName(String k, {int n = 1}) => switch (k) {
       'mystery' => t('paquet mystère', 'mystery pack'),
       'star' => t('booster Étoile', 'Star booster'),
       'gold' => t('booster Rétro d\'or', 'Retro Gold booster'),
+      'pokemon' => t('booster Pokémon', 'Pokémon booster'),
       _ => k,
     };
 
-String rewardPackIcon(String k) => switch (k) { 'premium' => '💎', 'mystery' => '❓', 'star' => '⭐', 'gold' => '🏆', _ => '📦' };
+String rewardPackIcon(String k) => switch (k) { 'premium' => '💎', 'mystery' => '❓', 'star' => '⭐', 'gold' => '🏆', 'pokemon' => '🔴', _ => '📦' };
 
 int _n(dynamic v) => v is num ? v.toInt() : int.tryParse('${v ?? ''}') ?? 0;
 

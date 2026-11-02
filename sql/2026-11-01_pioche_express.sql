@@ -45,6 +45,7 @@ begin
   select sys into sy from public.rc_cards where id = c;
   perform public.rc__ev_bump(p_device, 'console', 1, sy);
   if is_new then perform public.rc__wbump(p_device, 'new', 1); end if;
+  perform public.rc__tbump(p_device, 'pioche', 1);  -- trophée : pioches du jour
   ev := ev || public.rc__milestones(p_device);
   perform public.rc__rescore(p_device);
   return jsonb_build_object('cards', res, 'pick', p_choice, 'n', is_new, 'events', ev);
@@ -130,6 +131,7 @@ begin
   if e.claimed then raise exception 'déjà récupéré'; end if;
   update public.rc_express set claimed = true where device = e.device and day = e.day;
   g := public.rc__grant(p_device, d.reward);
+  perform public.rc__tbump(p_device, 'express', 1);  -- trophée : défis express
   ev := ev || public.rc__milestones(p_device);
   select * into v from public.rc_players where device = p_device;
   return jsonb_build_object('reward', d.reward, 'coins', v.coins, 'pixels', v.pixels, 'events', ev);
@@ -155,6 +157,10 @@ begin
          least(coalesce(w_prog[array_position(k, p_kind)], 0) + p_n, 9999)
    where device = p_dev;
 end $function$;
+
+-- progression du défi express envoyée en direct au joueur (événement « prog »)
+create or replace trigger rc_express_rt after insert or update on public.rc_express
+  for each row execute function public.rc__rt_me2();
 
 alter function public.rc_pioche_status(text) owner to rc_owner;
 alter function public.rc_pioche(text, integer, text) owner to rc_owner;

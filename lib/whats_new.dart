@@ -12,6 +12,15 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🔴', 'Nouveau booster Pokémon : 5 cartes Pokémon, 100 pixels dans la boutique (peut aussi être offert en récompense)',
+      'New Pokémon booster: 5 Pokémon cards, 100 pixels in the shop (can also be given as a reward)'),
+  ('⚡', 'Collection : le bouton « fusions » n\'affiche plus que les cartes fusionnables, avec deux nouveaux filtres « Fusion normales ×5 » et « Fusion brillantes ×3 »',
+      'Collection: the "fusions" button now only shows cards you can fuse, with two new filters "Fuse normal ×5" and "Fuse holo ×3"'),
+  ('⚡', 'Bonus : la Pioche du jour se rouvre à minuit sans quitter l\'onglet, et le Défi express avance en direct',
+      'Bonus: the Daily draw reopens at midnight without leaving the tab, and the Express challenge progresses live'),
+  ('🏆', '7 nouveaux trophées : Pioche chanceuse, Éclair (défis express), Roue de la fortune, Dresseur (Pokémon), Supporter (réactions de l\'Actu), Artisan (fabrication) et Fan de sagas',
+      '7 new trophies: Lucky draw, Lightning (express challenges), Wheel of fortune, Trainer (Pokémon), Supporter (News reactions), Crafter and Saga fan'),
+  ('#', 'Aussi depuis la 1.0.40', 'Also since 1.0.40'),
   ('🃏', 'Bonus : « Pioche du jour » (5 cartes face cachée, tu en choisis une, pas de seconde chance, toutes les cartes sauf Pokémon) et « Défi express » (une mission du jour, récompense à récupérer)',
       'Bonus: "Daily draw" (5 face-down cards, pick one, no second chance, any card except Pokémon) and "Express challenge" (a daily mission, reward to claim)'),
   ('👏', 'Actu : deux nouvelles réactions, « Merci » 🙏 et « Bravo » 🎉',

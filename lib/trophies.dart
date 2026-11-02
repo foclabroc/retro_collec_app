@@ -49,6 +49,13 @@ const kTrophies = [
   TrophyDef('premium', '⭐', 'Premium', 'Premium', 'Ouvrir # paquets premium', 'Open # premium packs', [5, 25, 100]),
   TrophyDef('buys', '🛒', 'Acheteur', 'Buyer', 'Acheter # cartes à la Bourse', 'Buy # cards on the market', [5, 25, 100]),
   TrophyDef('firsttry', '🎯', 'Du premier coup', 'First try', 'Trouver # Gamedle du premier coup', 'Solve # Gamedles on the first try', [1, 5, 20]),
+  TrophyDef('pioche', '🃏', 'Pioche chanceuse', 'Lucky draw', 'Faire # pioches du jour', 'Make # daily draws', [5, 30, 100]),
+  TrophyDef('express', '⚡', 'Éclair', 'Lightning', 'Réussir # défis express', 'Complete # express challenges', [5, 30, 100]),
+  TrophyDef('wheel', '🎡', 'Roue de la fortune', 'Wheel of fortune', 'Tourner # fois la roue', 'Spin the wheel # times', [10, 50, 200]),
+  TrophyDef('pokemon', '🔴', 'Dresseur', 'Trainer', 'Avoir # cartes Pokémon différentes', 'Own # different Pokémon cards', [10, 50, 185]),
+  TrophyDef('react', '👏', 'Supporter', 'Supporter', 'Réagir à # nouvelles de l\'Actu', 'React to # news items', [10, 50, 200]),
+  TrophyDef('craft', '🔨', 'Artisan', 'Crafter', 'Fabriquer # cartes', 'Craft # cards', [5, 25, 100]),
+  TrophyDef('sagacards', '📚', 'Fan de sagas', 'Saga fan', 'Avoir # cartes de sagas', 'Own # saga cards', [25, 75, 156]),
   TrophyDef('tourney', '🏆', 'Champion', 'Champion', 'Gagner # tournois', 'Win # tournaments', [1, 3, 10]),
 ];
 

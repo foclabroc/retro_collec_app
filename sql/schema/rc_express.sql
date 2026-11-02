@@ -78,6 +78,7 @@ begin
   if e.claimed then raise exception 'déjà récupéré'; end if;
   update public.rc_express set claimed = true where device = e.device and day = e.day;
   g := public.rc__grant(p_device, d.reward);
+  perform public.rc__tbump(p_device, 'express', 1);  -- trophée : défis express
   ev := ev || public.rc__milestones(p_device);
   select * into v from public.rc_players where device = p_device;
   return jsonb_build_object('reward', d.reward, 'coins', v.coins, 'pixels', v.pixels, 'events', ev);
