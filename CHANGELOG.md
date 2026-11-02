@@ -3,6 +3,7 @@
 ## v1.0.41
 _Version 1.0.41+42 (en préparation). Pas de cadeau de version. Pas de SQL._
 
+- ⚡ Bonus : Pioche du jour rouverte à minuit (tuile rafraîchie), Défi express en direct (déclencheur `rc_express_rt` → `prog`, dans `sql/2026-11-01_pioche_express.sql` à relancer).
 - ⚡ Collection : « fusions » = seulement les cartes fusionnables (5 normales ou 3 brillantes, hors sagas) ; filtres « Fusion normales ×5 » et « Fusion brillantes ×3 » (`CardFilter.show` 6 / 7 / 8).
 
 ## v1.0.40

@@ -156,6 +156,10 @@ begin
    where device = p_dev;
 end $function$;
 
+-- progression du défi express envoyée en direct au joueur (événement « prog »)
+create or replace trigger rc_express_rt after insert or update on public.rc_express
+  for each row execute function public.rc__rt_me2();
+
 alter function public.rc_pioche_status(text) owner to rc_owner;
 alter function public.rc_pioche(text, integer, text) owner to rc_owner;
 alter function public.rc__express_def(date) owner to rc_owner;
