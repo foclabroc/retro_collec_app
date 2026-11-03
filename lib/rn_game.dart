@@ -100,12 +100,6 @@ class _CoverRunTileState extends State<CoverRunTile> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                     Row(children: [
                       Flexible(child: Text(t('Course de jaquettes', 'Cover Run'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(color: const Color(0x33FFB74D), borderRadius: BorderRadius.circular(6), border: Border.all(color: const Color(0xFFFFB74D))),
-                        child: Text(t('(bêta test)', '(beta test)'), style: const TextStyle(color: Color(0xFFFFB74D), fontSize: 10, fontWeight: FontWeight.w700)),
-                      ),
                     ]),
                     const SizedBox(height: 3),
                     Text(t('Saute ou glisse entre les obstacles : solo du jour avec lots, ou duel en direct ($kDuelWin pièces + 1 pixel)',
@@ -162,11 +156,16 @@ class RnInput extends StatelessWidget {
         autofocus: true,
         onKeyEvent: (_, e) {
           final h = hero;
+          final k = e.logicalKey;
+          final down = k == LogicalKeyboardKey.arrowDown || k == LogicalKeyboardKey.keyS;
           if (e is KeyDownEvent && h != null && enabled) {
-            final k = e.logicalKey;
             if (k == LogicalKeyboardKey.arrowUp || k == LogicalKeyboardKey.space || k == LogicalKeyboardKey.keyW) h.jumpReq = true;
-            if (k == LogicalKeyboardKey.arrowDown || k == LogicalKeyboardKey.keyS) h.slideReq = true;
+            if (down) {
+              h.slideReq = true;
+              h.hold = true;
+            }
           }
+          if (e is KeyUpEvent && h != null && down) h.hold = false;
           return KeyEventResult.handled;
         },
         child: Listener(
@@ -179,8 +178,11 @@ class RnInput extends StatelessWidget {
               h.jumpReq = true;
             } else {
               h.slideReq = true;
+              h.hold = true;
             }
           },
+          onPointerUp: (_) => hero?.hold = false,
+          onPointerCancel: (_) => hero?.hold = false,
           child: Stack(children: [
             Positioned.fill(child: child),
             if (enabled && hero != null)
@@ -191,7 +193,7 @@ class RnInput extends StatelessWidget {
                 child: Row(children: [
                   Expanded(child: _btn(t('SAUTER', 'JUMP'), Icons.arrow_upward_rounded, () => hero?.jumpReq = true)),
                   const SizedBox(width: 12),
-                  Expanded(child: _btn(t('GLISSER', 'SLIDE'), Icons.arrow_downward_rounded, () => hero?.slideReq = true)),
+                  Expanded(child: _btn(t('GLISSER', 'SLIDE'), Icons.arrow_downward_rounded, () => hero?..slideReq = true..hold = true, up: () => hero?.hold = false)),
                 ]),
               ),
           ]),
@@ -202,9 +204,11 @@ class RnInput extends StatelessWidget {
 
   static const _kRnBtnZone = 84.0;
 
-  Widget _btn(String label, IconData icon, VoidCallback go) => Listener(
+  Widget _btn(String label, IconData icon, VoidCallback go, {VoidCallback? up}) => Listener(
         behavior: HitTestBehavior.opaque,
         onPointerDown: (_) => go(),
+        onPointerUp: (_) => up?.call(),
+        onPointerCancel: (_) => up?.call(),
         child: Container(
           height: 60,
           decoration: BoxDecoration(
@@ -547,7 +551,7 @@ class _RnGamePageState extends State<RnGamePage> with SingleTickerProviderStateM
       }
       l.add(RnRunner(p.$1, p.$2, col, sliding: p.$3, label: tr.dead ? '💀 ${tr.name}' : tr.name, ghost: !watch, dead: tr.dead));
     }
-    if (!watch) l.add(RnRunner(hero.x, hero.y, kRnRed, sliding: hero.sliding, dead: hero.dead));
+    if (!watch) l.add(RnRunner(hero.x, hero.y, kRnRed, sliding: hero.sliding, dead: hero.dead, fx: hero.fx));
     return l;
   }
 
@@ -859,7 +863,7 @@ class _RnSoloRunPageState extends State<RnSoloRunPage> with SingleTickerProvider
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Stack(fit: StackFit.expand, children: [
-                  CustomPaint(painter: RnPainter(world: world, camX: hero.x, runners: [RnRunner(hero.x, hero.y, kRnRed, sliding: hero.sliding, dead: hero.dead)], lines: _lines())),
+                  CustomPaint(painter: RnPainter(world: world, camX: hero.x, runners: [RnRunner(hero.x, hero.y, kRnRed, sliding: hero.sliding, dead: hero.dead, fx: hero.fx)], lines: _lines())),
                   if (count > 0)
                     Center(child: Text('$count', style: pixelStyle(size: 34, color: Colors.white, shadow: false)))
                   else if (count == 0 && simT < 0.6)

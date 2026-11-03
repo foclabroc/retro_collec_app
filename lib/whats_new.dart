@@ -12,6 +12,13 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🏃', 'Course de jaquettes refaite : un magasin de jeux rétro la nuit (étagères pleines de jaquettes, néons, sol ciré), et ton coureur est maintenant une cartouche !',
+      'Cover Run remade: a retro game shop at night (shelves full of covers, neon signs, polished floor), and your runner is now a cartridge!'),
+  ('🎮', 'Course plus jouable : vue plus grosse qui recule avec la vitesse, appui un peu en avance gardé, glisse tant que tu restes appuyé, ↓ en l\'air pour plonger, flèche d\'alerte quand un obstacle arrive vite',
+      'Easier to play: bigger view that zooms out with speed, slightly early taps are kept, slide as long as you hold, ↓ in the air to dive, warning arrow when an obstacle comes fast'),
+  ('🎨', 'Le choix du booster Pokémon montre bien 6 couleurs différentes',
+      'The Pokémon booster choice now shows 6 different colours'),
+  ('#', 'Aussi depuis la 1.0.42', 'Also since 1.0.42'),
   ('🏆', 'Actualité : nouvel onglet « Tops » avec les meilleurs joueurs (paquets ouverts, pièces gagnées, victoires de duels, Bourse, cadeaux envoyés, cartes) sur aujourd\'hui, 7 ou 30 jours',
       'News: new "Tops" tab with the best players (packs opened, coins earned, duel wins, Market, gifts sent, cards) for today, 7 or 30 days'),
   ('#', 'Aussi depuis la 1.0.41', 'Also since 1.0.41'),

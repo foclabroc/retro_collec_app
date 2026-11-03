@@ -1,5 +1,12 @@
 # Pixel Trade — Changelog
 
+## v1.0.43
+_Version 1.0.43+44. Pas de cadeau de version. Pas de SQL._
+
+- 🏃 Course de jaquettes refaite (maquette validée le 3/11) : rendu « Rayon de jeux » (`RnPainter`, `rn_engine.dart` : étagères en parallaxe mises en cache par segment, néons, sol ciré avec reflets, premier plan, vignette), héros cartouche en pixel art (`_heroPic`, en cache par pose / couleur), zoom 34 → 24 px/m selon la vitesse, flèche d'alerte, « OUF ! » au frôlement, annonce tous les 100 m, traînée, poussière et débris (`RnFx`, porté par `RnHero.fx`). Badge « bêta test » retiré.
+- 🎮 Jouabilité : appui gardé 0,15 s, glisse tenue (`RnHero.hold`, doigt / bouton / ↓ restés appuyés), plongeon en l'air. Mêmes obstacles et mêmes plafonds serveur.
+- 🎨 Choix du booster Pokémon : 6 couleurs (filtre de couleur appliqué).
+
 ## v1.0.42
 _Version 1.0.42+43. Pas de cadeau de version. SQL : `sql/2026-11-03_tops.sql` (lancé)._
 
