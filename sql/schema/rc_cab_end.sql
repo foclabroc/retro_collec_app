@@ -13,7 +13,7 @@ begin
   if x.id is null or x.device <> p_device then raise exception 'partie inconnue'; end if;
   if x.done_at is not null then raise exception 'partie déjà terminée'; end if;
   v_secs := extract(epoch from now() - x.started_at);
-  v_rate := case x.game when 'snake' then 250 when 'bricks' then 450 else 120 end; -- points par seconde au maximum
+  v_rate := case x.game when 'snake' then public.rc__cfg('cab_snake', 250) when 'bricks' then public.rc__cfg('cab_bricks', 450) else public.rc__cfg('cab_dodge', 120) end; -- points par seconde au maximum
   if p_score is null or p_score < 0 or p_score > v_rate * v_secs + 200 or v_secs > 3 * 3600 then
     update public.rc_cab_runs set done_at = now(), score = 0 where id = x.id;
     raise exception 'score refusé';
@@ -33,7 +33,7 @@ begin
       insert into public.rc_cab_paid (owner, device, day) values (o.device, p_device, public.rc__today())
       on conflict do nothing;
       if found then
-        v_gain := 20;
+        v_gain := public.rc__cfg('cab_prime', 20)::int;
         update public.rc_players set coins = coins + v_gain, updated_at = now() where device = p_device returning coins into me.coins;
       end if;
     end if;

@@ -17,5 +17,5 @@ AS $function$
       from public.rc_feed f
       join public.rc_players p on p.device = f.device
       left join public.rc_players o on o.device = f.other
-     where f.id > coalesce(p_after, 0)
+     where not f.hidden and f.id > coalesce(p_after, 0)
      order by f.id desc limit 100) s $function$
