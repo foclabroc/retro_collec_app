@@ -1,0 +1,1135 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Pixel Trade Admin</title>
+<link rel="preconnect" href="https://api.foclabroc.duckdns.org">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1220;--panel:#181c30;--panel2:#20253d;--line:#2c3252;--text:#e8eaf6;--mute:#8a90b4;--acc:#ffcc33;--acc2:#3fd0ff;--ok:#3ee08f;--bad:#ff5a6e;--warn:#ff9f40;--violet:#b07cff;--r:10px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,sans-serif}
+.px{font-family:'Press Start 2P',monospace;letter-spacing:.5px}
+a{color:var(--acc2)}
+.app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+nav{background:#0b0e19;border-right:1px solid var(--line);padding:14px 10px;position:sticky;top:0;height:100vh;overflow:auto}
+.logo{display:flex;gap:10px;align-items:center;padding:6px 8px 12px}
+.logo .px{font-size:11px;color:var(--acc);line-height:1.6}
+.logo .ic{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--acc),var(--warn));display:grid;place-items:center;font-size:18px}
+.navgrp{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:1.2px;margin:12px 10px 4px}
+nav button{display:flex;gap:10px;align-items:center;width:100%;background:none;border:0;color:var(--text);padding:7px 10px;border-radius:8px;cursor:pointer;font:inherit;text-align:left}
+nav button:hover{background:var(--panel)}
+nav button.on{background:var(--panel2);color:var(--acc);box-shadow:inset 3px 0 0 var(--acc)}
+nav button.soon{color:var(--mute)}
+nav .badge{margin-left:auto;background:var(--bad);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px}
+nav .badge.w{background:var(--warn)}
+main{padding:20px 26px 60px;max-width:1440px;min-width:0}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.top h1{font-size:14px;margin:0;color:var(--acc)}
+.sp{flex:1}
+.who{display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);padding:6px 10px;border-radius:20px;font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.card h3{margin:0 0 12px;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+h4{margin:16px 0 8px;font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.8px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.g64{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}
+.mt{margin-top:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;cursor:pointer}
+.stat:hover{border-color:var(--acc)}
+.stat .n{font-size:22px;font-weight:700;margin-top:4px}
+.stat .l,.mini .l{color:var(--mute);font-size:12px}
+.stat .d{font-size:11px;color:var(--mute)}
+.mini{background:var(--panel2);border-radius:8px;padding:10px}
+.mini .n{font-size:18px;font-weight:700}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--mute);font-weight:500;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th[data-k]{cursor:pointer}th[data-k]:hover{color:var(--text)}th.sorted{color:var(--acc)}
+td{padding:7px 8px;border-bottom:1px solid #22274180}
+td.r,th.r{text-align:right}
+tr.click{cursor:pointer}tr.click:hover td{background:#ffffff08}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;background:var(--panel2);color:var(--mute);white-space:nowrap}
+.pill.ok{background:#3ee08f22;color:var(--ok)}.pill.bad{background:#ff5a6e22;color:var(--bad)}.pill.warn{background:#ff9f4022;color:var(--warn)}.pill.acc{background:#ffcc3322;color:var(--acc)}.pill.blue{background:#3fd0ff22;color:var(--acc2)}.pill.vi{background:#b07cff22;color:var(--violet)}
+.btn{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit;font-size:13px;display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
+.btn:hover{border-color:var(--acc2)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.p{background:var(--acc);color:#1a1300;border-color:var(--acc);font-weight:600}
+.btn.d{color:var(--bad);border-color:#ff5a6e55}
+.btn.s{padding:4px 8px;font-size:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input,select,textarea{background:#0d1020;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;width:100%}
+input[type=checkbox]{width:auto}
+select option{background:#0d1020}
+textarea{min-height:70px;resize:vertical}
+label{display:block;font-size:11px;color:var(--mute);margin:10px 0 4px}
+label.inl{display:flex;gap:6px;align-items:center;margin:0;font-size:13px;color:var(--text)}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.f3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.f4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow:auto}
+.tabs button{background:none;border:0;color:var(--mute);padding:8px 11px;cursor:pointer;font:inherit;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--acc);border-color:var(--acc)}
+.av{width:28px;height:28px;border-radius:50%;background:#fff;display:inline-block;vertical-align:middle;margin-right:8px;flex:none;object-fit:cover}
+.mute{color:var(--mute)}.small{font-size:12px}
+.coin{color:var(--acc)}.pix{color:var(--acc2)}.frag{color:var(--violet)}.okc{color:var(--ok)}.badc{color:var(--bad)}
+.drawer{position:fixed;top:0;right:0;width:min(780px,100vw);height:100vh;background:var(--panel);border-left:1px solid var(--line);transform:translateX(100%);transition:.25s;z-index:20;overflow:auto;padding:20px;box-shadow:-20px 0 50px #0008}
+.drawer.on{transform:none}
+.shade{position:fixed;inset:0;background:#0007;z-index:19;display:none}.shade.on{display:block}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px}.kv>span:nth-child(odd){color:var(--mute)}
+.sec{display:none}.sec.on{display:block}
+.bar{height:8px;border-radius:5px;background:var(--panel2);overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}
+.hb{display:grid;grid-template-columns:160px 1fr 80px;gap:10px;align-items:center;font-size:13px;padding:3px 0}
+.hb b{text-align:right;font-weight:600}
+.chart{display:flex;align-items:flex-end;gap:3px;height:120px;padding-top:14px}
+.chart>div{flex:1;align-self:stretch;position:relative;display:flex;flex-direction:column-reverse;min-width:3px}
+.chart>div.pair{flex-direction:row;align-items:flex-end;gap:1px}
+.chart>div.pair>i{flex:1}
+.chart>div>i{display:block;width:100%}
+.chart>div:hover::after{content:attr(data-v);position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:10px;white-space:nowrap;background:var(--panel);padding:0 4px;border-radius:4px;z-index:2}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--mute);margin-top:8px}
+.legend span::before{content:'';display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--c);margin-right:5px;vertical-align:-1px}
+.heat{display:grid;grid-template-columns:34px repeat(24,1fr);gap:2px;font-size:9px;color:var(--mute)}
+.heat i{aspect-ratio:1;border-radius:2px;display:block;background:var(--panel2)}
+.evprev{border-radius:12px;padding:16px;color:#fff;min-height:110px}
+.evprev .t{font-weight:700;font-size:16px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ok);color:#002;padding:10px 18px;border-radius:10px;font-weight:600;transition:.25s;z-index:60;max-width:90vw}
+.toast.on{transform:translateX(-50%)}
+.toast.err{background:var(--bad);color:#fff}
+.msg{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #22274180;align-items:center}
+.msg .b{flex:1;min-width:0}
+.bracket{display:flex;gap:24px;overflow:auto;padding:6px 0}
+.bracket .col{display:flex;flex-direction:column;justify-content:space-around;gap:10px;min-width:160px}
+.bracket .m{background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:12px}
+.bracket .m div{padding:5px 8px}.bracket .m div+div{border-top:1px solid var(--line)}
+.bracket .w{color:var(--ok);font-weight:600}
+.warnbox{background:#ff5a6e14;border:1px solid #ff5a6e55;border-radius:8px;padding:10px;font-size:12px;color:#ffb3bd}
+.note{background:#3fd0ff12;border:1px solid #3fd0ff44;border-radius:8px;padding:10px;font-size:12px;color:#bdeeff}
+.alert{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:var(--panel2)}
+.alert .ic{font-size:20px}.alert.hi{border-color:#ff5a6e88}.alert.md{border-color:#ff9f4088}
+.rw{display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center}
+.rwi{display:inline-flex;gap:3px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:2px}
+.rwi select{width:auto;padding:4px 6px;border:0;background:transparent}
+.rwx{cursor:pointer;color:var(--bad);padding:0 5px}
+.cmd,.modal{position:fixed;inset:0;background:#000a;z-index:50;display:none;align-items:flex-start;justify-content:center;padding-top:12vh}
+.cmd.on,.modal.on{display:flex}
+.cmd .box,.modal .box{width:min(560px,92vw);background:var(--panel);border:1px solid var(--acc);border-radius:12px;padding:14px;box-shadow:0 20px 60px #000}
+.cmd .it{padding:8px 10px;border-radius:6px;cursor:pointer}.cmd .it:hover,.cmd .it.on{background:var(--panel2)}
+.kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:11px;color:var(--mute)}
+.login{position:fixed;inset:0;background:var(--bg);z-index:70;display:grid;place-items:center}
+.login .box{width:min(380px,92vw);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--mute);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty{color:var(--mute);font-size:13px;padding:12px 0}
+.soonbox{border:1px dashed var(--line);border-radius:10px;padding:18px;color:var(--mute)}
+@media(max-width:1000px){.app{grid-template-columns:1fr}nav{position:static;height:auto}.g4,.g3,.g6{grid-template-columns:repeat(2,minmax(0,1fr))}.g2,.g64,.f2,.f3,.f4{grid-template-columns:1fr}main{padding:16px}.hb{grid-template-columns:110px 1fr 70px}}
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <div class="box">
+    <div class="row" style="margin-bottom:14px"><div class="logo" style="padding:0"><div class="ic">🕹️</div><div class="px">PIXEL TRADE<br><span style="color:var(--mute)">ADMIN</span></div></div></div>
+    <label>Pseudo</label><input id="lg_name" autocomplete="username">
+    <label>Mot de passe</label><input id="lg_pass" type="password" autocomplete="current-password">
+    <div class="row mt"><button class="btn p" id="lg_go">Se connecter</button><span id="lg_msg" class="small badc"></span></div>
+    <div class="small mute mt">Ton compte Pixel Trade. L'accès est vérifié par le serveur : seuls les comptes admin entrent.</div>
+  </div>
+</div>
+
+<div class="app">
+<nav id="nav">
+  <div class="logo"><div class="ic">🕹️</div><div class="px">PIXEL<br>TRADE<br><span style="color:var(--mute)">ADMIN</span></div></div>
+  <div class="navgrp">Pilotage</div>
+  <button data-s="dash" class="on">📊 Tableau de bord</button>
+  <button data-s="stats">📈 Statistiques</button>
+  <button data-s="players">👥 Joueurs</button>
+  <button data-s="compare">⚖️ Comparer</button>
+  <button data-s="alerts">🚨 Alertes <span class="badge" id="nb_alerts" hidden></span></button>
+  <button data-s="activity">📜 Journal</button>
+  <div class="navgrp">Animation</div>
+  <button data-s="events">🎉 Événements</button>
+  <button data-s="tours">🏆 Tournois</button>
+  <button data-s="mail">✉️ Courrier &amp; cadeaux</button>
+  <button data-s="polls">🗳️ Sondages</button>
+  <div class="navgrp">Modération</div>
+  <button data-s="chat">💬 Chat <span class="badge" id="nb_chat" hidden></span></button>
+  <button data-s="market">🏦 Bourse</button>
+  <div class="navgrp">Jeu</div>
+  <button data-s="cards">🃏 Cartes</button>
+  <button data-s="eco">⚙️ Économie &amp; réglages</button>
+  <button data-s="system">🛡️ Maintenance &amp; version</button>
+  <div class="navgrp">Prochaines étapes</div>
+  <button data-s="soon" class="soon">🚧 À venir</button>
+</nav>
+<main>
+  <div class="top">
+    <h1 class="px" id="title">TABLEAU DE BORD</h1>
+    <div class="sp"></div>
+    <button class="btn" id="opencmd">🔎 Chercher… <span class="kbd">Ctrl K</span></button>
+    <button class="btn s" id="refresh" title="Recharger la page en cours">🔄</button>
+    <div class="who"><span class="dot"></span> <span id="who">…</span> <button class="btn s" id="logout" title="Se déconnecter">⏏</button></div>
+  </div>
+
+  <section class="sec on" id="dash"></section>
+  <section class="sec" id="stats"></section>
+  <section class="sec" id="players"></section>
+  <section class="sec" id="compare"></section>
+  <section class="sec" id="alerts"></section>
+  <section class="sec" id="activity"></section>
+  <section class="sec" id="events"></section>
+  <section class="sec" id="tours"></section>
+  <section class="sec" id="mail"></section>
+  <section class="sec" id="polls"></section>
+  <section class="sec" id="chat"></section>
+  <section class="sec" id="market"></section>
+  <section class="sec" id="cards"></section>
+  <section class="sec" id="eco"></section>
+  <section class="sec" id="system"></section>
+  <section class="sec" id="soon"></section>
+</main>
+</div>
+
+<div class="shade" id="shade"></div>
+<div class="drawer" id="drawer"></div>
+<div class="cmd" id="cmd"><div class="box"><input id="cmdin" placeholder="Joueur, carte, page…"><div id="cmdres" style="margin-top:8px"></div></div></div>
+<div class="modal" id="modal"><div class="box" id="modalbox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+// ═════════════════════════════ API ═════════════════════════════
+const API = 'https://api.foclabroc.duckdns.org/rest/v1/rpc/';
+const KEY = 'sb_publishable_M1Rdee-lSEzCfq81zjYq5Q_NgJ0a35z';
+const SALT = 'rc-collec#7b2e-foc';
+let D = null;            // identifiant secret du compte admin (gardé dans ce navigateur)
+let ME = '';
+
+async function sha256(s) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+const sig = s => sha256(SALT + '|' + s);
+
+async function rpc(fn, body) {
+  let res;
+  try {
+    res = await fetch(API + fn, { method: 'POST', headers: { apikey: KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  } catch (_) { throw new Error('Pas de connexion au serveur'); }
+  if ([502, 503, 504].includes(res.status)) throw new Error('Serveur indisponible');
+  const txt = await res.text();
+  if (res.status >= 300) {
+    let m = 'HTTP ' + res.status;
+    try { const j = JSON.parse(txt); if (j.message) m = j.message; } catch (_) {}
+    throw new Error(m);
+  }
+  return txt ? JSON.parse(txt) : null;
+}
+async function adm(fn, payload, extra = {}) {
+  return rpc(fn, { p_device: D, p_sig: await sig(D + '|admin|' + payload), ...extra });
+}
+async function X(op, args = {}) {
+  const s = JSON.stringify(args);
+  return adm('rc_admin_x', 'x|' + op + '|' + s, { p_op: op, p_args: s });
+}
+
+// ═════════════════════════════ OUTILS ═════════════════════════════
+const $ = s => document.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fr = n => (n == null || n === '' ? '—' : Number(n).toLocaleString('fr-FR'));
+const sgn = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fr(Math.abs(n));
+const dt = s => s ? new Date(s).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+const dd = s => s ? new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '—';
+function ago(s) {
+  if (!s) return 'jamais';
+  const m = (Date.now() - new Date(s)) / 60000;
+  if (m < 1.25) return 'en ligne';
+  if (m < 60) return Math.round(m) + ' min';
+  if (m < 1440) return Math.round(m / 60) + ' h';
+  if (m < 2880) return 'hier';
+  return Math.round(m / 1440) + ' j';
+}
+const av = (a, sz = 28) => `<img class="av" style="width:${sz}px;height:${sz}px" src="assets/assets/avatars/avatar_${String(Math.abs(+a || 0) % 30).padStart(2, '0')}.webp" alt="" onerror="this.style.visibility='hidden'">`;
+const plink = (pid, name, a) => `<span data-player="${esc(pid)}" style="cursor:pointer">${a != null ? av(a, 22) : ''}<b>${esc(name)}</b></span>`;
+const loading = '<div class="empty"><span class="spin"></span> Chargement…</div>';
+function toast(msg, err = false) {
+  const t = $('#toast'); t.textContent = msg; t.classList.toggle('err', err); t.classList.add('on');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), err ? 4000 : 1800);
+}
+async function act(fn, okMsg) {
+  try { const r = await fn(); if (okMsg) toast(okMsg); return r; }
+  catch (e) { toast('⚠ ' + e.message, true); throw e; }
+}
+function hb(rows, color) {
+  const m = Math.max(1, ...rows.map(r => Math.abs(r[1])));
+  return rows.map(r => `<div class="hb"><span title="${esc(r[0])}">${esc(r[0])}</span><div class="bar"><i style="width:${Math.abs(r[1]) / m * 100}%;background:${r[3] || color || 'var(--acc)'}"></i></div><b>${r[2] ?? fr(r[1])}</b></div>`).join('') || '<div class="empty">Rien sur la période</div>';
+}
+// barres : vals = nombre ou tableau (empilé) ; pair = barres côte à côte
+function chart(vals, colors, labels, pair = false) {
+  const flat = vals.map(v => [].concat(v));
+  const m = Math.max(1, ...flat.map(a => pair ? Math.max(...a) : a.reduce((x, y) => x + y, 0)));
+  return `<div class="chart">${flat.map((a, i) => `<div class="${pair ? 'pair' : ''}" data-v="${esc((labels ? labels[i] + ' : ' : '') + a.map(fr).join(' / '))}">${a.map((x, k) => `<i style="height:${x / m * 100}%;background:${[].concat(colors)[k % [].concat(colors).length]};border-radius:2px 2px 0 0"></i>`).join('')}</div>`).join('')}</div>`;
+}
+function heat(cells) {   // [[dow0-6, h, n]]
+  const g = Array.from({ length: 7 }, () => Array(24).fill(0)); let m = 1;
+  for (const [d, h, n] of cells) { g[d][h] = n; m = Math.max(m, n); }
+  return '<div class="heat">' + ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'].map((d, i) => `<span>${d}</span>` + g[i].map((n, h) => `<i title="${d} ${h} h : ${n}" style="background:${n ? `rgba(255,204,51,${(0.12 + 0.88 * n / m).toFixed(2)})` : ''}"></i>`).join('')).join('') +
+    '<span></span>' + Array.from({ length: 24 }, (_, i) => `<span style="text-align:center">${i % 6 ? '' : i}</span>`).join('') + '</div>';
+}
+function spark(pts, color = '#ffcc33') {
+  if (!pts.length) return '';
+  const mn = Math.min(...pts), mx = Math.max(...pts), r = mx - mn || 1;
+  return `<svg viewBox="0 0 300 50" preserveAspectRatio="none" style="width:100%;height:60px"><polyline fill="none" stroke="${color}" stroke-width="2" points="${pts.map((v, i) => `${(i / Math.max(1, pts.length - 1) * 300).toFixed(1)},${(46 - (v - mn) / r * 42).toFixed(1)}`).join(' ')}"/></svg><div class="row small mute" style="justify-content:space-between"><span>${fr(pts[0])}</span><span>min ${fr(mn)} · max ${fr(mx)}</span><span>${fr(pts[pts.length - 1])}</span></div>`;
+}
+function tabs(id, list) {   // list : [[key, label]]
+  return `<div class="tabs" data-tabs="${id}">${list.map((t, i) => `<button class="${i ? '' : 'on'}" data-t="${t[0]}">${t[1]}</button>`).join('')}</div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-tabs] button'); if (!b) return;
+  const bar = b.parentElement, box = bar.parentElement;
+  $$('button', bar).forEach(x => x.classList.toggle('on', x === b));
+  $$(':scope > [data-tab]', box).forEach(x => x.hidden = x.dataset.tab !== b.dataset.t);
+});
+const withCur = (list, cur) => (cur == null || cur === '' || list.some(o => String(Array.isArray(o) ? o[0] : o) === String(cur))) ? list : [...list, cur].sort((a, b) => (+a) - (+b));
+const opt = (list, cur) => list.map(o => { const [v, l] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(v)}"${String(v) === String(cur) ? ' selected' : ''}>${esc(l)}</option>`; }).join('');
+function csv(name, rows) {
+  const t = rows.map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(';')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + t], { type: 'text/csv' })); a.download = name; a.click();
+}
+function modal(html) { $('#modalbox').innerHTML = html; $('#modal').classList.add('on'); }
+function closeModal() { $('#modal').classList.remove('on'); }
+$('#modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
+// date locale (datetime-local) <-> ISO
+const toLocal = s => { if (!s) return ''; const d = new Date(s); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
+const fromLocal = s => s ? new Date(s).toISOString() : null;
+
+// ═════════════════════════════ LIBELLÉS ═════════════════════════════
+const RAR = ['Commune', 'Peu commune', 'Rare', 'Épique', 'Légendaire'];
+const FIN = ['Normale', 'Brillante', 'Dorée', 'Full art'];
+const GAME = { c4: '🔴 4 en ligne', bs: '🚢 Console Wars', rj: '🚀 Rétro Jump', rn: '🏃 Course de jaquettes' };
+const PACK = { lot: 'Lot de 5', mixte: 'Mixte', gift: 'Cadeau', free: 'Gratuit', console: 'Console', gold: 'Doré ▦', premium: 'Premium', mystery: 'Mystère', star: 'Étoile ▦', sconsole: 'Console spé. ▦', pokemon: 'Pokémon ▦' };
+const PACKC = { lot: '#8a90b4', mixte: '#ffcc33', gift: '#ff7eb6', free: '#3ee08f', console: '#ff9f40', gold: '#ffe680', premium: '#b07cff', mystery: '#3fd0ff', star: '#9ad0ff', sconsole: '#ff5a6e', pokemon: '#ff3d7f' };
+const KIND = { pack: 'Achat de paquets', open: 'Ouverture (pixels)', reward: 'Récompenses (paliers, courrier, événements…)', sell: 'Mise en vente', buy: 'Achats à la Bourse', sold: 'Ventes à la Bourse', duel: 'Duels', lot: 'Lots de 5', gift: 'Cadeau envoyé', quiz: 'Quiz', trade_ok: 'Échange accepté', wheel: 'Roue', week: 'Défis de la semaine', trade_offer: "Proposition d'échange", login: 'Connexion (série)', gamedle: 'Gamedle', recycle: 'Recyclage', unsell: 'Annonce retirée', coins: 'Autres mouvements', gift_in: 'Cadeau reçu', fuse: 'Fusion', trade_no: 'Échange refusé', join: 'Inscription', tour: 'Tournois', craft: 'Fabrication', cab: 'Bornes' };
+const SYS = { nes: 'NES', snes: 'Super NES', n64: 'Nintendo 64', gamecube: 'GameCube', wii: 'Wii', wiiu: 'Wii U', switch: 'Switch', gb: 'Game Boy', gbc: 'Game Boy Color', gba: 'Game Boy Advance', '3ds': '3DS', mastersystem: 'Master System', megadrive: 'Mega Drive', gamegear: 'Game Gear', saturn: 'Saturn', dreamcast: 'Dreamcast', sg1000: 'SG-1000', psx: 'PlayStation', ps2: 'PlayStation 2', psp: 'PSP', neogeo: 'Neo Geo', atari2600: 'Atari 2600', atari7800: 'Atari 7800', lynx: 'Lynx', amiga1200: 'Amiga 1200', amigacd32: 'Amiga CD32', colecovision: 'ColecoVision', supervision: 'Supervision', xbox: 'Xbox', pk: 'Pokémon (série)' };
+const sysName = s => SYS[s] || (s && s.startsWith('sg_') ? 'Saga ' + s.slice(3) : s);
+const LIVE_DEF = { saga: 3.2, holo: 5, gold: 0.5, fullart: 3, pk: 0.15, chest_coins: 500, chest_pixels: 2, mixte: 100, console: 150, premium: 400, mystery: 120 };
+
+// ═══════════════════ CONSTRUCTEUR DE RÉCOMPENSE ═══════════════════
+// format serveur : {coins, pixels, lots, packs:{mixte,premium,mystery,star,gold,pokemon}, cards:{"0".."4","pk"}}
+const Q1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], QL = [1, 2, 3, 4, 5],
+  QC = [5, 10, 20, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1500, 2000, 2500, 3000, 5000, 7500, 10000, 20000, 50000],
+  QP = [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 50, 100];
+const RT = {
+  coins: ['🪙 Pièces', QC], pixels: ['▦ Pixels', QP], lots: ['🎟 Lots de 5', QL],
+  'p:mixte': ['📦 Paquet mixte', Q1], 'p:premium': ['💎 Paquet premium', Q1], 'p:mystery': ['❓ Paquet mystère', Q1],
+  'p:star': ['⭐ Paquet étoile', Q1], 'p:gold': ['🟨 Paquet doré', Q1], 'p:pokemon': ['⚡ Booster Pokémon', Q1],
+  'c:0': ['🃏 Carte commune', Q1], 'c:1': ['🃏 Carte peu commune', Q1], 'c:2': ['🟦 Carte rare', Q1], 'c:3': ['🟪 Carte épique', Q1], 'c:4': ['🟧 Carte légendaire', Q1], 'c:pk': ['⚡ Carte Pokémon', Q1]
+};
+const rwQ = (t, q) => opt(withCur(RT[t][1], q), q);
+const rwItem = (t, q) => `<span class="rwi"><select class="rwt">${opt(Object.entries(RT).map(([k, v]) => [k, v[0]]), t)}</select><select class="rwq">${rwQ(t, q)}</select><b class="rwx" title="Retirer">×</b></span>`;
+function rwFlat(r) {
+  const out = [];
+  if (!r) return out;
+  for (const k of ['coins', 'pixels', 'lots']) if (+r[k] > 0) out.push([k, +r[k]]);
+  for (const [k, v] of Object.entries(r.packs || {})) if (+v > 0) out.push(['p:' + k, +v]);
+  for (const [k, v] of Object.entries(r.cards || {})) if (+v > 0) out.push(['c:' + k, +v]);
+  return out;
+}
+function rwBox(r, allowEmpty = true) {
+  const items = rwFlat(r);
+  return `<span class="rw" data-empty="${allowEmpty ? 1 : 0}">${items.map(([t, q]) => rwItem(t, q)).join('')}<button type="button" class="btn s rwadd" title="Ajouter un gain">＋ gain</button></span>`;
+}
+function rwRead(box) {
+  const r = {};
+  for (const it of $$('.rwi', box)) {
+    const t = $('.rwt', it).value, q = +$('.rwq', it).value;
+    if (!q) continue;
+    if (t.startsWith('p:')) (r.packs ||= {})[t.slice(2)] = (r.packs[t.slice(2)] || 0) + q;
+    else if (t.startsWith('c:')) (r.cards ||= {})[t.slice(2)] = (r.cards[t.slice(2)] || 0) + q;
+    else r[t] = (r[t] || 0) + q;
+  }
+  return r;
+}
+function rwText(r) {
+  const p = rwFlat(r).map(([t, q]) => `${fr(q)} ${RT[t][0].replace(/^\S+\s/, '').toLowerCase()}`);
+  return p.join(' + ') || 'rien';
+}
+document.addEventListener('change', e => { if (e.target.classList.contains('rwt')) e.target.nextElementSibling.innerHTML = rwQ(e.target.value, RT[e.target.value][1][0]); });
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('rwx')) e.target.parentElement.remove();
+  const a = e.target.closest('.rwadd'); if (a) a.insertAdjacentHTML('beforebegin', rwItem('coins', 100));
+});
+
+// ═════════════════════════════ NAVIGATION ═════════════════════════════
+const PAGES = {};
+let cur = 'dash';
+function go(s, force = false) {
+  cur = s;
+  $$('nav button').forEach(b => b.classList.toggle('on', b.dataset.s === s));
+  $$('.sec').forEach(x => x.classList.toggle('on', x.id === s));
+  $('#title').textContent = ($(`nav button[data-s="${s}"]`)?.textContent || '').replace(/\d+\s*$/, '').replace(/^\S+\s/, '').trim().toUpperCase();
+  closeCmd();
+  if (PAGES[s] && (force || !$('#' + s).dataset.loaded)) { $('#' + s).dataset.loaded = 1; PAGES[s]($('#' + s)); }
+  window.scrollTo(0, 0);
+  history.replaceState(null, '', '#' + s);
+}
+$$('nav button').forEach(b => b.onclick = () => go(b.dataset.s));
+$('#refresh').onclick = () => go(cur, true);
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); go(g.dataset.go, g.dataset.force === '1'); }
+  const p = e.target.closest('[data-player]'); if (p && !e.target.closest('input')) openPlayer(p.dataset.player);
+});
+
+// ═════════════════════════════ CONNEXION ═════════════════════════════
+async function tryLogin() {
+  const n = $('#lg_name').value.trim(), p = $('#lg_pass').value;
+  $('#lg_msg').textContent = '';
+  if (!n || !p) return;
+  $('#lg_go').disabled = true;
+  try {
+    const dev = await rpc('rc_login', { p_name: n, p_hash: await sha256('pt-pass#41c9|' + p) });
+    if (typeof dev !== 'string' || dev.length !== 32) throw new Error('identifiants incorrects');
+    D = dev;
+    if (!(await adm('rc_admin_check', 'check'))) { D = null; throw new Error("ce compte n'est pas admin"); }
+    try { localStorage.setItem('pta_dev', dev); } catch (_) {}
+    start();
+  } catch (e) { $('#lg_msg').textContent = e.message; }
+  $('#lg_go').disabled = false;
+}
+$('#lg_go').onclick = tryLogin;
+$('#lg_pass').onkeydown = e => { if (e.key === 'Enter') tryLogin(); };
+$('#logout').onclick = () => { try { localStorage.removeItem('pta_dev'); } catch (_) {} location.reload(); };
+
+let CAT = null;   // catalogue : id -> [sys, rarity, title]
+async function catalog() {
+  if (CAT) return CAT;
+  CAT = {};
+  for (const [id, s, r, t] of await X('catalog')) CAT[id] = [s, r, t];
+  return CAT;
+}
+const cardName = id => CAT && CAT[id] ? `${CAT[id][2]} <span class="mute small">· ${esc(sysName(CAT[id][0]))}</span>` : esc(id);
+
+async function start() {
+  $('#login').style.display = 'none';
+  try { const p = await rpc('rc_profile', { p_pid: (await sha256(D)).slice(0, 16) }); ME = p?.name || 'admin'; } catch (_) { ME = 'admin'; }
+  $('#who').textContent = ME + ' · admin';
+  go(location.hash.slice(1) && PAGES[location.hash.slice(1)] ? location.hash.slice(1) : 'dash');
+  catalog().catch(() => {});
+}
+(async () => {
+  try { D = localStorage.getItem('pta_dev'); } catch (_) {}
+  if (D) {
+    try { if (await adm('rc_admin_check', 'check')) return start(); } catch (_) {}
+    D = null;
+  }
+  $('#lg_name').focus();
+})();
+
+// ═════════════════════════════ TABLEAU DE BORD ═════════════════════════════
+let DASH = null;
+PAGES.dash = async el => {
+  el.innerHTML = loading;
+  const d = DASH = await act(() => X('dash'));
+  const al = d.alerts || [];
+  $('#nb_alerts').hidden = !al.length; $('#nb_alerts').textContent = al.length;
+  const pct = (a, b) => b ? `${a >= b ? '+' : ''}${Math.round((a - b) / b * 100)} %` : '';
+  const vers = d.versions || [];
+  const maxV = vers.reduce((m, v) => v.ver > m ? v.ver : m, '');
+  el.innerHTML = `
+  <div class="grid g6">
+    <div class="stat" data-go="players"><div class="l">Joueurs</div><div class="n">${fr(d.players)}</div><div class="d">+${d.new7} en 7 j</div></div>
+    <div class="stat" data-go="players"><div class="l">En ligne</div><div class="n okc">${fr(d.online)}</div><div class="d">maintenant</div></div>
+    <div class="stat" data-go="stats"><div class="l">Vus aujourd'hui</div><div class="n">${fr(d.today)}</div><div class="d">hier ${fr(d.yesterday)}</div></div>
+    <div class="stat" data-go="stats"><div class="l">Paquets (24 h)</div><div class="n">${fr(d.packs24)}</div><div class="d">${pct(d.packs24, d.packs48)} / veille</div></div>
+    <div class="stat" data-go="stats"><div class="l">Pièces créées (24 h)</div><div class="n coin">+${fr(d.made24)}</div><div class="d">détruites ${fr(d.burnt24)}</div></div>
+    <div class="stat" data-go="stats"><div class="l">Duels</div><div class="n">${fr(d.live)}</div><div class="d">en cours · ${fr(d.duels_today)} aujourd'hui</div></div>
+  </div>
+  <div class="grid g64 mt">
+    <div class="card"><h3>📈 14 jours <span class="sp"></span><select id="dchart" style="width:auto">${opt([['players', 'Joueurs actifs'], ['packs', 'Paquets ouverts']], 'players')}</select></h3><div id="dchartbox"></div><div class="row small mute" style="justify-content:space-between"><span>${dd(d.days[0]?.day)}</span><span>aujourd'hui</span></div></div>
+    <div class="card"><h3>📱 Versions (vus en 7 j)</h3>
+      ${hb(vers.map(v => [`${v.ver} ${v.os}`, v.n, null, v.ver < maxV ? 'var(--warn)' : null]))}
+      <div class="note mt">Version minimale : <b>${esc(d.config?.min_version || '—')}</b> · Maintenance : ${d.config?.maintenance?.on ? '<span class="pill bad">ACTIVE</span>' : '<span class="pill ok">coupée</span>'}${d.config?.banner?.text ? ` · Bandeau : « ${esc(d.config.banner.text)} »` : ''}</div>
+    </div>
+  </div>
+  <div class="grid g3 mt">
+    <div class="card"><h3>🎉 En cours / à venir</h3>
+      ${(d.events || []).map(e => `<div class="msg"><div>${esc(e.icon)}</div><div class="b"><b>${esc(e.title)}</b><div class="small mute">${new Date(e.starts_at) > new Date() ? 'commence ' + dt(e.starts_at) : 'jusqu’au ' + dt(e.ends_at)}</div></div></div>`).join('')}
+      ${(d.tours || []).map(t => `<div class="msg"><div>🏆</div><div class="b"><b>${esc(t.name)}</b><div class="small mute">${GAME[t.game] || t.game} · ${dt(t.start_at)} · ${t.n} / ${t.size}</div></div></div>`).join('')}
+      ${!(d.events || []).length && !(d.tours || []).length ? '<div class="empty">Rien de prévu</div>' : ''}
+    </div>
+    <div class="card"><h3>🚨 Alertes <span class="sp"></span><button class="btn s" data-go="alerts">Tout voir</button></h3>${al.slice(0, 5).map(alertRow).join('') || '<div class="empty">✔ Rien à signaler</div>'}</div>
+    <div class="card"><h3>⚡ Actions rapides</h3>
+      <div class="grid g2">
+        <button class="btn" data-go="mail">✉️ Courrier</button><button class="btn" data-go="events">🎉 Événement</button>
+        <button class="btn" data-go="tours">🏆 Tournoi</button><button class="btn" data-go="eco">📢 Bandeau</button>
+        <button class="btn" data-go="polls">🗳️ Sondage</button><button class="btn" data-go="chat">💬 Écrire @tous</button>
+        <button class="btn d" data-go="system">🛠️ Maintenance</button><button class="btn" data-go="cards">🃏 Carte</button>
+      </div>
+      <h4>Dernières actions admin</h4>
+      ${(d.admin_log || []).map(l => `<div class="small"><span class="mute">${dt(l.at)}</span> ${esc(l.action.slice(0, 80))}</div>`).join('') || '<div class="empty">—</div>'}
+    </div>
+  </div>`;
+  const draw = () => { const k = $('#dchart').value; $('#dchartbox').innerHTML = chart(d.days.map(x => x[k]), k === 'players' ? 'var(--acc2)' : 'var(--acc)', d.days.map(x => dd(x.day))); };
+  $('#dchart').onchange = draw; draw();
+  // pastille du chat
+  adm('rc_admin_chat', 'chat').then(c => { const n = c.filter(m => m.reports > 0 && !m.hidden).length; $('#nb_chat').hidden = !n; $('#nb_chat').textContent = n; }).catch(() => {});
+};
+function alertRow(a) {
+  const ic = { gain: '💰', ip: '🌐', gifts: '🔁', cheap: '🏷️', login: '🔒' }[a.kind];
+  let t = '', btn = '';
+  if (a.kind === 'gain') { t = `<b>Gros gain en 24 h</b> · ${esc(a.name)}<div class="small mute">+${fr(a.n)} pièces (hors ventes Bourse ; seuil 15 000)</div>`; btn = `<button class="btn s" data-player="${a.pid}">Voir</button>`; }
+  if (a.kind === 'ip') t = `<b>${a.n} comptes créés depuis la même IP</b> (7 j)<div class="small mute">${a.names.map(esc).join(', ')}</div>`;
+  if (a.kind === 'gifts') { t = `<b>Cadeaux en boucle</b> · ${esc(a.from)} → ${esc(a.to)}<div class="small mute">${a.n} cadeaux en 48 h</div>`; btn = `<button class="btn s" data-player="${a.from_pid}">Voir</button>`; }
+  if (a.kind === 'cheap') { t = `<b>Vente bradée</b> · ${cardName(a.card)} (${FIN[a.f]})<div class="small mute">${esc(a.seller)} → ${esc(a.buyer)} : ${fr(a.price)} au lieu de ~${fr(a.avg)}</div>`; btn = `<button class="btn s" data-player="${a.seller_pid}">Voir</button>`; }
+  if (a.kind === 'login') { t = `<b>${a.n} erreurs de connexion</b> (24 h)<div class="small mute">pseudo « ${esc(a.name)} »</div>`; if (a.pid) btn = `<button class="btn s" data-player="${a.pid}">Voir</button>`; }
+  return `<div class="alert ${a.level}"><div class="ic">${ic}</div><div class="b" style="flex:1">${t}</div>${btn}</div>`;
+}
+PAGES.alerts = async el => {
+  el.innerHTML = loading;
+  const d = DASH || await X('dash');
+  el.innerHTML = `<div class="card"><h3>🚨 Alertes <span class="sp"></span><button class="btn s" data-go="alerts" data-force="1">🔄</button></h3>${(d.alerts || []).map(alertRow).join('') || '<div class="empty">✔ Rien à signaler</div>'}
+  <div class="note mt">Calculées en direct par le serveur. Seuils fixes pour l'instant : gain ≥ 15 000 pièces en 24 h (hors ventes), 2 comptes ou plus créés depuis la même IP en 7 j, 8 cadeaux ou plus du même donneur au même receveur en 48 h, vente à moins de 10 % du prix moyen, 5 erreurs de connexion en 24 h. Seuils réglables et « marquer normal » : étape suivante.</div></div>`;
+};
+
+// ═════════════════════════════ JOUEURS ═════════════════════════════
+let PL = null, pKey = 'seen', pDesc = true, pFilter = 'all', pQ = '';
+const PSORT = [['seen', 'Dernier vu'], ['packs', 'Paquets ouverts'], ['packs24', 'Paquets (24 h)'], ['coins', 'Pièces'], ['pixels', 'Pixels'], ['frag', 'Fragments'], ['cards', 'Cartes'], ['score', 'Score'], ['gain24', 'Gagné (24 h)'], ['net24', 'Solde net (24 h)'], ['spent7', 'Dépensé (7 j)'], ['wins', 'Victoires de duels'], ['market', 'Volume Bourse'], ['days', 'Jours actifs'], ['streak', 'Série de connexion'], ['created', 'Inscription'], ['name', 'Pseudo (A → Z)']];
+const PVAL = { seen: p => p.seen_at ? +new Date(p.seen_at) : 0, created: p => +new Date(p.created_at), name: p => p.name.toLowerCase() };
+async function players(force) { if (!PL || force) PL = await X('players'); return PL; }
+PAGES.players = async el => {
+  el.innerHTML = loading;
+  await act(() => players(true));
+  el.innerHTML = `<div class="card">
+    <h3>👥 Joueurs <span class="mute small" id="pcount"></span><span class="sp"></span>
+      <input id="pq" placeholder="Pseudo…" style="width:160px" value="${esc(pQ)}">
+      <select id="pf" style="width:auto">${opt([['all', 'Tous'], ['online', 'En ligne'], ['today', 'Vus aujourd’hui'], ['active7', 'Actifs 7 j'], ['inactive14', 'Inactifs > 14 j'], ['new', 'Nouveaux (< 24 h)'], ['old', 'Version ancienne'], ['blocked', 'Bloqués'], ['muted', 'Muets'], ['note', 'Avec note'], ['nopass', 'Sans mot de passe'], ['admin', 'Admins']], pFilter)}</select>
+      <select id="ps" style="width:auto">${opt(PSORT, pKey)}</select><button class="btn s" id="pdir" title="Inverser le tri">${pDesc ? '↓' : '↑'}</button>
+      <button class="btn s" id="pcsv">⬇️ CSV</button>
+    </h3>
+    <div class="row small mute" style="margin-bottom:8px"><label class="inl"><input type="checkbox" id="pall"> Tout sélectionner</label><span id="psel">· 0 sélectionné</span><button class="btn s" id="pmail">✉️ Courrier / cadeau</button><button class="btn s" id="pcmp">⚖️ Comparer</button></div>
+    <div class="tw"><table><thead><tr><th></th><th data-k="name">Joueur</th><th class="r" data-k="score">Score</th><th class="r" data-k="cards">Cartes</th><th class="r" data-k="packs">Paquets</th><th class="r" data-k="packs24">24 h</th><th class="r" data-k="coins">Pièces</th><th class="r" data-k="pixels">Pixels</th><th class="r" data-k="frag">Fragm.</th><th class="r" data-k="gain24">Gagné 24 h</th><th class="r" data-k="spent7">Dépensé 7 j</th><th class="r" data-k="wins">Duels</th><th data-k="seen">Vu</th><th>Version</th></tr></thead><tbody id="ptb"></tbody></table></div>
+  </div>`;
+  const maxV = PL.reduce((m, p) => (p.ver || '') > m ? p.ver : m, '');
+  const sel = new Set();
+  const F = {
+    all: () => true, online: p => p.online, today: p => p.seen_at && new Date(p.seen_at).toDateString() === new Date().toDateString(),
+    active7: p => p.seen_at && Date.now() - new Date(p.seen_at) < 7 * 864e5, inactive14: p => !p.seen_at || Date.now() - new Date(p.seen_at) > 14 * 864e5,
+    new: p => Date.now() - new Date(p.created_at) < 864e5, old: p => p.ver && p.ver < maxV, blocked: p => p.blocked, muted: p => p.muted,
+    note: p => p.note, nopass: p => !p.pass, admin: p => p.admin
+  };
+  const draw = () => {
+    const f = PVAL[pKey] || (p => +p[pKey] || 0);
+    const q = pQ.toLowerCase();
+    const L = PL.filter(F[pFilter]).filter(p => !q || p.name.toLowerCase().includes(q)).sort((a, b) => { const x = f(a), y = f(b); const c = x < y ? -1 : x > y ? 1 : 0; return pKey === 'name' ? (pDesc ? c : -c) : (pDesc ? -c : c); });
+    $('#pcount').textContent = `(${L.length} / ${PL.length})`;
+    $$('#players th[data-k]').forEach(th => { th.classList.toggle('sorted', th.dataset.k === pKey); th.textContent = th.textContent.replace(/ [↓↑]$/, '') + (th.dataset.k === pKey ? (pDesc ? ' ↓' : ' ↑') : ''); });
+    $('#ptb').innerHTML = L.map(p => `<tr class="click" data-player="${p.pid}"><td><input type="checkbox" class="pck" data-pid="${p.pid}"${sel.has(p.pid) ? ' checked' : ''}></td>
+      <td>${av(p.avatar)}<b>${esc(p.name)}</b> ${p.admin ? '<span class="pill acc">admin</span>' : ''}${p.blocked ? '<span class="pill bad">bloqué</span>' : ''}${p.muted ? '<span class="pill warn">muet</span>' : ''}${p.note ? ' 📝' : ''}${p.gain24 >= 15000 ? ' <span class="pill warn">alerte</span>' : ''}</td>
+      <td class="r">${fr(p.score)}</td><td class="r">${fr(p.cards)}</td><td class="r">${fr(p.packs)}</td><td class="r">${fr(p.packs24)}</td><td class="r coin">${fr(p.coins)}</td><td class="r pix">${fr(p.pixels)}</td><td class="r frag">${fr(p.frag)}</td>
+      <td class="r okc">${p.gain24 ? '+' + fr(p.gain24) : '—'}</td><td class="r badc">${p.spent7 ? fr(p.spent7) : '—'}</td><td class="r">${fr(p.wins)}</td>
+      <td>${p.online ? '<span class="pill ok">en ligne</span>' : `<span class="mute">${ago(p.seen_at)}</span>`}</td>
+      <td><span class="pill ${p.ver && p.ver < maxV ? 'warn' : ''}">${esc(p.ver || '?')} ${esc(p.os || '')}</span></td></tr>`).join('');
+    draw.L = L;
+  };
+  const upd = () => { $('#psel').textContent = `· ${sel.size} sélectionné${sel.size > 1 ? 's' : ''}`; };
+  $('#ptb').addEventListener('click', e => { if (e.target.classList.contains('pck')) { e.stopPropagation(); e.target.checked ? sel.add(e.target.dataset.pid) : sel.delete(e.target.dataset.pid); upd(); } }, true);
+  $('#pall').onchange = e => { draw.L.forEach(p => e.target.checked ? sel.add(p.pid) : sel.delete(p.pid)); draw(); upd(); };
+  $('#pq').oninput = e => { pQ = e.target.value; draw(); };
+  $('#pf').onchange = e => { pFilter = e.target.value; draw(); };
+  $('#ps').onchange = e => { pKey = e.target.value; pDesc = true; $('#pdir').textContent = '↓'; draw(); };
+  $('#pdir').onclick = () => { pDesc = !pDesc; $('#pdir').textContent = pDesc ? '↓' : '↑'; draw(); };
+  $$('#players th[data-k]').forEach(th => th.onclick = () => { if (pKey === th.dataset.k) pDesc = !pDesc; else { pKey = th.dataset.k; pDesc = true; } $('#ps').value = pKey; $('#pdir').textContent = pDesc ? '↓' : '↑'; draw(); });
+  $('#pcsv').onclick = () => csv('joueurs.csv', [['pseudo', 'pid', 'score', 'cartes', 'paquets', 'pieces', 'pixels', 'fragments', 'gagne24h', 'depense7j', 'duels', 'bourse', 'jours', 'serie', 'vu', 'inscription', 'version', 'os', 'bloque'],
+    ...draw.L.map(p => [p.name, p.pid, p.score, p.cards, p.packs, p.coins, p.pixels, p.frag, p.gain24, p.spent7, p.wins, p.market, p.days, p.streak, p.seen_at, p.created_at, p.ver, p.os, p.blocked])]);
+  $('#pmail').onclick = () => { if (!sel.size) return toast('Coche des joueurs d’abord', true); MAILTO = [...sel]; go('mail', true); };
+  $('#pcmp').onclick = () => { if (sel.size < 2) return toast('Coche au moins 2 joueurs', true); CMP = [...sel].slice(0, 6); go('compare', true); };
+  draw(); upd();
+};
+
+// ═════════════════════════════ FICHE JOUEUR ═════════════════════════════
+let PCUR = null;
+async function openPlayer(pid) {
+  $('#drawer').innerHTML = loading; $('#drawer').classList.add('on'); $('#shade').classList.add('on');
+  let p;
+  try { p = await X('player', { pid }); } catch (e) { $('#drawer').innerHTML = `<div class="warnbox">${esc(e.message)}</div>`; return; }
+  await catalog().catch(() => {});
+  PCUR = p;
+  const tr = p.trophies || {};
+  const packsTot = (p.packs_by || []).reduce((a, x) => ({ today: a.today + x.today, week: a.week + x.week, total: a.total + x.total }), { today: 0, week: 0, total: 0 });
+  const cb = {}; for (const x of p.cards_by || []) { (cb[x.r] ||= {})[x.f] = x; }
+  const finTot = [0, 1, 2, 3].map(f => (p.cards_by || []).filter(x => x.f === f).reduce((a, x) => a + x.n, 0));
+  $('#drawer').innerHTML = `
+  <div class="row">${av(p.avatar, 52)}<div><div style="font-size:18px;font-weight:700">${esc(p.name)} ${p.blocked ? '<span class="pill bad">bloqué</span>' : ''}${p.muted_until ? '<span class="pill warn">muet</span>' : ''}</div>
+    <div class="small mute">${p.online ? '<span class="okc">● en ligne</span>' : 'vu ' + ago(p.seen_at)} · ${esc(p.ver || '?')} ${esc(p.os || '')} · inscrit le ${dd(p.created_at)} · pid ${p.pid}</div></div>
+    <span class="sp"></span><button class="btn s" id="pl_mail" title="Courrier / cadeau">✉️</button><button class="btn s" id="pl_close">✕</button></div>
+  ${tabs('pl', [['p1', 'Résumé'], ['p2', 'Statistiques'], ['p3', 'Économie'], ['p4', 'Cartes'], ['p5', 'Social'], ['p6', 'Jeux'], ['p7', 'Connexions'], ['p8', 'Sanctions'], ['p9', 'Notes']])}
+  <div data-tab="p1">
+    <div class="grid g4">
+      <div class="mini"><div class="l">Score</div><div class="n">${fr(p.score)}</div><div class="small mute">${p.rank}e</div></div>
+      <div class="mini"><div class="l">Cartes</div><div class="n">${fr(p.cards)}</div><div class="small mute">${p.pk} Pokémon</div></div>
+      <div class="mini"><div class="l">Paquets ouverts</div><div class="n">${fr(p.packs)}</div><div class="small mute">${packsTot.today} aujourd'hui</div></div>
+      <div class="mini"><div class="l">Jours actifs</div><div class="n">${fr(p.days)}</div><div class="small mute">série ${fr(p.streak)} j</div></div>
+    </div>
+    <h4>Soldes</h4>
+    <div class="f3"><div><label>🪙 Pièces (${fr(p.coins)})</label><input type="number" id="b_c" placeholder="0"></div><div><label>▦ Pixels (${fr(p.pixels)})</label><input type="number" id="b_p" placeholder="0"></div><div><label>💠 Fragments (${fr(p.frag)})</label><input type="number" id="b_f" placeholder="0"></div></div>
+    <div class="f2"><div><label>Mode</label><select id="b_m">${opt([['add', 'Ajouter / retirer (+ ou −)'], ['set', 'Remplacer la valeur']], 'add')}</select></div><div><label>Motif (gardé dans le journal admin)</label><input id="b_w" placeholder="Ex. : remboursement bug Bourse"></div></div>
+    <div class="row mt"><button class="btn p s" id="b_go">💾 Appliquer</button><span class="small mute">Champ vide = inchangé</span></div>
+    <h4>Profil</h4>
+    <div class="row"><input id="pl_name" value="${esc(p.name)}" style="flex:1"><button class="btn s" id="pl_ren">Renommer</button></div>
+    <div class="kv mt"><span>Parrain</span><span>${esc(p.referrer || '—')}</span><span>Borne</span><span>habillage ${esc(p.house ?? '—')} · ${esc(p.cab_game || 'jeu par défaut')}</span><span>Vitrine</span><span class="small">${(p.showcase || '').split(',').filter(Boolean).map(s => cardName(s.split(':')[0])).join(', ') || '—'}</span><span>Trophées</span><span>🥇 ${tr[3] || 0} · 🥈 ${tr[2] || 0} · 🥉 ${tr[1] || 0}</span><span>Cartes en stock</span><span>${fr(p.stock)}</span><span>Lots de 5</span><span>${fr(p.lots)}</span></div>
+  </div>
+  <div data-tab="p2" hidden>
+    <h4>Paquets ouverts par type <span class="mute" style="text-transform:none">(suivis depuis le 19/10)</span></h4>
+    <table><thead><tr><th>Type</th><th class="r">Aujourd'hui</th><th class="r">7 j</th><th class="r">Total</th></tr></thead><tbody>
+      ${(p.packs_by || []).map(x => `<tr><td><span style="color:${PACKC[x.kind] || 'inherit'}">■</span> ${esc(PACK[x.kind] || x.kind)}</td><td class="r">${fr(x.today)}</td><td class="r">${fr(x.week)}</td><td class="r">${fr(x.total)}</td></tr>`).join('')}
+      <tr><td><b>Total</b></td><td class="r"><b>${fr(packsTot.today)}</b></td><td class="r"><b>${fr(packsTot.week)}</b></td><td class="r"><b>${fr(packsTot.total)}</b></td></tr></tbody></table>
+    <h4>Activité sur 30 jours</h4>
+    ${chart((p.daily || []).map(x => [x.packs, Math.max(0, x.n - x.packs)]), ['var(--acc)', 'var(--acc2)'], (p.daily || []).map(x => dd(x.day)))}
+    <div class="legend"><span style="--c:var(--acc)">paquets</span><span style="--c:var(--acc2)">autres actions</span></div>
+  </div>
+  <div data-tab="p3" hidden>
+    <h4>Pièces sur 30 jours</h4>${spark((p.balance30 || []).map(x => x.coins))}
+    <div class="grid g2 mt">
+      <div><h4>Gagné (7 j)</h4>${hb((p.eco7 || []).filter(x => x.plus > 0).sort((a, b) => b.plus - a.plus).map(x => [KIND[x.kind] || x.kind, x.plus]), 'var(--ok)')}</div>
+      <div><h4>Dépensé (7 j)</h4>${hb((p.eco7 || []).filter(x => x.minus > 0).sort((a, b) => b.minus - a.minus).map(x => [KIND[x.kind] || x.kind, x.minus]), 'var(--bad)')}</div>
+    </div>
+    <div class="kv mt"><span>Pixels (7 j)</span><span class="pix">${sgn((p.eco7 || []).reduce((a, x) => a + x.px, 0))}</span></div>
+    <h4>Derniers mouvements</h4>
+    <div class="tw"><table><tbody>${(p.recent || []).map(a => `<tr><td class="mute small">${dt(a.at)}</td><td>${esc(a.txt || KIND[a.kind] || a.kind)}${a.other ? ` <span class="mute">· ${esc(a.other)}</span>` : ''}</td><td class="r coin">${a.c ? sgn(a.c) : ''}</td><td class="r pix">${a.p ? sgn(a.p) + ' ▦' : ''}</td></tr>`).join('')}</tbody></table></div>
+  </div>
+  <div data-tab="p4" hidden>
+    <div class="grid g4">${FIN.map((f, i) => `<div class="mini"><div class="l">${f}</div><div class="n">${fr(finTot[i])}</div></div>`).join('')}</div>
+    <h4>Par rareté (cartes différentes)</h4>
+    <table><thead><tr><th></th>${FIN.map(f => `<th class="r">${f}</th>`).join('')}</tr></thead><tbody>${RAR.map((r, i) => `<tr><td>${r}</td>${[0, 1, 2, 3].map(f => `<td class="r">${cb[i]?.[f] ? fr(cb[i][f].n) + (cb[i][f].q > cb[i][f].n ? ` <span class="mute small">(${cb[i][f].q})</span>` : '') : '—'}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <div class="small mute">(entre parenthèses : exemplaires, doublons compris)</div>
+    <h4>Complétion</h4>
+    <div id="pl_compl">${hb((p.compl || []).slice(0, 12).map(x => [sysName(x.sys), x.have / x.total * 100, `${x.have} / ${x.total}`]))}</div>
+    ${(p.compl || []).length > 12 ? '<button class="btn s" id="pl_complall">Tout afficher</button>' : ''}
+    <h4>Donner ou retirer une carte</h4>
+    <div class="row"><input id="c_q" list="c_dl" placeholder="Titre ou identifiant (ex. snes_004)" style="flex:1"><datalist id="c_dl"></datalist>
+      <select id="c_f" style="width:auto">${opt(FIN.map((f, i) => [i, f]), 0)}</select><select id="c_n" style="width:auto">${opt([1, 2, 3, 4, 5, 10], 1)}</select>
+      <button class="btn s p" id="c_add">＋ Donner</button><button class="btn s d" id="c_rem">− Retirer</button></div>
+  </div>
+  <div data-tab="p5" hidden>
+    <div class="grid g4">
+      <div class="mini"><div class="l">Ventes Bourse</div><div class="n">${fr(p.market.sales)}</div><div class="small coin">+${fr(p.market.earned)}</div></div>
+      <div class="mini"><div class="l">Achats Bourse</div><div class="n">${fr(p.market.buys)}</div><div class="small coin">−${fr(p.market.spent)}</div></div>
+      <div class="mini"><div class="l">Annonces ouvertes</div><div class="n">${fr(p.market.open)}</div></div>
+      <div class="mini"><div class="l">Chat (7 j)</div><div class="n">${fr(p.chat.week)}</div><div class="small mute">${p.chat.hidden} masqués · ${p.chat.reports} signal.</div></div>
+    </div>
+    <h4>Avec qui il échange le plus</h4>
+    <div class="tw"><table><thead><tr><th>Joueur</th><th class="r">Cadeaux donnés</th><th class="r">reçus</th><th class="r">Échanges</th><th class="r">Ventes entre eux</th><th></th></tr></thead><tbody>
+      ${(p.partners || []).map(x => `<tr class="click" data-player="${x.pid}"><td>${av(x.avatar, 22)}${esc(x.name)}</td><td class="r">${x.g_out}</td><td class="r">${x.g_in}</td><td class="r">${x.trades}</td><td class="r">${x.sales}</td><td>${x.same_ip ? '<span class="pill warn">même IP</span>' : ''}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Personne</td></tr>'}</tbody></table></div>
+  </div>
+  <div data-tab="p6" hidden>
+    <table><thead><tr><th>Jeu</th><th class="r">Victoires</th><th class="r">Défaites</th><th class="r">Nuls</th><th class="r">% victoires</th></tr></thead><tbody>
+      ${(p.games || []).map(g => `<tr><td>${GAME[g.game] || g.game}</td><td class="r okc">${g.w}</td><td class="r badc">${g.l}</td><td class="r">${g.d}</td><td class="r">${g.w + g.l ? Math.round(g.w / (g.w + g.l) * 100) + ' %' : '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Aucun duel</td></tr>'}</tbody></table>
+    <div class="kv mt"><span>Tournois</span><span>${p.tours.played} joués · ${p.tours.won} 🏆</span></div>
+  </div>
+  <div data-tab="p7" hidden>
+    <div class="kv"><span>Dernière connexion</span><span>${dt(p.seen_at)}</span><span>Version</span><span>${esc(p.ver || '?')} ${esc(p.os || '')} (${dt(p.ver_at)})</span><span>Mot de passe</span><span>${p.pass ? 'oui' : '<span class="warn">non (compte lié à l’appareil seulement)</span>'}</span><span>Erreurs de connexion (24 h)</span><span>${p.login_fails}</span></div>
+    <h4>Heures de jeu (30 derniers jours)</h4>${heat(p.hours || [])}
+    <h4>Comptes créés depuis la même IP</h4>
+    ${(p.linked || []).map(x => `<div class="msg" data-player="${x.pid}" style="cursor:pointer">${av(x.avatar, 24)}<div class="b">${esc(x.name)}</div>›</div>`).join('') || '<div class="empty">Aucun (ou IP inconnue pour ce compte)</div>'}
+    <div class="row mt"><button class="btn s" id="pl_pw">🔑 Nouveau mot de passe</button><button class="btn s" id="pl_cf">🔓 Effacer les erreurs de connexion</button></div>
+  </div>
+  <div data-tab="p8" hidden>
+    <div class="kv"><span>Compte</span><span>${p.blocked ? '<span class="pill bad">bloqué</span>' : '<span class="pill ok">actif</span>'}</span><span>Chat</span><span>${p.muted_until ? `<span class="pill warn">muet jusqu’au ${p.muted_until.startsWith('infinity') ? 'bout' : dt(p.muted_until)}</span>` : '<span class="pill ok">peut écrire</span>'}</span></div>
+    <h4>Blocage</h4>
+    <div class="small mute">Bloqué : plus de Bourse, cadeaux, échanges, défis ni tournois.</div>
+    <div class="row mt"><button class="btn s ${p.blocked ? '' : 'd'}" id="pl_blk">${p.blocked ? '✅ Débloquer' : '⛔ Bloquer'}</button></div>
+    <h4>Chat</h4>
+    <div class="row"><select id="pl_muteh" style="width:auto">${opt([[1, '1 h'], [6, '6 h'], [24, '24 h'], [72, '3 jours'], [168, '7 jours'], [720, '30 jours'], [-1, 'Définitif']], 24)}</select><button class="btn s d" id="pl_mute">🔇 Rendre muet</button>${p.muted_until ? '<button class="btn s" id="pl_unmute">🔊 Lever</button>' : ''}</div>
+  </div>
+  <div data-tab="p9" hidden>
+    <label>Notes privées (visibles seulement des admins)</label>
+    <textarea id="pl_note" style="min-height:140px">${esc(p.note?.note || '')}</textarea>
+    <label>Étiquettes (séparées par des virgules)</label><input id="pl_tags" value="${esc(p.note?.tags || '')}" placeholder="ex. fidèle, même foyer que X">
+    <div class="row mt"><button class="btn p s" id="pl_nsave">💾 Enregistrer</button>${p.note?.at ? `<span class="small mute">modifié ${dt(p.note.at)}</span>` : ''}</div>
+  </div>`;
+  const re = () => { players(true).catch(() => {}); return openPlayer(pid).then(() => {}); };
+  $('#pl_close').onclick = closePlayer;
+  $('#pl_mail').onclick = () => { MAILTO = [p.pid]; closePlayer(); go('mail', true); };
+  $('#b_go').onclick = async () => {
+    const a = { pid, mode: $('#b_m').value, why: $('#b_w').value.trim() };
+    for (const [k, id] of [['coins', 'b_c'], ['pixels', 'b_p'], ['frag', 'b_f']]) if ($('#' + id).value !== '') a[k] = +$('#' + id).value;
+    if (Object.keys(a).length <= 3) return toast('Rien à changer', true);
+    if (!confirm(`${a.mode === 'set' ? 'Remplacer' : 'Modifier'} les soldes de ${p.name} ?`)) return;
+    const r = await act(() => X('balance', a));
+    toast(`Soldes : ${fr(r.coins)} pièces, ${fr(r.pixels)} pixels, ${fr(r.frag)} fragments`); re();
+  };
+  $('#pl_ren').onclick = async () => {
+    const n = $('#pl_name').value.trim(); if (!n || n === p.name) return;
+    const r = await act(() => adm('rc_admin_rename', `rename|${pid}|${n}`, { p_pid: pid, p_name: n }));
+    if (r === 'taken') toast('Pseudo déjà pris', true); else { toast('Renommé'); re(); }
+  };
+  if ($('#pl_complall')) $('#pl_complall').onclick = () => { $('#pl_compl').innerHTML = hb(p.compl.map(x => [sysName(x.sys), x.have / x.total * 100, `${x.have} / ${x.total}`])); $('#pl_complall').remove(); };
+  // cartes
+  const cq = $('#c_q');
+  cq.oninput = () => {
+    const q = cq.value.toLowerCase(); if (q.length < 2 || !CAT) return;
+    $('#c_dl').innerHTML = Object.entries(CAT).filter(([id, c]) => id.includes(q) || c[2].toLowerCase().includes(q)).slice(0, 30).map(([id, c]) => `<option value="${esc(id)}">${esc(c[2])} · ${esc(sysName(c[0]))} · ${RAR[c[1]]}</option>`).join('');
+  };
+  const cardGo = async sign => {
+    const id = cq.value.trim(); if (!CAT || !CAT[id]) return toast('Choisis une carte dans la liste', true);
+    const n = sign * +$('#c_n').value, f = +$('#c_f').value;
+    if (!confirm(`${sign > 0 ? 'Donner' : 'Retirer'} ${Math.abs(n)} × ${CAT[id][2]} (${FIN[f]}) ${sign > 0 ? 'à' : 'à'} ${p.name} ?`)) return;
+    const r = await act(() => X('card', { pid, card: id, f, n }));
+    toast(`${CAT[id][2]} (${FIN[f]}) : ${r.qty} exemplaire(s)`);
+  };
+  $('#c_add').onclick = () => cardGo(1); $('#c_rem').onclick = () => cardGo(-1);
+  // connexions
+  $('#pl_pw').onclick = async () => {
+    if (!confirm(`Créer un nouveau mot de passe pour ${p.name} ? L'ancien ne marchera plus.`)) return;
+    const r = await act(() => X('password', { pid }));
+    modal(`<h3 style="margin-top:0">🔑 Nouveau mot de passe de ${esc(p.name)}</h3><div class="px" style="font-size:18px;color:var(--acc);margin:14px 0;user-select:all">${esc(r.password)}</div>
+      <div class="small mute">Affiché une seule fois. Envoie-le au joueur (courrier ciblé), il pourra le changer dans son profil.</div>
+      <div class="row mt"><button class="btn p" onclick="navigator.clipboard.writeText('${esc(r.password)}');toast('Copié')">📋 Copier</button><button class="btn" onclick="closeModal()">Fermer</button></div>`);
+  };
+  $('#pl_cf').onclick = async () => { await act(() => X('clearfail', { pid }), 'Erreurs effacées'); re(); };
+  // sanctions
+  $('#pl_blk').onclick = async () => {
+    const on = !p.blocked; if (!confirm(`${on ? 'Bloquer' : 'Débloquer'} ${p.name} ?`)) return;
+    await act(() => adm('rc_admin_block', `block|${pid}|${on ? 1 : 0}`, { p_pid: pid, p_on: on }), on ? 'Bloqué' : 'Débloqué'); re();
+  };
+  $('#pl_mute').onclick = async () => { await act(() => X('mute', { pid, hours: +$('#pl_muteh').value }), 'Muet'); re(); };
+  if ($('#pl_unmute')) $('#pl_unmute').onclick = async () => { await act(() => X('mute', { pid, hours: 0 }), 'Peut de nouveau écrire'); re(); };
+  $('#pl_nsave').onclick = () => act(() => X('note', { pid, note: $('#pl_note').value, tags: $('#pl_tags').value }), 'Note enregistrée');
+}
+function closePlayer() { $('#drawer').classList.remove('on'); $('#shade').classList.remove('on'); }
+$('#shade').onclick = closePlayer;
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closePlayer(); closeCmd(); closeModal(); } });
+
+// ═════════════════════════════ COMPARER ═════════════════════════════
+let CMP = [];
+PAGES.compare = async el => {
+  el.innerHTML = loading;
+  await players();
+  const draw = () => {
+    const L = CMP.map(pid => PL.find(p => p.pid === pid)).filter(Boolean);
+    const rows = [['Score', 'score'], ['Cartes', 'cards'], ['Paquets ouverts', 'packs'], ['Paquets (24 h)', 'packs24'], ['Pièces', 'coins'], ['Pixels', 'pixels'], ['Fragments', 'frag'], ['Gagné (24 h)', 'gain24'], ['Dépensé (7 j)', 'spent7'], ['Victoires de duels', 'wins'], ['Volume Bourse', 'market'], ['Jours actifs', 'days'], ['Série', 'streak']];
+    el.innerHTML = `<div class="card"><h3>⚖️ Comparer <span class="sp"></span>${L.map(p => `<span class="pill">${esc(p.name)} <b class="rwx" data-rm="${p.pid}">×</b></span>`).join('')}
+      <input list="cmp_dl" id="cmp_in" placeholder="＋ Ajouter un joueur" style="width:200px"><datalist id="cmp_dl">${PL.map(p => `<option value="${esc(p.name)}">`).join('')}</datalist></h3>
+      ${L.length ? `<div class="tw"><table><thead><tr><th></th>${L.map(p => `<th class="r">${plink(p.pid, p.name)}</th>`).join('')}</tr></thead><tbody>
+      ${rows.map(([l, k]) => { const m = Math.max(...L.map(p => +p[k] || 0)); return `<tr><td class="mute">${l}</td>${L.map(p => `<td class="r" style="${+p[k] === m && m > 0 && L.length > 1 ? 'color:var(--acc);font-weight:700' : ''}">${fr(p[k])}</td>`).join('')}</tr>`; }).join('')}
+      <tr><td class="mute">Inscription</td>${L.map(p => `<td class="r">${dd(p.created_at)}</td>`).join('')}</tr>
+      <tr><td class="mute">Vu</td>${L.map(p => `<td class="r">${ago(p.seen_at)}</td>`).join('')}</tr>
+      </tbody></table></div>` : '<div class="empty">Ajoute des joueurs (ou coche-les dans la liste Joueurs).</div>'}</div>`;
+    $('#cmp_in').onchange = e => { const p = PL.find(x => x.name === e.target.value); if (p && !CMP.includes(p.pid)) { CMP.push(p.pid); draw(); } };
+    $$('[data-rm]', el).forEach(b => b.onclick = () => { CMP = CMP.filter(x => x !== b.dataset.rm); draw(); });
+  };
+  draw();
+};
+
+// ═════════════════════════════ STATISTIQUES ═════════════════════════════
+let SDAYS = 7;
+PAGES.stats = async el => {
+  el.innerHTML = loading;
+  const e = await act(() => X('econ', { days: SDAYS }));
+  await catalog().catch(() => {});
+  const made = e.sources.reduce((a, x) => a + x.n, 0), burnt = e.sinks.reduce((a, x) => a + x.n, 0);
+  const days = e.per_day.map(x => x.day);
+  const kinds = [...new Set(e.packs_kind.map(x => x.kind))];
+  const pd = days.map(d => kinds.map(k => e.packs_day.find(x => x.day === d && x.kind === k)?.n || 0));
+  const prices = {}; for (const x of e.market.prices) (prices[x.r] ||= {})[x.f] = x;
+  const tops = [['📦 Paquets ouverts', e.tops.packs], ['💰 Pièces gagnées', e.tops.gain], ['⚔️ Victoires de duels', e.tops.wins], ['🏦 Volume Bourse', e.tops.market], ['🎁 Cadeaux envoyés', e.tops.gifts], ['🃏 Cartes (total)', e.tops.cards]];
+  el.innerHTML = `
+  <div class="row" style="margin-bottom:12px"><select id="sdays" style="width:auto">${opt([[1, 'Aujourd’hui'], [7, '7 derniers jours'], [14, '14 jours'], [30, '30 jours']], SDAYS)}</select><span class="small mute">Le journal d'activité garde 30 jours.</span></div>
+  ${tabs('st', [['s1', '💰 Économie'], ['s2', '📦 Paquets'], ['s3', '👥 Joueurs'], ['s4', '🥇 Tops'], ['s5', '🃏 Cartes'], ['s6', '🏦 Bourse'], ['s7', '⚔️ Jeux']])}
+  <div data-tab="s1">
+    <div class="grid g4">
+      <div class="mini"><div class="l">Pièces créées</div><div class="n coin">${fr(made)}</div></div>
+      <div class="mini"><div class="l">Pièces détruites</div><div class="n">${fr(burnt)}</div></div>
+      <div class="mini"><div class="l">Solde net</div><div class="n ${made > burnt ? 'badc' : 'okc'}">${sgn(made - burnt)}</div></div>
+      <div class="mini"><div class="l">Pixels créés / dépensés</div><div class="n pix">${fr(e.pixels.made)} / ${fr(e.pixels.spent)}</div></div>
+    </div>
+    <div class="grid g2 mt"><div class="card"><h3>➕ D'où viennent les pièces</h3>${hb(e.sources.map(x => [KIND[x.kind] || x.kind, x.n]), 'var(--ok)')}</div><div class="card"><h3>➖ Où partent les pièces</h3>${hb(e.sinks.map(x => [KIND[x.kind] || x.kind, x.n]), 'var(--bad)')}</div></div>
+    <div class="card mt"><h3>Par jour</h3>${chart(e.per_day.map(x => [x.made, x.burnt]), ['var(--ok)', 'var(--bad)'], days.map(dd), true)}<div class="legend"><span style="--c:var(--ok)">créées</span><span style="--c:var(--bad)">détruites</span></div></div>
+    <div class="card mt"><h3>Richesse des joueurs</h3><div class="kv"><span>Pièces en circulation</span><span class="coin">${fr(e.wealth.total)}</span><span>Moyenne / médiane</span><span>${fr(e.wealth.avg)} / ${fr(Math.round(e.wealth.median))}</span><span>Top 1 % des joueurs</span><span>${e.wealth.total ? Math.round(e.wealth.top1 / e.wealth.total * 100) : 0} % des pièces</span><span>Top 10 %</span><span>${e.wealth.total ? Math.round(e.wealth.top10 / e.wealth.total * 100) : 0} % des pièces</span><span>Pixels / fragments en circulation</span><span>${fr(e.wealth.pixels)} / ${fr(e.wealth.frag)}</span></div></div>
+  </div>
+  <div data-tab="s2" hidden>
+    <div class="card"><h3>Paquets ouverts par jour</h3>${chart(pd, kinds.map(k => PACKC[k] || '#888'), days.map(dd))}<div class="legend">${kinds.map(k => `<span style="--c:${PACKC[k] || '#888'}">${PACK[k] || k}</span>`).join('')}</div></div>
+    <div class="card mt"><h3>Par type</h3>${hb(e.packs_kind.map(x => [PACK[x.kind] || x.kind, x.n, null, PACKC[x.kind]]))}</div>
+  </div>
+  <div data-tab="s3" hidden>
+    <div class="grid g2">
+      <div class="card"><h3>🔥 Joueurs actifs par heure</h3>${heat(e.heat)}<div class="small mute mt">Nombre de joueurs différents par créneau sur la période.</div></div>
+      <div class="card"><h3>Inscriptions par jour</h3>${chart(e.per_day.map(x => x.signups), 'var(--acc)', days.map(dd))}<div class="small mute">Total : ${fr(e.per_day.reduce((a, x) => a + x.signups, 0))}</div></div>
+    </div>
+  </div>
+  <div data-tab="s4" hidden><div class="grid g3">${tops.map(([t, L]) => `<div class="card"><h3>${t}</h3>${L.map((r, i) => `<div class="msg" data-player="${r.pid}" style="cursor:pointer"><b>${['🥇', '🥈', '🥉', '4', '5'][i]}</b><div class="b">${esc(r.name)}</div><b>${fr(r.n)}</b></div>`).join('') || '<div class="empty">—</div>'}</div>`).join('')}</div></div>
+  <div data-tab="s5" hidden>
+    <div class="grid g2">
+      <div class="card"><h3>Complétion moyenne par console</h3>${hb(e.compl.filter(x => !x.sys.startsWith('sg_')).map(x => [sysName(x.sys), x.avg, x.avg + ' %']))}</div>
+      <div class="card"><h3>Les plus répandues</h3><table><tbody>${e.most.map(x => `<tr><td>${esc(x.title)}</td><td class="mute">${esc(sysName(x.sys))}</td><td class="r">${x.n} joueurs</td></tr>`).join('')}</tbody></table>
+        <h4>Jamais obtenues : ${fr(e.never)}</h4><div class="small">${(e.never_list || []).slice(0, 25).map(x => `${esc(x.title)} <span class="mute">(${esc(sysName(x.sys))}, ${RAR[x.r]})</span>`).join(' · ')}${e.never > 25 ? ' …' : ''}</div></div>
+    </div>
+  </div>
+  <div data-tab="s6" hidden>
+    <div class="grid g4"><div class="mini"><div class="l">Ventes</div><div class="n">${fr(e.market.sales)}</div></div><div class="mini"><div class="l">Volume</div><div class="n coin">${fr(e.market.volume)}</div></div><div class="mini"><div class="l">Annonces ouvertes</div><div class="n">${fr(e.market.open)}</div></div><div class="mini"><div class="l">Échanges acceptés</div><div class="n">${fr(e.market.trades_ok)} / ${fr(e.market.trades)}</div></div></div>
+    <div class="card mt"><h3>Prix moyen (ventes des 30 derniers jours)</h3><table><thead><tr><th></th>${FIN.map(f => `<th class="r">${f}</th>`).join('')}</tr></thead><tbody>${RAR.map((r, i) => `<tr><td>${r}</td>${[0, 1, 2, 3].map(f => `<td class="r">${prices[i]?.[f] ? `${fr(prices[i][f].avg)} <span class="mute small">(${prices[i][f].n})</span>` : '—'}</td>`).join('')}</tr>`).join('')}</tbody></table><div class="small mute">(entre parenthèses : nombre de ventes)</div></div>
+  </div>
+  <div data-tab="s7" hidden><table><thead><tr><th>Jeu</th><th class="r">Parties finies</th><th class="r">Joueurs (lanceurs)</th></tr></thead><tbody>${e.games.map(g => `<tr><td>${GAME[g.game] || g.game}</td><td class="r">${fr(g.n)}</td><td class="r">${fr(g.players)}</td></tr>`).join('') || '<tr><td colspan="3" class="empty">Aucune partie</td></tr>'}</tbody></table></div>`;
+  $('#sdays').onchange = ev => { SDAYS = +ev.target.value; PAGES.stats(el); };
+};
+
+// ═════════════════════════════ JOURNAL ═════════════════════════════
+PAGES.activity = async el => {
+  el.innerHTML = `${tabs('ac', [['a1', 'Activité des joueurs'], ['a2', 'Journal admin']])}
+  <div data-tab="a1" class="card">
+    <div class="row" style="margin-bottom:10px"><select id="ag" style="width:200px">${opt([['', 'Tout'], ['packs', 'Paquets'], ['bourse', 'Bourse'], ['trades', 'Échanges'], ['gifts', 'Cadeaux'], ['duels', 'Duels'], ['rewards', 'Récompenses'], ['coins', 'Pièces (recyclage, fusion…)'], ['login', 'Connexions']], '')}</select><input id="aw" placeholder="Pseudo" style="width:180px"><button class="btn s" id="ago">🔎</button><span class="sp"></span><button class="btn s" id="acsv">⬇️ CSV</button></div>
+    <div class="tw"><table><thead><tr><th>Quand</th><th>Joueur</th><th>Action</th><th class="r">Pièces</th><th class="r">Pixels</th></tr></thead><tbody id="atb"></tbody></table></div>
+    <div class="row mt" style="justify-content:center"><button class="btn s" id="amore">Plus ancien ↓</button></div>
+  </div>
+  <div data-tab="a2" class="card" hidden><div id="alog">${loading}</div></div>`;
+  await catalog().catch(() => {});
+  let rows = [], before = 0;
+  const load = async (reset) => {
+    if (reset) { rows = []; before = 0; $('#atb').innerHTML = `<tr><td colspan="5">${loading}</td></tr>`; }
+    const g = $('#ag').value, w = $('#aw').value.trim();
+    const r = await act(() => adm('rc_admin_activity', `act|${g}|${w}|${before}`, { p_group: g, p_who: w, p_before: before }));
+    rows.push(...r); if (r.length) before = r[r.length - 1].id;
+    $('#atb').innerHTML = rows.map(a => `<tr><td class="mute small">${dt(a.at)}</td><td>${esc(a.name || '?')}</td><td>${esc(a.txt || KIND[a.kind] || a.kind)}${a.card ? ' · ' + cardName(a.card) : ''}${a.other ? ` <span class="mute">↔ ${esc(a.other)}</span>` : ''}</td><td class="r coin">${a.c ? sgn(a.c) : ''}</td><td class="r pix">${a.p ? sgn(a.p) : ''}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Rien</td></tr>';
+    $('#amore').disabled = r.length < 80;
+  };
+  $('#ago').onclick = () => load(true); $('#ag').onchange = () => load(true);
+  $('#aw').onkeydown = e => { if (e.key === 'Enter') load(true); };
+  $('#amore').onclick = () => load(false);
+  $('#acsv').onclick = () => csv('activite.csv', [['quand', 'joueur', 'action', 'carte', 'autre', 'pieces', 'pixels'], ...rows.map(a => [a.at, a.name, a.txt || a.kind, a.card, a.other, a.c, a.p])]);
+  load(true);
+  adm('rc_admin_log_list', 'log').then(L => { $('#alog').innerHTML = `<div class="tw"><table><thead><tr><th>Quand</th><th>Admin</th><th>Action</th></tr></thead><tbody>${L.map(l => `<tr><td class="mute small">${dt(l.at)}</td><td>${esc(l.by || '?')}</td><td class="small">${esc(l.action)}</td></tr>`).join('')}</tbody></table></div>`; }).catch(e => $('#alog').innerHTML = esc(e.message));
+};
+
+// ═════════════════════════════ ÉVÉNEMENTS ═════════════════════════════
+const EFFECTS = [['pixels_x2', 'Pixels multipliés (par booster)'], ['free_fast', 'Paquet gratuit plus fréquent'], ['promo', 'Paquets en promo'], ['holo_x', 'Brillantes et dorées plus fréquentes'], ['rare_x', 'Épiques et légendaires plus fréquentes'], ['recycle_x', 'Recyclage : fragments multipliés'], ['duel_x', 'Duels : gains multipliés'], ['lot_free', 'Lot de 5 gratuit (1 fois par jour)']];
+const GOALS = [['packs', 'Paquets ouverts'], ['c4_wins', 'Victoires 4 en ligne'], ['bs_wins', 'Victoires Console Wars'], ['gamedle', 'Gamedle réussis'], ['sales', 'Ventes à la Bourse'], ['trades', 'Échanges'], ['recycle', 'Cartes recyclées'], ['epics', 'Épiques obtenues'], ['gifts_sent', 'Cadeaux envoyés'], ['quiz', 'Quiz'], ['console', 'Cartes d’une console']];
+const ACTIONS = [['', 'Aucun bouton'], ['packs', 'Ouvrir les paquets'], ['bonus', 'Ouvrir les bonus'], ['neighbors', 'Ouvrir le Voisinage']];
+let EVS = [];
+PAGES.events = async el => {
+  el.innerHTML = loading;
+  EVS = await act(() => adm('rc_admin_events', 'events'));
+  el.innerHTML = `<div class="grid">
+    <div class="card"><h3>🎉 Événements <span class="mute small">(en cours, à venir et finis depuis 7 j)</span><span class="sp"></span><button class="btn p s" id="evnew">＋ Nouveau</button></h3>
+      <div class="tw"><table><thead><tr><th></th><th>Titre</th><th>Type</th><th>Début</th><th>Fin</th><th class="r">Récupérés</th><th>Statut</th><th></th></tr></thead><tbody>
+      ${EVS.map(e => `<tr class="click" data-ev="${e.id}"><td style="font-size:18px">${esc(e.icon)}</td><td><b>${esc(e.title)}</b></td><td>${{ info: 'Info', effect: 'Effet', goal: 'Objectif' }[e.kind]}</td><td class="small">${dt(e.starts_at)}</td><td class="small">${dt(e.ends_at)}</td><td class="r">${e.got}</td>
+        <td>${!e.active ? '<span class="pill">désactivé</span>' : e.live ? '<span class="pill ok">en cours</span>' : e.upcoming ? '<span class="pill blue">à venir</span>' : '<span class="pill">fini</span>'}</td>
+        <td><button class="btn s" data-evon="${e.id}">${e.active ? '⏸' : '▶'}</button></td></tr>`).join('') || '<tr><td colspan="8" class="empty">Aucun</td></tr>'}
+      </tbody></table></div></div>
+    <div class="card" id="evform"></div></div>`;
+  $$('[data-ev]', el).forEach(r => r.onclick = e => { if (!e.target.closest('[data-evon]')) { evForm(EVS.find(x => x.id == r.dataset.ev)); $('#evform').scrollIntoView({ behavior: 'smooth' }); } });
+  $$('[data-evon]', el).forEach(b => b.onclick = async () => { const e = EVS.find(x => x.id == b.dataset.evon); await act(() => adm('rc_admin_event_active', `evactive|${e.id}|${e.active ? 0 : 1}`, { p_id: e.id, p_on: !e.active }), e.active ? 'Désactivé' : 'Activé'); PAGES.events(el); });
+  $('#evnew').onclick = () => { evForm(null); $('#evform').scrollIntoView({ behavior: 'smooth' }); };
+  evForm(null);
+};
+function evForm(e, dup = false) {
+  const n = !e;
+  e = e || { kind: 'effect', icon: '🎉', color: '#EF9F27', starts_at: new Date(Date.now() + 3600e3).toISOString(), ends_at: new Date(Date.now() + 3 * 864e5).toISOString(), effect: 'holo_x', effect_value: 2, steps: [], active: true };
+  const id = n || dup ? null : e.id;
+  const steps = e.steps?.length ? e.steps : [{ n: 10, coins: 200 }];
+  const stepRow = s => `<div class="msg st"><select class="st_n" style="width:90px">${opt(withCur([1, 2, 3, 5, 8, 10, 15, 20, 25, 30, 40, 50, 60, 75, 100, 150, 200, 300, 500], s.n), s.n)}</select><div class="b">${rwBox({ ...(s.reward || {}), coins: (s.coins || 0) + (s.reward?.coins || 0), pixels: (s.pixels || 0) + (s.reward?.pixels || 0) })}</div><button class="btn s d st_rm">🗑</button></div>`;
+  const infoRw = { ...(e.reward || {}), coins: (e.coins || 0) + (e.reward?.coins || 0), pixels: (e.pixels || 0) + (e.reward?.pixels || 0) };
+  const sysList = CAT ? [...new Set(Object.values(CAT).map(c => c[0]))].filter(s => !s.startsWith('sg_') && s !== 'pk').sort() : Object.keys(SYS);
+  $('#evform').innerHTML = `<h3>${id ? '✏️ Modifier' : '＋ Nouvel événement'} ${id ? `<span class="mute small">#${id}</span>` : ''}</h3>
+    <div class="f2"><div><label>Titre (FR)</label><input id="ev_t" value="${esc(e.title || '')}" maxlength="60"></div><div><label>Titre (EN)</label><input id="ev_te" value="${esc(e.title_en || '')}" maxlength="60"></div></div>
+    <div class="f2"><div><label>Texte (FR)</label><textarea id="ev_b" maxlength="600">${esc(e.body || '')}</textarea></div><div><label>Texte (EN)</label><textarea id="ev_be" maxlength="600">${esc(e.body_en || '')}</textarea></div></div>
+    <div class="f4"><div><label>Type</label><select id="ev_k">${opt([['effect', 'Effet'], ['goal', 'Objectif à paliers'], ['info', 'Information (+ cadeau)']], e.kind)}</select></div><div><label>Icône</label><input id="ev_i" value="${esc(e.icon || '🎉')}"></div><div><label>Couleur</label><input type="color" id="ev_c" value="${esc(e.color || '#EF9F27')}" style="height:34px;padding:2px"></div><div><label>Bouton</label><select id="ev_a">${opt(ACTIONS, e.action || '')}</select></div></div>
+    <div class="f3"><div><label>Début</label><input type="datetime-local" id="ev_s" value="${toLocal(e.starts_at)}"></div><div><label>Fin</label><input type="datetime-local" id="ev_e" value="${toLocal(e.ends_at)}"></div><div><label>Décor (émojis qui défilent)</label><input id="ev_d" value="${esc(e.decor || '')}" placeholder="ex. ❄️🎄⭐"></div></div>
+    <div id="ev_eff" ${e.kind === 'effect' ? '' : 'hidden'}><div class="f3"><div><label>Effet</label><select id="ev_ef">${opt(EFFECTS, e.effect || 'holo_x')}</select></div><div id="ev_vbox"><label id="ev_vl">Valeur</label><select id="ev_v">${opt(withCur([1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 90], e.effect_value || 2), e.effect_value || 2)}</select></div><div id="ev_pbox"><label>Paquet en promo</label><select id="ev_p">${opt([['all', 'Tous'], ['mixte', 'Mixte'], ['console', 'Console'], ['premium', 'Premium'], ['mystery', 'Mystère'], ['lot', 'Lot de 5']], e.arg || 'all')}</select></div></div></div>
+    <div id="ev_goal" ${e.kind === 'goal' ? '' : 'hidden'}><div class="f2"><div><label>Objectif</label><select id="ev_g">${opt(GOALS, e.goal || 'packs')}</select></div><div id="ev_cbox"><label>Console</label><select id="ev_ca">${opt(sysList.map(s => [s, sysName(s)]), e.arg || 'nes')}</select></div></div>
+      <label>Paliers (nombre à atteindre → gain)</label><div id="ev_st">${steps.map(stepRow).join('')}</div><button class="btn s" id="ev_sadd">＋ Palier</button></div>
+    <div id="ev_info" ${e.kind === 'info' ? '' : 'hidden'}><label>Cadeau à récupérer (facultatif)</label><div id="ev_rw">${rwBox(infoRw)}</div></div>
+    <label>Aperçu</label><div class="evprev" id="ev_prev"></div>
+    <div class="row mt"><button class="btn p" id="ev_save">💾 ${id ? 'Enregistrer' : 'Créer'}</button>${id ? '<button class="btn" id="ev_dup">📄 Dupliquer</button>' : ''}<label class="inl"><input type="checkbox" id="ev_on" ${e.active !== false ? 'checked' : ''}> Actif</label></div>`;
+  const vlab = () => { const f = $('#ev_ef').value; $('#ev_vl').textContent = f === 'promo' ? 'Réduction (%)' : f === 'free_fast' ? 'Diviser l’attente par' : 'Multiplier par'; $('#ev_vbox').hidden = f === 'lot_free'; $('#ev_pbox').hidden = f !== 'promo'; };
+  const prev = () => { const c = $('#ev_c').value; $('#ev_prev').style.background = `linear-gradient(135deg,${c},${c}88)`; $('#ev_prev').innerHTML = `<div style="font-size:30px">${esc($('#ev_i').value)}</div><div class="t">${esc($('#ev_t').value || 'Titre')}</div><div class="small" style="opacity:.9">${esc($('#ev_b').value)}</div><div class="small" style="margin-top:8px;opacity:.8">⏳ ${$('#ev_s').value ? dt(fromLocal($('#ev_s').value)) : ''} → ${$('#ev_e').value ? dt(fromLocal($('#ev_e').value)) : 'sans fin'}</div>`; };
+  $('#ev_k').onchange = ev => { const k = ev.target.value; $('#ev_eff').hidden = k !== 'effect'; $('#ev_goal').hidden = k !== 'goal'; $('#ev_info').hidden = k !== 'info'; };
+  $('#ev_ef').onchange = vlab; vlab();
+  $('#ev_g').onchange = () => $('#ev_cbox').hidden = $('#ev_g').value !== 'console'; $('#ev_cbox').hidden = (e.goal || 'packs') !== 'console';
+  ['#ev_t', '#ev_b', '#ev_i', '#ev_c', '#ev_s', '#ev_e'].forEach(s => $(s).oninput = prev); prev();
+  $('#ev_sadd').onclick = () => $('#ev_st').insertAdjacentHTML('beforeend', stepRow({ n: 10, coins: 100 }));
+  $('#ev_st').onclick = ev => { if (ev.target.classList.contains('st_rm')) ev.target.closest('.st').remove(); };
+  if ($('#ev_dup')) $('#ev_dup').onclick = () => evForm({ ...e, title: e.title + ' (copie)' }, true);
+  $('#ev_save').onclick = async () => {
+    const k = $('#ev_k').value;
+    const d = { kind: k, icon: $('#ev_i').value.trim(), title: $('#ev_t').value.trim(), body: $('#ev_b').value.trim(), title_en: $('#ev_te').value.trim(), body_en: $('#ev_be').value.trim(), color: $('#ev_c').value, decor: $('#ev_d').value.trim(), starts_at: fromLocal($('#ev_s').value), ends_at: fromLocal($('#ev_e').value), action: $('#ev_a').value, active: $('#ev_on').checked };
+    if (k === 'info') { const r = rwRead($('#ev_rw')); d.coins = r.coins || 0; d.pixels = r.pixels || 0; delete r.coins; delete r.pixels; d.reward = r; }
+    if (k === 'effect') { d.effect = $('#ev_ef').value; d.effect_value = d.effect === 'lot_free' ? '' : $('#ev_v').value; if (d.effect === 'promo') d.arg = $('#ev_p').value; }
+    if (k === 'goal') { d.goal = $('#ev_g').value; if (d.goal === 'console') d.arg = $('#ev_ca').value; d.steps = $$('#ev_st .st').map(s => { const r = rwRead(s); const o = { n: +$('.st_n', s).value, coins: r.coins || 0, pixels: r.pixels || 0 }; delete r.coins; delete r.pixels; o.reward = r; return o; }); }
+    const v = JSON.stringify(d);
+    await act(() => adm('rc_admin_event_save', `evsave|${id || 0}|${v}`, { p_id: id, p_data: v }), 'Événement enregistré');
+    PAGES.events($('#events'));
+  };
+}
+
+// ═════════════════════════════ TOURNOIS ═════════════════════════════
+PAGES.tours = async el => {
+  el.innerHTML = loading;
+  const L = await act(() => rpc('rc_tour_list', { p_device: D }));
+  el.innerHTML = `<div class="grid g2">
+    <div class="card"><h3>🏆 Tournois <span class="mute small">(en cours, ouverts, finis depuis 7 j)</span></h3>
+      <div class="tw"><table><thead><tr><th>Nom</th><th>Jeu</th><th>Début</th><th>Places</th><th>Statut</th><th></th></tr></thead><tbody>
+      ${L.map(t => `<tr class="click" data-tid="${t.id}"><td><b>${esc(t.name)}</b></td><td>${GAME[t.game] || t.game}</td><td class="small">${dt(t.start_at)}</td><td>${t.n} / ${t.size}</td>
+        <td>${{ open: '<span class="pill blue">inscriptions</span>', running: `<span class="pill ok">tour ${t.round} / ${t.rounds}</span>`, done: `<span class="pill">fini${t.winner ? ' · ' + esc(t.winner.name) : ''}</span>`, cancelled: '<span class="pill bad">annulé</span>' }[t.status] || t.status}</td>
+        <td>${t.status === 'open' ? `<button class="btn s" data-tedit="${t.id}">✏️</button> ` : ''}${t.status === 'open' || t.status === 'running' ? `<button class="btn s d" data-tcancel="${t.id}">Annuler</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Aucun tournoi</td></tr>'}
+      </tbody></table></div>
+      <div id="tdetail"></div></div>
+    <div class="card" id="tform"></div></div>`;
+  $$('[data-tid]', el).forEach(r => r.onclick = async ev => {
+    if (ev.target.closest('button')) return;
+    const t = await act(() => rpc('rc_tour_get', { p_id: +r.dataset.tid, p_device: D }));
+    const rounds = {}; for (const m of t.matches || []) (rounds[m.round] ||= []).push(m);
+    $('#tdetail').innerHTML = `<h4>${esc(t.name)} · cagnotte ${fr(t.pot)}</h4><div class="small mute">Inscrits : ${(t.players || []).map(p => esc(p.name) + (p.place ? ` (${p.place}e)` : '')).join(', ') || '—'}</div>
+      <div class="bracket">${Object.keys(rounds).map(k => `<div class="col">${rounds[k].map(m => `<div class="m"><div class="${m.winner && m.winner === m.p1?.pid ? 'w' : ''}">${esc(m.p1?.name || '—')} ${m.best > 1 ? `<span class="mute">${m.w1}</span>` : ''}</div><div class="${m.winner && m.winner === m.p2?.pid ? 'w' : ''}">${esc(m.p2?.name || '—')} ${m.best > 1 ? `<span class="mute">${m.w2}</span>` : ''}</div></div>`).join('')}</div>`).join('') || '<div class="empty">Tableau tiré au début du tournoi</div>'}</div>`;
+  });
+  $$('[data-tcancel]', el).forEach(b => b.onclick = async () => { if (!confirm('Annuler ce tournoi ? Les inscriptions sont remboursées.')) return; await act(() => adm('rc_admin_tour_cancel', `tourcancel|${b.dataset.tcancel}`, { p_id: +b.dataset.tcancel }), 'Tournoi annulé'); PAGES.tours(el); });
+  $$('[data-tedit]', el).forEach(b => b.onclick = () => tourForm(L.find(t => t.id == b.dataset.tedit)));
+  tourForm(null);
+};
+function tourForm(t) {
+  const n = !t;
+  t = t || { name: '', game: 'c4', size: 8, start_at: new Date(Date.now() + 864e5).toISOString(), fee: 0, split: 100, lots: {} };
+  $('#tform').innerHTML = `<h3>${n ? '＋ Nouveau tournoi' : '✏️ Modifier ' + esc(t.name)}</h3>
+    <label>Nom</label><input id="t_n" value="${esc(t.name)}" maxlength="40">
+    <div class="f3"><div><label>Jeu</label><select id="t_g">${opt([['c4', GAME.c4], ['bs', GAME.bs], ['rj', GAME.rj]], t.game)}</select></div><div><label>Places</label><select id="t_s">${opt([4, 8, 16], t.size)}</select></div><div><label>Début</label><input type="datetime-local" id="t_d" value="${toLocal(t.start_at)}"></div></div>
+    <div class="f2"><div><label>Inscription (pièces)</label><select id="t_f">${opt(withCur([0, 10, 25, 50, 100, 150, 200, 250, 500, 1000], t.fee), t.fee)}</select></div><div><label>Cagnotte</label><select id="t_sp">${opt([[100, '100 % au 1er'], [70, '70 % au 1er, 30 % au 2e']], t.split)}</select></div></div>
+    <label>🥇 Lot du 1er</label><div id="t_l1">${rwBox(t.lots?.['1'])}</div>
+    <label>🥈 Lot du 2e</label><div id="t_l2">${rwBox(t.lots?.['2'])}</div>
+    <label>🥉 Lot du 3e</label><div id="t_l3">${rwBox(t.lots?.['3'])}</div>
+    ${n ? '<div class="row mt"><label class="inl"><input type="checkbox" id="t_news" checked> Annoncer dans l’Actu</label></div>' : ''}
+    <div class="note mt">Manches en 1 partie, finale en 2 manches gagnantes, forfait après 3 min d'absence, rappel 10 min avant.</div>
+    <div class="row mt"><button class="btn p" id="t_go">🏆 ${n ? 'Créer' : 'Enregistrer'}</button>${n ? '' : '<button class="btn" id="t_new">＋ Nouveau à la place</button>'}</div>`;
+  if ($('#t_new')) $('#t_new').onclick = () => tourForm(null);
+  $('#t_go').onclick = async () => {
+    const lots = {}; [1, 2, 3].forEach(i => { const r = rwRead($('#t_l' + i)); if (Object.keys(r).length) lots[i] = r; });
+    const d = { name: $('#t_n').value.trim(), game: $('#t_g').value, size: +$('#t_s').value, start_at: fromLocal($('#t_d').value), fee: +$('#t_f').value, split: +$('#t_sp').value, lots };
+    if (!n) d.id = t.id; else d.news = $('#t_news').checked;
+    const v = JSON.stringify(d);
+    await act(() => adm('rc_admin_tour_save', `toursave|${v}`, { p_data: v }), n ? 'Tournoi créé' : 'Tournoi modifié');
+    PAGES.tours($('#tours'));
+  };
+}
+
+// ═════════════════════════════ COURRIER ═════════════════════════════
+let MAILTO = [];
+PAGES.mail = async el => {
+  el.innerHTML = loading;
+  await players();
+  const [mails] = await Promise.all([act(() => adm('rc_admin_mails', 'mails'))]);
+  const sel = MAILTO.map(pid => PL.find(p => p.pid === pid)).filter(Boolean);
+  el.innerHTML = `<div class="grid g2">
+    <div class="card"><h3>✉️ Envoyer un courrier / cadeau</h3>
+      <label>Destinataires</label>
+      <select id="m_t">${opt([['all', 'Tout le monde'], ['active7', 'Actifs ces 7 jours'], ['new7', 'Inscrits ces 7 jours'], ['inactive7', 'Inactifs depuis 7 jours'], ['pids', 'Joueurs choisis']], sel.length ? 'pids' : 'all')}</select>
+      <div id="m_pbox" ${sel.length ? '' : 'hidden'}><div id="m_chips" class="mt"></div><input list="m_dl" id="m_add" placeholder="＋ Ajouter un joueur" class="mt"><datalist id="m_dl">${PL.map(p => `<option value="${esc(p.name)}">`).join('')}</datalist></div>
+      <label>Titre</label><input id="m_ti" maxlength="80">
+      <label>Message</label><textarea id="m_b" maxlength="600"></textarea>
+      <label>Cadeau (facultatif)</label><div id="m_rw">${rwBox({})}</div>
+      <div class="row mt"><button class="btn p" id="m_go">📨 Envoyer</button><span class="small mute" id="m_info"></span></div>
+      <h4>Modèles</h4><div class="row">${[['🎂 Bienvenue', 'Bienvenue sur Pixel Trade !', 'Merci de nous avoir rejoints. Voici un petit coup de pouce pour bien démarrer.', { coins: 300 }], ['🙏 Excuses', 'Désolé pour le souci', 'Un bug a gêné le jeu, voici un dédommagement. Merci de ta patience !', { coins: 500 }], ['👋 Reviens !', 'Tu nous manques !', 'Plein de nouveautés t’attendent, viens jeter un œil.', { packs: { premium: 1 } }], ['🏆 Bravo', 'Bravo !', 'Félicitations pour ta victoire !', { coins: 500, pixels: 2 }]].map((m, i) => `<button class="btn s" data-tpl="${i}">${m[0]}</button>`).join('')}</div>
+    </div>
+    <div class="card"><h3>📬 Derniers envois</h3>
+      <div class="tw"><table><thead><tr><th>Quand</th><th>Titre</th><th>À</th><th>Cadeau</th><th class="r">Ouverts</th><th></th></tr></thead><tbody>
+      ${mails.map(m => `<tr><td class="mute small">${dt(m.at)}</td><td>${esc(m.title)}</td><td>${m.to ? esc(m.to) : m.grp ? { active7: 'actifs 7 j', new7: 'nouveaux 7 j', inactive7: 'inactifs 7 j' }[m.grp] + ` (${m.sent})` : 'tous'}</td><td class="small">${esc(rwText({ ...(m.reward || {}), coins: (m.coins || 0) + (m.reward?.coins || 0), pixels: (m.pixels || 0) + (m.reward?.pixels || 0) }))}</td><td class="r">${m.read}</td><td><button class="btn s d" data-mdel="${m.id}" title="Supprimer">🗑</button></td></tr>`).join('') || '<tr><td colspan="6" class="empty">Aucun</td></tr>'}
+      </tbody></table></div></div></div>`;
+  const TPL = [['Bienvenue sur Pixel Trade !', 'Merci de nous avoir rejoints. Voici un petit coup de pouce pour bien démarrer.', { coins: 300 }], ['Désolé pour le souci', 'Un bug a gêné le jeu, voici un dédommagement. Merci de ta patience !', { coins: 500 }], ['Tu nous manques !', 'Plein de nouveautés t’attendent, viens jeter un œil.', { packs: { premium: 1 } }], ['Bravo !', 'Félicitations pour ta victoire !', { coins: 500, pixels: 2 }]];
+  $$('[data-tpl]', el).forEach(b => b.onclick = () => { const t = TPL[+b.dataset.tpl]; $('#m_ti').value = t[0]; $('#m_b').value = t[1]; $('#m_rw').innerHTML = rwBox(t[2]); });
+  const chips = () => { $('#m_chips').innerHTML = MAILTO.map(pid => { const p = PL.find(x => x.pid === pid); return p ? `<span class="pill" style="margin:2px">${esc(p.name)} <b class="rwx" data-mrm="${pid}">×</b></span>` : ''; }).join('') || '<span class="small mute">Personne</span>'; $('#m_info').textContent = $('#m_t').value === 'pids' ? `→ ${MAILTO.length} joueur(s)` : ''; };
+  $('#m_chips').onclick = e => { const b = e.target.closest('[data-mrm]'); if (b) { MAILTO = MAILTO.filter(x => x !== b.dataset.mrm); chips(); } };
+  $('#m_t').onchange = () => { $('#m_pbox').hidden = $('#m_t').value !== 'pids'; chips(); };
+  $('#m_add').onchange = e => { const p = PL.find(x => x.name === e.target.value); if (p && !MAILTO.includes(p.pid)) MAILTO.push(p.pid); e.target.value = ''; chips(); };
+  chips();
+  $$('[data-mdel]', el).forEach(b => b.onclick = async () => { if (!confirm('Supprimer ce courrier ? (ceux qui ne l’ont pas ouvert ne le verront plus)')) return; await act(() => adm('rc_admin_mail_delete', `maildel|${b.dataset.mdel}`, { p_id: +b.dataset.mdel }), 'Supprimé'); PAGES.mail(el); });
+  $('#m_go').onclick = async () => {
+    const title = $('#m_ti').value.trim(), body = $('#m_b').value.trim(), rw = rwRead($('#m_rw')), r = JSON.stringify(rw);
+    if (!title) return toast('Titre vide', true);
+    const t = $('#m_t').value;
+    const targets = t === 'pids' ? MAILTO.map(p => 'pid:' + p) : [t];
+    if (!targets.length) return toast('Aucun destinataire', true);
+    if (!confirm(`Envoyer « ${title} » (${rwText(rw)}) à ${t === 'pids' ? targets.length + ' joueur(s)' : $('#m_t').selectedOptions[0].text} ?`)) return;
+    $('#m_go').disabled = true;
+    let ok = 0;
+    for (const tg of targets) { try { await adm('rc_admin_mail2', `mail2|${tg}|${title}|${r}`, { p_target: tg, p_title: title, p_body: body, p_reward: r }); ok++; } catch (e) { toast('⚠ ' + e.message, true); } }
+    $('#m_go').disabled = false;
+    toast(`Envoyé (${ok})`); MAILTO = []; PAGES.mail(el);
+  };
+};
+
+// ═════════════════════════════ SONDAGES ═════════════════════════════
+PAGES.polls = async el => {
+  el.innerHTML = loading;
+  const L = await act(() => adm('rc_admin_polls', 'polls'));
+  el.innerHTML = `<div class="grid g2">
+    <div class="card"><h3>🗳️ Sondages</h3>${L.map(p => `<div class="mt"><div class="row"><b>${esc(p.question)}</b><span class="sp"></span>${p.closed ? '<span class="pill">fermé</span>' : `<span class="pill ok">ouvert · fin ${dt(p.ends_at)}</span> <button class="btn s d" data-pclose="${p.id}">Fermer</button>`}</div>
+      ${hb(p.options.map((o, i) => [o, p.votes?.[i] || 0, `${p.votes?.[i] || 0}${p.total ? ` · ${Math.round((p.votes?.[i] || 0) / p.total * 100)} %` : ''}`]))}<div class="small mute">${p.total} vote(s)</div></div>`).join('<hr style="border-color:var(--line)">') || '<div class="empty">Aucun</div>'}</div>
+    <div class="card"><h3>＋ Nouveau sondage</h3>
+      <label>Question</label><input id="po_q" maxlength="120">
+      <label>Réponses (une par ligne, 2 à 4)</label><textarea id="po_o"></textarea>
+      <label>Durée</label><select id="po_d" style="width:auto">${opt([[1, '1 jour'], [2, '2 jours'], [3, '3 jours'], [5, '5 jours'], [7, '7 jours'], [14, '14 jours']], 3)}</select>
+      <div class="row mt"><button class="btn p" id="po_go">Publier</button></div></div></div>`;
+  $$('[data-pclose]', el).forEach(b => b.onclick = async () => { await act(() => adm('rc_admin_poll_close', `pollclose|${b.dataset.pclose}`, { p_id: +b.dataset.pclose }), 'Fermé'); PAGES.polls(el); });
+  $('#po_go').onclick = async () => {
+    const q = $('#po_q').value.trim(), o = $('#po_o').value.split('\n').map(s => s.trim()).filter(Boolean).join('\n'), d = +$('#po_d').value;
+    if (!q || o.split('\n').length < 2) return toast('Question et au moins 2 réponses', true);
+    await act(() => adm('rc_admin_poll_new', `pollnew|${q}|${o}|${d}`, { p_question: q, p_options: o, p_days: d }), 'Sondage publié'); PAGES.polls(el);
+  };
+};
+
+// ═════════════════════════════ CHAT ═════════════════════════════
+PAGES.chat = async el => {
+  el.innerHTML = loading;
+  const L = await act(() => adm('rc_admin_chat', 'chat'));
+  el.innerHTML = `<div class="grid g64"><div class="card"><h3>💬 Messages signalés ou masqués <span class="mute small">(14 jours)</span></h3>
+    ${L.map(m => `<div class="msg">${av(m.avatar)}<div class="b">${plink(m.pid, m.name)} <span class="small mute">${dt(m.at)}</span> ${m.reports ? `<span class="pill bad">${m.reports} signal.</span>` : ''}${m.hidden ? '<span class="pill">masqué</span>' : ''}${m.banned ? '<span class="pill warn">muet</span>' : ''}<div>${esc(m.msg)}</div></div>
+      <div class="row">${m.hidden ? `<button class="btn s" data-ca="show" data-id="${m.id}">👁 Remettre</button>` : `<button class="btn s" data-ca="hide" data-id="${m.id}">🙈 Masquer</button>`}${m.banned ? `<button class="btn s" data-ca="unban" data-id="${m.id}">🔊 Lever</button>` : `<button class="btn s d" data-ca="ban" data-id="${m.id}">🔇 24 h</button>`}</div></div>`).join('') || '<div class="empty">✔ Aucun message signalé</div>'}</div>
+    <div class="card"><h3>✍️ Écrire dans le chat</h3><textarea id="ch_m" maxlength="300" placeholder="@tous pour notifier tout le monde"></textarea><div class="row mt"><button class="btn p" id="ch_go">Envoyer en tant que ${esc(ME)}</button></div>
+      <div class="small mute mt">Pour rendre un joueur muet plus ou moins longtemps : sa fiche, onglet Sanctions.</div></div></div>`;
+  $$('[data-ca]', el).forEach(b => b.onclick = async () => { await act(() => adm('rc_admin_chat_act', `chatact|${b.dataset.id}|${b.dataset.ca}`, { p_id: +b.dataset.id, p_act: b.dataset.ca }), 'OK'); PAGES.chat(el); });
+  $('#ch_go').onclick = async () => { const m = $('#ch_m').value.trim(); if (!m) return; await act(async () => rpc('rc_chat_send', { p_device: D, p_msg: m, p_sig: await sig(D + '|chat|' + m) }), 'Message envoyé'); $('#ch_m').value = ''; };
+};
+
+// ═════════════════════════════ BOURSE ═════════════════════════════
+PAGES.market = async el => {
+  el.innerHTML = `<div class="card"><h3>🏦 Annonces en cours <span class="sp"></span><input id="mk_q" placeholder="Vendeur…" style="width:180px"><label class="inl"><input type="checkbox" id="mk_odd"> Prix anormaux seulement (× 3 ou plus, ou ≤ 10 % de la moyenne)</label></h3><div id="mk_box">${loading}</div></div>`;
+  await catalog().catch(() => {});
+  let L = [];
+  const draw = () => {
+    const odd = $('#mk_odd').checked;
+    const R = L.filter(m => !odd || (m.ratio != null && (m.ratio >= 3 || m.ratio <= 0.1)));
+    $('#mk_box').innerHTML = `<div class="tw"><table><thead><tr><th>Carte</th><th>Finition</th><th>Vendeur</th><th class="r">Prix</th><th class="r">Moyenne</th><th class="r">Ratio</th><th>Depuis</th><th></th></tr></thead><tbody>
+      ${R.map(m => `<tr><td>${cardName(m.card)}${CAT?.[m.card] ? ` <span class="pill">${RAR[CAT[m.card][1]]}</span>` : ''}</td><td>${FIN[m.f]}</td><td>${plink(m.pid, m.name)}</td><td class="r coin">${fr(m.price)}</td><td class="r mute">${fr(m.avg)}</td><td class="r ${m.ratio >= 3 ? 'badc' : m.ratio != null && m.ratio <= 0.1 ? 'warn' : ''}">${m.ratio != null ? '× ' + m.ratio : '—'}</td><td class="small mute">${ago(m.at)}</td><td><button class="btn s d" data-mrem="${m.id}">Retirer</button></td></tr>`).join('') || '<tr><td colspan="8" class="empty">Aucune annonce</td></tr>'}</tbody></table></div><div class="small mute mt">${R.length} annonce(s) (200 max, des plus chères)</div>`;
+    $$('[data-mrem]', el).forEach(b => b.onclick = async () => { if (!confirm('Retirer cette annonce ? La carte retourne au vendeur.')) return; await act(() => adm('rc_admin_market_remove', `mremove|${b.dataset.mrem}`, { p_id: +b.dataset.mrem }), 'Annonce retirée'); load(); });
+  };
+  const load = async () => { const q = $('#mk_q').value.trim(); L = await act(() => adm('rc_admin_market', 'market|' + q, { p_query: q })); draw(); };
+  $('#mk_q').onkeydown = e => { if (e.key === 'Enter') load(); };
+  $('#mk_odd').onchange = draw;
+  load();
+};
+
+// ═════════════════════════════ CARTES ═════════════════════════════
+PAGES.cards = async el => {
+  el.innerHTML = loading;
+  await act(() => catalog());
+  const sysL = [...new Set(Object.values(CAT).map(c => c[0]))].sort((a, b) => sysName(a).localeCompare(sysName(b)));
+  el.innerHTML = `<div class="grid g64">
+    <div class="card"><h3>🃏 Chercher une carte</h3>
+      <div class="row"><input id="cd_q" placeholder="Titre ou identifiant" style="flex:1"><select id="cd_s" style="width:auto"><option value="">Toutes</option>${opt(sysL.map(s => [s, sysName(s)]), '')}</select><select id="cd_r" style="width:auto"><option value="">Toutes raretés</option>${opt(RAR.map((r, i) => [i, r]), '')}</select></div>
+      <div class="tw mt"><table><tbody id="cd_list"></tbody></table></div></div>
+    <div class="card" id="cd_det"><div class="empty">Choisis une carte.</div></div></div>`;
+  const draw = () => {
+    const q = $('#cd_q').value.toLowerCase(), s = $('#cd_s').value, r = $('#cd_r').value;
+    const L = Object.entries(CAT).filter(([id, c]) => (!q || id.includes(q) || c[2].toLowerCase().includes(q)) && (!s || c[0] === s) && (r === '' || c[1] == r)).slice(0, 100);
+    $('#cd_list').innerHTML = L.map(([id, c]) => `<tr class="click" data-card="${esc(id)}"><td>${esc(c[2])}</td><td class="mute">${esc(sysName(c[0]))}</td><td><span class="pill">${RAR[c[1]]}</span></td><td class="mute small">${esc(id)}</td></tr>`).join('') || '<tr><td class="empty">Aucune</td></tr>';
+  };
+  ['#cd_q', '#cd_s', '#cd_r'].forEach(x => $(x).oninput = draw); draw();
+  $('#cd_list').onclick = async e => {
+    const tr = e.target.closest('[data-card]'); if (!tr) return;
+    const id = tr.dataset.card, c = CAT[id];
+    $('#cd_det').innerHTML = loading;
+    const d = await act(() => adm('rc_admin_card', 'card|' + id, { p_card: id }));
+    $('#cd_det').innerHTML = `<h3>${esc(c[2])} <span class="pill">${RAR[c[1]]}</span></h3><div class="small mute">${esc(sysName(c[0]))} · ${esc(id)}</div>
+      <div class="grid g3 mt"><div class="mini"><div class="l">Exemplaires</div><div class="n">${fr(d.total)}</div></div><div class="mini"><div class="l">Joueurs</div><div class="n">${fr(d.players)}</div></div><div class="mini"><div class="l">En vente</div><div class="n">${fr(d.open)}</div></div></div>
+      <div class="kv mt">${FIN.map((f, i) => `<span>${f}</span><span>${fr(d.finishes?.[i] || 0)}</span>`).join('')}</div>
+      <h4>Possédée par</h4><div class="tw"><table><tbody>${(d.owners || []).map(o => `<tr class="click" data-player="${o.pid}"><td>${av(o.avatar, 22)}${esc(o.name)}</td><td class="r">${o.n}</td><td class="small mute">${Object.entries(o.f || {}).map(([f, q]) => `${FIN[f]} ${q}`).join(' · ')}</td></tr>`).join('') || '<tr><td class="empty">Personne</td></tr>'}</tbody></table></div>
+      <h4>Dernières ventes</h4>${(d.sales || []).map(s => `<div class="small">${dt(s.at)} · ${FIN[s.f]} · <span class="coin">${fr(s.price)}</span></div>`).join('') || '<div class="empty">Aucune</div>'}`;
+  };
+};
+
+// ═════════════════════════════ ÉCONOMIE & RÉGLAGES ═════════════════════════════
+PAGES.eco = async el => {
+  el.innerHTML = loading;
+  const d = DASH = await act(() => X('dash'));
+  const live = { ...LIVE_DEF, ...(d.config?.live || {}) };
+  const ban = d.config?.banner || {};
+  const P = (k, l, list) => `<div><label>${l}</label><select data-live="${k}">${opt(withCur(list, live[k]), live[k])}</select></div>`;
+  const pct = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 3.2, 3.5, 4, 5, 6, 7, 8, 10, 12, 15, 20, 25, 30, 40, 50];
+  const prices = [0, 25, 50, 75, 80, 90, 100, 110, 120, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 750, 1000];
+  el.innerHTML = `<div class="grid g2">
+    <div class="card"><h3>🎲 Chances (en %)</h3>
+      <div class="f3">${P('holo', 'Brillante', pct)}${P('gold', 'Dorée', pct)}${P('fullart', 'Full art', pct)}${P('saga', 'Carte de saga', pct)}${P('pk', 'Carte Pokémon', pct)}</div>
+      <h3 style="margin-top:18px">💰 Prix des paquets (pièces)</h3>
+      <div class="f4">${P('mixte', 'Mixte', prices)}${P('console', 'Console', prices)}${P('premium', 'Premium', prices)}${P('mystery', 'Mystère', prices)}</div>
+      <h3 style="margin-top:18px">🎁 Coffre des défis de la semaine</h3>
+      <div class="f2">${P('chest_coins', 'Pièces', [0, 100, 200, 250, 300, 400, 500, 600, 750, 1000, 1500, 2000])}${P('chest_pixels', 'Pixels', [0, 1, 2, 3, 4, 5, 8, 10])}</div>
+      <div class="row mt"><button class="btn p" id="lv_go">💾 Appliquer</button><span class="small mute">Seules les valeurs changées sont envoyées. Appliqué tout de suite à tout le monde.</span></div>
+      <div class="note mt">Valeurs propres au serveur aujourd'hui : ${Object.entries(d.config?.live || {}).map(([k, v]) => `${k} = ${v}`).join(', ') || 'aucune (valeurs par défaut de l’appli)'}. Prix à pixels, recyclage et fabrication : étape suivante.</div>
+    </div>
+    <div class="card"><h3>📢 Bandeau d'information</h3>
+      <label>Texte (vide = pas de bandeau)</label><input id="bn_t" value="${esc(ban.text || '')}" maxlength="200">
+      <label>Jusqu'au (vide = sans fin)</label><input type="datetime-local" id="bn_u" value="${toLocal(ban.until)}">
+      <div class="row mt"><button class="btn p" id="bn_go">Afficher</button><button class="btn" id="bn_off">Retirer</button></div>
+    </div></div>`;
+  $('#lv_go').onclick = async () => {
+    const ch = {};
+    $$('[data-live]', el).forEach(s => { const v = +s.value; if (v !== +live[s.dataset.live]) ch[s.dataset.live] = v; });
+    if (!Object.keys(ch).length) return toast('Rien n’a changé', true);
+    if (!confirm('Appliquer : ' + Object.entries(ch).map(([k, v]) => `${k} ${live[k]} → ${v}`).join(', ') + ' ?')) return;
+    const v = JSON.stringify(ch);
+    await act(() => adm('rc_admin_set_live', 'live|' + v, { p_values: v }), 'Réglages appliqués'); PAGES.eco(el);
+  };
+  const setBanner = async (text, until) => { const v = JSON.stringify({ text, until }); await act(() => adm('rc_admin_set_config', `config|banner|${v}`, { p_key: 'banner', p_value: v }), text ? 'Bandeau affiché' : 'Bandeau retiré'); PAGES.eco(el); };
+  $('#bn_go').onclick = () => setBanner($('#bn_t').value.trim(), fromLocal($('#bn_u').value));
+  $('#bn_off').onclick = () => setBanner('', null);
+};
+
+// ═════════════════════════════ MAINTENANCE & VERSION ═════════════════════════════
+PAGES.system = async el => {
+  el.innerHTML = loading;
+  const d = DASH = await act(() => X('dash'));
+  const m = d.config?.maintenance || {}, mv = d.config?.min_version || '';
+  const vers = [...new Set((d.versions || []).map(v => v.ver).filter(v => /^\d+\.\d+\.\d+$/.test(v)).concat(mv ? [mv] : []))].sort().reverse();
+  const under = v => (d.versions || []).filter(x => x.ver !== '?' && x.ver < v).reduce((a, x) => a + x.n, 0);
+  el.innerHTML = `<div class="grid g2">
+    <div class="card"><h3>🛠️ Maintenance ${m.on ? '<span class="pill bad">ACTIVE</span>' : '<span class="pill ok">coupée</span>'}</h3>
+      <label class="inl"><input type="checkbox" id="mt_on" ${m.on ? 'checked' : ''}> Activer (bloque le jeu pour les joueurs)</label>
+      <label>Message affiché</label><input id="mt_m" value="${esc(m.msg || 'Mise à jour en cours, retour dans quelques minutes !')}" maxlength="300">
+      <div class="row mt"><button class="btn p" id="mt_go">Appliquer</button></div></div>
+    <div class="card"><h3>📱 Version minimale</h3>
+      <div class="row"><select id="mv_v" style="width:auto">${opt(vers, mv)}</select><input id="mv_x" placeholder="ou autre (1.0.42)" style="width:160px"><button class="btn" id="mv_go">Appliquer</button></div>
+      <div class="small mute mt" id="mv_info"></div>
+      <div class="warnbox mt">Les joueurs sous cette version doivent mettre à jour pour jouer. Le web suit tout seul ; pour Android, l'APK doit déjà être publiée.</div></div></div>`;
+  const info = () => { const v = $('#mv_x').value.trim() || $('#mv_v').value; $('#mv_info').textContent = `${under(v)} joueur(s) vus en 7 j sont sous la ${v}.`; };
+  $('#mv_v').onchange = info; $('#mv_x').oninput = info; info();
+  $('#mt_go').onclick = async () => {
+    const on = $('#mt_on').checked; if (on && !confirm('Activer la maintenance ? Le jeu sera bloqué pour tous les joueurs.')) return;
+    const v = JSON.stringify({ on, msg: $('#mt_m').value.trim() });
+    await act(() => adm('rc_admin_set_config', `config|maintenance|${v}`, { p_key: 'maintenance', p_value: v }), on ? 'Maintenance activée' : 'Maintenance coupée'); PAGES.system(el);
+  };
+  $('#mv_go').onclick = async () => {
+    const v = $('#mv_x').value.trim() || $('#mv_v').value; if (!confirm(`Version minimale → ${v} ?`)) return;
+    await act(() => adm('rc_admin_set_config', `config|min_version|${v}`, { p_key: 'min_version', p_value: v }), 'Version minimale : ' + v); PAGES.system(el);
+  };
+};
+
+// ═════════════════════════════ À VENIR ═════════════════════════════
+PAGES.soon = el => {
+  const L = [['⏰ Programmation', 'Courrier, bandeau, réglages et messages @tous à une heure donnée ou chaque semaine.'], ['🕵️ Anti-triche', 'Graphe des comptes liés, scores refusés, seuils d’alerte réglables, « marquer normal ».'], ['⛔ Sanctions avancées', 'Bourse, cadeaux ou duels interdits avec durée et motif, historique.'], ['⚔️ Duels en cours', 'Liste des parties, regarder, terminer une partie bloquée, annuler les vieux défis.'], ['🎯 Défis & trophées', 'Réservoir des défis, défi express, seuils et gains des trophées, paliers de collection.'], ['🧩 Gamedle & quiz', 'Réponse du jour, forcer une carte, questions du quiz.'], ['🎡 Roue, pioche, paquet gratuit', 'Cases et chances de la roue, pioche du jour, délai du paquet gratuit, codes cadeaux.'], ['👾 Bornes & Voisinage', 'Plafonds des mini-jeux, records, seuils des habillages.'], ['🎁 Cadeaux de version', 'Gérer les cadeaux de mise à jour et le « Quoi de neuf » sans republier l’appli.'], ['📰 Actu', 'Masquer une publication, épingler une annonce.'], ['🔐 Admins & rôles', 'Modérateur, animateur, admin complet.'], ['🔄 Remises à zéro', 'Défis, roue, pioche, paquet gratuit, paquet entamé d’un joueur.']];
+  el.innerHTML = `<div class="card"><h3>🚧 Prochaines étapes de l'outil</h3><div class="grid g3">${L.map(([t, d]) => `<div class="soonbox"><b style="color:var(--text)">${t}</b><div class="small mt">${d}</div></div>`).join('')}</div></div>`;
+};
+
+// ═════════════════════════════ RECHERCHE RAPIDE ═════════════════════════════
+let CMDL = [];
+async function openCmd() {
+  $('#cmd').classList.add('on'); $('#cmdin').value = ''; $('#cmdin').focus();
+  await players().catch(() => {});
+  CMDL = [...$$('nav button[data-s]').map(b => ['📄 ' + b.textContent.replace(/\d+\s*$/, '').trim(), () => go(b.dataset.s)]),
+    ...(PL || []).map(p => ['👤 ' + p.name, () => { closeCmd(); openPlayer(p.pid); }])];
+  drawCmd('');
+}
+function closeCmd() { $('#cmd').classList.remove('on'); }
+function drawCmd(q) {
+  q = q.toLowerCase();
+  let r = CMDL.filter(c => c[0].toLowerCase().includes(q));
+  if (q.length >= 3 && CAT) r = r.concat(Object.entries(CAT).filter(([id, c]) => c[2].toLowerCase().includes(q)).slice(0, 5).map(([id, c]) => ['🃏 ' + c[2] + ' · ' + sysName(c[0]), () => { go('cards'); setTimeout(() => { $('#cd_q').value = c[2]; $('#cd_q').oninput(); }, 50); }]));
+  drawCmd.r = r.slice(0, 10);
+  $('#cmdres').innerHTML = drawCmd.r.map((c, i) => `<div class="it${i ? '' : ' on'}" data-i="${i}">${esc(c[0])}</div>`).join('') || '<div class="empty">Rien</div>';
+}
+$('#cmdin').oninput = e => drawCmd(e.target.value);
+$('#cmdres').onclick = e => { const it = e.target.closest('.it'); if (it) drawCmd.r[+it.dataset.i][1](); };
+$('#cmdin').onkeydown = e => { if (e.key === 'Enter' && drawCmd.r?.[0]) drawCmd.r[0][1](); };
+$('#cmd').onclick = e => { if (e.target.id === 'cmd') closeCmd(); };
+$('#opencmd').onclick = openCmd;
+document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && D) { e.preventDefault(); openCmd(); } });
+</script>
+</body>
+</html>
