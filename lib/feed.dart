@@ -68,6 +68,8 @@ class FeedScreenState extends State<FeedScreen> {
   }
 
   String filter = 'all';
+  /// 0 = Actualité, 1 = Tops
+  int view = 0;
 
   static String _cat(String kind) => switch (kind) {
         'c4' || 'c4draw' || 'bs' || 'bsdraw' || 'rj' || 'rjdraw' || 'rjsolo' || 'rn' || 'rndraw' || 'rnsolo' || 'tour' || 'tournew' => 'duel',
@@ -118,9 +120,29 @@ class FeedScreenState extends State<FeedScreen> {
     }
     return Column(children: [
       TabHeader(t('Actualités', 'News'), icon: 'news', actions: [
-        IconButton(onPressed: load, icon: const Icon(Icons.refresh), tooltip: t('Actualiser', 'Refresh')),
+        if (view == 0) IconButton(onPressed: load, icon: const Icon(Icons.refresh), tooltip: t('Actualiser', 'Refresh')),
       ]),
-      SizedBox(
+      Padding(
+        padding: const EdgeInsets.fromLTRB(12, 6, 12, 2),
+        child: SegmentedButton<int>(
+          segments: [
+            ButtonSegment(value: 0, label: Text(t('📰 Actualité', '📰 News'))),
+            ButtonSegment(value: 1, label: Text(t('🏆 Tops', '🏆 Tops'))),
+          ],
+          selected: {view},
+          showSelectedIcon: false,
+          style: SegmentedButton.styleFrom(
+            backgroundColor: kPanel,
+            foregroundColor: Colors.white70,
+            selectedBackgroundColor: rcTheme.accent,
+            selectedForegroundColor: rcTheme.onAccent,
+            textStyle: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          onSelectionChanged: (v) => setState(() => view = v.first),
+        ),
+      ),
+      if (view == 1) const Expanded(child: TopsView()),
+      if (view == 0) SizedBox(
         height: 44,
         child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), children: [
           _chip('all', t('Tout', 'All')),
@@ -130,7 +152,7 @@ class FeedScreenState extends State<FeedScreen> {
           _chip('player', t('👋 Joueurs', '👋 Players')),
         ]),
       ),
-      Expanded(
+      if (view == 0) Expanded(
         child: items == null
             ? Center(
                 child: error
@@ -163,6 +185,143 @@ class FeedScreenState extends State<FeedScreen> {
                           return _FeedTile(r as Map<String, dynamic>);
                         },
                       ),
+              ),
+      ),
+    ]);
+  }
+}
+
+// ═══ Tops : classements des joueurs (rc_tops) ═══════════════════════════════
+
+class TopsView extends StatefulWidget {
+  const TopsView({super.key});
+  @override
+  State<TopsView> createState() => _TopsViewState();
+}
+
+class _TopsViewState extends State<TopsView> {
+  static int _days = 7; // gardé tant que l'appli est ouverte
+  Map<String, dynamic>? data;
+  bool error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load() async {
+    final d = _days;
+    try {
+      final r = await RcServer.tops(d);
+      if (mounted && d == _days) {
+        setState(() {
+          data = r;
+          error = false;
+        });
+      }
+    } catch (_) {
+      if (mounted && data == null) setState(() => error = true);
+    }
+  }
+
+  Widget _period(int d, String label) {
+    final on = _days == d;
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: ChoiceChip(
+        label: Text(label, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: on ? rcTheme.onAccent : Colors.white70)),
+        selected: on,
+        showCheckmark: false,
+        selectedColor: rcTheme.accent,
+        backgroundColor: kPanel,
+        onSelected: (_) {
+          if (on) return;
+          setState(() => _days = d);
+          load();
+        },
+      ),
+    );
+  }
+
+  Widget _board(String title, List list) {
+    final mine = Game.i.pid;
+    return Container(
+      decoration: BoxDecoration(color: kPanel, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white12)),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+        const SizedBox(height: 6),
+        if (list.isEmpty)
+          const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Text('—', style: TextStyle(color: Colors.white38))),
+        for (var i = 0; i < list.length; i++)
+          Builder(builder: (context) {
+            final r = Map<String, dynamic>.from(list[i] as Map);
+            final pid = r['pid'] as String?;
+            final me = pid == mine;
+            return InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: pid == null || me ? null : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerProfilePage(pid: pid))),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
+                decoration: me ? BoxDecoration(color: rcTheme.accent.withValues(alpha: .18), borderRadius: BorderRadius.circular(8)) : null,
+                child: Row(children: [
+                  SizedBox(
+                    width: 28,
+                    child: Text(i < 3 ? ['🥇', '🥈', '🥉'][i] : '${i + 1}',
+                        textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Colors.white70)),
+                  ),
+                  const SizedBox(width: 6),
+                  avatarWidget((r['avatar'] as num?)?.toInt() ?? 0, size: 28),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(r['name'] as String? ?? '?', overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: me ? FontWeight.w900 : FontWeight.w600))),
+                  Text(fmt((r['n'] as num?)?.toInt() ?? 0), style: const TextStyle(fontWeight: FontWeight.w900)),
+                ]),
+              ),
+            );
+          }),
+      ]),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final d = data;
+    final boards = d == null
+        ? const <Widget>[]
+        : [
+            _board(t('📦 Paquets ouverts', '📦 Packs opened'), d['packs'] as List? ?? const []),
+            _board(t('💰 Pièces gagnées', '💰 Coins earned'), d['gain'] as List? ?? const []),
+            _board(t('⚔️ Victoires de duels', '⚔️ Duel wins'), d['wins'] as List? ?? const []),
+            _board(t('🏦 Volume Bourse', '🏦 Market volume'), d['market'] as List? ?? const []),
+            _board(t('🎁 Cadeaux envoyés', '🎁 Gifts sent'), d['gifts'] as List? ?? const []),
+            _board(t('🃏 Cartes (total)', '🃏 Cards (total)'), d['cards'] as List? ?? const []),
+          ];
+    return Column(children: [
+      SizedBox(
+        height: 44,
+        child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), children: [
+          _period(1, t('Aujourd\'hui', 'Today')),
+          _period(7, t('7 jours', '7 days')),
+          _period(30, t('30 jours', '30 days')),
+        ]),
+      ),
+      Expanded(
+        child: d == null
+            ? Center(
+                child: error
+                    ? Text(t('Pas de connexion au serveur', 'No connection to the server'), style: const TextStyle(color: Colors.white54))
+                    : const CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: load,
+                child: LayoutBuilder(builder: (context, c) {
+                  // 1 colonne sur téléphone, 2 ou 3 en grand écran
+                  final cols = c.maxWidth >= 1000 ? 3 : (c.maxWidth >= 640 ? 2 : 1);
+                  final w = (c.maxWidth - 24 - (cols - 1) * 10) / cols;
+                  return ListView(padding: const EdgeInsets.fromLTRB(12, 4, 12, 24), children: [
+                    Wrap(spacing: 10, runSpacing: 10, children: [for (final b in boards) SizedBox(width: w, child: b)]),
+                  ]);
+                }),
               ),
       ),
     ]);

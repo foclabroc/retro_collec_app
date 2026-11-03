@@ -593,6 +593,9 @@ class RcServer {
   }
 
   // ── Fil d'actualité ─────────────────────────────────────────────────────
+  /// Tops de l'Actualité (1, 7 ou 30 jours) : {days, packs, gain, wins, market, gifts, cards : [{pid, name, avatar, n}]}
+  static Future<Map<String, dynamic>> tops(int days) async => _map(await _rpc('rc_tops', {'p_days': days}));
+
   /// 100 dernières nouvelles (plus récentes d'abord) : {id, at, kind, card, f, sys, n, pid, name, avatar,
   /// rx: [👏, 🔥, 😮], me: ma réaction ou -1}
   static Future<List<Map<String, dynamic>>> feed([int after = 0]) async {
