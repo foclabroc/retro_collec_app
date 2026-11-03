@@ -5,7 +5,7 @@ declare j jsonb; d text; v rc_players; n int; f int; c text; pw text; mode text;
 begin
   perform public.rc__admin(p_device, p_sig, 'x|' || coalesce(p_op, '') || '|' || coalesce(p_args, ''));
   j := coalesce(nullif(p_args, ''), '{}')::jsonb;
-  if p_op in ('player', 'balance', 'card', 'password', 'clearfail', 'note', 'mute', 'sanction_add', 'reset') then
+  if p_op in ('player', 'balance', 'card', 'card_gift', 'password', 'clearfail', 'note', 'mute', 'sanction_add', 'reset') then
     select * into v from rc_players where pid = j->>'pid';
     if v.device is null then raise exception 'joueur inconnu'; end if;
     d := v.device;
@@ -25,7 +25,7 @@ begin
              'reason', s2.reason, 'at', s2.at, 'lifted_at', s2.lifted_at, 'by', (select name from rc_players where device = s2.by_dev)) order by s2.id desc)
              from rc_sanctions s2 where s2.device = d), '[]'::jsonb));
   when 'econ' then return rc__adm_econ((j->>'days')::int);
-  when 'catalog' then return coalesce((select jsonb_agg(jsonb_build_array(id, sys, rarity, title)) from rc_cards), '[]'::jsonb);
+  when 'catalog' then return coalesce((select jsonb_agg(jsonb_build_array(id, sys, rarity, title, base)) from rc_cards), '[]'::jsonb);
   when 'duels' then return rc__adm_duels();
   when 'cheat' then return rc__adm_cheat();
   when 'cfg' then return rc__adm_cfg();
@@ -96,6 +96,15 @@ begin
     end if;
     perform rc__rescore(d);
     return jsonb_build_object('qty', coalesce((select qty from rc_owned where device = d and card = c and finish = f), 0));
+  when 'card_gift' then
+    -- carte offerte : elle attend dans « Cartes à ranger » du joueur (rc_card_stock), avec le nom du donneur
+    c := j->>'card'; f := coalesce((j->>'f')::int, 0); n := coalesce((j->>'n')::int, 1);
+    if not exists (select 1 from rc_cards where id = c) then raise exception 'carte inconnue'; end if;
+    if f not between 0 and 3 or n not between 1 and 20 then raise exception 'valeurs invalides'; end if;
+    insert into rc_card_stock (device, card, finish, giver_name)
+    select d, c, f, coalesce(nullif(left(trim(j->>'from'), 40), ''), 'Admin') from generate_series(1, n);
+    perform rc__rt_safe(rc__rt_topic(d), 'me', jsonb_build_object('k', 'gift'));
+    return jsonb_build_object('ok', true, 'n', n);
   when 'password' then
     pw := substr(translate(encode(gen_random_bytes(9), 'base64'), '+/=lIO0', 'xyzkmPQ'), 1, 8);
     update rc_players set pass_hash = crypt(encode(digest('pt-pass#41c9|' || pw, 'sha256'), 'hex'), gen_salt('bf', 8)),

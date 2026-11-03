@@ -124,6 +124,34 @@ label.inl{display:flex;gap:6px;align-items:center;margin:0;font-size:13px;color:
 .empty{color:var(--mute);font-size:13px;padding:12px 0}
 .soonbox{border:1px dashed var(--line);border-radius:10px;padding:18px;color:var(--mute)}
 @media(max-width:1000px){.app{grid-template-columns:1fr}nav{position:static;height:auto}.g4,.g3,.g6{grid-template-columns:repeat(2,minmax(0,1fr))}.g2,.g64,.f2,.f3,.f4{grid-template-columns:1fr}main{padding:16px}.hb{grid-template-columns:110px 1fr 70px}}
+/* carte (recto / verso) */
+.fc{width:240px;height:336px;perspective:1000px;cursor:pointer;margin:0 auto;flex:none}
+.fc-in{position:relative;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d}
+.fc.flip .fc-in{transform:rotateY(180deg)}
+.fc-f,.fc-b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px #0008}
+.fc-b{transform:rotateY(180deg)}
+.fc-f{display:flex;flex-direction:column;border:3px solid var(--rc);background:linear-gradient(160deg,var(--rd),#0b0d18)}
+.fc-f .top{display:flex;justify-content:space-between;align-items:center;padding:6px 9px;font-size:11px;font-weight:700;color:var(--rl)}
+.fc-f .img{flex:1;margin:0 8px;border-radius:8px;background:#05060c center/contain no-repeat}
+.fc-f .ttl{padding:7px 9px 9px;font-weight:800;font-size:13px;line-height:1.2;color:#fff}
+.fc-f .ttl small{display:block;font-weight:600;color:var(--rl);font-size:11px;margin-top:2px}
+.fc.f2 .fc-f{border:4px solid transparent;background:linear-gradient(160deg,var(--rd),#0b0d18) padding-box,linear-gradient(135deg,#fff3b0,#e2a72e,#8a5a00,#ffe27a,#c8901e) border-box}
+.fc.f2 .fc-f .ttl{color:#ffd76a}
+.fc.f1 .fc-f::after,.fc.f3 .fc-f::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,#ff5ec433 30%,#5ee7ff40 42%,#c6ff5e33 54%,#ffd65e33 64%,transparent 76%);background-size:250% 250%;animation:holo 4s linear infinite;mix-blend-mode:screen}
+@keyframes holo{from{background-position:0% 0%}to{background-position:-250% -250%}}
+.fc.f3 .fc-f{border:3px solid var(--rc)}
+.fc.f3 .fc-f .img{position:absolute;inset:0;margin:0;border-radius:0;background-size:cover}
+.fc.f3 .fc-f .top,.fc.f3 .fc-f .ttl{position:relative;z-index:1;background:linear-gradient(#000a,transparent)}
+.fc.f3 .fc-f .ttl{margin-top:auto;background:linear-gradient(transparent,#000d);font-family:'Playfair Display',Georgia,serif;font-size:16px}
+.fc.pk .fc-f{border:none;background:#000}
+.fc.pk .fc-f .img{position:absolute;inset:0;margin:0;border-radius:0;background-size:cover}
+.fc.pk .fc-f .top,.fc.pk .fc-f .ttl{display:none}
+.fc-b{background:linear-gradient(160deg,#141a33,#07080f);border:3px solid var(--rc);display:flex;flex-direction:column}
+.fc-b .shot{height:128px;background:#000 center/cover no-repeat;flex:none}
+.fc-b .bd{padding:8px 10px;overflow:auto;font-size:11.5px;line-height:1.4}
+.fc-b .bd b{display:block;font-size:13px;margin-bottom:3px}
+.fc-b .bd .meta{color:var(--rl);margin-bottom:6px}
+.fc.pk .fc-b{border:none;background:#000 center/cover no-repeat}
 </style>
 </head>
 <body>
@@ -427,8 +455,37 @@ let CAT = null;   // catalogue : id -> [sys, rarity, title]
 async function catalog() {
   if (CAT) return CAT;
   CAT = {};
-  for (const [id, s, r, t] of await X('catalog')) CAT[id] = [s, r, t];
+  for (const [id, s, r, t, b] of await X('catalog')) CAT[id] = [s, r, t, b];
   return CAT;
+}
+// catalogue des images (même fichier que l'appli) : id -> carte, sys -> empreinte du pack
+const ASSETS = 'https://foclabroc.github.io/retro_collec_assets/', PKB = 'https://foclabroc.duckdns.org/pk/';
+const RCOL = [['#888780', '#444441', '#D3D1C7'], ['#639922', '#173404', '#C0DD97'], ['#378ADD', '#042C53', '#B5D4F4'], ['#9C8CFF', '#26215C', '#CECBF6'], ['#EF9F27', '#412402', '#FAC775']];
+let CJ = null, CJH = {};
+async function cjson() {
+  if (CJ) return CJ;
+  const j = await (await fetch(ASSETS + 'catalog.json')).json();
+  CJ = {}; for (const c of j.cards) CJ[c.id] = c;
+  for (const s of j.systems) CJH[s.id] = s.hash;
+  return CJ;
+}
+// carte dessinée comme dans l'appli (simplifiée) : clic = retourner
+function cardFace(id, f) {
+  const c = CAT[id]; if (!c) return '';
+  const pk = id.startsWith('pk_');
+  const src = CJ?.[id] || (c[3] && CJ?.[c[3]]) || {};
+  const sys = src.s || c[0], h = CJH[sys] ? '?h=' + CJH[sys] : '';
+  const img = pk ? PKB + id.slice(3) + '.jpg' : src.img ? ASSETS + src.img + h : '';
+  const shot = src.shot ? ASSETS + src.shot + h : '';
+  const [rc, rd, rl] = RCOL[c[1]] || RCOL[0];
+  const meta = [src.y, src.dv, src.g].filter(Boolean).map(esc).join(' · ');
+  return `<div class="fc f${f}${pk ? ' pk' : ''}" id="fc" style="--rc:${rc};--rd:${rd};--rl:${rl}" title="Clic : retourner"><div class="fc-in">
+    <div class="fc-f"><div class="top"><span>${esc(sysName(c[0]))}</span><span>${'★'.repeat(c[1] + 1)}</span></div>
+      <div class="img" style="background-image:url('${img}')"></div>
+      <div class="ttl">${esc(c[2])}<small>${RAR[c[1]]} · ${FIN[f]}${src.y ? ' · ' + src.y : ''}</small></div></div>
+    <div class="fc-b"${pk ? ` style="background-image:url('assets/assets/card_back_pk.jpg')"` : ''}>${pk ? '' : `<div class="shot" style="background-image:url('${shot}')"></div>
+      <div class="bd"><b>${esc(c[2])}</b><div class="meta">${meta || esc(sysName(c[0]))}</div>${esc(src.d || 'Pas de description.')}</div>`}</div>
+  </div></div>`;
 }
 const cardName = id => CAT && CAT[id] ? `${CAT[id][2]} <span class="mute small">· ${esc(sysName(CAT[id][0]))}</span>` : esc(id);
 
@@ -1051,12 +1108,36 @@ PAGES.cards = async el => {
     const tr = e.target.closest('[data-card]'); if (!tr) return;
     const id = tr.dataset.card, c = CAT[id];
     $('#cd_det').innerHTML = loading;
-    const d = await act(() => adm('rc_admin_card', 'card|' + id, { p_card: id }));
+    const [d] = await act(() => Promise.all([adm('rc_admin_card', 'card|' + id, { p_card: id }), cjson().catch(() => null), players()]));
+    let cf = 0;
     $('#cd_det').innerHTML = `<h3>${esc(c[2])} <span class="pill">${RAR[c[1]]}</span></h3><div class="small mute">${esc(sysName(c[0]))} · ${esc(id)}</div>
+      <div class="row mt" style="align-items:flex-start;gap:16px;flex-wrap:wrap">
+        <div id="cd_card">${cardFace(id, 0)}</div>
+        <div style="flex:1;min-width:220px">
+          <div class="small mute">Aperçu (clic sur la carte pour la retourner)</div>
+          <div class="row mt" id="cd_fin">${FIN.map((x, i) => `<button class="btn s${i ? '' : ' p'}" data-fin="${i}">${x}</button>`).join('')}</div>
+          <h4>🎁 Offrir cette carte</h4>
+          ${pidSel('cg_p')}
+          <div class="row mt"><select id="cg_f">${opt(FIN.map((x, i) => [i, x]), 0)}</select><select id="cg_n" style="width:auto">${opt([1, 2, 3, 5, 10].map(n => [n, '× ' + n]), 1)}</select></div>
+          <input id="cg_from" class="mt" placeholder="De la part de (Admin)" maxlength="40">
+          <button class="btn p mt" id="cg_go">🎁 Offrir</button>
+          <div class="small mute mt">Elle arrive dans « Cartes à ranger » du joueur, avec le nom du donneur.</div>
+        </div></div>
       <div class="grid g3 mt"><div class="mini"><div class="l">Exemplaires</div><div class="n">${fr(d.total)}</div></div><div class="mini"><div class="l">Joueurs</div><div class="n">${fr(d.players)}</div></div><div class="mini"><div class="l">En vente</div><div class="n">${fr(d.open)}</div></div></div>
       <div class="kv mt">${FIN.map((f, i) => `<span>${f}</span><span>${fr(d.finishes?.[i] || 0)}</span>`).join('')}</div>
       <h4>Possédée par</h4><div class="tw"><table><tbody>${(d.owners || []).map(o => `<tr class="click" data-player="${o.pid}"><td>${av(o.avatar, 22)}${esc(o.name)}</td><td class="r">${o.n}</td><td class="small mute">${Object.entries(o.f || {}).map(([f, q]) => `${FIN[f]} ${q}`).join(' · ')}</td></tr>`).join('') || '<tr><td class="empty">Personne</td></tr>'}</tbody></table></div>
       <h4>Dernières ventes</h4>${(d.sales || []).map(s => `<div class="small">${dt(s.at)} · ${FIN[s.f]} · <span class="coin">${fr(s.price)}</span></div>`).join('') || '<div class="empty">Aucune</div>'}`;
+
+    const setF = f => { cf = f; $('#cd_card').innerHTML = cardFace(id, f); $('#cg_f').value = f; document.querySelectorAll('#cd_fin [data-fin]').forEach(b => b.classList.toggle('p', +b.dataset.fin === f)); };
+    $('#cd_card').onclick = () => $('#fc')?.classList.toggle('flip');
+    $('#cd_fin').onclick = e => { const b = e.target.closest('[data-fin]'); if (b) setF(+b.dataset.fin); };
+    $('#cg_f').onchange = () => setF(+$('#cg_f').value);
+    $('#cg_go').onclick = async () => {
+      const name = $('#cg_p').value, pid = pidOf(name); if (!pid) return toast('Choisis un joueur dans la liste', true);
+      const f = +$('#cg_f').value, n = +$('#cg_n').value, from = $('#cg_from').value.trim() || 'Admin';
+      if (!confirm(`Offrir ${n} × ${c[2]} (${FIN[f]}) à ${name} de la part de « ${from} » ?`)) return;
+      await act(() => X('card_gift', { pid, card: id, f, n, from }), `${c[2]} offerte à ${name}`);
+    };
   };
 };
 
