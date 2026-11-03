@@ -1382,7 +1382,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
 
   Widget _chooseStage() => Positioned.fill(
         child: BoosterRing(
-          pack: (i, w, h) => widget.kind == 'pokemon' ? _boosterImg('assets/booster_pokemon.webp', w, h, null) : _boosterImg('assets/booster_front.webp', w, h, i),
+          pack: (i, w, h) => _boosterImg(widget.kind == 'pokemon' ? 'assets/booster_pokemon.webp' : 'assets/booster_front.webp', w, h, i),
           label: (widget.kind == 'console' || widget.kind == 'sconsole') && widget.sys != null ? ConsoleLogo(widget.sys!, height: 14) : null,
           onChoose: _choose,
         ),
