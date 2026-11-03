@@ -153,15 +153,26 @@ label.inl{display:flex;gap:6px;align-items:center;margin:0;font-size:13px;color:
   <button data-s="tours">🏆 Tournois</button>
   <button data-s="mail">✉️ Courrier &amp; cadeaux</button>
   <button data-s="polls">🗳️ Sondages</button>
+  <button data-s="sched">⏰ Programmation</button>
+  <button data-s="defis">🎯 Défis &amp; trophées</button>
   <div class="navgrp">Modération</div>
   <button data-s="chat">💬 Chat <span class="badge" id="nb_chat" hidden></span></button>
   <button data-s="market">🏦 Bourse</button>
+  <button data-s="feed">📰 Actu</button>
+  <button data-s="cheat">🕵️ Anti-triche</button>
+  <button data-s="sanctions">⛔ Sanctions</button>
   <div class="navgrp">Jeu</div>
+  <button data-s="duels">⚔️ Duels en cours</button>
+  <button data-s="minigames">🧩 Gamedle &amp; quiz</button>
+  <button data-s="bonus">🎡 Roue, gratuit, solo</button>
+  <button data-s="arcade">👾 Bornes</button>
   <button data-s="cards">🃏 Cartes</button>
   <button data-s="eco">⚙️ Économie &amp; réglages</button>
   <button data-s="system">🛡️ Maintenance &amp; version</button>
-  <div class="navgrp">Prochaines étapes</div>
-  <button data-s="soon" class="soon">🚧 À venir</button>
+  <button data-s="gifts">🎁 Cadeaux de version</button>
+  <div class="navgrp">Système</div>
+  <button data-s="admins">🔐 Admins &amp; rôles</button>
+  <button data-s="soon" class="soon">📱 Dans l'appli</button>
 </nav>
 <main>
   <div class="top">
@@ -187,6 +198,17 @@ label.inl{display:flex;gap:6px;align-items:center;margin:0;font-size:13px;color:
   <section class="sec" id="cards"></section>
   <section class="sec" id="eco"></section>
   <section class="sec" id="system"></section>
+  <section class="sec" id="sched"></section>
+  <section class="sec" id="defis"></section>
+  <section class="sec" id="feed"></section>
+  <section class="sec" id="cheat"></section>
+  <section class="sec" id="sanctions"></section>
+  <section class="sec" id="duels"></section>
+  <section class="sec" id="minigames"></section>
+  <section class="sec" id="bonus"></section>
+  <section class="sec" id="arcade"></section>
+  <section class="sec" id="gifts"></section>
+  <section class="sec" id="admins"></section>
   <section class="sec" id="soon"></section>
 </main>
 </div>
@@ -483,13 +505,14 @@ function alertRow(a) {
   if (a.kind === 'gifts') { t = `<b>Cadeaux en boucle</b> · ${esc(a.from)} → ${esc(a.to)}<div class="small mute">${a.n} cadeaux en 48 h</div>`; btn = `<button class="btn s" data-player="${a.from_pid}">Voir</button>`; }
   if (a.kind === 'cheap') { t = `<b>Vente bradée</b> · ${cardName(a.card)} (${FIN[a.f]})<div class="small mute">${esc(a.seller)} → ${esc(a.buyer)} : ${fr(a.price)} au lieu de ~${fr(a.avg)}</div>`; btn = `<button class="btn s" data-player="${a.seller_pid}">Voir</button>`; }
   if (a.kind === 'login') { t = `<b>${a.n} erreurs de connexion</b> (24 h)<div class="small mute">pseudo « ${esc(a.name)} »</div>`; if (a.pid) btn = `<button class="btn s" data-player="${a.pid}">Voir</button>`; }
-  return `<div class="alert ${a.level}"><div class="ic">${ic}</div><div class="b" style="flex:1">${t}</div>${btn}</div>`;
+  return `<div class="alert ${a.level}"><div class="ic">${ic}</div><div class="b" style="flex:1">${t}</div>${btn}<button class="btn s" data-aok="${esc(a.key)}" title="Ne plus afficher cette alerte">✔ Normal</button></div>`;
 }
+document.addEventListener('click', async e => { const b = e.target.closest('[data-aok]'); if (!b || cur === 'cheat') return; await act(() => X('alert_ok', { key: b.dataset.aok }), 'Marqué normal'); b.closest('.alert')?.remove(); });
 PAGES.alerts = async el => {
   el.innerHTML = loading;
-  const d = DASH || await X('dash');
+  const d = DASH = await X('dash');
   el.innerHTML = `<div class="card"><h3>🚨 Alertes <span class="sp"></span><button class="btn s" data-go="alerts" data-force="1">🔄</button></h3>${(d.alerts || []).map(alertRow).join('') || '<div class="empty">✔ Rien à signaler</div>'}
-  <div class="note mt">Calculées en direct par le serveur. Seuils fixes pour l'instant : gain ≥ 15 000 pièces en 24 h (hors ventes), 2 comptes ou plus créés depuis la même IP en 7 j, 8 cadeaux ou plus du même donneur au même receveur en 48 h, vente à moins de 10 % du prix moyen, 5 erreurs de connexion en 24 h. Seuils réglables et « marquer normal » : étape suivante.</div></div>`;
+  <div class="note mt">Calculées en direct par le serveur. Seuils réglables dans <a href="#" data-go="cheat">Anti-triche</a>. « Normal » cache l'alerte pour de bon.</div></div>`;
 };
 
 // ═════════════════════════════ JOUEURS ═════════════════════════════
@@ -577,6 +600,8 @@ async function openPlayer(pid) {
     <div class="row mt"><button class="btn p s" id="b_go">💾 Appliquer</button><span class="small mute">Champ vide = inchangé</span></div>
     <h4>Profil</h4>
     <div class="row"><input id="pl_name" value="${esc(p.name)}" style="flex:1"><button class="btn s" id="pl_ren">Renommer</button></div>
+    <h4>Remises à zéro</h4>
+    <div class="row"><button class="btn s" data-rst="wheel">🎡 Roue disponible</button><button class="btn s" data-rst="free">📦 Paquet gratuit disponible</button><button class="btn s" data-rst="pioche">🃏 Pioche du jour</button><button class="btn s" data-rst="gamedle">🧩 Gamedle du jour</button><button class="btn s" data-rst="express">⚡ Défi express du jour</button><button class="btn s" data-rst="quiz">❓ Quiz du jour</button></div>
     <div class="kv mt"><span>Parrain</span><span>${esc(p.referrer || '—')}</span><span>Borne</span><span>habillage ${esc(p.house ?? '—')} · ${esc(p.cab_game || 'jeu par défaut')}</span><span>Vitrine</span><span class="small">${(p.showcase || '').split(',').filter(Boolean).map(s => cardName(s.split(':')[0])).join(', ') || '—'}</span><span>Trophées</span><span>🥇 ${tr[3] || 0} · 🥈 ${tr[2] || 0} · 🥉 ${tr[1] || 0}</span><span>Cartes en stock</span><span>${fr(p.stock)}</span><span>Lots de 5</span><span>${fr(p.lots)}</span></div>
   </div>
   <div data-tab="p2" hidden>
@@ -635,12 +660,13 @@ async function openPlayer(pid) {
     <div class="row mt"><button class="btn s" id="pl_pw">🔑 Nouveau mot de passe</button><button class="btn s" id="pl_cf">🔓 Effacer les erreurs de connexion</button></div>
   </div>
   <div data-tab="p8" hidden>
-    <div class="kv"><span>Compte</span><span>${p.blocked ? '<span class="pill bad">bloqué</span>' : '<span class="pill ok">actif</span>'}</span><span>Chat</span><span>${p.muted_until ? `<span class="pill warn">muet jusqu’au ${p.muted_until.startsWith('infinity') ? 'bout' : dt(p.muted_until)}</span>` : '<span class="pill ok">peut écrire</span>'}</span></div>
-    <h4>Blocage</h4>
-    <div class="small mute">Bloqué : plus de Bourse, cadeaux, échanges, défis ni tournois.</div>
-    <div class="row mt"><button class="btn s ${p.blocked ? '' : 'd'}" id="pl_blk">${p.blocked ? '✅ Débloquer' : '⛔ Bloquer'}</button></div>
-    <h4>Chat</h4>
-    <div class="row"><select id="pl_muteh" style="width:auto">${opt([[1, '1 h'], [6, '6 h'], [24, '24 h'], [72, '3 jours'], [168, '7 jours'], [720, '30 jours'], [-1, 'Définitif']], 24)}</select><button class="btn s d" id="pl_mute">🔇 Rendre muet</button>${p.muted_until ? '<button class="btn s" id="pl_unmute">🔊 Lever</button>' : ''}</div>
+    <div class="kv"><span>Compte</span><span>${p.blocked ? '<span class="pill bad">bloqué</span>' : '<span class="pill ok">actif</span>'}</span><span>Chat</span><span>${p.muted_until ? `<span class="pill warn">muet jusqu’au ${String(p.muted_until).startsWith('infinity') ? 'bout' : dt(p.muted_until)}</span>` : '<span class="pill ok">peut écrire</span>'}</span></div>
+    <h4>Nouvelle sanction</h4>
+    <div class="f2"><div><label>Type</label><select id="ps_k">${opt(Object.entries(SANC), 'mute')}</select></div><div><label>Durée</label><select id="ps_h">${opt(DUR, 24)}</select></div></div>
+    <label>Motif</label><input id="ps_r" maxlength="300"><label class="inl mt"><input type="checkbox" id="ps_m" checked> Prévenir par courrier</label>
+    <div class="row mt"><button class="btn p s" id="ps_go">Appliquer</button>${p.blocked ? '<button class="btn s" id="pl_unblk">✅ Débloquer tout de suite</button>' : ''}${p.muted_until ? '<button class="btn s" id="pl_unmute">🔊 Lever le muet</button>' : ''}</div>
+    <h4>Historique</h4>
+    ${(p.sanctions || []).map(s => `<div class="msg"><div class="b">${SANC[s.kind]} <span class="small mute">· ${dt(s.at)} par ${esc(s.by || '?')}${s.kind !== 'warn' ? ' · ' + (s.until ? 'jusqu’au ' + dt(s.until) : 'définitif') : ''}</span>${s.reason ? `<div class="small">${esc(s.reason)}</div>` : ''}</div>${!s.lifted_at && s.kind !== 'warn' && (!s.until || new Date(s.until) > new Date()) ? `<button class="btn s" data-pslift="${s.id}">Lever</button>` : '<span class="pill">finie</span>'}</div>`).join('') || '<div class="empty">Aucune</div>'}
   </div>
   <div data-tab="p9" hidden>
     <label>Notes privées (visibles seulement des admins)</label>
@@ -689,12 +715,11 @@ async function openPlayer(pid) {
   };
   $('#pl_cf').onclick = async () => { await act(() => X('clearfail', { pid }), 'Erreurs effacées'); re(); };
   // sanctions
-  $('#pl_blk').onclick = async () => {
-    const on = !p.blocked; if (!confirm(`${on ? 'Bloquer' : 'Débloquer'} ${p.name} ?`)) return;
-    await act(() => adm('rc_admin_block', `block|${pid}|${on ? 1 : 0}`, { p_pid: pid, p_on: on }), on ? 'Bloqué' : 'Débloqué'); re();
-  };
-  $('#pl_mute').onclick = async () => { await act(() => X('mute', { pid, hours: +$('#pl_muteh').value }), 'Muet'); re(); };
   if ($('#pl_unmute')) $('#pl_unmute').onclick = async () => { await act(() => X('mute', { pid, hours: 0 }), 'Peut de nouveau écrire'); re(); };
+  if ($('#pl_unblk')) $('#pl_unblk').onclick = async () => { await act(() => adm('rc_admin_block', `block|${pid}|0`, { p_pid: pid, p_on: false }), 'Débloqué'); re(); };
+  $('#ps_go').onclick = async () => { const k = $('#ps_k').value; if (!confirm(`${SANC[k]} pour ${p.name} ?`)) return; await act(() => X('sanction_add', { pid, kind: k, hours: +$('#ps_h').value, reason: $('#ps_r').value.trim(), mail: $('#ps_m').checked }), 'Sanction appliquée'); re(); };
+  $$('[data-pslift]').forEach(b => b.onclick = async () => { await act(() => X('sanction_lift', { id: +b.dataset.pslift }), 'Sanction levée'); re(); });
+  $$('[data-rst]').forEach(b => b.onclick = async () => { if (!confirm(b.textContent.trim() + ' pour ' + p.name + ' ?')) return; await act(() => X('reset', { pid, what: b.dataset.rst }), 'Remis à zéro'); });
   $('#pl_nsave').onclick = () => act(() => X('note', { pid, note: $('#pl_note').value, tags: $('#pl_tags').value }), 'Note enregistrée');
 }
 function closePlayer() { $('#drawer').classList.remove('on'); $('#shade').classList.remove('on'); }
@@ -841,7 +866,7 @@ function evForm(e, dup = false) {
     <div id="ev_info" ${e.kind === 'info' ? '' : 'hidden'}><label>Cadeau à récupérer (facultatif)</label><div id="ev_rw">${rwBox(infoRw)}</div></div>
     <label>Aperçu</label><div class="evprev" id="ev_prev"></div>
     <div class="row mt"><button class="btn p" id="ev_save">💾 ${id ? 'Enregistrer' : 'Créer'}</button>${id ? '<button class="btn" id="ev_dup">📄 Dupliquer</button>' : ''}<label class="inl"><input type="checkbox" id="ev_on" ${e.active !== false ? 'checked' : ''}> Actif</label></div>`;
-  const vlab = () => { const f = $('#ev_ef').value; $('#ev_vl').textContent = f === 'promo' ? 'Réduction (%)' : f === 'free_fast' ? 'Diviser l’attente par' : 'Multiplier par'; $('#ev_vbox').hidden = f === 'lot_free'; $('#ev_pbox').hidden = f !== 'promo'; };
+  const vlab = () => { const f = $('#ev_ef').value; $('#ev_vl').textContent = f === 'promo' ? 'Réduction (%)' : f === 'free_fast' ? 'Attente (heures)' : 'Multiplier par'; $('#ev_vbox').hidden = f === 'lot_free'; $('#ev_pbox').hidden = f !== 'promo'; };
   const prev = () => { const c = $('#ev_c').value; $('#ev_prev').style.background = `linear-gradient(135deg,${c},${c}88)`; $('#ev_prev').innerHTML = `<div style="font-size:30px">${esc($('#ev_i').value)}</div><div class="t">${esc($('#ev_t').value || 'Titre')}</div><div class="small" style="opacity:.9">${esc($('#ev_b').value)}</div><div class="small" style="margin-top:8px;opacity:.8">⏳ ${$('#ev_s').value ? dt(fromLocal($('#ev_s').value)) : ''} → ${$('#ev_e').value ? dt(fromLocal($('#ev_e').value)) : 'sans fin'}</div>`; };
   $('#ev_k').onchange = ev => { const k = ev.target.value; $('#ev_eff').hidden = k !== 'effect'; $('#ev_goal').hidden = k !== 'goal'; $('#ev_info').hidden = k !== 'info'; };
   $('#ev_ef').onchange = vlab; vlab();
@@ -1101,10 +1126,325 @@ PAGES.system = async el => {
   };
 };
 
-// ═════════════════════════════ À VENIR ═════════════════════════════
+// ═════════════════════════════ ÉTAPE 2 ═════════════════════════════
+const DEFI = { open: '📦 Ouvrir des paquets', gift: '🎁 Envoyer des cadeaux', trade: '🤝 Échanges, achats ou ventes', win: '🏆 Gagner des duels', gamedle: '🧩 Gamedle réussis', epic: '🟪 Obtenir des épiques', play: '⚔️ Jouer des duels', new: '✨ Nouvelles cartes', quiz: '❓ Bonnes réponses au quiz', sale: '🏦 Ventes à la Bourse', free: '🆓 Paquets gratuits', premium: '💎 Paquets premium' };
+const TROPH = { packs: '📦 Paquets', cards: '🃏 Cartes', consoles: '🎮 Consoles', legend: '🟧 Légendaires', fullart: '✨ Full art', fuse: '⚡ Fusions', wins: '🏆 Victoires', gifts: '🎁 Cadeaux', sales: '🏦 Ventes', trades: '🤝 Échanges', gamedle: '🧩 Gamedle', chest: '🧰 Coffres', sagas: '📚 Sagas', days: '📅 Jours', epics: '🟪 Épiques', holo: '🌈 Brillantes', gold: '🟨 Dorées', recycle: '♻️ Recyclage', quiz: '❓ Quiz', played: '⚔️ Duels joués', defis: '🎯 Défis', premium: '💎 Premium', buys: '🛒 Achats', firsttry: '🎯 Gamedle 1er coup', tourney: '🏅 Tournois', pioche: '🃏 Pioches', express: '⚡ Express', wheel: '🎡 Roue', pokemon: '⚡ Pokémon', react: '👍 Réactions', craft: '🔨 Fabrication', sagacards: '📚 Cartes de saga' };
+const SANC = { block: '⛔ Blocage complet', mute: '🔇 Muet (chat)', trade: '🏦 Bourse, cadeaux et échanges interdits', duel: '⚔️ Duels et tournois interdits', warn: '⚠️ Avertissement' };
+const DUR = [[1, '1 h'], [6, '6 h'], [24, '24 h'], [72, '3 jours'], [168, '7 jours'], [336, '14 jours'], [720, '30 jours'], [-1, 'Définitif']];
+const WSEG = ['40 pièces', '100 pièces', 'Carte', '60 pièces', '200 pièces', '80 pièces', 'Carte rare', 'Gros lot 600', 'Carte Pokémon'];
+const WSEGG = ['80 pièces', '200 pièces', 'Carte rare', '120 pièces', '400 pièces', '160 pièces', 'Carte épique', 'JACKPOT 2 000 + légendaire', 'Carte Pokémon'];
+const WCOL = ['#3fd0ff', '#3ee08f', '#ffcc33', '#ff9f40', '#b07cff', '#5b6080', '#ff5a6e', '#ffe680', '#ff3d7f'];
+const pidSel = (id, ph = 'Pseudo du joueur') => `<input list="${id}_dl" id="${id}" placeholder="${ph}"><datalist id="${id}_dl">${(PL || []).map(p => `<option value="${esc(p.name)}">`).join('')}</datalist>`;
+const pidOf = name => (PL || []).find(p => p.name === name)?.pid;
+const cfg = () => act(() => X('cfg'));
+
+// ── Programmation ──
+const SOP = [['mail', '✉️ Courrier / cadeau'], ['banner', '📢 Bandeau'], ['chat', '💬 Message dans le chat'], ['live', '⚙️ Réglage en direct'], ['maint', '🛠️ Maintenance'], ['event', '🎉 Activer / couper un événement']];
+PAGES.sched = async el => {
+  el.innerHTML = loading;
+  const [L, evs] = await Promise.all([act(() => X('sched')), adm('rc_admin_events', 'events').catch(() => [])]);
+  const desc = s => {
+    const a = s.args || {};
+    if (s.op === 'mail') return `« ${esc(a.title)} » → ${esc(a.target)} · ${esc(rwText(a.reward || {}))}`;
+    if (s.op === 'banner') return a.text ? `« ${esc(a.text)} »` : 'retirer le bandeau';
+    if (s.op === 'chat') return `« ${esc(a.msg)} »`;
+    if (s.op === 'live') return Object.entries(a.values || {}).map(([k, v]) => `${k} = ${v}`).join(', ');
+    if (s.op === 'maint') return a.on ? 'activer : « ' + esc(a.msg) + ' »' : 'couper';
+    if (s.op === 'event') return `${a.on ? 'activer' : 'couper'} ${esc(evs.find(e => e.id == a.id)?.title || '#' + a.id)}`;
+    return '';
+  };
+  el.innerHTML = `<div class="grid g64">
+    <div class="card"><h3>⏰ Actions programmées</h3>
+      <div class="tw"><table><thead><tr><th>Quand</th><th>Action</th><th>Détail</th><th>Répétition</th><th>État</th><th></th></tr></thead><tbody>
+      ${L.map(s => `<tr><td class="small">${dt(s.at)}</td><td>${SOP.find(o => o[0] === s.op)?.[1] || s.op}${s.label ? `<div class="small mute">${esc(s.label)}</div>` : ''}</td><td class="small">${desc(s)}</td><td>${s.every === 'day' ? 'chaque jour' : s.every === 'week' ? 'chaque semaine' : '—'}</td>
+        <td>${s.last_err ? `<span class="pill bad" title="${esc(s.last_err)}">erreur</span>` : s.done_at ? '<span class="pill ok">fait</span>' : `<span class="pill blue">prévu${s.runs ? ' · ' + s.runs + ' fois' : ''}</span>`}</td>
+        <td>${s.done_at ? '' : `<button class="btn s d" data-sdel="${s.id}">🗑</button>`}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Rien de programmé</td></tr>'}
+      </tbody></table></div>
+      <div class="note mt">Lancé par le serveur (horloge du relais temps réel, toutes les 30 s) : rien à laisser ouvert. Une action répétée se replanifie toute seule.</div></div>
+    <div class="card"><h3>＋ Programmer</h3>
+      <div class="f2"><div><label>Action</label><select id="so_op">${opt(SOP, 'mail')}</select></div><div><label>Répétition</label><select id="so_ev">${opt([['', 'Une seule fois'], ['day', 'Chaque jour'], ['week', 'Chaque semaine']], '')}</select></div></div>
+      <div class="f2"><div><label>Quand</label><input type="datetime-local" id="so_at" value="${toLocal(new Date(Date.now() + 3600e3).toISOString())}"></div><div><label>Note (pour toi)</label><input id="so_lb" maxlength="120"></div></div>
+      <div id="so_f"></div>
+      <div class="row mt"><button class="btn p" id="so_go">⏰ Programmer</button></div></div></div>`;
+  const form = () => {
+    const o = $('#so_op').value, f = $('#so_f');
+    if (o === 'mail') f.innerHTML = `<label>Destinataires</label><select id="sm_t">${opt([['all', 'Tout le monde'], ['active7', 'Actifs 7 jours'], ['new7', 'Nouveaux 7 jours'], ['inactive7', 'Inactifs 7 jours']], 'all')}</select><label>Titre</label><input id="sm_ti" maxlength="80"><label>Message</label><textarea id="sm_b" maxlength="600"></textarea><label>Cadeau</label><div id="sm_rw">${rwBox({})}</div>`;
+    if (o === 'banner') f.innerHTML = `<label>Texte (vide = retirer)</label><input id="sb_t" maxlength="200"><label>Jusqu'au (facultatif)</label><input type="datetime-local" id="sb_u">`;
+    if (o === 'chat') f.innerHTML = `<label>Message (en ton nom ; @tous pour notifier tout le monde)</label><textarea id="sc_m" maxlength="300"></textarea>`;
+    if (o === 'live') f.innerHTML = `<div class="f2"><div><label>Réglage</label><select id="sl_k">${opt([['holo', 'Chance brillante (%)'], ['gold', 'Chance dorée (%)'], ['fullart', 'Chance full art (%)'], ['saga', 'Chance saga (%)'], ['pk', 'Chance Pokémon (%)'], ['mixte', 'Prix mixte'], ['console', 'Prix console'], ['premium', 'Prix premium'], ['mystery', 'Prix mystère'], ['chest_coins', 'Coffre : pièces'], ['chest_pixels', 'Coffre : pixels'], ['free_hours', 'Paquet gratuit : heures'], ['wheel_hours', 'Roue : heures']], 'fullart')}</select></div><div><label>Valeur</label><input type="number" step="0.01" id="sl_v" value="3"></div></div><div class="small mute mt">Astuce : programme un 2e réglage pour revenir à la valeur normale.</div>`;
+    if (o === 'maint') f.innerHTML = `<label class="inl mt"><input type="checkbox" id="smt_on" checked> Activer (décocher = couper)</label><label>Message</label><input id="smt_m" value="Mise à jour en cours, retour dans quelques minutes !">`;
+    if (o === 'event') f.innerHTML = `<label>Événement</label><select id="se_id">${opt(evs.map(e => [e.id, `${e.icon} ${e.title}`]), evs[0]?.id)}</select><label class="inl mt"><input type="checkbox" id="se_on" checked> Activer (décocher = couper)</label>`;
+  };
+  $('#so_op').onchange = form; form();
+  $$('[data-sdel]', el).forEach(b => b.onclick = async () => { if (!confirm('Supprimer cette action programmée ?')) return; await act(() => X('sched_del', { id: +b.dataset.sdel }), 'Supprimée'); PAGES.sched(el); });
+  $('#so_go').onclick = async () => {
+    const op = $('#so_op').value; let args = {};
+    if (op === 'mail') { args = { target: $('#sm_t').value, title: $('#sm_ti').value.trim(), body: $('#sm_b').value.trim(), reward: rwRead($('#sm_rw')) }; if (!args.title) return toast('Titre vide', true); }
+    if (op === 'banner') args = { text: $('#sb_t').value.trim(), until: fromLocal($('#sb_u').value) };
+    if (op === 'chat') { args = { msg: $('#sc_m').value.trim() }; if (!args.msg) return toast('Message vide', true); }
+    if (op === 'live') args = { values: { [$('#sl_k').value]: +$('#sl_v').value } };
+    if (op === 'maint') args = { on: $('#smt_on').checked, msg: $('#smt_m').value.trim() };
+    if (op === 'event') args = { id: +$('#se_id').value, on: $('#se_on').checked };
+    await act(() => X('sched_add', { op, at: fromLocal($('#so_at').value), every: $('#so_ev').value, label: $('#so_lb').value.trim(), args }), 'Programmé');
+    PAGES.sched(el);
+  };
+};
+
+// ── Anti-triche ──
+PAGES.cheat = async el => {
+  el.innerHTML = loading;
+  const [G, C] = await Promise.all([act(() => X('cheat')), cfg()]);
+  const a = { gain: 15000, ip: 2, gifts: 8, cheap: 10, login: 5, ...(C.alerts || {}) };
+  el.innerHTML = `<div class="grid g64">
+    <div class="card"><h3>🌐 Comptes créés depuis la même IP <span class="mute small">(${G.length} groupe${G.length > 1 ? 's' : ''})</span></h3>
+      ${G.map(g => `<div class="alert ${g.ok ? '' : g.flow ? 'hi' : 'md'}" style="align-items:flex-start"><div class="ic">🌐</div><div class="b" style="flex:1">
+        <div class="row">${g.players.map(p => `<span class="pill" data-player="${p.pid}" style="cursor:pointer">${av(p.avatar, 16)}${esc(p.name)}${p.blocked ? ' ⛔' : ''}</span>`).join('')}</div>
+        <div class="small mute mt">IP ${esc(g.ip)}… · entre eux : ${g.gifts} cadeau(x), ${g.sales} vente(s) (${fr(g.sales_v)} pièces), ${g.trades} échange(s) ${g.ok ? '· <span class="okc">marqué normal</span>' : ''}</div></div>
+        ${g.ok ? '' : `<button class="btn s" data-aok="${esc(g.key)}">✔ Normal</button>`}</div>`).join('') || '<div class="empty">✔ Aucun groupe (IP connue depuis le 22/10 seulement)</div>'}
+    </div>
+    <div class="card"><h3>⚙️ Seuils des alertes</h3>
+      <div class="f2">
+        <div><label>Gain de pièces en 24 h (hors ventes)</label><select id="al_gain">${opt(withCur([5000, 10000, 15000, 20000, 30000, 50000, 100000], a.gain), a.gain)}</select></div>
+        <div><label>Comptes depuis la même IP (7 j)</label><select id="al_ip">${opt(withCur([2, 3, 4, 5], a.ip), a.ip)}</select></div>
+        <div><label>Cadeaux au même joueur (48 h)</label><select id="al_gifts">${opt(withCur([3, 5, 8, 10, 15, 20], a.gifts), a.gifts)}</select></div>
+        <div><label>Vente sous X % du prix moyen</label><select id="al_cheap">${opt(withCur([5, 10, 20, 30, 50], a.cheap), a.cheap)}</select></div>
+        <div><label>Erreurs de connexion (24 h)</label><select id="al_login">${opt(withCur([3, 5, 10, 20], a.login), a.login)}</select></div>
+      </div>
+      <div class="row mt"><button class="btn p" id="al_go">💾 Enregistrer</button></div>
+      <div class="note mt">Une alerte « marquée normale » ne revient plus (la page Alertes a le même bouton).</div></div></div>`;
+  $$('[data-aok]', el).forEach(b => b.onclick = async () => { await act(() => X('alert_ok', { key: b.dataset.aok }), 'Marqué normal'); PAGES.cheat(el); });
+  $('#al_go').onclick = () => act(() => X('alerts_set', { gain: +$('#al_gain').value, ip: +$('#al_ip').value, gifts: +$('#al_gifts').value, cheap: +$('#al_cheap').value, login: +$('#al_login').value }), 'Seuils enregistrés');
+};
+
+// ── Sanctions ──
+PAGES.sanctions = async el => {
+  el.innerHTML = loading;
+  await players();
+  const L = await act(() => X('sanctions'));
+  const until = s => s.kind === 'warn' ? '—' : s.until ? dt(s.until) : 'définitif';
+  el.innerHTML = `<div class="grid g64">
+    <div class="card"><h3>⛔ Sanctions <span class="sp"></span><label class="inl"><input type="checkbox" id="sa_all"> Voir aussi les finies</label></h3>
+      <div class="tw"><table><thead><tr><th>Joueur</th><th>Sanction</th><th>Motif</th><th>Jusqu'au</th><th>Par</th><th></th></tr></thead><tbody id="sa_tb"></tbody></table></div></div>
+    <div class="card"><h3>＋ Nouvelle sanction</h3>
+      <label>Joueur</label>${pidSel('sa_p')}
+      <div class="f2"><div><label>Type</label><select id="sa_k">${opt(Object.entries(SANC), 'mute')}</select></div><div><label>Durée</label><select id="sa_h">${opt(DUR, 24)}</select></div></div>
+      <label>Motif (envoyé au joueur si le courrier est coché)</label><input id="sa_r" maxlength="300">
+      <label class="inl mt"><input type="checkbox" id="sa_m" checked> Prévenir le joueur par courrier</label>
+      <div class="row mt"><button class="btn p" id="sa_go">Appliquer</button></div>
+      <div class="note mt">Bourse / cadeaux / échanges et duels interdits sont vérifiés par le serveur à chaque action. Un blocage à durée se lève tout seul.</div></div></div>`;
+  const draw = () => { const all = $('#sa_all').checked; $('#sa_tb').innerHTML = L.filter(s => all || s.active).map(s => `<tr><td>${plink(s.pid, s.name, s.avatar)}</td><td>${SANC[s.kind]}</td><td class="small">${esc(s.reason || '—')}</td><td class="small">${until(s)}</td><td class="small mute">${esc(s.by || '?')} · ${dd(s.at)}</td>
+    <td>${s.active && s.kind !== 'warn' ? `<button class="btn s" data-slift="${s.id}">Lever</button>` : s.lifted_at ? '<span class="pill">levée</span>' : '<span class="pill">finie</span>'}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Aucune</td></tr>';
+    $$('[data-slift]', el).forEach(b => b.onclick = async () => { await act(() => X('sanction_lift', { id: +b.dataset.slift }), 'Sanction levée'); PAGES.sanctions(el); }); };
+  $('#sa_all').onchange = draw; draw();
+  $('#sa_go').onclick = async () => {
+    const pid = pidOf($('#sa_p').value); if (!pid) return toast('Choisis un joueur dans la liste', true);
+    const k = $('#sa_k').value; if (!confirm(`${SANC[k]} pour ${$('#sa_p').value} ?`)) return;
+    await act(() => X('sanction_add', { pid, kind: k, hours: +$('#sa_h').value, reason: $('#sa_r').value.trim(), mail: $('#sa_m').checked }), 'Sanction appliquée'); PAGES.sanctions(el);
+  };
+};
+
+// ── Duels en cours ──
+PAGES.duels = async el => {
+  el.innerHTML = loading;
+  const L = await act(() => X('duels'));
+  el.innerHTML = `<div class="card"><h3>⚔️ Parties et défis en cours <span class="mute small">(${L.length})</span><span class="sp"></span><select id="du_f" style="width:auto">${opt([['', 'Tout'], ['playing', 'Parties en cours'], ['invite', 'Défis en attente']], '')}</select><select id="du_h" style="width:auto">${opt([[24, '> 24 h'], [72, '> 3 jours'], [168, '> 7 jours']], 24)}</select><button class="btn s" id="du_clean">🧹 Annuler les défis en attente</button></h3>
+    <div class="tw"><table><thead><tr><th>Jeu</th><th>Joueur 1</th><th>Joueur 2</th><th>État</th><th>Créée</th><th>Dernier coup</th><th></th></tr></thead><tbody id="du_tb"></tbody></table></div>
+    <div class="note mt">« Annuler » : fin sans gagnant ni gains (mise rendue s'il y en avait une). « Victoire » / « Nul » : fin normale avec les gains habituels. Une partie de tournoi fait avancer le tournoi.</div></div>`;
+  const draw = () => {
+    const f = $('#du_f').value;
+    $('#du_tb').innerHTML = L.filter(g => !f || (f === 'invite' ? g.status === 'invite' : g.status !== 'invite')).map(g => `<tr>
+      <td>${GAME[g.game] || g.game}<div class="small mute">${g.mode === 'live' ? 'direct' : 'tour par tour'}${g.tour ? ' · 🏆 tournoi' : ''}${g.stake ? ' · mise ' + g.stake : ''}</div></td>
+      <td>${plink(g.p1.pid, g.p1.name, g.p1.avatar)} ${g.p1.online ? '<span class="okc">●</span>' : ''}</td><td>${plink(g.p2.pid, g.p2.name, g.p2.avatar)} ${g.p2.online ? '<span class="okc">●</span>' : ''}</td>
+      <td>${g.status === 'invite' ? '<span class="pill blue">défi</span>' : '<span class="pill ok">en jeu</span>'}</td><td class="small">${ago(g.created_at)}</td><td class="small">${g.move_at ? ago(g.move_at) : '—'}</td>
+      <td><select class="du_how" data-g="${g.game}" data-id="${g.id}" style="width:auto"><option value="">Terminer…</option>${opt(g.status === 'invite' ? [['cancel', 'Annuler le défi']] : [['cancel', 'Annuler (sans gains)'], ['win1', 'Victoire ' + g.p1.name], ['win2', 'Victoire ' + g.p2.name], ['draw', 'Match nul']], '')}</select></td></tr>`).join('') || '<tr><td colspan="7" class="empty">Aucune</td></tr>';
+    $$('.du_how', el).forEach(s => s.onchange = async () => { if (!s.value) return; if (!confirm(s.selectedOptions[0].text + ' ?')) { s.value = ''; return; } await act(() => X('duel_end', { game: s.dataset.g, id: +s.dataset.id, how: s.value }), 'Partie terminée'); PAGES.duels(el); });
+  };
+  $('#du_f').onchange = draw; draw();
+  $('#du_clean').onclick = async () => { const h = +$('#du_h').value; if (!confirm(`Annuler tous les défis sans réponse depuis plus de ${$('#du_h').selectedOptions[0].text.replace('> ', '')} ?`)) return; const r = await act(() => X('duel_clean', { hours: h })); toast(`${r.n} défi(s) annulé(s)`); PAGES.duels(el); };
+};
+
+// ── Défis & trophées ──
+PAGES.defis = async el => {
+  el.innerHTML = loading;
+  const C = await cfg();
+  const wd = {}; for (const x of C.week_done || []) wd[x.i] = x.n;
+  el.innerHTML = `${tabs('df', [['d1', '🎯 Défis de la semaine'], ['d2', '⚡ Défi express'], ['d3', '🏅 Trophées']])}
+  <div data-tab="d1" class="card">
+    <h3>Cette semaine (${dd(C.week)}) <span class="sp"></span><span class="small mute">coffre : ${fr(C.live?.chest_coins ?? 500)} pièces + ${fr(C.live?.chest_pixels ?? 2)} pixels (page Économie)</span></h3>
+    <div class="row">${(C.wsel || []).map((id, i) => { const d = C.wpool.find(x => x.id === id); return `<span class="pill acc">${DEFI[d?.kind] || d?.kind} · ${d?.goal} → ${d?.reward} 🪙 · ${wd[i + 1] ?? 0} fini(s)</span>`; }).join('')}</div>
+    <h4>Réservoir (6 tirés chaque lundi parmi les actifs)</h4>
+    <div class="tw"><table><thead><tr><th>#</th><th>Défi</th><th>Objectif</th><th>Pièces</th><th>Actif</th></tr></thead><tbody>
+      ${C.wpool.map(d => `<tr data-wp="${d.id}"><td>${d.id}</td><td>${DEFI[d.kind] || d.kind}</td><td><select class="wp_g" style="width:auto">${opt(withCur([1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 18, 20, 25, 30, 40, 50, 60, 75, 100, 150, 200], d.goal), d.goal)}</select></td><td><select class="wp_r" style="width:auto">${opt(withCur([50, 100, 150, 200, 250, 300, 400, 500, 750, 1000], d.reward), d.reward)}</select></td><td><input type="checkbox" class="wp_on" ${d.off ? '' : 'checked'}></td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="row mt"><button class="btn p" id="wp_go">💾 Enregistrer</button><span class="small mute">Objectifs et pièces changent tout de suite ; la liste des 6 défis de la semaine en cours reste la même (gelée).</span></div>
+  </div>
+  <div data-tab="d2" class="card" hidden>
+    <h3>Aujourd'hui : ${DEFI[C.express_today?.kind] || C.express_today?.kind} · ${C.express_today?.goal} → ${esc(rwText(C.express_today?.reward || {}))}</h3>
+    <div class="small mute">${C.express_today?.n} joueur(s) ont commencé, ${C.express_today?.done} fini(s), ${C.express_today?.claimed} récupéré(s).</div>
+    <h4>Missions (une tirée chaque jour)</h4><div id="xp_list"></div><button class="btn s" id="xp_add">＋ Mission</button>
+    <div class="row mt"><button class="btn p" id="xp_go">💾 Enregistrer</button><span class="small mute">La mission d'aujourd'hui ne change pas ; la nouvelle liste vaut dès demain.</span></div>
+  </div>
+  <div data-tab="d3" class="card" hidden>
+    <div class="tw"><table><thead><tr><th>Trophée</th><th class="r">🥉</th><th class="r">🥈</th><th class="r">🥇</th><th class="r">Bronze</th><th class="r">Argent</th><th class="r">Or</th></tr></thead><tbody>
+      ${(C.trophies || []).map(t => `<tr><td>${TROPH[t.kind] || t.kind}</td>${t.t.map(x => `<td class="r">${fr(x)}</td>`).join('')}${[1, 2, 3].map(k => `<td class="r">${t.n?.[k] || 0}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>
+    <div class="note mt">Les seuils sont aussi écrits dans l'appli : les changer demande une mise à jour de l'appli (lecture seule ici).</div>
+  </div>`;
+  const xpRow = m => `<div class="msg xp"><select class="xp_k" style="width:auto">${opt(Object.entries(DEFI), m.kind)}</select><select class="xp_g" style="width:auto">${opt(withCur([1, 2, 3, 4, 5, 6, 8, 10], m.goal), m.goal)}</select><div class="b">${rwBox(m.reward)}</div><button class="btn s d xp_rm">🗑</button></div>`;
+  $('#xp_list').innerHTML = (C.express || []).map(xpRow).join('');
+  $('#xp_add').onclick = () => $('#xp_list').insertAdjacentHTML('beforeend', xpRow({ kind: 'open', goal: 2, reward: { coins: 80 } }));
+  $('#xp_list').onclick = e => { if (e.target.classList.contains('xp_rm')) e.target.closest('.xp').remove(); };
+  $('#wp_go').onclick = async () => {
+    const list = $$('[data-wp]', el).map(r => ({ id: +r.dataset.wp, goal: +$('.wp_g', r).value, reward: +$('.wp_r', r).value, off: !$('.wp_on', r).checked }));
+    if (list.filter(x => !x.off).length < 6) return toast('Il faut au moins 6 défis actifs', true);
+    await act(() => X('wpool_set', { list }), 'Défis enregistrés'); PAGES.defis(el);
+  };
+  $('#xp_go').onclick = async () => {
+    const list = $$('#xp_list .xp').map(r => ({ kind: $('.xp_k', r).value, goal: +$('.xp_g', r).value, reward: rwRead(r) }));
+    if (!list.length) return toast('Au moins une mission', true);
+    await act(() => X('express_set', { list }), 'Missions enregistrées'); PAGES.defis(el);
+  };
+};
+
+// ── Gamedle & quiz ──
+PAGES.minigames = async el => {
+  el.innerHTML = loading;
+  const [G] = await Promise.all([act(() => X('gamedle')), catalog().catch(() => {})]);
+  const today = G.today;
+  el.innerHTML = `<div class="grid g64">
+    <div class="card"><h3>🧩 Gamedle (7 jours passés et 7 à venir)</h3>
+      <div class="tw"><table><thead><tr><th>Jour</th><th>Jeu à deviner</th><th class="r">Joueurs</th><th class="r">Trouvé</th><th class="r">Essais moy.</th><th></th></tr></thead><tbody>
+      ${G.days.map(d => { const fut = d.day > today, isT = d.day === today; return `<tr${isT ? ' style="background:#ffcc3312"' : ''}><td>${isT ? '<b>aujourd’hui</b>' : dd(d.day)}</td><td>${fut || isT ? `<span class="gd_hide" data-t="${esc(d.title)} · ${esc(sysName(d.sys))}">●●●●●● <button class="btn s gd_show">👁</button></span>` : `${esc(d.title)} <span class="mute small">· ${esc(sysName(d.sys))}</span>`} ${d.forced ? '<span class="pill acc">choisi</span>' : ''}</td>
+        <td class="r">${d.players || '—'}</td><td class="r">${d.players ? d.won : '—'}</td><td class="r">${d.tries ?? '—'}</td><td>${fut || (isT && !d.players) ? `<button class="btn s" data-gday="${d.day}">✏️</button>` : ''}</td></tr>`; }).join('')}
+      </tbody></table></div>
+      <div id="gd_form" class="mt"></div></div>
+    <div class="card"><h3>❓ Quiz (7 jours)</h3>
+      <div class="grid g3"><div class="mini"><div class="l">Bonnes réponses payées</div><div class="n">${fr(G.quiz7.n)}</div></div><div class="mini"><div class="l">Joueurs</div><div class="n">${fr(G.quiz7.players)}</div></div><div class="mini"><div class="l">Pièces versées</div><div class="n coin">${fr(G.quiz7.coins)}</div></div></div>
+      <div class="note mt">Les questions du quiz sont dans l'appli : les gérer d'ici demande une mise à jour de l'appli.</div></div></div>`;
+  $$('.gd_show', el).forEach(b => b.onclick = () => { const s = b.parentElement; s.textContent = s.dataset.t; });
+  $$('[data-gday]', el).forEach(b => b.onclick = () => {
+    const day = b.dataset.gday;
+    $('#gd_form').innerHTML = `<h4>Choisir le jeu du ${dd(day)}</h4><div class="row"><input id="gd_q" list="gd_dl" placeholder="Titre ou identifiant (épique ou légendaire de console conseillé)" style="flex:1"><datalist id="gd_dl"></datalist><button class="btn p s" id="gd_go">Choisir</button><button class="btn s" id="gd_rm">Tirage normal</button></div>`;
+    $('#gd_q').oninput = () => { const q = $('#gd_q').value.toLowerCase(); if (q.length < 2 || !CAT) return; $('#gd_dl').innerHTML = Object.entries(CAT).filter(([id, c]) => !id.startsWith('sg_') && !id.startsWith('pk_') && (id.includes(q) || c[2].toLowerCase().includes(q))).slice(0, 30).map(([id, c]) => `<option value="${esc(id)}">${esc(c[2])} · ${esc(sysName(c[0]))} · ${RAR[c[1]]}</option>`).join(''); };
+    $('#gd_go').onclick = async () => { const id = $('#gd_q').value.trim(); if (!CAT?.[id]) return toast('Choisis une carte dans la liste', true); await act(() => X('gamedle_force', { day, card: id }), 'Jeu choisi'); PAGES.minigames(el); };
+    $('#gd_rm').onclick = async () => { await act(() => X('gamedle_force', { day, card: '' }), 'Tirage normal'); PAGES.minigames(el); };
+  });
+};
+
+// ── Roue, paquet gratuit, pioche, solo ──
+PAGES.bonus = async el => {
+  el.innerHTML = loading;
+  const C = await cfg();
+  const live = C.live || {};
+  const wheel = (id, w, labels) => `<div class="row" style="align-items:flex-start;gap:18px"><div id="${id}_pie" style="width:170px;height:170px;border-radius:50%;border:4px solid var(--acc);flex:none"></div><div style="flex:1;min-width:240px"><table><tbody>${w.map((v, i) => `<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${WCOL[i]}"></span> ${labels[i]}</td><td class="r"><select class="${id}_w" style="width:auto">${opt(withCur([0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 15, 17, 19, 20, 22, 25, 30, 40], v), v)}</select></td></tr>`).join('')}</tbody></table><div class="small mt" id="${id}_tot"></div></div></div>`;
+  el.innerHTML = `<div class="grid g2">
+    <div class="card"><h3>🎡 Roue de la fortune <span class="mute small">· ${fr(C.wheel.spins7)} tours en 7 j</span></h3>
+      <h4>Roue normale (chances en %)</h4>${wheel('wn', C.wheel.w, WSEG)}
+      <h4>Roue dorée (série de 7 jours)</h4>${wheel('wgd', C.wheel.wg, WSEGG)}
+      <div class="row mt"><button class="btn p" id="wh_go">💾 Enregistrer les chances</button></div>
+      <div class="note mt">Les gains des cases sont écrits dans l'appli (lecture seule ici). Chaque roue doit faire 100 %.</div></div>
+    <div class="grid">
+      <div class="card"><h3>⏱️ Délais</h3>
+        <div class="f2"><div><label>Paquet gratuit : toutes les</label><select id="fh">${opt(withCur([[1, '1 h'], [2, '2 h'], [3, '3 h'], [4, '4 h'], [6, '6 h (normal)'], [8, '8 h'], [12, '12 h'], [24, '24 h']], live.free_hours ?? 6), live.free_hours ?? 6)}</select></div>
+        <div><label>Roue : un tour toutes les</label><select id="whh">${opt(withCur([[4, '4 h'], [6, '6 h'], [8, '8 h'], [12, '12 h (normal)'], [24, '24 h']], live.wheel_hours ?? 12), live.wheel_hours ?? 12)}</select></div></div>
+        <div class="row mt"><button class="btn p" id="dl_go">💾 Enregistrer</button><span class="small mute">L'effet d'événement « paquet gratuit plus fréquent » reste prioritaire.</span></div></div>
+      <div class="card"><h3>🏁 Lots du solo du jour (Rétro Jump et course)</h3>
+        <label>🥇 1er</label><div id="sp1">${rwBox(C.solo_prize['1'])}</div><label>🥈 2e</label><div id="sp2">${rwBox(C.solo_prize['2'])}</div><label>🥉 3e</label><div id="sp3">${rwBox(C.solo_prize['3'])}</div>
+        <div class="row mt"><button class="btn p" id="sp_go">💾 Enregistrer</button></div></div>
+      <div class="card"><h3>🃏 Pioche du jour</h3><div class="kv"><span>Piochée aujourd'hui</span><span>${fr(C.pioche_today)} joueur(s)</span><span>Cartes proposées</span><span>5 (fixé par l'appli)</span></div></div>
+    </div></div>`;
+  const pie = id => { const v = $$('.' + id + '_w', el).map(s => +s.value); const t = v.reduce((a, b) => a + b, 0); let acc = 0; $('#' + id + '_pie').style.background = 'conic-gradient(' + v.map((x, i) => { const s = acc; acc += x / (t || 1) * 100; return `${WCOL[i]} ${s}% ${acc}%`; }).join(',') + ')'; const e = $('#' + id + '_tot'); e.textContent = `Total : ${t} %${t === 100 ? ' ✔' : ' — doit faire 100 %'}`; e.style.color = t === 100 ? 'var(--ok)' : 'var(--warn)'; return t; };
+  ['wn', 'wgd'].forEach(id => { $$('.' + id + '_w', el).forEach(s => s.onchange = () => pie(id)); pie(id); });
+  $('#wh_go').onclick = async () => { if (pie('wn') !== 100 || pie('wgd') !== 100) return toast('Chaque roue doit faire 100 %', true); await act(() => X('wheel_set', { w: $$('.wn_w', el).map(s => +s.value), wg: $$('.wgd_w', el).map(s => +s.value) }), 'Chances enregistrées'); };
+  $('#dl_go').onclick = () => act(() => X('live2', { free_hours: +$('#fh').value, wheel_hours: +$('#whh').value }), 'Délais enregistrés');
+  $('#sp_go').onclick = () => act(() => X('solo_set', { 1: rwRead($('#sp1')), 2: rwRead($('#sp2')), 3: rwRead($('#sp3')) }), 'Lots enregistrés');
+};
+
+// ── Bornes ──
+PAGES.arcade = async el => {
+  el.innerHTML = loading;
+  const B = await act(() => X('cab'));
+  const GN = { snake: '🐍 Snake', bricks: '🧱 Casse-briques', dodge: '☄️ Esquive' };
+  el.innerHTML = `<div class="grid g2">
+    <div class="card"><h3>👾 Mini-jeux des bornes</h3>
+      <table><thead><tr><th>Jeu</th><th class="r">Bornes (actifs 7 j)</th><th class="r">Parties 7 j</th><th class="r">Plafond (points / s)</th></tr></thead><tbody>
+      ${['snake', 'bricks', 'dodge'].map(g => `<tr><td>${GN[g]}</td><td class="r">${fr(B.games?.[g] || 0)}</td><td class="r">${fr(B.runs7?.[g] || 0)}</td><td class="r"><select id="cap_${g}" style="width:auto">${opt(withCur([60, 80, 100, 120, 150, 200, 250, 300, 350, 400, 450, 500, 600, 800], B.live[g]), B.live[g])}</select></td></tr>`).join('')}
+      </tbody></table>
+      <div class="f2"><div><label>Prime quand on bat le record d'une borne</label><select id="cap_prime">${opt(withCur([0, 5, 10, 20, 30, 50, 100], B.live.prime), B.live.prime)}</select></div></div>
+      <div class="row mt"><button class="btn p" id="cab_go">💾 Enregistrer</button></div>
+      <div class="warnbox mt">Un plafond trop bas refuse les vrais bons scores ; trop haut, il laisse passer la triche.</div></div>
+    <div class="card"><h3>🏆 Records de la semaine (${dd(B.week)}) <span class="sp"></span><button class="btn s d" id="cab_all">Tout remettre à zéro</button></h3>
+      <div class="tw"><table><thead><tr><th>Borne de</th><th>Jeu</th><th>Record</th><th class="r">Score</th><th></th></tr></thead><tbody>
+      ${B.records.map(r => `<tr><td>${plink(r.owner_pid, r.owner)}</td><td>${GN[r.game] || r.game}</td><td>${plink(r.pid, r.name)}</td><td class="r">${fr(r.score)}</td><td><button class="btn s d" data-cr="${r.owner_pid}" data-cg="${r.game}">RAZ</button></td></tr>`).join('') || '<tr><td colspan="5" class="empty">Aucun record cette semaine</td></tr>'}
+      </tbody></table></div></div></div>`;
+  $('#cab_go').onclick = () => act(() => X('live2', { cab_snake: +$('#cap_snake').value, cab_bricks: +$('#cap_bricks').value, cab_dodge: +$('#cap_dodge').value, cab_prime: +$('#cap_prime').value }), 'Bornes enregistrées');
+  $('#cab_all').onclick = async () => { if (!confirm('Effacer tous les records de la semaine ?')) return; const r = await act(() => X('cab_reset', {})); toast(`${r.n} score(s) effacé(s)`); PAGES.arcade(el); };
+  $$('[data-cr]', el).forEach(b => b.onclick = async () => { if (!confirm('Effacer les scores de cette borne pour ce jeu ?')) return; await act(() => X('cab_reset', { pid: b.dataset.cr, game: b.dataset.cg }), 'Effacé'); PAGES.arcade(el); });
+};
+
+// ── Cadeaux de version ──
+PAGES.gifts = async el => {
+  el.innerHTML = loading;
+  const C = await cfg();
+  el.innerHTML = `<div class="grid g64">
+    <div class="card"><h3>🎁 Cadeaux de mise à jour</h3>
+      <div class="tw"><table><thead><tr><th>Version</th><th>Cadeau</th><th>Pour les comptes créés avant</th><th class="r">Reçus</th><th></th></tr></thead><tbody>
+      ${(C.gifts || []).map(g => `<tr><td><b>${esc(g.ver)}</b></td><td class="small">${esc(rwText(g.reward))}</td><td class="small">${dt(g.out_at)}</td><td class="r">${g.got} / ${g.can}</td><td><button class="btn s" data-gv="${esc(g.ver)}">✏️</button>${g.got ? '' : ` <button class="btn s d" data-gdel="${esc(g.ver)}">🗑</button>`}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Aucun</td></tr>'}
+      </tbody></table></div>
+      <div class="note mt">Donné une fois par joueur au premier lancement de cette version (web dès le push, Android avec l'APK). Les versions 1.0.24 à 1.0.27 redonnent celui de la 1.0.23 s'il manque.</div></div>
+    <div class="card" id="gv_form"></div></div>`;
+  const form = g => {
+    g = g || { ver: '', reward: { coins: 300 }, out_at: new Date().toISOString() };
+    $('#gv_form').innerHTML = `<h3>${g.ver ? '✏️ ' + esc(g.ver) : '＋ Nouveau cadeau'}</h3>
+      <label>Version (ex. 1.0.42)</label><input id="gv_v" value="${esc(g.ver)}" ${g.ver ? 'readonly' : ''}>
+      <label>Cadeau</label><div id="gv_rw">${rwBox(g.reward)}</div>
+      <label>Seulement les comptes créés avant (= sortie de la version)</label><input type="datetime-local" id="gv_at" value="${toLocal(g.out_at)}">
+      <div class="row mt"><button class="btn p" id="gv_go">💾 Enregistrer</button>${g.ver ? '<button class="btn" id="gv_new">＋ Nouveau</button>' : ''}</div>`;
+    if ($('#gv_new')) $('#gv_new').onclick = () => form(null);
+    $('#gv_go').onclick = async () => { await act(() => X('gift_set', { ver: $('#gv_v').value.trim(), reward: rwRead($('#gv_rw')), out_at: fromLocal($('#gv_at').value) }), 'Cadeau enregistré'); PAGES.gifts(el); };
+  };
+  form(null);
+  $$('[data-gv]', el).forEach(b => b.onclick = () => form(C.gifts.find(g => g.ver === b.dataset.gv)));
+  $$('[data-gdel]', el).forEach(b => b.onclick = async () => { if (!confirm('Supprimer ce cadeau ?')) return; await act(() => X('gift_set', { ver: b.dataset.gdel, del: true }), 'Supprimé'); PAGES.gifts(el); });
+};
+
+// ── Actu ──
+const FEEDK = { join: '👋 arrive dans le jeu', legend: '🟧 obtient une légendaire', fullart: '✨ obtient une full art', gold: '🟨 obtient une dorée', saga: '📚 obtient une carte de saga', set: '🎮 complète une console', half: '🎮 atteint 50 % d’une console', packs: '📦 paquets', streak: '📅 série de connexion', gift: '🎁 cadeau', sale: '🏦 vente', trade: '🤝 échange', c4: '🔴 4 en ligne', bs: '🚢 Console Wars', rj: '🚀 Rétro Jump', rjdraw: '🚀 Rétro Jump (nul)', rjsolo: '🚀 solo du jour', rn: '🏃 course', rnsolo: '🏃 solo du jour', gamedle: '🧩 Gamedle', tour: '🏆 tournoi', tournew: '🏆 nouveau tournoi' };
+PAGES.feed = async el => {
+  el.innerHTML = loading;
+  const [L] = await Promise.all([act(() => X('feed')), catalog().catch(() => {})]);
+  el.innerHTML = `<div class="card"><h3>📰 Actu <span class="mute small">(150 dernières)</span><span class="sp"></span><label class="inl"><input type="checkbox" id="fd_h"> Masquées seulement</label></h3>
+    <div class="tw"><table><tbody id="fd_tb"></tbody></table></div>
+    <div class="note mt">Une publication masquée disparaît de l'Actu de tous les joueurs (appli à jour). Pour une annonce : courrier, bandeau ou @tous dans le chat.</div></div>`;
+  const draw = () => { $('#fd_tb').innerHTML = L.filter(f => !$('#fd_h').checked || f.hidden).map(f => `<tr style="${f.hidden ? 'opacity:.5' : ''}"><td class="small mute">${dt(f.at)}</td><td>${plink(f.pid, f.name, f.avatar)}</td><td>${FEEDK[f.kind] || esc(f.kind)}${f.card ? ' · ' + cardName(f.card) : ''}${f.name2 ? ` <span class="mute">↔ ${esc(f.name2)}</span>` : ''}${f.x ? ` <span class="mute small">${esc(f.x)}</span>` : ''}</td><td class="r small">${f.rx ? f.rx + ' 👍' : ''}</td>
+    <td><button class="btn s" data-fh="${f.id}" data-on="${f.hidden ? 0 : 1}">${f.hidden ? '👁 Remettre' : '🙈 Masquer'}</button></td></tr>`).join('') || '<tr><td class="empty">Rien</td></tr>';
+    $$('[data-fh]', el).forEach(b => b.onclick = async () => { const on = b.dataset.on === '1'; await act(() => X('feed_hide', { id: +b.dataset.fh, on }), on ? 'Masquée' : 'Remise'); L.find(f => f.id == b.dataset.fh).hidden = on; draw(); }); };
+  $('#fd_h').onchange = draw; draw();
+};
+
+// ── Admins & rôles ──
+const ROLE = { full: '👑 Admin complet', anim: '🎉 Animateur', modo: '🛡️ Modérateur' };
+PAGES.admins = async el => {
+  el.innerHTML = loading;
+  await players();
+  const L = await act(() => X('admins'));
+  el.innerHTML = `<div class="grid g64">
+    <div class="card"><h3>🔐 Admins</h3>
+      ${L.map(a => `<div class="msg">${av(a.avatar)}<div class="b"><b>${esc(a.name || a.pid)}</b> ${a.me ? '<span class="pill">toi</span>' : ''}<div class="small mute">vu ${ago(a.seen_at)}</div></div>
+        ${a.me ? `<span class="pill acc">${ROLE[a.role]}</span>` : `<select data-ar="${a.pid}" style="width:auto">${opt(Object.entries(ROLE), a.role)}</select> <button class="btn s d" data-ad="${a.pid}">Retirer</button>`}</div>`).join('')}
+      <h4>Ajouter</h4><div class="row">${pidSel('ad_p')}<select id="ad_r" style="width:auto">${opt(Object.entries(ROLE), 'modo')}</select><button class="btn p s" id="ad_go">Ajouter</button></div></div>
+    <div class="card"><h3>Ce que fait chaque rôle</h3>
+      <div class="kv"><span>👑 Complet</span><span>tout</span><span>🎉 Animateur</span><span>tout voir ; événements, tournois, courrier, sondages, bandeau, programmation</span><span>🛡️ Modérateur</span><span>tout voir ; chat, Bourse, Actu, notes, alertes, sanctions (muet, avertissement, Bourse interdite, 7 jours max)</span></div>
+      <div class="note mt">Un admin se connecte ici avec son propre pseudo et mot de passe. L'onglet admin de l'appli s'affiche aussi pour lui.</div></div></div>`;
+  $$('[data-ar]', el).forEach(s => s.onchange = () => act(() => X('admin_set', { pid: s.dataset.ar, role: s.value }), 'Rôle changé'));
+  $$('[data-ad]', el).forEach(b => b.onclick = async () => { if (!confirm('Retirer cet admin ?')) return; await act(() => X('admin_set', { pid: b.dataset.ad, role: null }), 'Retiré'); PAGES.admins(el); });
+  $('#ad_go').onclick = async () => { const pid = pidOf($('#ad_p').value); if (!pid) return toast('Choisis un joueur dans la liste', true); if (!confirm(`Donner le rôle ${ROLE[$('#ad_r').value]} à ${$('#ad_p').value} ?`)) return; await act(() => X('admin_set', { pid, role: $('#ad_r').value }), 'Admin ajouté'); PAGES.admins(el); };
+};
+
+// ── Ce qui demande une mise à jour de l'appli ──
 PAGES.soon = el => {
-  const L = [['⏰ Programmation', 'Courrier, bandeau, réglages et messages @tous à une heure donnée ou chaque semaine.'], ['🕵️ Anti-triche', 'Graphe des comptes liés, scores refusés, seuils d’alerte réglables, « marquer normal ».'], ['⛔ Sanctions avancées', 'Bourse, cadeaux ou duels interdits avec durée et motif, historique.'], ['⚔️ Duels en cours', 'Liste des parties, regarder, terminer une partie bloquée, annuler les vieux défis.'], ['🎯 Défis & trophées', 'Réservoir des défis, défi express, seuils et gains des trophées, paliers de collection.'], ['🧩 Gamedle & quiz', 'Réponse du jour, forcer une carte, questions du quiz.'], ['🎡 Roue, pioche, paquet gratuit', 'Cases et chances de la roue, pioche du jour, délai du paquet gratuit, codes cadeaux.'], ['👾 Bornes & Voisinage', 'Plafonds des mini-jeux, records, seuils des habillages.'], ['🎁 Cadeaux de version', 'Gérer les cadeaux de mise à jour et le « Quoi de neuf » sans republier l’appli.'], ['📰 Actu', 'Masquer une publication, épingler une annonce.'], ['🔐 Admins & rôles', 'Modérateur, animateur, admin complet.'], ['🔄 Remises à zéro', 'Défis, roue, pioche, paquet gratuit, paquet entamé d’un joueur.']];
-  el.innerHTML = `<div class="card"><h3>🚧 Prochaines étapes de l'outil</h3><div class="grid g3">${L.map(([t, d]) => `<div class="soonbox"><b style="color:var(--text)">${t}</b><div class="small mt">${d}</div></div>`).join('')}</div></div>`;
+  const L = [['🎡 Gains des cases de la roue', 'Écrits dans l’appli (dessin de la roue).'], ['🏅 Seuils et gains des trophées', 'Affichés par l’appli.'], ['♻️ Recyclage, fabrication, fragments', 'Même table dans l’appli et dans le Guide.'], ['🏠 Seuils des habillages de borne', 'Écrits dans l’appli.'], ['❓ Questions du quiz', 'Elles sont dans l’appli.'], ['🎟️ Codes cadeaux', 'Il faut un champ « code » dans l’appli.'], ['📰 Annonces épinglées dans l’Actu', 'Il faut un affichage dans l’appli.'], ['🆕 « Quoi de neuf » modifiable', 'Le texte est dans l’appli.'], ['🔔 Notification Android à tous', 'À brancher dans l’appli.']];
+  el.innerHTML = `<div class="card"><h3>📱 Demande une mise à jour de l'appli</h3><div class="small mute" style="margin-bottom:12px">Ces réglages sont écrits dans l'appli elle-même : il faut une nouvelle version (web + APK) pour les rendre modifiables d'ici.</div><div class="grid g3">${L.map(([t, d]) => `<div class="soonbox"><b style="color:var(--text)">${t}</b><div class="small mt">${d}</div></div>`).join('')}</div></div>`;
 };
 
 // ═════════════════════════════ RECHERCHE RAPIDE ═════════════════════════════
