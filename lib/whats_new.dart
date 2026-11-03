@@ -12,6 +12,9 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🏆', 'Actualité : nouvel onglet « Tops » avec les meilleurs joueurs (paquets ouverts, pièces gagnées, victoires de duels, Bourse, cadeaux envoyés, cartes) sur aujourd\'hui, 7 ou 30 jours',
+      'News: new "Tops" tab with the best players (packs opened, coins earned, duel wins, Market, gifts sent, cards) for today, 7 or 30 days'),
+  ('#', 'Aussi depuis la 1.0.41', 'Also since 1.0.41'),
   ('🔴', 'Nouveau booster Pokémon : 5 cartes Pokémon, 100 pixels dans la boutique (peut aussi être offert en récompense)',
       'New Pokémon booster: 5 Pokémon cards, 100 pixels in the shop (can also be given as a reward)'),
   ('⚡', 'Collection : le bouton « fusions » n\'affiche plus que les cartes fusionnables, avec deux nouveaux filtres « Fusion normales ×5 » et « Fusion brillantes ×3 »',

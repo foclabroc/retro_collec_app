@@ -1,7 +1,12 @@
 # Pixel Trade — Changelog
 
+## v1.0.42
+_Version 1.0.42+43. Pas de cadeau de version. SQL : `sql/2026-11-03_tops.sql` (lancé)._
+
+- 🏆 Actualité : onglets « 📰 Actualité » / « 🏆 Tops » (`TopsView` dans `feed.dart`) : 6 classements (10 premiers, joueurs bloqués exclus) sur 1, 7 ou 30 jours via `rc_tops(p_days)` (public, sans signature) ; outil admin web étape 2 en ligne.
+
 ## v1.0.41
-_Version 1.0.41+42 (en préparation). Pas de cadeau de version. SQL : voir ci-dessous._
+_Version 1.0.41+42. Pas de cadeau de version. SQL : voir ci-dessous (lancés)._
 
 - 🔴 Booster Pokémon : 100 pixels, 5 cartes Pokémon (brillantes dès la 152), aussi en récompense / cadeau admin (`pokemon` dans `kRewardPacks`, `rc__rw_clean`, `rc__grant`) : `sql/2026-11-02_booster_pokemon.sql` (à lancer). Image `assets/booster_pokemon.webp` à déposer par l'utilisateur.
 - 🏆 7 trophées (+ `react` 10/50/200 lu en direct, `craft` 5/25/100, `sagacards` 25/75/156 lu en direct) : `pioche` 5/30/100, `express` 5/30/100, `wheel` 10/50/200, `pokemon` 10/50/185 (lu en direct dans `rc__tn`) : `sql/2026-11-02_trophees_pioche_express_roue_pokemon.sql` (à lancer après `_pioche_express.sql`).
