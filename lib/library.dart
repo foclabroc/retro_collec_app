@@ -95,29 +95,45 @@ class _LibraryScreenState extends State<LibraryScreen> {
     SharedPreferences.getInstance().then((p) => p.setInt('rc_coll_mode', v)).catchError((_) => false);
   }
 
-  /// Sélecteur « Consoles | Sagas | Full art »
+  /// Sélecteur « Consoles | Sagas | Full art | Pokémon | Animés » : chaque onglet a sa couleur, fond opaque
   Widget _seg() {
-    Widget b(int v, String label) => Expanded(
-          child: GestureDetector(
-            onTap: () => _setMode(v),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              padding: const EdgeInsets.symmetric(vertical: 7),
-              decoration: BoxDecoration(color: mode == v ? kGold : Colors.transparent, borderRadius: BorderRadius.circular(10)),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(label,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: mode == v ? const Color(0xFF2A1800) : Colors.white70)),
-              ),
+    Widget b(int v, String label, Color color) {
+      final on = mode == v;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => _setMode(v),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 3),
+            decoration: BoxDecoration(
+              color: on ? color : Color.alphaBlend(color.withOpacity(0.16), kBg),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: color.withOpacity(on ? 1 : 0.55), width: 1.2),
+              boxShadow: on ? [BoxShadow(color: color.withOpacity(0.45), blurRadius: 8)] : null,
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: on ? const Color(0xFF1A1206) : color)),
             ),
           ),
-        );
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(13)),
-      child: Row(children: [b(0, t('🎮 Consoles', '🎮 Systems')), b(1, t('📚 Sagas', '📚 Sagas')), b(2, t('★★ Full art', '★★ Full art')), b(3, 'Pokémon'), b(4, t('📺 Animés', '📺 Cartoons'))]),
+      decoration: BoxDecoration(color: kBg, borderRadius: BorderRadius.circular(13)),
+      child: Row(children: [
+        b(0, t('🎮 Consoles', '🎮 Systems'), const Color(0xFF5AB0FF)),
+        b(1, t('📚 Sagas', '📚 Sagas'), const Color(0xFFFF8AD8)),
+        b(2, t('★★ Full art', '★★ Full art'), const Color(0xFFC18CFF)),
+        b(3, '⚡ Pokémon', const Color(0xFFFFD54F)),
+        b(4, t('📺 Animés', '📺 Cartoons'), const Color(0xFF4FC3F7)),
+      ]),
     );
   }
 
@@ -338,7 +354,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 child: LinearProgressIndicator(value: total == 0 ? 0 : mine / total, minHeight: 6, color: color, backgroundColor: Colors.white10),
               ),
             ),
-            SizedBox(width: 52, child: Text('$mine/$total', textAlign: TextAlign.right, style: const TextStyle(fontSize: 10.5, color: Colors.white70))),
+            SizedBox(width: 62, child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text('$mine/$total', maxLines: 1, style: const TextStyle(fontSize: 10.5, color: Colors.white70)))),
             Icon(Icons.chevron_right, size: 14, color: onTap != null ? Colors.white38 : Colors.transparent),
           ]),
         ),
@@ -422,7 +438,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   faTotal > 0 ? () => _setMode(2) : null),
               _bar('⚡ ${t('Pokémon', 'Pokémon')}', pkMine, pkTotal, const Color(0xFFFFD54F), const Color(0xFFFFE082),
                   pkTotal > 0 ? () => _setMode(3) : null),
-              _bar('📺 ${t('Dessins animés', 'Cartoons')}', daMine, daTotal, const Color(0xFF4FC3F7), const Color(0xFF81D4FA),
+              _bar('📺 ${t('Animés', 'Cartoons')}', daMine, daTotal, const Color(0xFF4FC3F7), const Color(0xFF81D4FA),
                   daTotal > 0 ? () => _setMode(4) : null),
               // toucher une rareté : mes cartes de cette rareté
               for (var r = 4; r >= 0; r--)
@@ -448,8 +464,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       ),
                     ),
                     SizedBox(
-                      width: 52,
-                      child: Text('${ownByR[r]}/${totalByR[r]}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 10.5, color: Colors.white70)),
+                      width: 62,
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Text('${ownByR[r]}/${totalByR[r]}', maxLines: 1, style: const TextStyle(fontSize: 10.5, color: Colors.white70))),
                     ),
                     Icon(Icons.chevron_right, size: 14, color: ownByR[r] > 0 ? Colors.white38 : Colors.transparent),
                   ]),
@@ -589,9 +608,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
         padding: const EdgeInsets.all(14),
         decoration: box,
         child: SizedBox(
-          height: 142,
+          height: 160,
           child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Expanded(flex: 5, child: Center(child: summary)),
+            Expanded(flex: 5, child: LayoutBuilder(builder: (_, bc) => Center(child: FittedBox(fit: BoxFit.scaleDown, child: SizedBox(width: bc.maxWidth, child: summary))))),
             const SizedBox(width: 14),
             SizedBox(
               width: 250,

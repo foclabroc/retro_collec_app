@@ -351,8 +351,8 @@ class _PacksScreenState extends State<PacksScreen> {
           ('sconsole', t('Booster Console+', 'Console+ booster'),
               t('Console au choix : une rare ou mieux et une brillante garanties', 'System of your choice: one rare or better and one holo guaranteed'), const Color(0xFF2F6BFF)),
           ('gold', t('Booster Rétro d\'or', 'Retro Gold booster'), t('Une légendaire… ou une carte dorée garantie', 'A legendary… or a gold card guaranteed'), const Color(0xFFF0A419)),
-          ('pokemon', t('Booster Pokémon', 'Pokémon booster'), t('5 cartes Pokémon', '5 Pokémon cards'), const Color(0xFFE53935)),
           ('cartoon', t('Booster Dessins animés', 'Cartoons booster'), t('5 cartes Dessins animés', '5 cartoon cards'), const Color(0xFF0288D1)),
+          ('pokemon', t('Booster Pokémon', 'Pokémon booster'), t('5 cartes Pokémon', '5 Pokémon cards'), const Color(0xFFE53935)),
         ])
           _PackOffer(
             kind: kind,

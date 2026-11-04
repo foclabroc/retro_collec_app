@@ -4,7 +4,7 @@
 --   hors paquets normaux (sauf tirage très rare), hors sagas, fabrication, fusion, Pioche et Gamedle (filtres saga is null existants).
 -- Rareté 3, sauf 13 cartes cultes en rareté 4 qui sortent toujours BRILLANTES (finition 1).
 -- Tirage : rc__saga_roll, 0,15 % par carte de paquet (réglage en direct 'da' de rc_config.live).
--- Booster « Dessins animés » (kind 'cartoon') : 100 pixels, 5 cartes da au hasard.
+-- Booster « Dessins animés » (kind 'cartoon') : 70 pixels, 5 cartes da au hasard.
 -- Récompenses / cadeaux admin : packs.cartoon, cards.da (carte Dessin animé au hasard).
 -- Les fonctions déjà en place sont modifiées par remplacement de texte (comme rc_pick pour Pokémon) : relançable sans risque.
 -- Dossier à lancer : psql -U postgres -d postgres -f 2026-11-04_serie_dessins_animes.sql
@@ -115,7 +115,7 @@ CREATE OR REPLACE FUNCTION public.rc__special_cost(p_kind text)
  LANGUAGE sql
  IMMUTABLE
 AS $function$
-  select case p_kind when 'star' then 15 when 'sconsole' then 25 when 'gold' then 40 when 'pokemon' then 100 when 'cartoon' then 100 end $function$;
+  select case p_kind when 'star' then 15 when 'sconsole' then 25 when 'gold' then 40 when 'pokemon' then 100 when 'cartoon' then 70 end $function$;
 alter function public.rc__special_cost(text) owner to rc_owner;
 
 -- 4) remplacements de texte dans les fonctions en place
