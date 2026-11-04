@@ -161,7 +161,7 @@ class CardView extends StatelessWidget {
       // brillante : Pokémon dès la carte 152, Dessins animés en rareté 4
       final shiny = finish > 0 && (card.sys == 'da' ? card.rarity >= 4 : (int.tryParse(card.id.substring(3)) ?? 0) >= 152);
       final rr = BorderRadius.circular(w * 0.05);
-      return ClipRRect(
+      final face = ClipRRect(
         borderRadius: rr,
         child: owned
             ? Stack(fit: StackFit.expand, children: [
@@ -191,6 +191,17 @@ class CardView extends StatelessWidget {
                 color: const Color(0xFF26262C),
                 alignment: Alignment.center,
                 child: Text('?', style: TextStyle(color: Colors.white24, fontSize: w * 0.28, fontWeight: FontWeight.w900))),
+      );
+      if (card.sys != 'da') return face;
+      // Dessins animés : petit contour argenté sur la face avant (doré pour les cultes en rareté 4)
+      return DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: BoxDecoration(
+          borderRadius: rr,
+          border: Border.all(
+              color: card.rarity >= 4 ? const Color(0xFFF2C14E) : const Color(0xFFB8C2CC), width: max(1.0, w * 0.018)),
+        ),
+        child: face,
       );
     }
     // full art (épiques et légendaires) : un tout autre modèle de carte

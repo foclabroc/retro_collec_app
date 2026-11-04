@@ -1,5 +1,10 @@
 # Pixel Trade — Changelog
 
+## v1.0.45
+_Version 1.0.45+46. Pas de cadeau de version. Pas de SQL. Images : `dessins_animes_da_v2.zip` dézippé dans `D:\pixeltrade\da` (sous-dossier `2`)._
+
+- 🖼️ Cartes Dessins animés : pochettes entières (plus de rognage : image complète sur fond flou quand le format diffère), servies depuis `da/2/` pour renouveler le cache ; fin contour argent (rareté 3) / or (rareté 4) sur la face avant.
+
 ## v1.0.44
 _Version 1.0.44+45. Pas de cadeau de version. SQL : `sql/2026-11-04_serie_dessins_animes.sql` (lancé ; titres et booster relancés par Claude via l'outil SQL, psql Windows ayant cassé les accents)._
 

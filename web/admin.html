@@ -475,7 +475,7 @@ function cardFace(id, f) {
   const da = id.startsWith('da_'), pk = id.startsWith('pk_') || da;  // séries en plein cadre (Pokémon, Dessins animés)
   const src = CJ?.[id] || (c[3] && CJ?.[c[3]]) || {};
   const sys = src.s || c[0], h = CJH[sys] ? '?h=' + CJH[sys] : '';
-  const img = da ? DAB + id.slice(4) + '.jpg' : pk ? PKB + id.slice(3) + '.jpg' : src.img ? ASSETS + src.img + h : '';
+  const img = da ? DAB + '2/' + id.slice(4) + '.jpg' : pk ? PKB + id.slice(3) + '.jpg' : src.img ? ASSETS + src.img + h : '';
   const shot = src.shot ? ASSETS + src.shot + h : '';
   const [rc, rd, rl] = RCOL[c[1]] || RCOL[0];
   const meta = [src.y, src.dv, src.g].filter(Boolean).map(esc).join(' · ');

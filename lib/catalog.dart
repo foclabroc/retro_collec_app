@@ -30,7 +30,7 @@ const kAssetsBase = 'https://foclabroc.github.io/retro_collec_assets/';
 /// Série « Pokémon » : images hébergées sur le serveur de l'utilisateur (001.jpg … 185.jpg, voir selfhost/pk_prepare.ps1)
 const kPkBase = 'https://foclabroc.duckdns.org/pk/';
 
-/// Série « Dessins animés » : images hébergées sur le serveur de l'utilisateur (01.jpg … 80.jpg)
+/// Série « Dessins animés » : images hébergées sur le serveur de l'utilisateur (2/01.jpg … 2/80.jpg)
 const kDaBase = 'https://foclabroc.duckdns.org/da/';
 
 /// Séries à part (cartes en plein cadre, images sur le serveur maison, onglet dédié) : Pokémon et Dessins animés
@@ -389,7 +389,8 @@ class Catalog {
           pub: '',
           genre: '',
           rarity: kDaRare.contains(i + 1) ? 4 : 3,
-          img: '${(i + 1).toString().padLeft(2, '0')}.jpg',
+          // sous-dossier « 2/ » : images refaites sans rognage (nouveau chemin = cache Android / navigateur renouvelé)
+          img: '2/${(i + 1).toString().padLeft(2, '0')}.jpg',
           shot: null,
           desc: kDaList[i].$3,
         ),

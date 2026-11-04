@@ -12,6 +12,9 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🖼️', 'Cartes Dessins animés : les pochettes s\'affichent en entier (plus de titres coupés), avec un fin contour argent, ou doré pour les cultes',
+      'Cartoon cards: covers now show in full (no more cut titles), with a thin silver frame, or gold for the cult classics'),
+  ('#', 'Aussi depuis la 1.0.44', 'Also since 1.0.44'),
   ('📺', 'Nouvel onglet « Animés » dans la Collection : 80 cartes Dessins animés des années 80/90 (Goldorak, Ulysse 31, Tintin, Les Simpson…), très très rares dans les paquets',
       'New "Cartoons" tab in the Collection: 80 cartoon cards from the 80s/90s, very very rare in packs'),
   ('✨', 'Les 13 dessins animés les plus cultes sortent toujours brillants',
