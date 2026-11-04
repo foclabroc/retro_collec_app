@@ -9,6 +9,7 @@
 #   rc_config_AAAA-MM-JJ_HHMM.zip    réglages : PostgreSQL (postgresql.conf, pg_hba.conf), PostgREST, relais,
 #                                    mcp-sql, Caddyfile, DuckDNS, tâches planifiées, services NSSM
 #   pk\                              images Pokémon (copie miroir, pas de rotation)
+#   da\                              images Dessins animés (idem)
 # ATTENTION : rc_config contient des secrets (Caddyfile, postgrest.conf) : ne pas le mettre en ligne.
 # Copie hors du disque D: : renseigner $Copie (autre disque, clé USB, dossier synchronisé), vide = pas de copie.
 
@@ -126,6 +127,15 @@ Partie 'images Pokémon' {
         robocopy 'D:\pixeltrade\pk' (Join-Path $Dossier 'pk') /E /XO /NFL /NDL /NJH /NJS /NP | Out-Null
         if ($LASTEXITCODE -ge 8) { throw "robocopy (code $LASTEXITCODE)" }
         Note 'OK  pk\'
+    }
+}
+
+# 5 bis. Images Dessins animés (même principe)
+Partie 'images Dessins animés' {
+    if (Test-Path 'D:\pixeltrade\da') {
+        robocopy 'D:\pixeltrade\da' (Join-Path $Dossier 'da') /E /XO /NFL /NDL /NJH /NJS /NP | Out-Null
+        if ($LASTEXITCODE -ge 8) { throw "robocopy (code $LASTEXITCODE)" }
+        Note 'OK  da\'
     }
 }
 

@@ -352,6 +352,7 @@ class _PacksScreenState extends State<PacksScreen> {
               t('Console au choix : une rare ou mieux et une brillante garanties', 'System of your choice: one rare or better and one holo guaranteed'), const Color(0xFF2F6BFF)),
           ('gold', t('Booster Rétro d\'or', 'Retro Gold booster'), t('Une légendaire… ou une carte dorée garantie', 'A legendary… or a gold card guaranteed'), const Color(0xFFF0A419)),
           ('pokemon', t('Booster Pokémon', 'Pokémon booster'), t('5 cartes Pokémon', '5 Pokémon cards'), const Color(0xFFE53935)),
+          ('cartoon', t('Booster Dessins animés', 'Cartoons booster'), t('5 cartes Dessins animés', '5 cartoon cards'), const Color(0xFF0288D1)),
         ])
           _PackOffer(
             kind: kind,
@@ -1053,6 +1054,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                     'star' => t('Booster Étoile', 'Star booster'),
                     'gold' => t('Booster Rétro d\'or', 'Retro Gold booster'),
                     'pokemon' => t('Booster Pokémon', 'Pokémon booster'),
+                    'cartoon' => t('Booster Dessins animés', 'Cartoons booster'),
                     'premium' => t('Paquet premium', 'Premium pack'),
                     'mystery' => t('Paquet mystère', 'Mystery pack'),
                     'gift' => t('Paquet cadeau', 'Gift pack'),
@@ -1296,8 +1298,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                         ),
                       ]),
                     );
-              final Widget frontFace = tearable(widget.kind == 'pokemon' ? 'assets/booster_pokemon.webp' : 'assets/booster_front.webp');
-              final Widget backFace = tearable(widget.kind == 'pokemon' ? 'assets/booster_pokemon.webp' : 'assets/booster_back.webp');
+              final Widget frontFace = tearable(_specialBoosterImg(widget.kind) ?? 'assets/booster_front.webp');
+              final Widget backFace = tearable(_specialBoosterImg(widget.kind) ?? 'assets/booster_back.webp');
               // ── Paquet : recto ou verso selon la rotation (sans épaisseur) ──
               final base = Matrix4.identity()
                 ..setEntry(3, 2, 0.0012)
@@ -1382,7 +1384,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
 
   Widget _chooseStage() => Positioned.fill(
         child: BoosterRing(
-          pack: (i, w, h) => _boosterImg(widget.kind == 'pokemon' ? 'assets/booster_pokemon.webp' : 'assets/booster_front.webp', w, h, i),
+          pack: (i, w, h) => _boosterImg(_specialBoosterImg(widget.kind) ?? 'assets/booster_front.webp', w, h, i),
           label: (widget.kind == 'console' || widget.kind == 'sconsole') && widget.sys != null ? ConsoleLogo(widget.sys!, height: 14) : null,
           onChoose: _choose,
         ),
@@ -1395,6 +1397,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'sconsole' => const Color(0xFF2F6BFF),
         'gold' => const Color(0xFFF0A419),
         'pokemon' => const Color(0xFFE53935),
+        'cartoon' => const Color(0xFF0288D1),
         'premium' => const Color(0xFF854F0B),
         'mystery' => const Color(0xFF8E2D8E),
         'gift' => const Color(0xFFD8453C),
@@ -1408,6 +1411,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'star' => t('Étoile', 'Star'),
         'gold' => t('Rétro d\'or', 'Retro Gold'),
         'pokemon' => 'Pokémon',
+        'cartoon' => t('Dessins animés', 'Cartoons'),
         'premium' => t('Premium', 'Premium'),
         'mystery' => t('Mystère', 'Mystery'),
         'gift' => t('Cadeau', 'Gift'),
@@ -1454,7 +1458,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                   child: Opacity(opacity: d.clamp(0, 1).toDouble(), child: child),
                 );
               },
-              child: SizedBox(width: cw, child: faceUp ? CardView(card: pulled[idx + k].card, finish: pulled[idx + k].f) : CardBack(pk: pulled[idx + k].card.sys == 'pk')),
+              child: SizedBox(width: cw, child: faceUp ? CardView(card: pulled[idx + k].card, finish: pulled[idx + k].f) : CardBack(series: isSeriesSys(pulled[idx + k].card.sys) ? pulled[idx + k].card.sys : null)),
             ),
           if (remaining > 0) _topCard(cw),
           Positioned(
@@ -1499,7 +1503,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
           ..rotateY(angle);
         Widget face = showFront
             ? CardView(card: p.card, finish: p.f, manualTilt: fingerTilt)
-            : CardBack(aura: p.r >= 2 ? kRarityColor[p.r] : null, glow: auraCtl.value, pk: p.card.sys == 'pk');
+            : CardBack(aura: p.r >= 2 ? kRarityColor[p.r] : null, glow: auraCtl.value, series: isSeriesSys(p.card.sys) ? p.card.sys : null);
         // ouvert de face : le halo de rareté pulse autour de la carte, comme sur le dos
         if (showFront && faceUp && p.r >= 2) {
           final g = auraCtl.value, a = kRarityColor[p.r];
@@ -1875,7 +1879,7 @@ class _MiniBooster extends StatelessWidget {
               child: ColorFiltered(
                 colorFilter: _kVivid,
                 child: Image.asset(
-                kind == 'pokemon' ? 'assets/booster_pokemon.webp' : 'assets/booster_front.webp',
+                _specialBoosterImg(kind) ?? 'assets/booster_front.webp',
                 fit: BoxFit.fill,
                 filterQuality: FilterQuality.medium,
                 cacheWidth: (width * MediaQuery.of(context).devicePixelRatio).round().clamp(48, 440),
@@ -2593,6 +2597,7 @@ class _PixelsGauge extends StatelessWidget {
       'star' => t('Booster Étoile', 'Star booster'),
       'sconsole' => t('Booster Console+', 'Console+ booster'),
       'pokemon' => t('Booster Pokémon', 'Pokémon booster'),
+      'cartoon' => t('Booster Dessins animés', 'Cartoons booster'),
       _ => t('Booster Rétro d\'or', 'Retro Gold booster'),
     };
     return Container(
@@ -2723,3 +2728,10 @@ class _PixelsRow extends StatelessWidget {
     );
   }
 }
+
+/// Image propre aux boosters de série (Pokémon, Dessins animés), sinon null (paquet habituel)
+String? _specialBoosterImg(String? kind) => switch (kind) {
+      'pokemon' => 'assets/booster_pokemon.webp',
+      'cartoon' => 'assets/booster_da.webp',
+      _ => null,
+    };

@@ -102,11 +102,11 @@ int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
 /// Fragments pour fabriquer une full art (épique / légendaire), même valeurs que rc__fragment_cost
 int fragmentCost(int r) => r == 3 ? 3000 : 10000;
 /// Boosters spéciaux payés en pixels (1 pixel par booster ouvert)
-const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40, 'pokemon': 100};
+const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40, 'pokemon': 100, 'cartoon': 100};
 final kPackPrice = <String, int>{'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0, 'lot': 0};
 
 /// Réglages en direct (page admin → rc_config « live ») : chances en %, coffre des défis.
-final rcLive = <String, num>{'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 3, 'pk': 0.15, 'chest_coins': 500, 'chest_pixels': 2};
+final rcLive = <String, num>{'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 3, 'pk': 0.15, 'da': 0.15, 'chest_coins': 500, 'chest_pixels': 2};
 
 /// Applique les réglages reçus du serveur (prix des paquets compris)
 void applyLive(dynamic m) {
@@ -429,7 +429,7 @@ class Game extends ChangeNotifier {
     }
     if (m.containsKey('owned')) {
       owned = parseOwned(m['owned']);
-      Catalog.pkFetch([for (final id in owned.keys) if (id.startsWith('pk_')) Catalog.cards[id]?.img ?? '']..removeWhere((e) => e.isEmpty));
+      Catalog.seriesFetchIds(owned.keys);
       ownedHash = m['oh'] as String?; // empreinte valable seulement si elle vient avec la collection
     }
   }

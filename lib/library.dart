@@ -67,8 +67,8 @@ List<String> get _sysSortLabels => [
 
 class _LibraryScreenState extends State<LibraryScreen> {
   int sysSort = 0;
-  bool faOwned = false, pkOwned = false; // filtre « Possédées » des onglets Full art / Pokémon
-  int mode = 0; // onglet : 0 Consoles, 1 Sagas, 2 Full art (mémorisé)
+  bool faOwned = false, pkOwned = false; // filtre « Possédées » des onglets Full art / Pokémon / Dessins animés
+  int mode = 0; // onglet : 0 Consoles, 1 Sagas, 2 Full art, 3 Pokémon, 4 Dessins animés (mémorisé)
   bool get sagas => mode == 1;
   bool dashOpen = false; // tableau de bord déplié (mémorisé, replié par défaut)
 
@@ -80,7 +80,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final v = p.getInt(_kSysSortKey);
       if (v != null && mounted) setState(() => sysSort = v.clamp(0, 5));
       final m = p.getInt('rc_coll_mode') ?? (p.getBool('rc_coll_sagas') == true ? 1 : 0);
-      if (m != 0 && mounted) setState(() => mode = m.clamp(0, 3));
+      if (m != 0 && mounted) setState(() => mode = m.clamp(0, 4));
       if (p.getBool('rc_dash_open') == true && mounted) setState(() => dashOpen = true);
     }).catchError((_) {});
   }
@@ -104,16 +104,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
               duration: const Duration(milliseconds: 160),
               padding: const EdgeInsets.symmetric(vertical: 7),
               decoration: BoxDecoration(color: mode == v ? kGold : Colors.transparent, borderRadius: BorderRadius.circular(10)),
-              child: Text(label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: mode == v ? const Color(0xFF2A1800) : Colors.white70)),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(label,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: mode == v ? const Color(0xFF2A1800) : Colors.white70)),
+              ),
             ),
           ),
         );
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(13)),
-      child: Row(children: [b(0, t('🎮 Consoles', '🎮 Systems')), b(1, t('📚 Sagas', '📚 Sagas')), b(2, t('★★ Full art', '★★ Full art')), b(3, 'Pokémon')]),
+      child: Row(children: [b(0, t('🎮 Consoles', '🎮 Systems')), b(1, t('📚 Sagas', '📚 Sagas')), b(2, t('★★ Full art', '★★ Full art')), b(3, 'Pokémon'), b(4, t('📺 Animés', '📺 Cartoons'))]),
     );
   }
 
@@ -176,7 +180,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final systems = _sortedSystems(g);
         final sagaList = [for (final s in kSagas) if (Catalog.bySys[s.sys] != null) s];
         final faAll = mode == 2 ? fullArtCards() : const <RcCard>[];
-        final pkAll = mode == 3 ? (Catalog.bySys['pk'] ?? const <RcCard>[]) : const <RcCard>[];
+        // onglets des séries à part : 3 Pokémon, 4 Dessins animés (même grille)
+        final serSys = switch (mode) { 3 => 'pk', 4 => 'da', _ => null };
+        final pkAll = serSys != null ? (Catalog.bySys[serSys] ?? const <RcCard>[]) : const <RcCard>[];
         final pkMine = [for (final c in pkAll) if (g.owned[c.id]?.any((q) => q > 0) ?? false) c.id].length;
         final faMine = [for (final c in faAll) if ((g.owned[c.id]?[3] ?? 0) > 0) c.id].length;
         final faList = faOwned ? [for (final c in faAll) if ((g.owned[c.id]?[3] ?? 0) > 0) c] : faAll;
@@ -196,7 +202,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(14, 8, 10, 4),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Align(alignment: Alignment.centerLeft, child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 340), child: _seg())),
+                  Align(alignment: Alignment.centerLeft, child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 420), child: _seg())),
                   const SizedBox(height: 4),
                   Row(children: [
                     Expanded(
@@ -205,6 +211,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             1 => t('Cartes holo : ${livePct('saga')} de chance par carte de paquet', 'Holo cards: ${livePct('saga')} chance per pack card'),
                             2 => t('$faMine / ${faList.length} · ${livePct('fullart')} par épique ou légendaire', '$faMine / ${faList.length} · ${livePct('fullart')} per epic or legendary'),
                             3 => t('$pkMine / ${pkList.length} · très très rare, dès la 152 : brillantes', '$pkMine / ${pkList.length} · very very rare, from #152: shiny'),
+                            4 => t('$pkMine / ${pkList.length} · très très rare, les cultes sont brillantes', '$pkMine / ${pkList.length} · very very rare, cult classics are shiny'),
                             _ => t('Mes consoles', 'My systems'),
                           },
                           maxLines: 1,
@@ -251,14 +258,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     ),
                   ),
                 ),
-              if (mode == 3)
+              if (serSys != null)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                     child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [_ownedChip(pkOwned, () => setState(() => pkOwned = !pkOwned))]),
                   ),
                 ),
-              if (mode == 3)
+              if (serSys != null)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
                   sliver: SliverLayoutBuilder(
@@ -342,7 +349,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final total = Catalog.total; // full art comptées à part
     final pct = total == 0 ? 0.0 : g.cards / total;
     final totalByR = List<int>.filled(5, 0), ownByR = List<int>.filled(5, 0);
-    var sagaTotal = 0, sagaMine = 0, faTotal = 0, faMine = 0, pkTotal = 0, pkMine = 0;
+    var sagaTotal = 0, sagaMine = 0, faTotal = 0, faMine = 0, pkTotal = 0, pkMine = 0, daTotal = 0, daMine = 0;
     for (final c in Catalog.cards.values) {
       if (c.isSaga) {
         // cartes de saga : ligne à part (pas dans les épiques)
@@ -354,9 +361,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
         pkTotal++;
         if (g.has(c.id)) pkMine++;
       }
+      if (c.sys == 'da') {
+        daTotal++;
+        if (g.has(c.id)) daMine++;
+      }
       totalByR[c.rarity]++;
       if (g.has(c.id)) ownByR[c.rarity]++;
-      if (c.rarity >= 3 && c.sys != 'pk') {
+      if (c.rarity >= 3 && !isSeriesSys(c.sys)) {
         // full art : possible pour les épiques et légendaires
         faTotal++;
         if ((g.owned[c.id]?[3] ?? 0) > 0) faMine++;
@@ -411,6 +422,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   faTotal > 0 ? () => _setMode(2) : null),
               _bar('⚡ ${t('Pokémon', 'Pokémon')}', pkMine, pkTotal, const Color(0xFFFFD54F), const Color(0xFFFFE082),
                   pkTotal > 0 ? () => _setMode(3) : null),
+              _bar('📺 ${t('Dessins animés', 'Cartoons')}', daMine, daTotal, const Color(0xFF4FC3F7), const Color(0xFF81D4FA),
+                  daTotal > 0 ? () => _setMode(4) : null),
               // toucher une rareté : mes cartes de cette rareté
               for (var r = 4; r >= 0; r--)
                 InkWell(
@@ -999,7 +1012,7 @@ class _FullArtSlot extends StatelessWidget {
   }
 }
 
-/// Case de l'onglet Pokémon : la carte (meilleure finition possédée) ou une case vide numérotée.
+/// Case des onglets Pokémon / Dessins animés : la carte (meilleure finition possédée) ou une case vide numérotée.
 class _PkSlot extends StatelessWidget {
   final RcCard card;
   final List<RcCard> list;

@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'game.dart';
+import 'da_list.dart';
 import 'pk_list.dart';
 import 'web_img_stub.dart' if (dart.library.js_interop) 'web_img_web.dart';
 
@@ -28,6 +29,13 @@ const kAssetsBase = 'https://foclabroc.github.io/retro_collec_assets/';
 
 /// Série « Pokémon » : images hébergées sur le serveur de l'utilisateur (001.jpg … 185.jpg, voir selfhost/pk_prepare.ps1)
 const kPkBase = 'https://foclabroc.duckdns.org/pk/';
+
+/// Série « Dessins animés » : images hébergées sur le serveur de l'utilisateur (01.jpg … 80.jpg)
+const kDaBase = 'https://foclabroc.duckdns.org/da/';
+
+/// Séries à part (cartes en plein cadre, images sur le serveur maison, onglet dédié) : Pokémon et Dessins animés
+const kSeriesBase = {'pk': kPkBase, 'da': kDaBase};
+bool isSeriesSys(String? sys) => sys == 'pk' || sys == 'da';
 
 // (hors de RcCard : dans la classe, « num » désigne le champ et non le type)
 int _int(dynamic v) => (v as num).toInt();
@@ -215,13 +223,15 @@ class Catalog {
 
   /// Total à collectionner : toutes les cartes + une full art possible par épique / légendaire des consoles
   /// (le full art compte comme une carte à part, onglet Full art). Même règle que `rc__rescore` (champ `cards`).
-  static int get total => cards.length + cards.values.where((c) => !c.isSaga && c.sys != 'pk' && c.rarity >= 3).length;
+  static int get total => cards.length + cards.values.where((c) => !c.isSaga && !isSeriesSys(c.sys) && c.rarity >= 3).length;
   static Map<String, List<RcCard>> bySys = {};
   static late String dir; // dossier local des images
 
   static List<RcSystem> sagaSystems = []; // albums des sagas (pas dans « systems » : ce ne sont pas des consoles)
   /// Série Pokémon (barre de progression des profils)
   static RcSystem get pkSet => RcSystem('pk', 'Pokémon', (bySys['pk'] ?? const <RcCard>[]).length, '', '', 0, '', '', 0);
+  /// Série Dessins animés (barre de progression des profils)
+  static RcSystem get daSet => RcSystem('da', t('Dessins animés', 'Cartoons'), (bySys['da'] ?? const <RcCard>[]).length, '', '', 0, '', '', 0);
 
   static bool get loaded => cards.isNotEmpty;
   static RcSystem? system(String id) {
@@ -231,6 +241,8 @@ class Catalog {
     for (final s in sagaSystems) {
       if (s.id == id) return s;
     }
+    if (id == 'pk') return pkSet;
+    if (id == 'da') return daSet;
     return null;
   }
 
@@ -252,34 +264,47 @@ class Catalog {
       });
 
   /// Jaquette de la carte (fichier local sur Android, image en ligne sur le web)
-  static ImageProvider image(RcCard c) => c.sys == 'pk'
-      ? (kIsWeb ? CachedWebImage('$kPkBase${c.img}') : _pkImage(c.img))
+  static ImageProvider image(RcCard c) => isSeriesSys(c.sys)
+      ? (kIsWeb ? CachedWebImage('${kSeriesBase[c.sys]}${c.img}') : _seriesImage(c.sys, c.img))
       : kIsWeb ? CachedWebImage(_url(c.img, c.baseSys ?? c.sys)) : FileImage(File('$dir/${c.img}')) as ImageProvider;
 
   static final Set<String> _pkBusy = {};
 
-  /// Android : image Pokémon gardée sur le disque (téléchargée une seule fois), sinon en ligne le temps de la copie
-  static ImageProvider _pkImage(String img) {
-    final f = File('$dir/pk/$img');
+  /// Android : image d'une série (Pokémon, Dessins animés) gardée sur le disque (téléchargée une seule fois),
+  /// sinon en ligne le temps de la copie
+  static ImageProvider _seriesImage(String sys, String img) {
+    final f = File('$dir/$sys/$img');
     if (f.existsSync()) return FileImage(f);
-    pkFetch([img]);
-    return NetworkImage('$kPkBase$img');
+    seriesFetch(sys, [img]);
+    return NetworkImage('${kSeriesBase[sys]}$img');
   }
 
   /// Télécharge à l'avance les images Pokémon (Android ; le web a son cache)
-  static Future<void> pkFetch(Iterable<String> imgs) async {
+  static Future<void> pkFetch(Iterable<String> imgs) => seriesFetch('pk', imgs);
+
+  /// Télécharge à l'avance les images des séries de ces cartes (pk_…, da_…), d'après leurs id
+  static void seriesFetchIds(Iterable<String> ids) {
+    for (final sys in kSeriesBase.keys) {
+      seriesFetch(sys, [for (final id in ids) if (id.startsWith('${sys}_')) cards[id]?.img ?? '']..removeWhere((e) => e.isEmpty));
+    }
+  }
+
+  /// Télécharge à l'avance les images d'une série (Android ; le web a son cache)
+  static Future<void> seriesFetch(String sys, Iterable<String> imgs) async {
     if (kIsWeb) return;
+    final base = kSeriesBase[sys];
+    if (base == null) return;
     for (final img in imgs) {
-      final f = File('$dir/pk/$img');
-      if (f.existsSync() || !_pkBusy.add(img)) continue;
+      final f = File('$dir/$sys/$img');
+      if (f.existsSync() || !_pkBusy.add('$sys/$img')) continue;
       try {
-        final r = await http.get(Uri.parse('$kPkBase$img'));
+        final r = await http.get(Uri.parse('$base$img'));
         if (r.statusCode == 200 && r.bodyBytes.isNotEmpty) {
           await f.parent.create(recursive: true);
           await f.writeAsBytes(r.bodyBytes, flush: true);
         }
       } catch (_) {}
-      _pkBusy.remove(img);
+      _pkBusy.remove('$sys/$img');
     }
   }
 
@@ -351,6 +376,28 @@ class Catalog {
       cards[c.id] = c;
     }
     bySys['pk'] = pk;
+    // série Dessins animés : même principe (serveur : saga = 'da'), rangées dans « da »
+    final da = <RcCard>[
+      for (var i = 0; i < kDaList.length; i++)
+        RcCard(
+          id: 'da_${(i + 1).toString().padLeft(3, '0')}',
+          sys: 'da',
+          num: i + 1,
+          title: kDaList[i].$1,
+          year: kDaList[i].$2,
+          dev: '',
+          pub: '',
+          genre: '',
+          rarity: kDaRare.contains(i + 1) ? 4 : 3,
+          img: '${(i + 1).toString().padLeft(2, '0')}.jpg',
+          shot: null,
+          desc: kDaList[i].$3,
+        ),
+    ];
+    for (final c in da) {
+      cards[c.id] = c;
+    }
+    bySys['da'] = da;
   }
 
   /// Charge le catalogue déjà téléchargé. Faux si rien en local (premier lancement).

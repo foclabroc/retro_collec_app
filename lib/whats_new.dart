@@ -12,6 +12,13 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('📺', 'Nouvel onglet « Animés » dans la Collection : 80 cartes Dessins animés des années 80/90 (Goldorak, Ulysse 31, Tintin, Les Simpson…), très très rares dans les paquets',
+      'New "Cartoons" tab in the Collection: 80 cartoon cards from the 80s/90s, very very rare in packs'),
+  ('✨', 'Les 13 dessins animés les plus cultes sortent toujours brillants',
+      'The 13 cult classic cartoons always come out shiny'),
+  ('📺', 'Nouveau booster Dessins animés : 5 cartes, 100 pixels dans la boutique (peut aussi être offert en récompense)',
+      'New Cartoons booster: 5 cards, 100 pixels in the shop (can also be given as a reward)'),
+  ('#', 'Aussi depuis la 1.0.43', 'Also since 1.0.43'),
   ('🏃', 'Course de jaquettes refaite : un magasin de jeux rétro la nuit (étagères pleines de jaquettes, néons, sol ciré), et ton coureur est maintenant une cartouche !',
       'Cover Run remade: a retro game shop at night (shelves full of covers, neon signs, polished floor), and your runner is now a cartridge!'),
   ('🎮', 'Course plus jouable : vue plus grosse qui recule avec la vitesse, appui un peu en avance gardé, glisse tant que tu restes appuyé, ↓ en l\'air pour plonger, flèche d\'alerte quand un obstacle arrive vite',

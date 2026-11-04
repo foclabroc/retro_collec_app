@@ -576,7 +576,7 @@ class RcServer {
   static Future<List<Map<String, dynamic>>> stockList() async {
     final d = await deviceId();
     final l = _list(await _rpc('rc_stock_list', {'p_device': d, 'p_sig': _sig('$d|stock')}));
-    Catalog.pkFetch([for (final x in l) if ('${x['c']}'.startsWith('pk_')) Catalog.cards['${x['c']}']?.img ?? '']..removeWhere((e) => e.isEmpty));
+    Catalog.seriesFetchIds([for (final x in l) '${x['c']}']);
     return l;
   }
 

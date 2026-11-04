@@ -419,7 +419,16 @@ class _CardDetailPageState extends State<CardDetailPage> {
               const SizedBox(height: 16),
               if (shot != null)
                 ClipRRect(borderRadius: BorderRadius.circular(10), child: Image(image: shot, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox())),
-              if (c.sys == 'pk')
+              // Dessins animés : année de diffusion et description (Pokémon : rien)
+              if (c.sys == 'da' && (owned || myTotal > 0)) ...[
+                const SizedBox(height: 14),
+                _info(t('Diffusion', 'First aired'), '${c.year ?? '?'}'),
+                _info(t('Rareté', 'Rarity'), rarityName(c.rarity)),
+                if (c.descL.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Text(c.descL, style: const TextStyle(color: Colors.white70, height: 1.45)),
+                ],
+              ] else if (isSeriesSys(c.sys))
                 const SizedBox()
               else if (owned || myTotal > 0) ...[
                 const SizedBox(height: 14),
@@ -484,7 +493,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
       const SizedBox(height: 14),
       if (total > 0) ...[
         Row(children: [
-          if (c.sys != 'pk') ...[
+          if (!isSeriesSys(c.sys)) ...[
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.recycling),
@@ -504,7 +513,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
         ]),
         const SizedBox(height: 8),
       ],
-      if (c.sys != 'pk') ..._extraActions(c, x, total, cost, g),
+      if (!isSeriesSys(c.sys)) ..._extraActions(c, x, total, cost, g),
     ];
   }
 
