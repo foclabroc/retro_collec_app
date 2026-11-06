@@ -428,6 +428,12 @@ class _CardDetailPageState extends State<CardDetailPage> {
                   const SizedBox(height: 10),
                   Text(c.descL, style: const TextStyle(color: Colors.white70, height: 1.45)),
                 ],
+              ] else if (c.sys == 'db' && (owned || myTotal > 0)) ...[
+                // Dragon Ball : série du jeu de cartes, numéro et rareté d'origine
+                const SizedBox(height: 14),
+                _info(t('Série', 'Set'), 'Part ${c.pub}'),
+                _info(t('Numéro', 'Number'), c.dev),
+                _info(t('Rareté', 'Rarity'), switch (c.rarity) { 4 => 'Holo', 3 => 'Rare', _ => t('Commune', 'Common') }),
               ] else if (isSeriesSys(c.sys))
                 const SizedBox()
               else if (owned || myTotal > 0) ...[

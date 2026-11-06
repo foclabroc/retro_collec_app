@@ -199,6 +199,8 @@ List<_Section> _sections() {
       _b(t('Boosters spéciaux en pixels : étoile 15, console spéciale 25, or 40, Dessins animés 70 (5 cartes Dessins animés), Pokémon 100 (5 cartes Pokémon).', 'Special boosters for pixels: star 15, special console 25, gold 40, Cartoons 70 (5 cartoon cards), Pokémon 100 (5 Pokémon cards).')),
       _b(t('Série Dessins animés : 80 pochettes des années 80/90, très très rares dans les paquets (≈ ${livePct('da')} par carte), les 13 plus cultes sont toujours brillantes. Onglet « Animés » de la Collection.',
           'Cartoons set: 80 covers from the 80s/90s, very very rare in packs (≈ ${livePct('da')} per card), the 13 cult classics are always shiny. "Cartoons" tab in the Collection.')),
+      _b(t('Série Dragon Ball : 200 cartes du jeu de cartes français (Parts 1 à 10), rares dans les paquets (≈ ${livePct('db')} par carte). Booster Dragon Ball à ${kPackPrice['dragonball']} pièces : 12 cartes différentes (8 communes, 3 rares, au moins une holo). Les holos sont toujours brillantes. Onglet « DBZ » de la Collection.',
+          'Dragon Ball set: 200 cards from the French card game (Parts 1 to 10), rare in packs (≈ ${livePct('db')} per card). Dragon Ball booster for ${kPackPrice['dragonball']} coins: 12 different cards (8 commons, 3 rares, at least one holo). Holos are always shiny. "DBZ" tab in the Collection.')),
       _b(t('Garantie : après 30 paquets sans épique ni légendaire, le suivant en contient forcément une.',
           'Pity: after 30 packs without an epic or legendary, the next one is guaranteed to have one.')),
       _p(t('Les prix peuvent baisser pendant les événements (promos affichées dans la boutique).', 'Prices can drop during events (promos shown in the shop).')),

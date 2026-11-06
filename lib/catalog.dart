@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'game.dart';
 import 'da_list.dart';
+import 'db_list.dart';
 import 'pk_list.dart';
 import 'web_img_stub.dart' if (dart.library.js_interop) 'web_img_web.dart';
 
@@ -33,9 +34,12 @@ const kPkBase = 'https://foclabroc.duckdns.org/pk/';
 /// Série « Dessins animés » : images hébergées sur le serveur de l'utilisateur (2/01.jpg … 2/80.jpg)
 const kDaBase = 'https://foclabroc.duckdns.org/da/';
 
-/// Séries à part (cartes en plein cadre, images sur le serveur maison, onglet dédié) : Pokémon et Dessins animés
-const kSeriesBase = {'pk': kPkBase, 'da': kDaBase};
-bool isSeriesSys(String? sys) => sys == 'pk' || sys == 'da';
+/// Série « Dragon Ball » : images hébergées sur le serveur de l'utilisateur (001.jpg … 200.jpg)
+const kDbBase = 'https://foclabroc.duckdns.org/db/';
+
+/// Séries à part (cartes en plein cadre, images sur le serveur maison, onglet dédié) : Pokémon, Dessins animés, Dragon Ball
+const kSeriesBase = {'pk': kPkBase, 'da': kDaBase, 'db': kDbBase};
+bool isSeriesSys(String? sys) => sys == 'pk' || sys == 'da' || sys == 'db';
 
 // (hors de RcCard : dans la classe, « num » désigne le champ et non le type)
 int _int(dynamic v) => (v as num).toInt();
@@ -232,6 +236,8 @@ class Catalog {
   static RcSystem get pkSet => RcSystem('pk', 'Pokémon', (bySys['pk'] ?? const <RcCard>[]).length, '', '', 0, '', '', 0);
   /// Série Dessins animés (barre de progression des profils)
   static RcSystem get daSet => RcSystem('da', t('Dessins animés', 'Cartoons'), (bySys['da'] ?? const <RcCard>[]).length, '', '', 0, '', '', 0);
+  /// Série Dragon Ball (barre de progression des profils)
+  static RcSystem get dbSet => RcSystem('db', 'Dragon Ball', (bySys['db'] ?? const <RcCard>[]).length, '', '', 0, '', '', 0);
 
   static bool get loaded => cards.isNotEmpty;
   static RcSystem? system(String id) {
@@ -243,6 +249,7 @@ class Catalog {
     }
     if (id == 'pk') return pkSet;
     if (id == 'da') return daSet;
+    if (id == 'db') return dbSet;
     return null;
   }
 
@@ -399,6 +406,29 @@ class Catalog {
       cards[c.id] = c;
     }
     bySys['da'] = da;
+    // série Dragon Ball : même principe (serveur : saga = 'db'), rangées dans « db »
+    // (dev = numéro de la carte, pub = Part 1 à 10 ; rareté du jeu : 2 commune, 3 rare, 4 holo toujours brillante)
+    final db = <RcCard>[
+      for (var i = 0; i < kDbList.length; i++)
+        RcCard(
+          id: 'db_${(i + 1).toString().padLeft(3, '0')}',
+          sys: 'db',
+          num: i + 1,
+          title: kDbList[i].$1,
+          year: null,
+          dev: kDbList[i].$2,
+          pub: kDbList[i].$3,
+          genre: '',
+          rarity: kDbList[i].$4,
+          img: '${(i + 1).toString().padLeft(3, '0')}.jpg',
+          shot: null,
+          desc: '',
+        ),
+    ];
+    for (final c in db) {
+      cards[c.id] = c;
+    }
+    bySys['db'] = db;
   }
 
   /// Charge le catalogue déjà téléchargé. Faux si rien en local (premier lancement).

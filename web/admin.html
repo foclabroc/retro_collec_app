@@ -358,23 +358,23 @@ const fromLocal = s => s ? new Date(s).toISOString() : null;
 const RAR = ['Commune', 'Peu commune', 'Rare', 'Épique', 'Légendaire'];
 const FIN = ['Normale', 'Brillante', 'Dorée', 'Full art'];
 const GAME = { c4: '🔴 4 en ligne', bs: '🚢 Console Wars', rj: '🚀 Rétro Jump', rn: '🏃 Course de jaquettes' };
-const PACK = { lot: 'Lot de 5', mixte: 'Mixte', gift: 'Cadeau', free: 'Gratuit', console: 'Console', gold: 'Doré ▦', premium: 'Premium', mystery: 'Mystère', star: 'Étoile ▦', sconsole: 'Console spé. ▦', pokemon: 'Pokémon ▦', cartoon: 'Dessins animés ▦' };
-const PACKC = { lot: '#8a90b4', mixte: '#ffcc33', gift: '#ff7eb6', free: '#3ee08f', console: '#ff9f40', gold: '#ffe680', premium: '#b07cff', mystery: '#3fd0ff', star: '#9ad0ff', sconsole: '#ff5a6e', pokemon: '#ff3d7f', cartoon: '#4fc3f7' };
+const PACK = { lot: 'Lot de 5', mixte: 'Mixte', gift: 'Cadeau', free: 'Gratuit', console: 'Console', gold: 'Doré ▦', premium: 'Premium', mystery: 'Mystère', star: 'Étoile ▦', sconsole: 'Console spé. ▦', pokemon: 'Pokémon ▦', cartoon: 'Dessins animés ▦', dragonball: 'Dragon Ball' };
+const PACKC = { lot: '#8a90b4', mixte: '#ffcc33', gift: '#ff7eb6', free: '#3ee08f', console: '#ff9f40', gold: '#ffe680', premium: '#b07cff', mystery: '#3fd0ff', star: '#9ad0ff', sconsole: '#ff5a6e', pokemon: '#ff3d7f', cartoon: '#4fc3f7', dragonball: '#ff8f3a' };
 const KIND = { pack: 'Achat de paquets', open: 'Ouverture (pixels)', reward: 'Récompenses (paliers, courrier, événements…)', sell: 'Mise en vente', buy: 'Achats à la Bourse', sold: 'Ventes à la Bourse', duel: 'Duels', lot: 'Lots de 5', gift: 'Cadeau envoyé', quiz: 'Quiz', trade_ok: 'Échange accepté', wheel: 'Roue', week: 'Défis de la semaine', trade_offer: "Proposition d'échange", login: 'Connexion (série)', gamedle: 'Gamedle', recycle: 'Recyclage', unsell: 'Annonce retirée', coins: 'Autres mouvements', gift_in: 'Cadeau reçu', fuse: 'Fusion', trade_no: 'Échange refusé', join: 'Inscription', tour: 'Tournois', craft: 'Fabrication', cab: 'Bornes' };
-const SYS = { nes: 'NES', snes: 'Super NES', n64: 'Nintendo 64', gamecube: 'GameCube', wii: 'Wii', wiiu: 'Wii U', switch: 'Switch', gb: 'Game Boy', gbc: 'Game Boy Color', gba: 'Game Boy Advance', '3ds': '3DS', mastersystem: 'Master System', megadrive: 'Mega Drive', gamegear: 'Game Gear', saturn: 'Saturn', dreamcast: 'Dreamcast', sg1000: 'SG-1000', psx: 'PlayStation', ps2: 'PlayStation 2', psp: 'PSP', neogeo: 'Neo Geo', atari2600: 'Atari 2600', atari7800: 'Atari 7800', lynx: 'Lynx', amiga1200: 'Amiga 1200', amigacd32: 'Amiga CD32', colecovision: 'ColecoVision', supervision: 'Supervision', xbox: 'Xbox', pk: 'Pokémon (série)', da: 'Dessins animés (série)' };
+const SYS = { nes: 'NES', snes: 'Super NES', n64: 'Nintendo 64', gamecube: 'GameCube', wii: 'Wii', wiiu: 'Wii U', switch: 'Switch', gb: 'Game Boy', gbc: 'Game Boy Color', gba: 'Game Boy Advance', '3ds': '3DS', mastersystem: 'Master System', megadrive: 'Mega Drive', gamegear: 'Game Gear', saturn: 'Saturn', dreamcast: 'Dreamcast', sg1000: 'SG-1000', psx: 'PlayStation', ps2: 'PlayStation 2', psp: 'PSP', neogeo: 'Neo Geo', atari2600: 'Atari 2600', atari7800: 'Atari 7800', lynx: 'Lynx', amiga1200: 'Amiga 1200', amigacd32: 'Amiga CD32', colecovision: 'ColecoVision', supervision: 'Supervision', xbox: 'Xbox', pk: 'Pokémon (série)', da: 'Dessins animés (série)', db: 'Dragon Ball (série)' };
 const sysName = s => SYS[s] || (s && s.startsWith('sg_') ? 'Saga ' + s.slice(3) : s);
-const LIVE_DEF = { saga: 3.2, holo: 5, gold: 0.5, fullart: 3, pk: 0.15, da: 0.15, chest_coins: 500, chest_pixels: 2, mixte: 100, console: 150, premium: 400, mystery: 120 };
+const LIVE_DEF = { saga: 3.2, holo: 5, gold: 0.5, fullart: 3, pk: 0.15, da: 0.15, db: 0.15, chest_coins: 500, chest_pixels: 2, mixte: 100, console: 150, premium: 400, mystery: 120 };
 
 // ═══════════════════ CONSTRUCTEUR DE RÉCOMPENSE ═══════════════════
-// format serveur : {coins, pixels, lots, packs:{mixte,premium,mystery,star,gold,pokemon,cartoon}, cards:{"0".."4","pk","da"}}
+// format serveur : {coins, pixels, lots, packs:{mixte,premium,mystery,star,gold,pokemon,cartoon,dragonball}, cards:{"0".."4","pk","da","db"}}
 const Q1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], QL = [1, 2, 3, 4, 5],
   QC = [5, 10, 20, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1500, 2000, 2500, 3000, 5000, 7500, 10000, 20000, 50000],
   QP = [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 50, 100];
 const RT = {
   coins: ['🪙 Pièces', QC], pixels: ['▦ Pixels', QP], lots: ['🎟 Lots de 5', QL],
   'p:mixte': ['📦 Paquet mixte', Q1], 'p:premium': ['💎 Paquet premium', Q1], 'p:mystery': ['❓ Paquet mystère', Q1],
-  'p:star': ['⭐ Paquet étoile', Q1], 'p:gold': ['🟨 Paquet doré', Q1], 'p:pokemon': ['⚡ Booster Pokémon', Q1], 'p:cartoon': ['📺 Booster Dessins animés', Q1],
-  'c:0': ['🃏 Carte commune', Q1], 'c:1': ['🃏 Carte peu commune', Q1], 'c:2': ['🟦 Carte rare', Q1], 'c:3': ['🟪 Carte épique', Q1], 'c:4': ['🟧 Carte légendaire', Q1], 'c:pk': ['⚡ Carte Pokémon', Q1], 'c:da': ['📺 Carte Dessin animé', Q1]
+  'p:star': ['⭐ Paquet étoile', Q1], 'p:gold': ['🟨 Paquet doré', Q1], 'p:pokemon': ['⚡ Booster Pokémon', Q1], 'p:cartoon': ['📺 Booster Dessins animés', Q1], 'p:dragonball': ['🐉 Booster Dragon Ball', Q1],
+  'c:0': ['🃏 Carte commune', Q1], 'c:1': ['🃏 Carte peu commune', Q1], 'c:2': ['🟦 Carte rare', Q1], 'c:3': ['🟪 Carte épique', Q1], 'c:4': ['🟧 Carte légendaire', Q1], 'c:pk': ['⚡ Carte Pokémon', Q1], 'c:da': ['📺 Carte Dessin animé', Q1], 'c:db': ['🐉 Carte Dragon Ball', Q1]
 };
 const rwQ = (t, q) => opt(withCur(RT[t][1], q), q);
 const rwItem = (t, q) => `<span class="rwi"><select class="rwt">${opt(Object.entries(RT).map(([k, v]) => [k, v[0]]), t)}</select><select class="rwq">${rwQ(t, q)}</select><b class="rwx" title="Retirer">×</b></span>`;
@@ -459,7 +459,7 @@ async function catalog() {
   return CAT;
 }
 // catalogue des images (même fichier que l'appli) : id -> carte, sys -> empreinte du pack
-const ASSETS = 'https://foclabroc.github.io/retro_collec_assets/', PKB = 'https://foclabroc.duckdns.org/pk/', DAB = 'https://foclabroc.duckdns.org/da/';
+const ASSETS = 'https://foclabroc.github.io/retro_collec_assets/', PKB = 'https://foclabroc.duckdns.org/pk/', DAB = 'https://foclabroc.duckdns.org/da/', DBB = 'https://foclabroc.duckdns.org/db/';
 const RCOL = [['#888780', '#444441', '#D3D1C7'], ['#639922', '#173404', '#C0DD97'], ['#378ADD', '#042C53', '#B5D4F4'], ['#9C8CFF', '#26215C', '#CECBF6'], ['#EF9F27', '#412402', '#FAC775']];
 let CJ = null, CJH = {};
 async function cjson() {
@@ -472,10 +472,10 @@ async function cjson() {
 // carte dessinée comme dans l'appli (simplifiée) : clic = retourner
 function cardFace(id, f) {
   const c = CAT[id]; if (!c) return '';
-  const da = id.startsWith('da_'), pk = id.startsWith('pk_') || da;  // séries en plein cadre (Pokémon, Dessins animés)
+  const da = id.startsWith('da_'), db = id.startsWith('db_'), pk = id.startsWith('pk_') || da || db;  // séries en plein cadre (Pokémon, Dessins animés, Dragon Ball)
   const src = CJ?.[id] || (c[3] && CJ?.[c[3]]) || {};
   const sys = src.s || c[0], h = CJH[sys] ? '?h=' + CJH[sys] : '';
-  const img = da ? DAB + '2/' + id.slice(4) + '.jpg' : pk ? PKB + id.slice(3) + '.jpg' : src.img ? ASSETS + src.img + h : '';
+  const img = db ? DBB + id.slice(3) + '.jpg' : da ? DAB + '2/' + id.slice(4) + '.jpg' : pk ? PKB + id.slice(3) + '.jpg' : src.img ? ASSETS + src.img + h : '';
   const shot = src.shot ? ASSETS + src.shot + h : '';
   const [rc, rd, rl] = RCOL[c[1]] || RCOL[0];
   const meta = [src.y, src.dv, src.g].filter(Boolean).map(esc).join(' · ');
@@ -483,7 +483,7 @@ function cardFace(id, f) {
     <div class="fc-f"><div class="top"><span>${esc(sysName(c[0]))}</span><span>${'★'.repeat(c[1] + 1)}</span></div>
       <div class="img" style="background-image:url('${img}')"></div>
       <div class="ttl">${esc(c[2])}<small>${RAR[c[1]]} · ${FIN[f]}${src.y ? ' · ' + src.y : ''}</small></div></div>
-    <div class="fc-b"${pk ? ` style="background-image:url('assets/assets/${da ? 'card_back_da.jpg' : 'card_back_pk.jpg'}')"` : ''}>${pk ? '' : `<div class="shot" style="background-image:url('${shot}')"></div>
+    <div class="fc-b"${pk ? ` style="background-image:url('assets/assets/${db ? 'card_back_db.jpg' : da ? 'card_back_da.jpg' : 'card_back_pk.jpg'}')"` : ''}>${pk ? '' : `<div class="shot" style="background-image:url('${shot}')"></div>
       <div class="bd"><b>${esc(c[2])}</b><div class="meta">${meta || esc(sysName(c[0]))}</div>${esc(src.d || 'Pas de description.')}</div>`}</div>
   </div></div>`;
 }
@@ -647,7 +647,7 @@ async function openPlayer(pid) {
   <div data-tab="p1">
     <div class="grid g4">
       <div class="mini"><div class="l">Score</div><div class="n">${fr(p.score)}</div><div class="small mute">${p.rank}e</div></div>
-      <div class="mini"><div class="l">Cartes</div><div class="n">${fr(p.cards)}</div><div class="small mute">${p.pk} Pokémon · ${p.da ?? 0} Dessins animés</div></div>
+      <div class="mini"><div class="l">Cartes</div><div class="n">${fr(p.cards)}</div><div class="small mute">${p.pk} Pokémon · ${p.da ?? 0} Dessins animés · ${p.db ?? 0} Dragon Ball</div></div>
       <div class="mini"><div class="l">Paquets ouverts</div><div class="n">${fr(p.packs)}</div><div class="small mute">${packsTot.today} aujourd'hui</div></div>
       <div class="mini"><div class="l">Jours actifs</div><div class="n">${fr(p.days)}</div><div class="small mute">série ${fr(p.streak)} j</div></div>
     </div>
@@ -911,7 +911,7 @@ function evForm(e, dup = false) {
   const steps = e.steps?.length ? e.steps : [{ n: 10, coins: 200 }];
   const stepRow = s => `<div class="msg st"><select class="st_n" style="width:90px">${opt(withCur([1, 2, 3, 5, 8, 10, 15, 20, 25, 30, 40, 50, 60, 75, 100, 150, 200, 300, 500], s.n), s.n)}</select><div class="b">${rwBox({ ...(s.reward || {}), coins: (s.coins || 0) + (s.reward?.coins || 0), pixels: (s.pixels || 0) + (s.reward?.pixels || 0) })}</div><button class="btn s d st_rm">🗑</button></div>`;
   const infoRw = { ...(e.reward || {}), coins: (e.coins || 0) + (e.reward?.coins || 0), pixels: (e.pixels || 0) + (e.reward?.pixels || 0) };
-  const sysList = CAT ? [...new Set(Object.values(CAT).map(c => c[0]))].filter(s => !s.startsWith('sg_') && s !== 'pk' && s !== 'da').sort() : Object.keys(SYS);
+  const sysList = CAT ? [...new Set(Object.values(CAT).map(c => c[0]))].filter(s => !s.startsWith('sg_') && s !== 'pk' && s !== 'da' && s !== 'db').sort() : Object.keys(SYS);
   $('#evform').innerHTML = `<h3>${id ? '✏️ Modifier' : '＋ Nouvel événement'} ${id ? `<span class="mute small">#${id}</span>` : ''}</h3>
     <div class="f2"><div><label>Titre (FR)</label><input id="ev_t" value="${esc(e.title || '')}" maxlength="60"></div><div><label>Titre (EN)</label><input id="ev_te" value="${esc(e.title_en || '')}" maxlength="60"></div></div>
     <div class="f2"><div><label>Texte (FR)</label><textarea id="ev_b" maxlength="600">${esc(e.body || '')}</textarea></div><div><label>Texte (EN)</label><textarea id="ev_be" maxlength="600">${esc(e.body_en || '')}</textarea></div></div>
@@ -1152,7 +1152,7 @@ PAGES.eco = async el => {
   const prices = [0, 25, 50, 75, 80, 90, 100, 110, 120, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 750, 1000];
   el.innerHTML = `<div class="grid g2">
     <div class="card"><h3>🎲 Chances (en %)</h3>
-      <div class="f3">${P('holo', 'Brillante', pct)}${P('gold', 'Dorée', pct)}${P('fullart', 'Full art', pct)}${P('saga', 'Carte de saga', pct)}${P('pk', 'Carte Pokémon', pct)}${P('da', 'Carte Dessin animé', pct)}</div>
+      <div class="f3">${P('holo', 'Brillante', pct)}${P('gold', 'Dorée', pct)}${P('fullart', 'Full art', pct)}${P('saga', 'Carte de saga', pct)}${P('pk', 'Carte Pokémon', pct)}${P('da', 'Carte Dessin animé', pct)}${P('db', 'Carte Dragon Ball', pct)}</div>
       <h3 style="margin-top:18px">💰 Prix des paquets (pièces)</h3>
       <div class="f4">${P('mixte', 'Mixte', prices)}${P('console', 'Console', prices)}${P('premium', 'Premium', prices)}${P('mystery', 'Mystère', prices)}</div>
       <h3 style="margin-top:18px">🎁 Coffre des défis de la semaine</h3>
@@ -1252,7 +1252,7 @@ PAGES.sched = async el => {
     if (o === 'mail') f.innerHTML = `<label>Destinataires</label><select id="sm_t">${opt([['all', 'Tout le monde'], ['active7', 'Actifs 7 jours'], ['new7', 'Nouveaux 7 jours'], ['inactive7', 'Inactifs 7 jours']], 'all')}</select><label>Titre</label><input id="sm_ti" maxlength="80"><label>Message</label><textarea id="sm_b" maxlength="600"></textarea><label>Cadeau</label><div id="sm_rw">${rwBox({})}</div>`;
     if (o === 'banner') f.innerHTML = `<label>Texte (vide = retirer)</label><input id="sb_t" maxlength="200"><label>Jusqu'au (facultatif)</label><input type="datetime-local" id="sb_u">`;
     if (o === 'chat') f.innerHTML = `<label>Message (en ton nom ; @tous pour notifier tout le monde)</label><textarea id="sc_m" maxlength="300"></textarea>`;
-    if (o === 'live') f.innerHTML = `<div class="f2"><div><label>Réglage</label><select id="sl_k">${opt([['holo', 'Chance brillante (%)'], ['gold', 'Chance dorée (%)'], ['fullart', 'Chance full art (%)'], ['saga', 'Chance saga (%)'], ['pk', 'Chance Pokémon (%)'], ['da', 'Chance Dessins animés (%)'], ['mixte', 'Prix mixte'], ['console', 'Prix console'], ['premium', 'Prix premium'], ['mystery', 'Prix mystère'], ['chest_coins', 'Coffre : pièces'], ['chest_pixels', 'Coffre : pixels'], ['free_hours', 'Paquet gratuit : heures'], ['wheel_hours', 'Roue : heures']], 'fullart')}</select></div><div><label>Valeur</label><input type="number" step="0.01" id="sl_v" value="3"></div></div><div class="small mute mt">Astuce : programme un 2e réglage pour revenir à la valeur normale.</div>`;
+    if (o === 'live') f.innerHTML = `<div class="f2"><div><label>Réglage</label><select id="sl_k">${opt([['holo', 'Chance brillante (%)'], ['gold', 'Chance dorée (%)'], ['fullart', 'Chance full art (%)'], ['saga', 'Chance saga (%)'], ['pk', 'Chance Pokémon (%)'], ['da', 'Chance Dessins animés (%)'], ['db', 'Chance Dragon Ball (%)'], ['mixte', 'Prix mixte'], ['console', 'Prix console'], ['premium', 'Prix premium'], ['mystery', 'Prix mystère'], ['chest_coins', 'Coffre : pièces'], ['chest_pixels', 'Coffre : pixels'], ['free_hours', 'Paquet gratuit : heures'], ['wheel_hours', 'Roue : heures']], 'fullart')}</select></div><div><label>Valeur</label><input type="number" step="0.01" id="sl_v" value="3"></div></div><div class="small mute mt">Astuce : programme un 2e réglage pour revenir à la valeur normale.</div>`;
     if (o === 'maint') f.innerHTML = `<label class="inl mt"><input type="checkbox" id="smt_on" checked> Activer (décocher = couper)</label><label>Message</label><input id="smt_m" value="Mise à jour en cours, retour dans quelques minutes !">`;
     if (o === 'event') f.innerHTML = `<label>Événement</label><select id="se_id">${opt(evs.map(e => [e.id, `${e.icon} ${e.title}`]), evs[0]?.id)}</select><label class="inl mt"><input type="checkbox" id="se_on" checked> Activer (décocher = couper)</label>`;
   };

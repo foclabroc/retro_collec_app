@@ -1,9 +1,9 @@
-create or replace function public.rc__grant(p_dev text, p_reward jsonb)
- returns jsonb
- language plpgsql
- security definer
- set search_path to 'public', 'extensions'
-as $function$
+CREATE OR REPLACE FUNCTION public.rc__grant(p_dev text, p_reward jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $function$
 declare
   r jsonb := public.rc__rw_clean(p_reward);
   k text; v text; n int; i int; c text; cards jsonb := '[]'::jsonb;
@@ -18,7 +18,7 @@ begin
    where device = p_dev;
   for k, v in select key, value from jsonb_each_text(coalesce(r->'packs', '{}'::jsonb)) loop
     lbl := case k when 'mixte' then 'mixte' when 'premium' then 'premium' when 'mystery' then 'mystère'
-                  when 'star' then 'Étoile' when 'gold' then 'Rétro d''or' when 'pokemon' then 'Pokémon' end;
+                  when 'star' then 'Étoile' when 'gold' then 'Rétro d''or' when 'pokemon' then 'Pokémon' when 'cartoon' then 'Dessins animés' when 'dragonball' then 'Dragon Ball' end;
     for i in 1 .. v::int loop
       insert into public.rc_gifts (receiver, giver, giver_name, kind)
       values (p_dev, null, coalesce(nullif(current_setting('rc.gift_from', true), ''), 'Pixel Trade') || ' · ' || lbl, k);
@@ -27,7 +27,11 @@ begin
   for k, v in select key, value from jsonb_each_text(coalesce(r->'cards', '{}'::jsonb)) loop
     for i in 1 .. v::int loop
       -- 'pk' = une carte Pokémon au hasard
-      if k = 'pk' then
+      if k = 'db' then  -- une carte Dragon Ball au hasard
+        select id into c from public.rc_cards where saga = 'db' order by random() limit 1;
+      elsif k = 'da' then  -- une carte Dessin animé au hasard
+        select id into c from public.rc_cards where saga = 'da' order by random() limit 1;
+      elsif k = 'pk' then
         select id into c from public.rc_cards where saga = 'pk' order by random() limit 1;
       else
         select id into c from public.rc_cards where rarity = k::int and saga is null order by random() limit 1;
@@ -41,4 +45,5 @@ begin
     end loop;
   end loop;
   return r || jsonb_build_object('cards', cards);
-end $function$;
+end $function$
+

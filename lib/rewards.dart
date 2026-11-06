@@ -10,7 +10,7 @@ import 'game.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Paquets possibles en récompense (le paquet console demande un choix : pas proposé)
-const kRewardPacks = ['mixte', 'premium', 'mystery', 'star', 'gold', 'pokemon', 'cartoon'];
+const kRewardPacks = ['mixte', 'premium', 'mystery', 'star', 'gold', 'pokemon', 'cartoon', 'dragonball'];
 
 String rewardPackName(String k, {int n = 1}) => switch (k) {
       'mixte' => t('paquet mixte', 'mixed pack'),
@@ -20,10 +20,11 @@ String rewardPackName(String k, {int n = 1}) => switch (k) {
       'gold' => t('booster Rétro d\'or', 'Retro Gold booster'),
       'pokemon' => t('booster Pokémon', 'Pokémon booster'),
       'cartoon' => t('booster Dessins animés', 'Cartoons booster'),
+      'dragonball' => t('booster Dragon Ball', 'Dragon Ball booster'),
       _ => k,
     };
 
-String rewardPackIcon(String k) => switch (k) { 'premium' => '💎', 'mystery' => '❓', 'star' => '⭐', 'gold' => '🏆', 'pokemon' => '🔴', 'cartoon' => '📺', _ => '📦' };
+String rewardPackIcon(String k) => switch (k) { 'premium' => '💎', 'mystery' => '❓', 'star' => '⭐', 'gold' => '🏆', 'pokemon' => '🔴', 'cartoon' => '📺', 'dragonball' => '🐉', _ => '📦' };
 
 int _n(dynamic v) => v is num ? v.toInt() : int.tryParse('${v ?? ''}') ?? 0;
 
@@ -87,6 +88,10 @@ List<String> rewardParts(dynamic r, {bool icons = true}) {
     }
     if (e.key == 'da') {
       parts.add(t('${e.value} carte Dessin animé', '${e.value} cartoon card'));
+      continue;
+    }
+    if (e.key == 'db') {
+      parts.add(t('${e.value} carte Dragon Ball', '${e.value} Dragon Ball card'));
       continue;
     }
     parts.add(t('${e.value} carte ${rarityName(_n(e.key)).toLowerCase()}', '${e.value} ${rarityName(_n(e.key)).toLowerCase()} card'));
@@ -155,6 +160,7 @@ class _RewardEditorState extends State<RewardEditor> {
         'packs' => (rewardPackIcon(sub ?? ''), rewardPackName(sub ?? '')),
         _ when sub == 'pk' => ('⚡', t('Carte Pokémon au hasard', 'Random Pokémon card')),
         _ when sub == 'da' => ('📺', t('Carte Dessin animé au hasard', 'Random cartoon card')),
+        _ when sub == 'db' => ('🐉', t('Carte Dragon Ball au hasard', 'Random Dragon Ball card')),
         _ => ('🃏', t('Carte ${rarityName(_n(sub)).toLowerCase()} au hasard', 'Random ${rarityName(_n(sub)).toLowerCase()} card')),
       };
 
@@ -205,7 +211,7 @@ class _RewardEditorState extends State<RewardEditor> {
       ('pixels', null),
       for (final p in kRewardPacks) ('packs', p),
       ('lots', null),
-      for (final c in const ['1', '2', '3', '4', 'pk', 'da']) ('cards', c),
+      for (final c in const ['1', '2', '3', '4', 'pk', 'da', 'db']) ('cards', c),
     ];
     final pick = await showModalBottomSheet<(String, String?)>(
       context: context,

@@ -680,7 +680,7 @@ class _SetsFoldState extends State<SetsFold> {
 
   @override
   Widget build(BuildContext context) {
-    final sets = [...Catalog.systems, ...Catalog.sagaSystems, Catalog.pkSet, Catalog.daSet];
+    final sets = [...Catalog.systems, ...Catalog.sagaSystems, Catalog.pkSet, Catalog.daSet, Catalog.dbSet];
     final done = sets.where((s) => s.count > 0 && widget.count(s.id) >= s.count).length;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       InkWell(
@@ -1244,6 +1244,7 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                     ),
                   _cmpRow(Catalog.pkSet.name, Game.i.ownedIn('pk'), _in('pk'), Catalog.pkSet.count),
                   _cmpRow(Catalog.daSet.name, Game.i.ownedIn('da'), _in('da'), Catalog.daSet.count),
+                  _cmpRow(Catalog.dbSet.name, Game.i.ownedIn('db'), _in('db'), Catalog.dbSet.count),
                 ]),
     ));
   }

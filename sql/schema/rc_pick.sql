@@ -1,9 +1,9 @@
-create or replace function public.rc_pick(p_device text, p_choice integer, p_sig text)
- returns jsonb
- language plpgsql
- security definer
- set search_path to 'public', 'extensions'
-as $function$
+CREATE OR REPLACE FUNCTION public.rc_pick(p_device text, p_choice integer, p_sig text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $function$
 declare
   v public.rc_players;
   pd public.rc_pending;
@@ -21,7 +21,7 @@ begin
 
   for e in select * from jsonb_array_elements(pd.packs -> p_choice) loop
     c := e ->> 'c'; f := (e ->> 'f')::int; r := (e ->> 'r')::int;
-    if r >= 3 and coalesce(pd.gk, pd.kind) <> 'pokemon' then got_epic := true; end if;
+    if r >= 3 and coalesce(pd.gk, pd.kind) not in ('pokemon', 'cartoon', 'dragonball') then got_epic := true; end if;
     is_new := public.rc__is_new(p_device, c, f);
     if is_new then nnew := nnew + 1; end if;
     perform public.rc__give(p_device, c, f, 1);
@@ -62,4 +62,5 @@ begin
                             'coins', v.coins, 'pity', v.pity, 'pixels', v.pixels,
                             'pixel_gain', case when public.rc__special_cost(pd.kind) is null then 1 else 0 end, 'score', v.score, 'events', ev, 'lots', v.lots,
                             'gifts', (select count(*)::int from public.rc_gifts g where g.receiver = p_device and g.opened_at is null));
-end $function$;
+end $function$
+

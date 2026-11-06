@@ -80,7 +80,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final v = p.getInt(_kSysSortKey);
       if (v != null && mounted) setState(() => sysSort = v.clamp(0, 5));
       final m = p.getInt('rc_coll_mode') ?? (p.getBool('rc_coll_sagas') == true ? 1 : 0);
-      if (m != 0 && mounted) setState(() => mode = m.clamp(0, 4));
+      if (m != 0 && mounted) setState(() => mode = m.clamp(0, 5));
       if (p.getBool('rc_dash_open') == true && mounted) setState(() => dashOpen = true);
     }).catchError((_) {});
   }
@@ -95,7 +95,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     SharedPreferences.getInstance().then((p) => p.setInt('rc_coll_mode', v)).catchError((_) => false);
   }
 
-  /// Sélecteur « Consoles | Sagas | Full art | Pokémon | Animés » : chaque onglet a sa couleur, fond opaque
+  /// Sélecteur « Consoles | Sagas | Full art | Pokémon | Animés | Dragon Ball » : chaque onglet a sa couleur, fond opaque
   Widget _seg() {
     Widget b(int v, String label, Color color) {
       final on = mode == v;
@@ -133,6 +133,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         b(2, t('★★ Full art', '★★ Full art'), const Color(0xFFC18CFF)),
         b(3, '⚡ Pokémon', const Color(0xFFFFD54F)),
         b(4, t('📺 Animés', '📺 Cartoons'), const Color(0xFF4FC3F7)),
+        b(5, '🐉 DBZ', const Color(0xFFFF8F3A)),
       ]),
     );
   }
@@ -196,8 +197,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final systems = _sortedSystems(g);
         final sagaList = [for (final s in kSagas) if (Catalog.bySys[s.sys] != null) s];
         final faAll = mode == 2 ? fullArtCards() : const <RcCard>[];
-        // onglets des séries à part : 3 Pokémon, 4 Dessins animés (même grille)
-        final serSys = switch (mode) { 3 => 'pk', 4 => 'da', _ => null };
+        // onglets des séries à part : 3 Pokémon, 4 Dessins animés, 5 Dragon Ball (même grille)
+        final serSys = switch (mode) { 3 => 'pk', 4 => 'da', 5 => 'db', _ => null };
         final pkAll = serSys != null ? (Catalog.bySys[serSys] ?? const <RcCard>[]) : const <RcCard>[];
         final pkMine = [for (final c in pkAll) if (g.owned[c.id]?.any((q) => q > 0) ?? false) c.id].length;
         final faMine = [for (final c in faAll) if ((g.owned[c.id]?[3] ?? 0) > 0) c.id].length;
@@ -228,6 +229,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             2 => t('$faMine / ${faList.length} · ${livePct('fullart')} par épique ou légendaire', '$faMine / ${faList.length} · ${livePct('fullart')} per epic or legendary'),
                             3 => t('$pkMine / ${pkList.length} · très très rare, dès la 152 : brillantes', '$pkMine / ${pkList.length} · very very rare, from #152: shiny'),
                             4 => t('$pkMine / ${pkList.length} · très très rare, les cultes sont brillantes', '$pkMine / ${pkList.length} · very very rare, cult classics are shiny'),
+                            5 => t('$pkMine / ${pkList.length} · booster Dragon Ball, les holos sont brillantes', '$pkMine / ${pkList.length} · Dragon Ball booster, holos are shiny'),
                             _ => t('Mes consoles', 'My systems'),
                           },
                           maxLines: 1,
@@ -365,7 +367,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final total = Catalog.total; // full art comptées à part
     final pct = total == 0 ? 0.0 : g.cards / total;
     final totalByR = List<int>.filled(5, 0), ownByR = List<int>.filled(5, 0);
-    var sagaTotal = 0, sagaMine = 0, faTotal = 0, faMine = 0, pkTotal = 0, pkMine = 0, daTotal = 0, daMine = 0;
+    var sagaTotal = 0, sagaMine = 0, faTotal = 0, faMine = 0, pkTotal = 0, pkMine = 0, daTotal = 0, daMine = 0, dbTotal = 0, dbMine = 0;
     for (final c in Catalog.cards.values) {
       if (c.isSaga) {
         // cartes de saga : ligne à part (pas dans les épiques)
@@ -380,6 +382,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
       if (c.sys == 'da') {
         daTotal++;
         if (g.has(c.id)) daMine++;
+      }
+      if (c.sys == 'db') {
+        dbTotal++;
+        if (g.has(c.id)) dbMine++;
       }
       totalByR[c.rarity]++;
       if (g.has(c.id)) ownByR[c.rarity]++;
@@ -440,6 +446,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   pkTotal > 0 ? () => _setMode(3) : null),
               _bar('📺 ${t('Animés', 'Cartoons')}', daMine, daTotal, const Color(0xFF4FC3F7), const Color(0xFF81D4FA),
                   daTotal > 0 ? () => _setMode(4) : null),
+              _bar('🐉 Dragon Ball', dbMine, dbTotal, const Color(0xFFFF8F3A), const Color(0xFFFFB27A),
+                  dbTotal > 0 ? () => _setMode(5) : null),
               // toucher une rareté : mes cartes de cette rareté
               for (var r = 4; r >= 0; r--)
                 InkWell(

@@ -1,9 +1,9 @@
-create or replace function public.rc__tn(p_dev text)
- returns table(kind text, n integer, got integer, t integer[], ord integer)
- language sql
- stable security definer
- set search_path to 'public'
-as $function$
+CREATE OR REPLACE FUNCTION public.rc__tn(p_dev text)
+ RETURNS TABLE(kind text, n integer, got integer, t integer[], ord integer)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
   -- progression de chaque trophée : paquets, cartes et consoles lus en direct, le reste compté
   select k.kind,
          case k.kind when 'packs' then p.packs
@@ -15,7 +15,7 @@ as $function$
                      when 'days' then p.days
                      when 'react' then (select count(*)::int from public.rc_feed_react r where r.device = p_dev)
                      when 'sagacards' then (select count(*)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
-                                             where o.device = p_dev and o.qty > 0 and cc.saga is not null and cc.saga <> 'pk')
+                                             where o.device = p_dev and o.qty > 0 and cc.saga is not null and cc.saga not in ('pk', 'da', 'db'))
                      when 'pokemon' then (select count(*)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
                                            where o.device = p_dev and o.qty > 0 and cc.saga = 'pk')
                      else coalesce(c.n, 0) end,
@@ -23,4 +23,5 @@ as $function$
     from public.rc__tpool() k
     join public.rc_players p on p.device = p_dev
     left join public.rc_trophy_n c on c.device = p_dev and c.kind = k.kind
-    left join public.rc_trophy_got g on g.device = p_dev and g.kind = k.kind $function$;
+    left join public.rc_trophy_got g on g.device = p_dev and g.kind = k.kind $function$
+

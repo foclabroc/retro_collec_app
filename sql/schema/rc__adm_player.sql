@@ -1,6 +1,9 @@
-create or replace function public.rc__adm_player(p_pid text)
- returns jsonb language plpgsql stable security definer set search_path to 'public', 'extensions'
-as $$
+CREATE OR REPLACE FUNCTION public.rc__adm_player(p_pid text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $function$
 declare v rc_players; t date := rc__today(); v_ip text;
 begin
   select * into v from rc_players where pid = p_pid;
@@ -53,6 +56,8 @@ begin
                             from (select c.rarity r, o.finish f, count(*) n, sum(o.qty) q
                                     from rc_owned o join rc_cards c on c.id = o.card where o.device = v.device group by 1, 2) s), '[]'::jsonb),
     'pk', (select count(distinct card) from rc_owned where device = v.device and card like 'pk\_%'),
+    'da', (select count(distinct card) from rc_owned where device = v.device and card like 'da\_%'),
+    'db', (select count(distinct card) from rc_owned where device = v.device and card like 'db\_%'),
     -- complétion par console / saga
     'compl', coalesce((select jsonb_agg(jsonb_build_object('sys', sys, 'have', have, 'total', total) order by have::numeric / total desc)
                          from (select c.sys, count(distinct o.card) filter (where o.device is not null) have, count(distinct c.id) total
@@ -101,4 +106,5 @@ begin
                                                             'other', (select o.name from rc_players o where o.device = a.other)) order by a.id desc)
                           from (select * from rc_activity where device = v.device order by id desc limit 40) a), '[]'::jsonb)
   );
-end $$;
+end $function$
+

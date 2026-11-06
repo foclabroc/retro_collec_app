@@ -103,10 +103,10 @@ int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
 int fragmentCost(int r) => r == 3 ? 3000 : 10000;
 /// Boosters spéciaux payés en pixels (1 pixel par booster ouvert)
 const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40, 'cartoon': 70, 'pokemon': 100};
-final kPackPrice = <String, int>{'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'gift': 0, 'lot': 0};
+final kPackPrice = <String, int>{'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'dragonball': 400, 'gift': 0, 'lot': 0};
 
 /// Réglages en direct (page admin → rc_config « live ») : chances en %, coffre des défis.
-final rcLive = <String, num>{'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 3, 'pk': 0.15, 'da': 0.15, 'chest_coins': 500, 'chest_pixels': 2};
+final rcLive = <String, num>{'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 3, 'pk': 0.15, 'da': 0.15, 'db': 0.15, 'chest_coins': 500, 'chest_pixels': 2};
 
 /// Applique les réglages reçus du serveur (prix des paquets compris)
 void applyLive(dynamic m) {

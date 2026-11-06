@@ -158,8 +158,8 @@ class CardView extends StatelessWidget {
     }
     // séries Pokémon / Dessins animés : l'image occupe toute la carte, sans cadre ni ornement
     if (isSeriesSys(card.sys)) {
-      // brillante : Pokémon dès la carte 152, Dessins animés en rareté 4
-      final shiny = finish > 0 && (card.sys == 'da' ? card.rarity >= 4 : (int.tryParse(card.id.substring(3)) ?? 0) >= 152);
+      // brillante : Pokémon dès la carte 152, Dessins animés en rareté 4, Dragon Ball en holo (rareté 4)
+      final shiny = finish > 0 && (card.sys == 'pk' ? (int.tryParse(card.id.substring(3)) ?? 0) >= 152 : card.rarity >= 4);
       final rr = BorderRadius.circular(w * 0.05);
       final face = ClipRRect(
         borderRadius: rr,
@@ -192,8 +192,8 @@ class CardView extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Text('?', style: TextStyle(color: Colors.white24, fontSize: w * 0.28, fontWeight: FontWeight.w900))),
       );
-      if (card.sys != 'da') return face;
-      // Dessins animés : petit contour argenté sur la face avant (doré pour les cultes en rareté 4)
+      if (card.sys == 'pk') return face;
+      // Dessins animés et Dragon Ball : petit contour argenté sur la face avant (doré en rareté 4)
       return DecoratedBox(
         position: DecorationPosition.foreground,
         decoration: BoxDecoration(
@@ -795,7 +795,7 @@ class _PrismPainter extends CustomPainter {
 class CardBack extends StatelessWidget {
   final Color? aura; // halo de la couleur de la rareté (suspense)
   final double glow; // 0..1 pulsation
-  final String? series; // dos propre à une série : 'pk' Pokémon, 'da' Dessins animés (sinon dos habituel)
+  final String? series; // dos propre à une série : 'pk' Pokémon, 'da' Dessins animés, 'db' Dragon Ball (sinon dos habituel)
   const CardBack({super.key, this.aura, this.glow = 0, this.series});
 
   @override
@@ -820,7 +820,7 @@ class CardBack extends StatelessWidget {
           child: ClipRRect(
             borderRadius: r,
             child: Image.asset(
-              switch (series) { 'pk' => 'assets/card_back_pk.jpg', 'da' => 'assets/card_back_da.jpg', _ => 'assets/card_back.jpg' },
+              switch (series) { 'pk' => 'assets/card_back_pk.jpg', 'da' => 'assets/card_back_da.jpg', 'db' => 'assets/card_back_db.jpg', _ => 'assets/card_back.jpg' },
               fit: BoxFit.cover,
               width: w,
               height: w * 7 / 5,

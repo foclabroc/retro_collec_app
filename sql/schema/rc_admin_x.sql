@@ -1,6 +1,9 @@
-create or replace function public.rc_admin_x(p_device text, p_sig text, p_op text, p_args text)
- returns jsonb language plpgsql security definer set search_path to 'public', 'extensions'
-as $$
+CREATE OR REPLACE FUNCTION public.rc_admin_x(p_device text, p_sig text, p_op text, p_args text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $function$
 declare j jsonb; d text; v rc_players; n int; f int; c text; pw text; mode text; u timestamptz; x jsonb; k text; i int; s jsonb;
 begin
   perform public.rc__admin(p_device, p_sig, 'x|' || coalesce(p_op, '') || '|' || coalesce(p_args, ''));
@@ -186,7 +189,7 @@ begin
     if (j->>'at')::timestamptz < now() - interval '1 minute' then raise exception 'la date doit être dans le futur'; end if;
     if j->>'op' = 'live' then
       for k in select jsonb_object_keys(j->'args'->'values') loop
-        if k not in ('saga', 'holo', 'gold', 'fullart', 'pk', 'mixte', 'console', 'premium', 'mystery', 'chest_coins', 'chest_pixels', 'free_hours', 'wheel_hours') then
+        if k not in ('saga', 'holo', 'gold', 'fullart', 'pk', 'da', 'db', 'mixte', 'console', 'premium', 'mystery', 'chest_coins', 'chest_pixels', 'free_hours', 'wheel_hours') then
           raise exception 'réglage inconnu : %', k; end if;
       end loop;
     end if;
@@ -333,4 +336,5 @@ begin
   else
     raise exception 'opération inconnue : %', p_op;
   end case;
-end $$;
+end $function$
+

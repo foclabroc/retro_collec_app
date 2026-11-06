@@ -10,6 +10,15 @@ declare
   i int; r int; f int; c text; sg text; got_epic boolean := false;
   res jsonb := '[]'::jsonb;
 begin
+  if p_kind = 'dragonball' then return public.rc__draw_db(); end if;  -- 12 cartes Dragon Ball
+  if p_kind = 'cartoon' then  -- 5 cartes Dessins animés au hasard (rareté 4 : brillante)
+    for i in 1..5 loop
+      select id, rarity into c, r from public.rc_cards where saga = 'da' order by random() limit 1;
+      if c is null then raise exception 'catalogue vide'; end if;
+      res := res || jsonb_build_object('c', c, 'f', case when r >= 4 then 1 else 0 end, 'r', 3);
+    end loop;
+    return res;
+  end if;
   if p_kind = 'pokemon' then  -- 5 cartes Pokémon au hasard
     for i in 1..5 loop
       select id into c from public.rc_cards where saga = 'pk' order by random() limit 1;
@@ -40,9 +49,10 @@ begin
     if p_kind = 'sconsole' and i = n - 1 then f := greatest(f, 1); end if;   -- une brillante garantie
     if p_kind = 'gold' and i = n and r < 4 then f := 2; end if;              -- sinon légendaire : dorée garantie
     sg := public.rc__saga_roll();  -- carte de saga
-    if sg is not null then c := sg; r := 3; f := case when sg like 'pk\_%' and substr(sg, 4)::int >= 152 then 1 else 0 end; got_epic := true; end if;
+    if sg is not null then c := sg; r := 3; f := case when sg like 'pk\_%' and substr(sg, 4)::int >= 152 then 1 when sg ~ '^(da|db)_' and (select rarity from public.rc_cards where id = sg) >= 4 then 1 else 0 end; got_epic := true; end if;
     res := res || jsonb_build_object('c', c, 'f', f, 'r', r);
     c := null;
   end loop;
   return res;
 end $function$
+

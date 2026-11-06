@@ -173,6 +173,7 @@ class _PacksScreenState extends State<PacksScreen> {
       'console' => '${t('Paquet', 'Pack')} ${Catalog.system(sys ?? '')?.name ?? ''}',
       'premium' => t('Paquet premium', 'Premium pack'),
       'mystery' => t('Paquet mystère', 'Mystery pack'),
+      'dragonball' => t('Booster Dragon Ball', 'Dragon Ball booster'),
       _ => t('Paquet mixte', 'Mixed pack'),
     };
     final ok = await showDialog<bool>(
@@ -467,6 +468,7 @@ class _PacksScreenState extends State<PacksScreen> {
                     shop('console', 'Console', 'Console', t('5 cartes de la console de ton choix', '5 cards from the system of your choice'), _pickConsole),
                     shop('mystery', t('Mystère', 'Mystery'), t('Mystère', 'Mystery'), t('3, 5 ou… 8 cartes ! Surprise à l\'ouverture', '3, 5 or… 8 cards! Surprise inside'), () => _open('mystery')),
                     shop('premium', 'Premium', 'Premium', t('5 cartes dont une rare ou mieux garantie', '5 cards, one rare or better guaranteed'), () => _open('premium')),
+                    shop('dragonball', 'Dragon Ball', 'Dragon Ball', t('12 cartes Dragon Ball dont au moins une holo', '12 Dragon Ball cards, at least one holo'), () => _open('dragonball')),
                   ],
                 );
               }),
@@ -517,6 +519,7 @@ const _kOfferColor = {
   'console': Color(0xFF185FA5),
   'premium': Color(0xFF854F0B),
   'mystery': Color(0xFF8E2D8E),
+  'dragonball': Color(0xFFE8641B),
   'gift': Color(0xFFD8453C),
   'lot': Color(0xFF534AB7),
 };
@@ -526,6 +529,7 @@ String _offerLabel(String kind) => switch (kind) {
       'console' => 'Console',
       'premium' => 'Premium',
       'mystery' => t('Mystère', 'Mystery'),
+      'dragonball' => 'Dragon Ball',
       'gift' => t('Cadeau', 'Gift'),
       'lot' => t('Lot', 'Bundle'),
       _ => t('Mixte', 'Mixed'),
@@ -1055,6 +1059,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                     'gold' => t('Booster Rétro d\'or', 'Retro Gold booster'),
                     'pokemon' => t('Booster Pokémon', 'Pokémon booster'),
                     'cartoon' => t('Booster Dessins animés', 'Cartoons booster'),
+                    'dragonball' => t('Booster Dragon Ball', 'Dragon Ball booster'),
                     'premium' => t('Paquet premium', 'Premium pack'),
                     'mystery' => t('Paquet mystère', 'Mystery pack'),
                     'gift' => t('Paquet cadeau', 'Gift pack'),
@@ -1299,7 +1304,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                       ]),
                     );
               final Widget frontFace = tearable(_specialBoosterImg(widget.kind) ?? 'assets/booster_front.webp');
-              final Widget backFace = tearable(_specialBoosterImg(widget.kind) ?? 'assets/booster_back.webp');
+              final Widget backFace = tearable(_specialBoosterBack(widget.kind) ?? 'assets/booster_back.webp');
               // ── Paquet : recto ou verso selon la rotation (sans épaisseur) ──
               final base = Matrix4.identity()
                 ..setEntry(3, 2, 0.0012)
@@ -1398,6 +1403,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'gold' => const Color(0xFFF0A419),
         'pokemon' => const Color(0xFFE53935),
         'cartoon' => const Color(0xFF0288D1),
+        'dragonball' => const Color(0xFFE8641B),
         'premium' => const Color(0xFF854F0B),
         'mystery' => const Color(0xFF8E2D8E),
         'gift' => const Color(0xFFD8453C),
@@ -1412,6 +1418,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'gold' => t('Rétro d\'or', 'Retro Gold'),
         'pokemon' => 'Pokémon',
         'cartoon' => t('Dessins animés', 'Cartoons'),
+        'dragonball' => 'Dragon Ball',
         'premium' => t('Premium', 'Premium'),
         'mystery' => t('Mystère', 'Mystery'),
         'gift' => t('Cadeau', 'Gift'),
@@ -2729,9 +2736,13 @@ class _PixelsRow extends StatelessWidget {
   }
 }
 
-/// Image propre aux boosters de série (Pokémon, Dessins animés), sinon null (paquet habituel)
+/// Image propre aux boosters de série (Pokémon, Dessins animés, Dragon Ball), sinon null (paquet habituel)
 String? _specialBoosterImg(String? kind) => switch (kind) {
       'pokemon' => 'assets/booster_pokemon.webp',
       'cartoon' => 'assets/booster_da.webp',
+      'dragonball' => 'assets/booster_db.webp',
       _ => null,
     };
+
+/// Dos propre au booster (Dragon Ball), sinon la même image que la face
+String? _specialBoosterBack(String? kind) => kind == 'dragonball' ? 'assets/booster_db_back.webp' : _specialBoosterImg(kind);
