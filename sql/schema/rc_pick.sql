@@ -58,7 +58,7 @@ begin
   ev := ev || public.rc__milestones(p_device);
   perform public.rc__rescore(p_device);
   select * into v from public.rc_players where device = p_device;
-  return jsonb_build_object('cards', res, 'choice', p_choice, 'missed', miss, 'kind', pd.kind, 'sys', pd.sys,
+  return jsonb_build_object('cards', res, 'choice', p_choice, 'missed', miss, 'kind', pd.kind, 'sys', pd.sys, 'gk', pd.gk,
                             'coins', v.coins, 'pity', v.pity, 'pixels', v.pixels,
                             'pixel_gain', case when public.rc__special_cost(pd.kind) is null then 1 else 0 end, 'score', v.score, 'events', ev, 'lots', v.lots,
                             'gifts', (select count(*)::int from public.rc_gifts g where g.receiver = p_device and g.opened_at is null));

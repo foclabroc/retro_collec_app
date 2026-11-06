@@ -9,5 +9,6 @@ begin
   perform public.rc__check(p_sig, p_device || '|pending');
   select * into pd from public.rc_pending where device = p_device;
   if pd.device is null then return null; end if;
-  return jsonb_build_object('choose', jsonb_array_length(pd.packs), 'kind', pd.kind, 'sys', pd.sys, 'resumed', true);
+  return jsonb_build_object('choose', jsonb_array_length(pd.packs), 'kind', pd.kind, 'sys', pd.sys, 'gk', pd.gk, 'resumed', true);
 end $function$
+

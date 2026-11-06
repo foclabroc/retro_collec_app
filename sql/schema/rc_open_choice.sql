@@ -17,7 +17,7 @@ begin
 
   select * into pd from public.rc_pending where device = p_device;
   if pd.device is not null then
-    return jsonb_build_object('choose', jsonb_array_length(pd.packs), 'kind', pd.kind, 'sys', pd.sys, 'resumed', true,
+    return jsonb_build_object('choose', jsonb_array_length(pd.packs), 'kind', pd.kind, 'sys', pd.sys, 'gk', pd.gk, 'resumed', true,
                               'coins', v.coins, 'lots', v.lots, 'pixels', v.pixels,
                               'gifts', (select count(*)::int from public.rc_gifts g where g.receiver = p_device and g.opened_at is null));
   end if;
@@ -55,7 +55,8 @@ begin
   insert into public.rc_pending (device, kind, sys, packs, gk) values (p_device, p_kind, p_sys, packs, gk);
 
   select * into v from public.rc_players where device = p_device;
-  return jsonb_build_object('choose', 6, 'kind', p_kind, 'sys', p_sys, 'resumed', false,
+  return jsonb_build_object('choose', 6, 'kind', p_kind, 'sys', p_sys, 'gk', gk, 'resumed', false,
                             'coins', v.coins, 'lots', v.lots, 'pixels', v.pixels,
                             'gifts', (select count(*)::int from public.rc_gifts g where g.receiver = p_device and g.opened_at is null));
 end $function$
+

@@ -680,6 +680,10 @@ class PackOpeningPage extends StatefulWidget {
 enum _Phase { choose, pack, reveal, summary }
 
 class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderStateMixin {
+  /// Emballage : celui du vrai paquet pour un cadeau (« gk » renvoyé par le serveur : booster Dragon Ball,
+  /// Pokémon, Dessins animés offert), sinon celui du type ouvert.
+  String get _art => (widget.result['gk'] as String?) ?? widget.kind;
+
   List<_Pulled> pulled = [];
   _Phase phase = _Phase.pack;
   late Map<String, dynamic> res; // résultat du serveur (cartes du booster choisi)
@@ -1304,8 +1308,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                         ),
                       ]),
                     );
-              final Widget frontFace = tearable(_specialBoosterImg(widget.kind) ?? 'assets/booster_front.webp');
-              final Widget backFace = tearable(_specialBoosterBack(widget.kind) ?? 'assets/booster_back.webp');
+              final Widget frontFace = tearable(_specialBoosterImg(_art) ?? 'assets/booster_front.webp');
+              final Widget backFace = tearable(_specialBoosterBack(_art) ?? 'assets/booster_back.webp');
               // ── Paquet : recto ou verso selon la rotation (sans épaisseur) ──
               final base = Matrix4.identity()
                 ..setEntry(3, 2, 0.0012)
@@ -1390,7 +1394,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
 
   Widget _chooseStage() => Positioned.fill(
         child: BoosterRing(
-          pack: (i, w, h) => _boosterImg(_specialBoosterImg(widget.kind) ?? 'assets/booster_front.webp', w, h, i),
+          pack: (i, w, h) => _boosterImg(_specialBoosterImg(_art) ?? 'assets/booster_front.webp', w, h, i),
           label: (widget.kind == 'console' || widget.kind == 'sconsole') && widget.sys != null ? ConsoleLogo(widget.sys!, height: 14) : null,
           onChoose: _choose,
         ),

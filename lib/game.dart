@@ -505,7 +505,10 @@ class Game extends ChangeNotifier {
 
   /// Paquet cadeau : pas de choix, un booster de couleur au hasard.
   Future<Map<String, dynamic>> autoPickGift(Map<String, dynamic> r) async {
-    if (r['choose'] != null && r['cards'] == null && r['kind'] == 'gift') return pickPack(Random().nextInt(6));
+    if (r['choose'] != null && r['cards'] == null && r['kind'] == 'gift') {
+      final p = await pickPack(Random().nextInt(6));
+      return {...p, if (p['gk'] == null && r['gk'] != null) 'gk': r['gk']}; // vrai type du cadeau (emballage)
+    }
     return r;
   }
 
