@@ -756,6 +756,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
     // du plus commun au plus rare : le meilleur pour la fin
     list.sort((a, b) => (a.r * 4 + a.f).compareTo(b.r * 4 + b.f));
     pulled = list;
+    Catalog.warmImages([for (final p in list) p.card]); // images prêtes avant le retournement
     booster = (r['choice'] as num?)?.toInt();
     // cadeau : pas de choix, donc pas de « tu as raté »
     missed = widget.kind != 'gift' && r['missed'] is Map && Catalog.cards[(r['missed'] as Map)['c']] != null ? r['missed'] as Map : null;

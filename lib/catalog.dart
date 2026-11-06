@@ -286,6 +286,22 @@ class Catalog {
     return NetworkImage('${kSeriesBase[sys]}$img');
   }
 
+  /// Prépare les images de ces cartes avant de les montrer (ouverture d'un paquet) : sans ça, les images
+  /// des séries (serveur maison) n'arrivent qu'au retournement de la carte, qui reste noire un instant.
+  /// Android : téléchargées sur le disque ; web : récupérées et décodées en cache.
+  static void warmImages(Iterable<RcCard> cs) {
+    if (!kIsWeb) {
+      seriesFetchIds([for (final c in cs) if (isSeriesSys(c.sys)) c.id]);
+      return;
+    }
+    for (final c in cs) {
+      final s = image(c).resolve(ImageConfiguration.empty);
+      late final ImageStreamListener l;
+      l = ImageStreamListener((_, __) => s.removeListener(l), onError: (_, __) => s.removeListener(l));
+      s.addListener(l);
+    }
+  }
+
   /// Télécharge à l'avance les images Pokémon (Android ; le web a son cache)
   static Future<void> pkFetch(Iterable<String> imgs) => seriesFetch('pk', imgs);
 
