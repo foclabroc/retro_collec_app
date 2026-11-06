@@ -12,6 +12,13 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🐉', 'Booster Dragon Ball : nouveau visuel et 8 cartes (5 communes, 2 rares, au moins une holo brillante)',
+      'Dragon Ball booster: new artwork and 8 cards (5 commons, 2 rares, at least one shiny holo)'),
+  ('⚡', 'Ouverture des paquets : les cartes s\'affichent tout de suite au retournement (plus d\'écran noir)',
+      'Pack opening: cards show right away when flipped (no more black card)'),
+  ('🗂️', 'Collection : onglets plus grands, sur deux lignes',
+      'Collection: bigger tabs, on two rows'),
+  ('#', 'Aussi depuis la 1.0.46', 'Also since 1.0.46'),
   ('🐉', 'Nouvel onglet « DBZ » dans la Collection : 200 cartes Dragon Ball du jeu de cartes français (Goku, Vegeta, Gohan, Freezer, Cell et 100 autres personnages), rares dans les paquets',
       'New "DBZ" tab in the Collection: 200 Dragon Ball cards from the French card game (Goku, Vegeta, Gohan, Frieza, Cell and 100 other characters), rare in packs'),
   ('🛒', 'Nouveau booster Dragon Ball dans la boutique : 400 pièces, 8 cartes dont au moins une holo (toujours brillante)',

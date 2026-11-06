@@ -1,5 +1,12 @@
 # Pixel Trade — Changelog
 
+## v1.0.47
+_Version 1.0.47+48. Pas de cadeau de version. SQL : `sql/2026-11-06_booster_db_8.sql` (booster Dragon Ball à 8 cartes)._
+
+- 🐉 Booster Dragon Ball : nouveaux visuels face / dos (fournis par l'utilisateur, détourés, pleine hauteur 440×856 : côtés rognés de 20 px et tassés de 9 % pour que le déchirement prenne le haut du booster) ; 8 cartes (`rc__draw_db` : 5 communes, 1 rare, 1 rare ou holo à 30 %, 1 holo).
+- ⚡ Ouverture : images des cartes préchargées dès le choix du booster (`Catalog.warmImages`, appelé par `_load` de `packs.dart` : disque sur Android, cache décodé sur le web) : plus de carte noire au retournement.
+- 🗂️ Collection : onglets sur deux lignes de 3 (`_seg`), « 🐉 Dragon Ball » en entier.
+
 ## v1.0.46
 _Version 1.0.46+47. Pas de cadeau de version. SQL : `sql/2026-11-06_serie_dragon_ball.sql`. Images : `db_cartes.zip` dézippé dans `D:\pixeltrade\db` (+ Caddy `handle /db/*`)._
 
