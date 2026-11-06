@@ -14,8 +14,8 @@ import 'update_check.dart';
 const _kNews = <(String, String, String)>[
   ('🐉', 'Nouvel onglet « DBZ » dans la Collection : 200 cartes Dragon Ball du jeu de cartes français (Goku, Vegeta, Gohan, Freezer, Cell et 100 autres personnages), rares dans les paquets',
       'New "DBZ" tab in the Collection: 200 Dragon Ball cards from the French card game (Goku, Vegeta, Gohan, Frieza, Cell and 100 other characters), rare in packs'),
-  ('🛒', 'Nouveau booster Dragon Ball dans la boutique : 400 pièces, 12 cartes dont au moins une holo (toujours brillante)',
-      'New Dragon Ball booster in the shop: 400 coins, 12 cards with at least one holo (always shiny)'),
+  ('🛒', 'Nouveau booster Dragon Ball dans la boutique : 400 pièces, 8 cartes dont au moins une holo (toujours brillante)',
+      'New Dragon Ball booster in the shop: 400 coins, 8 cards with at least one holo (always shiny)'),
   ('#', 'Aussi depuis la 1.0.45', 'Also since 1.0.45'),
   ('🖼️', 'Cartes Dessins animés : les pochettes s\'affichent en entier (plus de titres coupés), avec un fin contour argent, ou doré pour les cultes',
       'Cartoon cards: covers now show in full (no more cut titles), with a thin silver frame, or gold for the cult classics'),

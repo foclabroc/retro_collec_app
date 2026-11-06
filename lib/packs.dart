@@ -468,7 +468,7 @@ class _PacksScreenState extends State<PacksScreen> {
                     shop('console', 'Console', 'Console', t('5 cartes de la console de ton choix', '5 cards from the system of your choice'), _pickConsole),
                     shop('mystery', t('Mystère', 'Mystery'), t('Mystère', 'Mystery'), t('3, 5 ou… 8 cartes ! Surprise à l\'ouverture', '3, 5 or… 8 cards! Surprise inside'), () => _open('mystery')),
                     shop('premium', 'Premium', 'Premium', t('5 cartes dont une rare ou mieux garantie', '5 cards, one rare or better guaranteed'), () => _open('premium')),
-                    shop('dragonball', 'Dragon Ball', 'Dragon Ball', t('12 cartes Dragon Ball dont au moins une holo', '12 Dragon Ball cards, at least one holo'), () => _open('dragonball')),
+                    shop('dragonball', 'Dragon Ball', 'Dragon Ball', t('8 cartes Dragon Ball dont au moins une holo', '8 Dragon Ball cards, at least one holo'), () => _open('dragonball')),
                   ],
                 );
               }),
