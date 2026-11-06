@@ -1,5 +1,10 @@
 # Pixel Trade — Changelog
 
+## v1.0.48
+_Version 1.0.48+49. Pas de cadeau de version. SQL : `sql/2026-11-06_cadeau_emballage.sql`._
+
+- 🎁 Cadeau : le booster offert s'ouvre dans son vrai emballage. Le serveur renvoie `gk` (type réel du cadeau) dans `rc_open_choice`, `rc_pending_get` et `rc_pick` ; `_PackOpeningPageState._art` = `result['gk'] ?? kind` pour la face / le dos du booster ; `Game.autoPickGift` garde `gk`.
+
 ## v1.0.47
 _Version 1.0.47+48. Pas de cadeau de version. SQL : `sql/2026-11-06_booster_db_8.sql` (booster Dragon Ball à 8 cartes)._
 

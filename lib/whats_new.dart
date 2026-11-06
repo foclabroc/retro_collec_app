@@ -12,6 +12,9 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎁', 'Booster offert : il s\'ouvre maintenant dans son vrai emballage (Dragon Ball, Pokémon, Dessins animés)',
+      'Gifted booster: it now opens in its real wrapper (Dragon Ball, Pokémon, Cartoons)'),
+  ('#', 'Aussi depuis la 1.0.47', 'Also since 1.0.47'),
   ('🐉', 'Booster Dragon Ball : nouveau visuel et 8 cartes (5 communes, 2 rares, au moins une holo brillante)',
       'Dragon Ball booster: new artwork and 8 cards (5 commons, 2 rares, at least one shiny holo)'),
   ('⚡', 'Ouverture des paquets : les cartes s\'affichent tout de suite au retournement (plus d\'écran noir)',
