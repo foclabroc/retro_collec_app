@@ -95,7 +95,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     SharedPreferences.getInstance().then((p) => p.setInt('rc_coll_mode', v)).catchError((_) => false);
   }
 
-  /// Sélecteur « Consoles | Sagas | Full art | Pokémon | Animés | Dragon Ball » : chaque onglet a sa couleur, fond opaque
+  /// Sélecteur « Consoles | Sagas | Full art » / « Pokémon | Animés | Dragon Ball » (2 lignes) : chaque onglet a sa couleur, fond opaque
   Widget _seg() {
     Widget b(int v, String label, Color color) {
       final on = mode == v;
@@ -127,13 +127,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(color: kBg, borderRadius: BorderRadius.circular(13)),
-      child: Row(children: [
-        b(0, t('🎮 Consoles', '🎮 Systems'), const Color(0xFF5AB0FF)),
-        b(1, t('📚 Sagas', '📚 Sagas'), const Color(0xFFFF8AD8)),
-        b(2, t('★★ Full art', '★★ Full art'), const Color(0xFFC18CFF)),
-        b(3, '⚡ Pokémon', const Color(0xFFFFD54F)),
-        b(4, t('📺 Animés', '📺 Cartoons'), const Color(0xFF4FC3F7)),
-        b(5, '🐉 DBZ', const Color(0xFFFF8F3A)),
+      // deux lignes de 3 : sur une seule ligne, 6 onglets devenaient trop petits
+      child: Column(children: [
+        Row(children: [
+          b(0, t('🎮 Consoles', '🎮 Systems'), const Color(0xFF5AB0FF)),
+          b(1, t('📚 Sagas', '📚 Sagas'), const Color(0xFFFF8AD8)),
+          b(2, t('★★ Full art', '★★ Full art'), const Color(0xFFC18CFF)),
+        ]),
+        const SizedBox(height: 4),
+        Row(children: [
+          b(3, '⚡ Pokémon', const Color(0xFFFFD54F)),
+          b(4, t('📺 Animés', '📺 Cartoons'), const Color(0xFF4FC3F7)),
+          b(5, '🐉 Dragon Ball', const Color(0xFFFF8F3A)),
+        ]),
       ]),
     );
   }
