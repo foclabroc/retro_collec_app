@@ -16,6 +16,7 @@ const _kNews = <(String, String, String)>[
       'Pokémon, Cartoons, Dragon Ball: tap a missing card to buy it on the Exchange or ask for it in a trade'),
   ('🐉', 'Dragon Ball : 356 cartes de plus (556 au total), rangées par personnage, avec 45 nouveaux personnages et les 7 Dragon Balls en légendaires brillantes',
       'Dragon Ball: 356 more cards (556 in total), sorted by character, with 45 new characters and the 7 Dragon Balls as shiny legendaries'),
+  ('#', 'Aussi depuis la 1.0.48', 'Also since 1.0.48'),
   ('☀️', 'Cadeau du dimanche : chaque dimanche, 1 booster Pokémon, 1 Dessins animés et 1 Dragon Ball offerts (Paquets)',
       'Sunday gift: every Sunday, 1 Pokémon, 1 Cartoons and 1 Dragon Ball booster for free (Packs)'),
   ('🏅', '7 nouveaux trophées : Téléspectateur, Guerrier Z, Super Saiyan, Fidèle du dimanche, Sur le podium, Trésor, Fan de séries',
