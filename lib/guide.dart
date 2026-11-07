@@ -196,6 +196,7 @@ List<_Section> _sections() {
           'Premium (${_price('premium')} coins): 5 cards, the last one at least rare (5% legendary, 20% epic).')),
       _b(t('Mystère (${_price('mystery')} pièces) : 3, 5 ou 8 cartes au hasard.', 'Mystery (${_price('mystery')} coins): 3, 5 or 8 random cards.')),
       _b(t('Lot de 5 paquets mixtes (25 cartes) : gratuit chaque samedi.', '5 mixed packs bundle (25 cards): free every Saturday.')),
+      _b(t('Cadeau du dimanche : 1 booster Pokémon, 1 Dessins animés et 1 Dragon Ball offerts chaque dimanche, à récupérer dans Paquets (ils arrivent dans tes cadeaux).', 'Sunday gift: 1 Pokémon, 1 Cartoons and 1 Dragon Ball booster free every Sunday, claim it in Packs (they go to your gifts).')),
       _b(t('Boosters spéciaux en pixels : étoile 15, console spéciale 25, or 40, Dessins animés 70 (5 cartes Dessins animés), Pokémon 100 (5 cartes Pokémon).', 'Special boosters for pixels: star 15, special console 25, gold 40, Cartoons 70 (5 cartoon cards), Pokémon 100 (5 Pokémon cards).')),
       _b(t('Série Dessins animés : 80 pochettes des années 80/90, très très rares dans les paquets (≈ ${livePct('da')} par carte), les 13 plus cultes sont toujours brillantes. Onglet « Animés » de la Collection.',
           'Cartoons set: 80 covers from the 80s/90s, very very rare in packs (≈ ${livePct('da')} per card), the 13 cult classics are always shiny. "Cartoons" tab in the Collection.')),

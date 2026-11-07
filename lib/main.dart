@@ -807,7 +807,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               child: SingleChildScrollView(
                 child: Column(children: [
                   item(0, 'collection', t('Collection', 'Collection')),
-                  item(1, 'packs', t('Paquets', 'Packs'), dot: g.free || n.lotFree, count: n.gifts + n.lots),
+                  item(1, 'packs', t('Paquets', 'Packs'), dot: g.free || n.lotFree || n.sunday, count: n.gifts + n.lots),
                   item(7, 'defis', t('Défis', 'Challenges'), count: n.week),
                   item(2, 'bonus', t('Bonus', 'Bonus'), dot: n.wheel),
                   item(8, 'games', t('Salle de jeux', 'Game room'), count: DuelWatch.i.badge),
@@ -923,7 +923,7 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 child: ListView(padding: EdgeInsets.zero, children: [
                   item(0, 'collection', t('Collection', 'Collection')),
                   item(1, 'packs', t('Paquets', 'Packs'),
-                      dot: g.free || n.lotFree, count: n.gifts + n.lots,
+                      dot: g.free || n.lotFree || n.sunday, count: n.gifts + n.lots,
                       hint: n.lotFree
                           ? t('Lot de 5 paquets gratuit !', 'Free 5-pack bundle!')
                           : g.free

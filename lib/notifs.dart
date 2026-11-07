@@ -31,6 +31,7 @@ class Notifs extends ChangeNotifier {
   int trophies = 0; // paliers de trophées à récupérer
   int reacts = 0; // réactions à mes nouvelles pas encore vues
   bool lotFree = false; // samedi : lot de 5 paquets gratuit
+  bool sunday = false; // dimanche : 3 boosters offerts à récupérer
   int gifts = 0; // paquets cadeaux reçus à ouvrir
   int cardStock = 0; // cartes de récompense à ranger dans la collection
   String giftFrom = '';
@@ -119,6 +120,7 @@ class Notifs extends ChangeNotifier {
       trophies = (r['trophies'] as num? ?? 0).toInt();
       reacts = (r['reacts'] as num? ?? 0).toInt();
       lotFree = r['lot_free'] == true;
+      sunday = r['sunday'] == true;
       _lastTrades = t0;
       trades = t0;
       sales = s;
@@ -138,7 +140,7 @@ class Notifs extends ChangeNotifier {
   }
 
   /// Nombre total de notifications (pastille du bouton menu)
-  int get total => trades + sales.length + chat + gifts + cardStock + (wheel ? 1 : 0) + (mention ? 1 : 0);
+  int get total => trades + sales.length + chat + gifts + cardStock + (wheel ? 1 : 0) + (mention ? 1 : 0) + (sunday ? 1 : 0);
 
   /// Les ventes ont été vues (ouverture du Marché)
   Future<void> salesSeen() async {

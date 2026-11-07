@@ -251,6 +251,7 @@ class PushWatch {
           'freeDay': _today(), // l'appli a été ouverte aujourd'hui : pas de rappel
           'freeAt': r['free'] == true ? _i(r['free_at']) : old['freeAt'], // paquet gratuit vu dans l'appli : pas de rappel
           'lotDay': r['lot_free'] == true ? _today() : old['lotDay'],
+          'sunDay': r['sunday'] == true ? _today() : old['sunDay'], // vu dans l'appli : pas de rappel
         }),
       );
     } catch (_) {}
@@ -304,6 +305,11 @@ class PushWatch {
       if (_i(r['mention']) > _i(old['mention'])) {
         msgs.add((4, t('💬 Messages', '💬 Messages'), t('Quelqu\'un t\'a mentionné dans les messages', 'Someone mentioned you in the messages')));
       }
+      // cadeau du dimanche (une fois, à partir de 9 h)
+      if (r['sunday'] == true && old['sunDay'] != today && DateTime.now().hour >= 9) {
+        msgs.add((9, t('🎁 C\'est dimanche !', '🎁 It\'s Sunday!'),
+            t('3 boosters offerts : Pokémon, Dessins animés et Dragon Ball', '3 free boosters: Pokémon, Cartoons and Dragon Ball')));
+      }
       // lot gratuit du samedi (une fois)
       if (r['lot_free'] == true && old['lotDay'] != today) {
         msgs.add((5, t('🎉 C\'est samedi !', '🎉 It\'s Saturday!'), t('Ton lot de 5 paquets mixtes est gratuit aujourd\'hui', 'Your 5 mixed packs bundle is free today')));
@@ -326,6 +332,7 @@ class PushWatch {
         'freeDay': msgs.any((m) => m.$1 == 6) || first ? today : old['freeDay'],
         'freeAt': msgs.any((m) => m.$1 == 6) || (first && r['free'] == true) ? _i(r['free_at']) : old['freeAt'],
         'lotDay': msgs.any((m) => m.$1 == 5) || (first && r['lot_free'] == true) ? today : old['lotDay'],
+        'sunDay': msgs.any((m) => m.$1 == 9) || (first && r['sunday'] == true) ? today : old['sunDay'],
       }),
     );
 

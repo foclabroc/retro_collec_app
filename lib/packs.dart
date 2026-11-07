@@ -219,6 +219,22 @@ class _PacksScreenState extends State<PacksScreen> {
   }
 
   /// Lot de 5 paquets mixtes : confirmation, achat, ouverture du 1er paquet ; les autres restent « en stock » si on quitte l'écran
+  /// Cadeau du dimanche : les 3 boosters vont dans les cadeaux reçus (à ouvrir comme les autres)
+  Future<void> _claimSunday() async {
+    if (busy) return;
+    setState(() => busy = true);
+    try {
+      await RcServer.sundayClaim();
+      await Notifs.i.refresh();
+      if (mounted) toast(t('🎁 3 boosters ajoutés à tes cadeaux : Pokémon, Dessins animés, Dragon Ball', '🎁 3 boosters added to your gifts: Pokémon, Cartoons, Dragon Ball'));
+    } catch (e) {
+      if (mounted) toast(errText(e));
+      await Notifs.i.refresh();
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   Future<void> _buyLot() async {
     if (busy) return;
     final free = Notifs.i.lotFree;
@@ -455,6 +471,8 @@ class _PacksScreenState extends State<PacksScreen> {
               ],
               const SizedBox(height: 14),
               _FreeHero(free: g.free, enabled: g.free && !busy, onTap: () => _open('free')),
+              const SizedBox(height: 10),
+              _SundayTile(ready: n.sunday, enabled: n.sunday && !busy, onTap: _claimSunday),
               _Section(t('BOUTIQUE', 'SHOP'), key: _shopKey),
               LayoutBuilder(builder: (context, box) {
                 final cols = box.maxWidth >= 560 ? 4 : 2;
@@ -2522,6 +2540,68 @@ class _ShopTile extends StatelessWidget {
 }
 
 /// Lot de 5 paquets : tuile pleine largeur, gratuit le samedi
+/// Cadeau du dimanche : un booster Pokémon, un Dessins animés et un Dragon Ball offerts chaque dimanche
+class _SundayTile extends StatelessWidget {
+  final bool ready, enabled;
+  final VoidCallback onTap;
+  const _SundayTile({required this.ready, required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const color = Color(0xFFE8641B);
+    Widget mini(String img, double angle, double dx) => Transform.translate(
+          offset: Offset(dx, 0),
+          child: Transform.rotate(angle: angle, child: Image.asset(img, width: 40, height: 78, fit: BoxFit.contain)),
+        );
+    return Opacity(
+      opacity: ready ? 1 : 0.7,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: enabled ? onTap : null,
+          child: Ink(
+            padding: const EdgeInsets.fromLTRB(12, 10, 14, 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: ready ? kGold : color.withValues(alpha: 0.8), width: ready ? 2 : 1.5),
+              gradient: RadialGradient(center: const Alignment(-0.7, 0), radius: 1.4, colors: [color.withValues(alpha: 0.55), Color.lerp(color, kBg, 0.8)!]),
+            ),
+            child: Row(children: [
+              SizedBox(
+                width: 96,
+                height: 84,
+                child: Stack(alignment: Alignment.center, children: [
+                  mini('assets/booster_pokemon.webp', -0.22, -26),
+                  mini('assets/booster_da.webp', 0.22, 26),
+                  mini('assets/booster_db.webp', 0, 0),
+                ]),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(t('Cadeau du dimanche', 'Sunday gift'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                  const SizedBox(height: 3),
+                  Text(t('1 booster Pokémon, 1 Dessins animés et 1 Dragon Ball', '1 Pokémon, 1 Cartoons and 1 Dragon Ball booster'),
+                      style: const TextStyle(color: Color(0xFFF3D6C4), fontSize: 12)),
+                  const SizedBox(height: 8),
+                  ready
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          decoration: BoxDecoration(color: kGold, borderRadius: BorderRadius.circular(20)),
+                          child: Text(t('🎁 RÉCUPÉRER', '🎁 CLAIM'), style: const TextStyle(color: Color(0xFF412402), fontWeight: FontWeight.w900, fontSize: 12)),
+                        )
+                      : Text(t('Gratuit chaque dimanche', 'Free every Sunday'), style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w700)),
+                ]),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LotTile extends StatelessWidget {
   final bool free, afford, enabled;
   final VoidCallback onTap;
