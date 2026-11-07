@@ -435,7 +435,17 @@ class _CardDetailPageState extends State<CardDetailPage> {
                 _info(t('Numéro', 'Number'), c.dev),
                 _info(t('Rareté', 'Rarity'), (int.tryParse(c.id.substring(3)) ?? 0) >= 550 ? t('Légendaire', 'Legendary') : switch (c.rarity) { 4 => 'Holo', 3 => 'Rare', _ => t('Commune', 'Common') }), // 550-556 : les 7 Dragon Balls
               ] else if (isSeriesSys(c.sys))
-                const SizedBox()
+                owned || myTotal > 0
+                    ? const SizedBox()
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          t('Carte pas encore débloquée.\nTrouve-la dans les paquets et les boosters, achète-la à la Bourse ou échange-la avec un autre joueur.',
+                              'Card not unlocked yet.\nFind it in packs and boosters, buy it on the Exchange or trade for it with another player.'),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white60, height: 1.4),
+                        ),
+                      )
               else if (owned || myTotal > 0) ...[
                 const SizedBox(height: 14),
                 _info(t('Console', 'System'), Catalog.system(c.sys)?.name ?? c.sys),

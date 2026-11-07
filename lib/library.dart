@@ -1078,18 +1078,22 @@ class _PkSlot extends StatelessWidget {
         child: _withCount(CardView(card: card, finish: best), qBase(q!)),
       );
     }
-    return LayoutBuilder(builder: (context, box) {
-      final w = box.maxWidth;
-      return Container(
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.28),
-          borderRadius: BorderRadius.circular(w * 0.075),
-          border: Border.all(color: kRarityColor[card.rarity].withOpacity(0.35), width: 1.5),
-        ),
-        alignment: Alignment.center,
-        child: Text('#${card.num}', style: TextStyle(color: Colors.white38, fontSize: max(10, w * 0.12), fontWeight: FontWeight.w800)),
-      );
-    });
+    // carte manquante : la fiche propose de l'acheter à la Bourse ou de l'échanger (navigation sur toute la série)
+    return GestureDetector(
+      onTap: () => openCardDetail(context, card, list: list),
+      child: LayoutBuilder(builder: (context, box) {
+        final w = box.maxWidth;
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.28),
+            borderRadius: BorderRadius.circular(w * 0.075),
+            border: Border.all(color: kRarityColor[card.rarity].withOpacity(0.35), width: 1.5),
+          ),
+          alignment: Alignment.center,
+          child: Text('#${card.num}', style: TextStyle(color: Colors.white38, fontSize: max(10, w * 0.12), fontWeight: FontWeight.w800)),
+        );
+      }),
+    );
   }
 }
 
