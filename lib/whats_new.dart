@@ -12,6 +12,14 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('☀️', 'Cadeau du dimanche : chaque dimanche, 1 booster Pokémon, 1 Dessins animés et 1 Dragon Ball offerts (Paquets)',
+      'Sunday gift: every Sunday, 1 Pokémon, 1 Cartoons and 1 Dragon Ball booster for free (Packs)'),
+  ('🏅', '7 nouveaux trophées : Téléspectateur, Guerrier Z, Super Saiyan, Fidèle du dimanche, Sur le podium, Trésor, Fan de séries',
+      '7 new trophies: Cartoon fan, Z Fighter, Super Saiyan, Sunday regular, On the podium, Treasure, Set fan'),
+  ('🏆', 'Actualité › Tops : 6 classements de plus (score, séries, boosters, trophées, Rétro Jump, Course de jaquettes)',
+      'News › Tops: 6 more rankings (score, sets, boosters, trophies, Rétro Jump, Cover Run)'),
+  ('×2', 'Pastille ×N sur les cartes en double des onglets Pokémon, Animés, Dragon Ball et Full art ; chances à jour en bas de Paquets',
+      '×N badge on duplicate cards in the Pokémon, Cartoons, Dragon Ball and Full art tabs; updated odds at the bottom of Packs'),
   ('🎁', 'Booster offert : il s\'ouvre maintenant dans son vrai emballage (Dragon Ball, Pokémon, Dessins animés)',
       'Gifted booster: it now opens in its real wrapper (Dragon Ball, Pokémon, Cartoons)'),
   ('#', 'Aussi depuis la 1.0.47', 'Also since 1.0.47'),

@@ -1,7 +1,13 @@
 # Pixel Trade — Changelog
 
 ## v1.0.48
-_Version 1.0.48+49. Pas de cadeau de version. SQL : `sql/2026-11-06_cadeau_emballage.sql`._
+_Version 1.0.48+49. Pas de cadeau de version. SQL, dans l'ordre : `sql/2026-11-06_cadeau_emballage.sql`, `sql/2026-11-07_tops_plus.sql`, `sql/2026-11-07_cadeau_dimanche.sql`, `sql/2026-11-07_trophees_7.sql`._
+
+- ☀️ Cadeau du dimanche : `rc_sunday_claim(device, sig '|sunday')` (une fois par dimanche, `rc_players.sunday_got`, `rc__sunday()`) → 3 cadeaux « Cadeau du dimanche · … » (pokemon, cartoon, dragonball) via `rc__grant` ; `rc_notifs.sunday` → `Notifs.sunday` : tuile `_SundayTile` dans Paquets (`_claimSunday`), pastille de l'onglet Paquets, `Notifs.total`, notification Android n° 9 dès 9 h (`push.dart`, état `sunDay`), Guide.
+- 🏅 7 trophées (39) : `cartoon`, `dragonball`, `dbholo`, `podium` (`rc_rj_wins` + `rc_rn_wins`), `score`, `boosters` (`rc_pack_log`) lus en direct dans `rc__tn` ; `sunday` compté par `rc__tbump` dans `rc_sunday_claim`.
+- 🏆 Tops : `score`, `series` (cartes pk / da / db), `boosters` (période), `trophies` (paliers), `rj` / `rn` (meilleur solo de la période) dans `rc_tops` ; affichés seulement si le serveur les renvoie (`feed.dart`).
+- ×N sur les cartes en double des onglets Pokémon / Animés / Dragon Ball (`_PkSlot`) et Full art (`_FullArtSlot`) via `_withCount` (`library.dart`).
+- Paquets : chances par carte recalculées avec l'événement `rare_x` (`Events.rareMult`, l'écran écoute `Events.i`), chances saga / pk / da / db, rappel des garanties.
 
 - 🎁 Cadeau : le booster offert s'ouvre dans son vrai emballage. Le serveur renvoie `gk` (type réel du cadeau) dans `rc_open_choice`, `rc_pending_get` et `rc_pick` ; `_PackOpeningPageState._art` = `result['gk'] ?? kind` pour la face / le dos du booster ; `Game.autoPickGift` garde `gk`.
 
