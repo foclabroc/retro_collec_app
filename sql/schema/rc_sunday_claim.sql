@@ -15,6 +15,7 @@ begin
   perform set_config('rc.gift_from', 'Cadeau du dimanche', true);
   perform public.rc__grant(p_device, '{"packs": {"pokemon": 1, "cartoon": 1, "dragonball": 1}}'::jsonb);
   perform set_config('rc.gift_from', '', true);
+  perform public.rc__tbump(p_device, 'sunday', 1);
   return jsonb_build_object('ok', true,
     'gifts', (select count(*)::int from public.rc_gifts g where g.receiver = p_device and g.opened_at is null));
 end $function$

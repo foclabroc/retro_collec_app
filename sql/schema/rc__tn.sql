@@ -18,6 +18,17 @@ AS $function$
                                              where o.device = p_dev and o.qty > 0 and cc.saga is not null and cc.saga not in ('pk', 'da', 'db'))
                      when 'pokemon' then (select count(*)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
                                            where o.device = p_dev and o.qty > 0 and cc.saga = 'pk')
+                     when 'cartoon' then (select count(distinct o.card)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
+                                           where o.device = p_dev and o.qty > 0 and cc.saga = 'da')
+                     when 'dragonball' then (select count(distinct o.card)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
+                                              where o.device = p_dev and o.qty > 0 and cc.saga = 'db')
+                     when 'dbholo' then (select count(distinct o.card)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
+                                          where o.device = p_dev and o.qty > 0 and cc.saga = 'db' and cc.rarity >= 4)
+                     when 'podium' then (select count(*)::int from public.rc_rj_wins w where w.device = p_dev)
+                                      + (select count(*)::int from public.rc_rn_wins w where w.device = p_dev)
+                     when 'score' then p.score
+                     when 'boosters' then (select count(*)::int from public.rc_pack_log l
+                                            where l.device = p_dev and l.kind in ('pokemon', 'cartoon', 'dragonball'))
                      else coalesce(c.n, 0) end,
          coalesce(g.tier, 0), array[k.t1, k.t2, k.t3], k.ord
     from public.rc__tpool() k
