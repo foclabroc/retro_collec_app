@@ -427,16 +427,16 @@ class Catalog {
     final db = <RcCard>[
       for (var i = 0; i < kDbList.length; i++)
         RcCard(
-          id: 'db_${(i + 1).toString().padLeft(3, '0')}',
+          id: 'db_${kDbList[i].$1.toString().padLeft(3, '0')}',
           sys: 'db',
-          num: i + 1,
-          title: kDbList[i].$1,
+          num: i + 1, // place dans la liste (regroupée par personnage)
+          title: kDbList[i].$2,
           year: null,
-          dev: kDbList[i].$2,
-          pub: kDbList[i].$3,
+          dev: kDbList[i].$3,
+          pub: kDbList[i].$4,
           genre: '',
-          rarity: kDbList[i].$4,
-          img: '${(i + 1).toString().padLeft(3, '0')}.jpg',
+          rarity: kDbList[i].$5,
+          img: '${kDbList[i].$1.toString().padLeft(3, '0')}.jpg',
           shot: null,
           desc: '',
         ),

@@ -15,6 +15,6 @@ as $function$
          ('wheel', 10, 50, 200, 28), ('pokemon', 10, 50, 185, 29),
          ('react', 10, 50, 200, 30), ('craft', 5, 25, 100, 31), ('sagacards', 25, 75, 156, 32),
          -- ajoutés le 7/11
-         ('cartoon', 10, 40, 80, 33), ('dragonball', 25, 100, 200, 34), ('dbholo', 5, 20, 44, 35),
+         ('cartoon', 10, 40, 80, 33), ('dragonball', 50, 200, 556, 34), ('dbholo', 10, 50, 146, 35),
          ('sunday', 1, 4, 12, 36), ('podium', 1, 5, 20, 37), ('score', 1000, 5000, 15000, 38),
          ('boosters', 5, 25, 100, 39) $function$;

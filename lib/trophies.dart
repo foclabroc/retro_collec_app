@@ -59,8 +59,8 @@ const kTrophies = [
   TrophyDef('tourney', '🏆', 'Champion', 'Champion', 'Gagner # tournois', 'Win # tournaments', [1, 3, 10]),
   // ajoutés le 7/11 (mêmes seuils que rc__tpool)
   TrophyDef('cartoon', '📺', 'Téléspectateur', 'Cartoon fan', 'Avoir # cartes Dessins animés différentes', 'Own # different cartoon cards', [10, 40, 80]),
-  TrophyDef('dragonball', '🐉', 'Guerrier Z', 'Z Fighter', 'Avoir # cartes Dragon Ball différentes', 'Own # different Dragon Ball cards', [25, 100, 200]),
-  TrophyDef('dbholo', '⚡', 'Super Saiyan', 'Super Saiyan', 'Avoir # holos Dragon Ball', 'Own # Dragon Ball holos', [5, 20, 44]),
+  TrophyDef('dragonball', '🐉', 'Guerrier Z', 'Z Fighter', 'Avoir # cartes Dragon Ball différentes', 'Own # different Dragon Ball cards', [50, 200, 556]),
+  TrophyDef('dbholo', '⚡', 'Super Saiyan', 'Super Saiyan', 'Avoir # holos ou Dragon Balls', 'Own # holos or Dragon Balls', [10, 50, 146]),
   TrophyDef('sunday', '☀️', 'Fidèle du dimanche', 'Sunday regular', 'Récupérer # cadeaux du dimanche', 'Claim # Sunday gifts', [1, 4, 12]),
   TrophyDef('podium', '🥇', 'Sur le podium', 'On the podium', 'Finir # fois dans le top 3 d\'un solo du jour', 'Finish # times in a daily solo top 3', [1, 5, 20]),
   TrophyDef('score', '💎', 'Trésor', 'Treasure', 'Atteindre un score de collection de #', 'Reach a collection score of #', [1000, 5000, 15000]),
