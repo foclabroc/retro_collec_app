@@ -53,6 +53,18 @@ class Events extends ChangeNotifier {
     return n;
   }
 
+  /// Multiplicateur des épiques / légendaires d'un événement « rare_x » en cours (1 sinon, ×5 au plus comme le serveur)
+  double get rareMult {
+    var m = 1.0;
+    for (final e in list) {
+      if (e['live'] == true && e['kind'] == 'effect' && e['effect'] == 'rare_x') {
+        final v = (e['effect_value'] as num? ?? 1).toDouble();
+        if (v > m) m = v;
+      }
+    }
+    return m.clamp(1.0, 5.0);
+  }
+
   /// Multiplicateur de pixels d'un événement « pixels ×2 » en cours (1 sinon)
   int get pixelMult {
     var m = 1;

@@ -377,7 +377,7 @@ class _PacksScreenState extends State<PacksScreen> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([Game.i, Notifs.i]),
+      listenable: Listenable.merge([Game.i, Notifs.i, Events.i]), // Events : chances « rare_x » en direct
       builder: (context, _) {
         final g = Game.i, n = Notifs.i;
         final stock = n.gifts + n.cardStock + n.lots + (pending != null ? 1 : 0);
@@ -495,16 +495,40 @@ class _PacksScreenState extends State<PacksScreen> {
                 ]),
               ),
               const SizedBox(height: 12),
-              Wrap(spacing: 6, runSpacing: 6, children: [
-                for (final (r, p) in const [(0, '60 %'), (1, '26 %'), (2, '10 %'), (3, '3,2 %'), (4, '0,8 %')])
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: kRarityDark[r], borderRadius: BorderRadius.circular(8), border: Border.all(color: kRarityColor[r])),
-                    child: Text('${rarityName(r)} $p', style: TextStyle(color: kRarityLight[r], fontSize: 11.5, fontWeight: FontWeight.w800)),
-                  ),
-              ]),
+              // chances par carte d'un paquet mixte (rc__roll du serveur) ; un événement « rare_x » multiplie épique et légendaire
+              Builder(builder: (context) {
+                final m = Events.i.rareMult;
+                String pc(double v) => t('${(v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(1)).replaceAll('.', ',')} %', '${v == v.roundToDouble() ? v.toInt() : v.toStringAsFixed(1)}%');
+                final odds = [(0, 60 - 4 * (m - 1)), (1, 26.0), (2, 10.0), (3, 3.2 * m), (4, 0.8 * m)];
+                return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(t('Chances par carte (paquet mixte)', 'Odds per card (mixed pack)'), style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 6),
+                  Wrap(spacing: 6, runSpacing: 6, children: [
+                    for (final (r, p) in odds)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: kRarityDark[r], borderRadius: BorderRadius.circular(8), border: Border.all(color: kRarityColor[r])),
+                        child: Text('${rarityName(r)} ${pc(p)}', style: TextStyle(color: kRarityLight[r], fontSize: 11.5, fontWeight: FontWeight.w800)),
+                      ),
+                  ]),
+                  if (m > 1) ...[
+                    const SizedBox(height: 6),
+                    Text(t('🔥 Événement en cours : épiques et légendaires ×${(m == m.roundToDouble() ? '${m.toInt()}' : m.toStringAsFixed(1)).replaceAll('.', ',')}',
+                            '🔥 Live event: epic and legendary ×${m == m.roundToDouble() ? '${m.toInt()}' : m.toStringAsFixed(1)}'),
+                        style: const TextStyle(color: Color(0xFFFFB27A), fontSize: 12, fontWeight: FontWeight.w800)),
+                  ],
+                ]);
+              }),
               const SizedBox(height: 8),
               Text(t('Finition brillante : ${livePct('holo')} · dorée : ${livePct('gold')} · full art (épiques et légendaires) : ${livePct('fullart')}', 'Holo finish: ${livePct('holo')} · gold: ${livePct('gold')} · full art (epic and legendary): ${livePct('fullart')}'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              const SizedBox(height: 4),
+              Text(t('Cartes spéciales, par carte : saga ${livePct('saga')} · Pokémon ${livePct('pk')} · Dessins animés ${livePct('da')} · Dragon Ball ${livePct('db')}',
+                      'Special cards, per card: saga ${livePct('saga')} · Pokémon ${livePct('pk')} · Cartoons ${livePct('da')} · Dragon Ball ${livePct('db')}'),
+                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              const SizedBox(height: 4),
+              Text(t('Paquet premium : une rare ou mieux garantie · Dragon Ball : 8 cartes, au moins une holo · épique ou mieux garantie tous les 30 paquets',
+                      'Premium pack: one rare or better guaranteed · Dragon Ball: 8 cards, at least one holo · epic or better guaranteed every 30 packs'),
+                  style: const TextStyle(color: Colors.white38, fontSize: 11.5)),
             ]),
           ),
         ]);

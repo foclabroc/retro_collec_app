@@ -14,9 +14,12 @@ as $$
            order by e.value::numeric desc, p.name limit 10) x
 $$;
 
-create or replace function public.rc_tops(p_days int default 7)
- returns jsonb language plpgsql stable security definer set search_path to 'public', 'extensions'
-as $$
+CREATE OR REPLACE FUNCTION public.rc_tops(p_days integer DEFAULT 7)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $function$
 declare v_days int := least(greatest(coalesce(p_days, 7), 1), 30); since timestamptz;
 begin
   since := (rc__today() - (v_days - 1))::timestamp at time zone 'Europe/Paris';
@@ -34,8 +37,20 @@ begin
                union all select buyer, price, sold_at from rc_market where buyer is not null) m
               where sold_at >= since group by d) x)),
     'gifts', rc__tops_list((select jsonb_object_agg(giver, n) from (select giver, count(*) n from rc_gifts where giver is not null and created_at >= since group by giver) x)),
-    'cards', rc__tops_list((select jsonb_object_agg(device, cards) from rc_players where cards > 0)));
-end $$;
+    'cards', rc__tops_list((select jsonb_object_agg(device, cards) from rc_players where cards > 0)),
+    -- ajoutés le 7/11
+    'score', rc__tops_list((select jsonb_object_agg(device, score) from rc_players where score > 0)),
+    'series', rc__tops_list((select jsonb_object_agg(device, n) from (select device, count(distinct card) n from rc_owned
+               where qty > 0 and card ~ '^(pk|da|db)_' group by device) x)),
+    'trophies', rc__tops_list((select jsonb_object_agg(device, n) from (select device, sum(tier) n from rc_trophy_got
+               where tier > 0 group by device) x)),
+    'boosters', rc__tops_list((select jsonb_object_agg(device, n) from (select device, count(*) n from rc_pack_log
+               where at >= since and kind in ('pokemon', 'cartoon', 'dragonball', 'premium', 'star', 'gold') group by device) x)),
+    'rj', rc__tops_list((select jsonb_object_agg(device, n) from (select device, max(score) n from rc_rj_best
+               where day >= rc__today() - (v_days - 1) group by device) x)),
+    'rn', rc__tops_list((select jsonb_object_agg(device, n) from (select device, max(score) n from rc_rn_best
+               where day >= rc__today() - (v_days - 1) group by device) x)));
+end $function$;
 
 alter function public.rc__tops_list(jsonb) owner to rc_owner;
 alter function public.rc_tops(int) owner to rc_owner;

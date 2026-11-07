@@ -1001,6 +1001,23 @@ List<RcCard> fullArtCards() => [
     ];
 
 /// Case de la page Full art : la carte en full art si je l'ai, sinon une case vide.
+/// Pastille « ×N » en bas à droite d'une carte possédée en plusieurs exemplaires (comme dans les consoles)
+Widget _withCount(Widget card, int n) {
+  if (n < 2) return card;
+  return Stack(clipBehavior: Clip.none, children: [
+    Positioned.fill(child: card),
+    Positioned(
+      right: 2,
+      bottom: 0,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        decoration: BoxDecoration(color: kGold, borderRadius: BorderRadius.circular(8)),
+        child: Text('×$n', style: const TextStyle(color: Color(0xFF412402), fontSize: 11, fontWeight: FontWeight.w800)),
+      ),
+    ),
+  ]);
+}
+
 class _FullArtSlot extends StatelessWidget {
   final RcCard card;
   final List<RcCard> list;
@@ -1012,7 +1029,7 @@ class _FullArtSlot extends StatelessWidget {
     if (has) {
       return GestureDetector(
         onTap: () => openCardDetail(context, card, list: [for (final c in list) if ((Game.i.owned[c.id]?[3] ?? 0) > 0) c]),
-        child: CardView(card: card, finish: 3),
+        child: _withCount(CardView(card: card, finish: 3), Game.i.owned[card.id]?[3] ?? 0),
       );
     }
     final sys = Catalog.system(card.sys);
@@ -1058,7 +1075,7 @@ class _PkSlot extends StatelessWidget {
     if (best >= 0) {
       return GestureDetector(
         onTap: () => openCardDetail(context, card, list: [for (final c in list) if (Game.i.owned[c.id]?.any((n) => n > 0) ?? false) c]),
-        child: CardView(card: card, finish: best),
+        child: _withCount(CardView(card: card, finish: best), qBase(q!)),
       );
     }
     return LayoutBuilder(builder: (context, box) {

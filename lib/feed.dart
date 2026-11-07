@@ -296,6 +296,13 @@ class _TopsViewState extends State<TopsView> {
             _board(t('🏦 Volume Bourse', '🏦 Market volume'), d['market'] as List? ?? const []),
             _board(t('🎁 Cadeaux envoyés', '🎁 Gifts sent'), d['gifts'] as List? ?? const []),
             _board(t('🃏 Cartes (total)', '🃏 Cards (total)'), d['cards'] as List? ?? const []),
+            // ajoutés le 7/11 (cachés tant que le serveur ne les renvoie pas)
+            if (d['score'] != null) _board(t('🏆 Score de collection (total)', '🏆 Collection score (total)'), d['score'] as List),
+            if (d['series'] != null) _board(t('🐉 Cartes de séries : Pokémon, Animés, Dragon Ball (total)', '🐉 Set cards: Pokémon, Cartoons, Dragon Ball (total)'), d['series'] as List),
+            if (d['boosters'] != null) _board(t('✨ Boosters spéciaux ouverts', '✨ Special boosters opened'), d['boosters'] as List),
+            if (d['trophies'] != null) _board(t('🏅 Paliers de trophées (total)', '🏅 Trophy tiers (total)'), d['trophies'] as List),
+            if (d['rj'] != null) _board(t('🚀 Rétro Jump : meilleur solo', '🚀 Rétro Jump: best solo run'), d['rj'] as List),
+            if (d['rn'] != null) _board(t('🏃 Course de jaquettes : meilleure course (m)', '🏃 Cover Run: best run (m)'), d['rn'] as List),
           ];
     return Column(children: [
       SizedBox(
