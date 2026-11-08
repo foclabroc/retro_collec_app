@@ -100,7 +100,7 @@ int bestFinish(List<int>? q, {bool full = true}) {
 int recycleValue(int r, int f) => const [2, 5, 20, 60, 200][r] * const [1, 3, 10, 30][f];
 int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
 /// Fragments pour fabriquer une full art (épique / légendaire), même valeurs que rc__fragment_cost
-int fragmentCost(int r) => r == 3 ? 3000 : 10000;
+int fragmentCost(int r) => r == 3 ? 1500 : 4000; // même table que rc__fragment_cost (baissée le 8/11)
 /// Boosters spéciaux payés en pixels (1 pixel par booster ouvert)
 const kSpecialPrice = {'star': 15, 'sconsole': 25, 'gold': 40, 'cartoon': 70, 'pokemon': 100};
 final kPackPrice = <String, int>{'free': 0, 'mixte': 100, 'console': 150, 'premium': 400, 'mystery': 120, 'dragonball': 400, 'gift': 0, 'lot': 0};

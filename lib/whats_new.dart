@@ -12,6 +12,8 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('★', 'Full art moins chères : 1 500 fragments pour une épique, 4 000 pour une légendaire (au lieu de 3 000 / 10 000)',
+      'Cheaper full arts: 1,500 fragments for an epic, 4,000 for a legendary (instead of 3,000 / 10,000)'),
   ('🔎', 'Pokémon, Animés, Dragon Ball : touche une carte manquante pour l\'acheter à la Bourse ou la demander en échange',
       'Pokémon, Cartoons, Dragon Ball: tap a missing card to buy it on the Exchange or ask for it in a trade'),
   ('🐉', 'Dragon Ball : 356 cartes de plus (556 au total), rangées par personnage, avec 45 nouveaux personnages et les 7 Dragon Balls en légendaires brillantes',
