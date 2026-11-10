@@ -1,5 +1,10 @@
 # Pixel Trade — Changelog
 
+## v1.0.50
+_Version 1.0.50+51. Pas de cadeau de version. SQL : `sql/2026-11-08_full_art_moins_cher.sql`._
+
+- ★ Full art moins chères : `rc__fragment_cost` = 1 500 (épique) / 4 000 (légendaire) au lieu de 3 000 / 10 000 ; même table dans l'appli (`fragmentCost`, `game.dart`) et dans le Guide.
+
 ## v1.0.49
 _Version 1.0.49+50. Pas de cadeau de version. SQL : `sql/2026-11-07_dragon_ball_556.sql` (après ceux de la 1.0.48). Images : `db_cartes_2.zip` (201 à 556) dans `D:\pixeltrade\db`._
 
