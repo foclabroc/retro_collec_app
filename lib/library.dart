@@ -221,25 +221,22 @@ class _LibraryScreenState extends State<LibraryScreen> {
           Expanded(
             child: CustomScrollView(slivers: [
               SliverToBoxAdapter(child: _dashboard(g)),
-              // onglets flottants : ils partent en descendant et reviennent dès qu'on remonte un peu
+              // tout le haut (onglets, infos, filtres) flotte : il part en descendant et revient dès qu'on remonte un peu
               SliverFloatingHeader(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 8, 10, 4),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 420),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(13), boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 3))]),
-                        child: _seg(),
-                      ),
-                    ),
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(6, 6, 6, 4),
+                  decoration: BoxDecoration(
+                    color: kBg,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 3))],
                   ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 0, 10, 4),
+                  child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 6, 4, 4),
+                      child: Align(alignment: Alignment.centerLeft, child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 420), child: _seg())),
+                    ),
+                    Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 0, 4, 6),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   Row(children: [
                     Expanded(
@@ -277,10 +274,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ]),
                   ]),
                 ),
-              ),
-              if (mode == 2)
-                SliverToBoxAdapter(
-                  child: ListenableBuilder(
+                    if (mode == 2) ListenableBuilder(
                     listenable: Game.i,
                     builder: (_, __) => Padding(
                       padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
@@ -295,14 +289,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       ]),
                     ),
                   ),
-                ),
-              if (serSys != null)
-                SliverToBoxAdapter(
-                  child: Padding(
+                    if (serSys != null) Padding(
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                     child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [_ownedChip(pkOwned, () => setState(() => pkOwned = !pkOwned))]),
                   ),
+                  ]),
                 ),
+              ),
               if (serSys != null)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
