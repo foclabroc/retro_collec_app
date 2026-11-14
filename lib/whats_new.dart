@@ -12,6 +12,11 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('📚', 'Collection : le haut de l\'écran (onglets, infos, filtres) revient dès que tu remontes un peu, plus besoin de remonter toute la liste',
+      'Collection: the top of the screen (tabs, info, filters) comes back as soon as you scroll up a little'),
+  ('★', 'Une full art est une carte à part partout : une normale + une full art ne comptent plus comme un doublon (Bourse, ventes, échanges)',
+      'A full art is a separate card everywhere: a normal + a full art no longer count as a duplicate (Exchange, sales, trades)'),
+  ('#', 'Aussi depuis la 1.0.50', 'Also since 1.0.50'),
   ('★', 'Full art moins chères : 1 500 fragments pour une épique, 4 000 pour une légendaire (au lieu de 3 000 / 10 000)',
       'Cheaper full arts: 1,500 fragments for an epic, 4,000 for a legendary (instead of 3,000 / 10,000)'),
   ('#', 'Aussi depuis la 1.0.49', 'Also since 1.0.49'),
