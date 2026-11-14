@@ -129,7 +129,9 @@ class _CardOffersState extends State<_CardOffers> {
   Widget build(BuildContext context) {
     final c = Catalog.cards[widget.cardId];
     if (c == null) return const SizedBox();
-    final known = Game.i.has(c.id);
+    final gf = widget.finish ?? (rows != null && rows!.isNotEmpty ? (rows!.first['finish'] as num).toInt() : 0);
+    final mine = Game.i.qtyG(c.id, gf); // full art = carte à part
+    final known = mine > 0;
     return ListView(controller: widget.scroll, padding: const EdgeInsets.fromLTRB(16, 10, 16, 24), children: [
       Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
       const SizedBox(height: 12),
@@ -158,7 +160,7 @@ class _CardOffersState extends State<_CardOffers> {
             Text('${Catalog.system(c.sys)?.name ?? c.sys} · ${rarityName(c.rarity)}', style: TextStyle(color: kRarityLight[c.rarity], fontSize: 12)),
             const SizedBox(height: 2),
             Text(
-              known ? t('Tu en as ${Game.i.qty(c.id)}', 'You have ${Game.i.qty(c.id)}') : t('Il te manque cette carte', 'You don\'t have this card'),
+              known ? t('Tu en as $mine${gf == 3 ? ' en full art' : ''}', 'You have $mine${gf == 3 ? ' in full art' : ''}') : t(gf == 3 ? 'Il te manque cette full art' : 'Il te manque cette carte', gf == 3 ? 'You don\'t have this full art' : 'You don\'t have this card'),
               style: TextStyle(color: known ? Colors.white54 : const Color(0xFF5DCAA5), fontSize: 12),
             ),
           ]),
@@ -1111,7 +1113,7 @@ class _SellPickerPageState extends State<SellPickerPage> {
   }
 
   Future<void> _sellOne(RcCard c, int f) async {
-    if (Game.i.qty(c.id) <= 1) {
+    if (Game.i.qtyG(c.id, f) <= 1) { // full art = carte à part
       final ok = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(

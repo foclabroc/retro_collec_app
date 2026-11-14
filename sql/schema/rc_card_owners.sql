@@ -7,7 +7,7 @@ AS $function$
   select p.pid, p.name, p.avatar, sum(o.qty)::int
     from public.rc_owned o
     join public.rc_players p on p.device = o.device
-   where o.card = p_card and o.device <> p_device
+   where o.card = p_card and o.device <> p_device and o.finish < 3
    group by p.pid, p.name, p.avatar, p.updated_at
   having sum(o.qty) >= 2
    order by sum(o.qty) desc, p.updated_at desc

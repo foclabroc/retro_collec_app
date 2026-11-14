@@ -717,7 +717,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
       });
 
   void _sell(BuildContext context, RcCard c) => _run(() async {
-        final total = Game.i.qty(c.id);
+        final total = Game.i.qtyG(c.id, finish); // full art = carte à part
         if (total == 1) {
           final ok = await showDialog<bool>(
             context: context,

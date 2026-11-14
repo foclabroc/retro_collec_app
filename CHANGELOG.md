@@ -1,9 +1,10 @@
 # Pixel Trade — Changelog
 
 ## v1.0.50
-_Version 1.0.50+51. Pas de cadeau de version. SQL : `sql/2026-11-08_full_art_moins_cher.sql`._
+_Version 1.0.50+51. Pas de cadeau de version. SQL : `sql/2026-11-08_full_art_moins_cher.sql`, puis `sql/2026-11-14_full_art_pas_en_double.sql`._
 
 - ★ Full art moins chères : `rc__fragment_cost` = 1 500 (épique) / 4 000 (légendaire) au lieu de 3 000 / 10 000 ; même table dans l'appli (`fragmentCost`, `game.dart`) et dans le Guide.
+- ★ Full art = carte à part partout (14/11) : une normale + une full art ne font plus 2 exemplaires. `Game.qtyG(card, f)` (groupe de la finition) remplace `Game.qty(card)` pour : « Tu en as N » de la fiche Bourse (+ « en full art »), avertissement « Dernier exemplaire » à la vente (Bourse et album), échanges (dernier exemplaire, « Il t'en restera », « Tu en as déjà »), tri par quantité des consoles, tri « doublons » du profil comparé ; serveur : `rc_card_owners` (« Demander en échange ») ne compte que normale / brillante / dorée.
 
 ## v1.0.49
 _Version 1.0.49+50. Pas de cadeau de version. SQL : `sql/2026-11-07_dragon_ball_556.sql` (après ceux de la 1.0.48). Images : `db_cartes_2.zip` (201 à 556) dans `D:\pixeltrade\db`._

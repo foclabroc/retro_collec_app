@@ -74,7 +74,7 @@ class CardFilter {
         });
       case 5:
         out.sort((a, b) {
-          final c = g.qty(b.id).compareTo(g.qty(a.id));
+          final c = g.qtyG(b.id, 0).compareTo(g.qtyG(a.id, 0)); // sans le full art
           return c != 0 ? c : byNum(a, b);
         });
       default:

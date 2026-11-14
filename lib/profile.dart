@@ -1033,7 +1033,7 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
         if (qBase(e.value) > 0 && _his(e.key) == 0 && Catalog.cards[e.key] != null) Catalog.cards[e.key]!
     ];
     l.sort((a, b) {
-      final d = (Game.i.qty(b.id) > 1 ? 1 : 0) - (Game.i.qty(a.id) > 1 ? 1 : 0);
+      final d = (Game.i.qtyG(b.id, 0) > 1 ? 1 : 0) - (Game.i.qtyG(a.id, 0) > 1 ? 1 : 0); // sans le full art
       return d != 0 ? d : b.rarity != a.rarity ? b.rarity - a.rarity : a.title.compareTo(b.title);
     });
     return l;

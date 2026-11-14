@@ -343,6 +343,9 @@ class Game extends ChangeNotifier {
     return finish == null ? qSum(q) : q[finish];
   }
 
+  /// Exemplaires du groupe de la finition [f] : full art (3) ou normale / brillante / dorée (0-2)
+  int qtyG(String card, int f) => qGroup(owned[card] ?? const [], f);
+
   /// Carte possédée dans les consoles : normale, brillante ou dorée (le full art compte à part, voir [hasF])
   bool has(String card) => qBase(owned[card] ?? const []) > 0;
 

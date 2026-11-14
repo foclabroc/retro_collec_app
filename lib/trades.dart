@@ -551,7 +551,7 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
               toast(t('5 cartes maximum de chaque côté', '5 cards maximum on each side'));
               return;
             }
-            if (mine && Game.i.qty(c.id) - _count(give, c.id, 0) - _count(give, c.id, 1) - _count(give, c.id, 2) <= 1) {
+            if (mine && (f == 3 ? Game.i.qtyG(c.id, 3) - _count(give, c.id, 3) : Game.i.qtyG(c.id, 0) - _count(give, c.id, 0) - _count(give, c.id, 1) - _count(give, c.id, 2)) <= 1) { // full art = carte à part
               toast(t('Attention : c\'est ton dernier exemplaire de cette carte', 'Careful: this is your last copy of this card'));
             }
             setState(() => target.add((c.id, f)));
@@ -597,13 +597,13 @@ class TradeDetailPage extends StatelessWidget {
     Widget row((String, int) it, {required bool mine}) {
       final c = Catalog.cards[it.$1];
       if (c == null) return const SizedBox();
-      final have = Game.i.qty(c.id), haveF = Game.i.qty(c.id, it.$2);
+      final have = Game.i.qtyG(c.id, it.$2), haveF = Game.i.qty(c.id, it.$2); // full art = carte à part
       // proposition en attente faite avec la réservation : mes cartes sont déjà sorties du stock
       final reserved = !incoming && !finished && trade['held'] == true;
-      final sameInTrade = reserved ? 0 : iGive.where((x) => x.$1 == c.id).length;
+      final sameInTrade = reserved ? 0 : iGive.where((x) => x.$1 == c.id && (x.$2 == 3) == (it.$2 == 3)).length;
       final note = mine
           ? (have - sameInTrade <= 0 ? t('⚠ Ta dernière : tu ne l\'auras plus', '⚠ Your last one: you won\'t have it anymore') : t('Il t\'en restera ${have - sameInTrade}', 'You\'ll keep ${have - sameInTrade}'))
-          : (have == 0 ? t('✨ Nouvelle pour toi', '✨ New for you') : t('Tu en as déjà $have${haveF > 0 ? ' (dont $haveF ${finishName(it.$2).toLowerCase()})' : ''}', 'You already have $have'));
+          : (have == 0 ? t('✨ Nouvelle pour toi', '✨ New for you') : t('Tu en as déjà $have${haveF > 0 && it.$2 != 3 ? ' (dont $haveF ${finishName(it.$2).toLowerCase()})' : ''}', 'You already have $have'));
       final noteColor = mine ? (have - sameInTrade <= 0 ? const Color(0xFFFFB547) : Colors.white54) : (have == 0 ? const Color(0xFF5DCAA5) : Colors.white54);
       return InkWell(
         borderRadius: BorderRadius.circular(12),
