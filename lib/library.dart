@@ -221,12 +221,26 @@ class _LibraryScreenState extends State<LibraryScreen> {
           Expanded(
             child: CustomScrollView(slivers: [
               SliverToBoxAdapter(child: _dashboard(g)),
-              SliverToBoxAdapter(
+              // onglets flottants : ils partent en descendant et reviennent dès qu'on remonte un peu
+              SliverFloatingHeader(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(14, 8, 10, 4),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(13), boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 3))]),
+                        child: _seg(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 10, 4),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Align(alignment: Alignment.centerLeft, child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 420), child: _seg())),
-                  const SizedBox(height: 4),
                   Row(children: [
                     Expanded(
                       child: Text(
