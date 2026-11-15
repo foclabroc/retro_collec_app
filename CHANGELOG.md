@@ -1,7 +1,7 @@
 # Pixel Trade — Changelog
 
 ## v1.0.52
-_Version 1.0.52+53. Pas de cadeau de version. Catalogue du 15/11 déjà en ligne pour toutes les versions ; SQL : `sql/2026-11-15_cartes_reserve.sql`, à lancer après la mise en ligne de `retro_collec_assets`._
+_Version 1.0.52+53. Cadeau de version : 3 boosters Pokémon + 3 Dessins animés + 3 Dragon Ball (ligne `1.0.52` de `rc_upgrade_gifts`, posée le 15/11 via l'outil SQL, comptes créés avant 11 h 24). Catalogue du 15/11 déjà en ligne pour toutes les versions ; SQL : `sql/2026-11-15_cartes_reserve.sql`, à lancer après la mise en ligne de `retro_collec_assets`._
 
 - 🎮 863 cartes de plus (3163 au total) tirées des réserves de la borne : +50 pour 14 consoles, moins pour GameCube (41), PS2 (35), Lynx (25), Switch (21), 3DS / Supervision (11), SG-1000 (9), Atari 7800 (8), Dreamcast (2) ; rien pour les 6 consoles du 29/10 (pas de réserve). 16 légendaires et 52 épiques de plus, donc 68 full art possibles en plus. Numéros à la suite, aucune carte existante modifiée. Descriptions anglaises vides.
 - 🏅 Texte de la prime « ancienne série complète » (palier 99 de `rc__milestones`, champ `old` de l'événement) dans la fenêtre de bienvenue (`main.dart`) et le récapitulatif du paquet (`packs.dart`), au lieu de « Série X à 67 % ».

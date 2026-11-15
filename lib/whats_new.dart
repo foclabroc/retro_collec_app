@@ -12,6 +12,8 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎁', 'Cadeau de mise à jour : 3 boosters Pokémon, 3 boosters Dessins animés et 3 boosters Dragon Ball dans tes cadeaux',
+      'Update gift: 3 Pokémon boosters, 3 Cartoons boosters and 3 Dragon Ball boosters in your gifts'),
   ('🎮', '863 nouvelles cartes de consoles (3 163 au total) : jusqu\'à 50 de plus sur 23 consoles, avec de nouvelles épiques et légendaires à transformer en full art',
       '863 new console cards (3,163 in total): up to 50 more on 23 consoles, with new epics and legendaries to turn into full arts'),
   ('🏅', 'Consoles agrandies : 2 000 pièces quand tu atteins l\'ancien nombre de cartes (si tu ne les avais pas déjà eues), puis encore 2 000 à 100 % de la nouvelle série',
