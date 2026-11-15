@@ -1,7 +1,7 @@
--- 15/11/2026 : 863 cartes de plus, tirées des réserves de la borne (csv/<console>_reserve.csv),
--- 50 par console au plus (moins si la réserve est plus petite), rareté selon la note : 28 / 12 / 6 / 3 / 1.
--- Numéros à la suite des cartes existantes (aucune carte existante modifiée). Relançable.
--- À lancer APRÈS la mise en ligne du dépôt retro_collec_assets (sinon cartes sans image).
+-- 15/11/2026 : 863 cartes de plus, tirees des reserves de la borne (csv/<console>_reserve.csv),
+-- 50 par console au plus (moins si la reserve est plus petite), rarete selon la note : 28 / 12 / 6 / 3 / 1.
+-- Numeros a la suite des cartes existantes (aucune carte existante modifiee). Relancable.
+-- A lancer APRES la mise en ligne du depot retro_collec_assets (sinon cartes sans image).
 
 insert into public.rc_cards (id, sys, num, rarity, title) values
 ('mastersystem_101','mastersystem',101,1,'Aerial Assault'),
@@ -11,7 +11,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('mastersystem_105','mastersystem',105,1,'Altered Beast'),
 ('mastersystem_106','mastersystem',106,1,'Arcade Smash Hits'),
 ('mastersystem_107','mastersystem',107,3,'Assault City'),
-('mastersystem_108','mastersystem',108,3,'Astérix and the Great Rescue'),
+('mastersystem_108','mastersystem',108,3,U&'Ast\00E9rix and the Great Rescue'),
 ('mastersystem_109','mastersystem',109,0,'Bank Panic'),
 ('mastersystem_110','mastersystem',110,0,'Basket Ball Nightmare'),
 ('mastersystem_111','mastersystem',111,0,'Battle Out Run'),
@@ -65,7 +65,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('nes_109','nes',109,0,'Anticipation'),
 ('nes_110','nes',110,0,'Arch Rivals : A Basketbrawl!'),
 ('nes_111','nes',111,0,'Astyanax'),
-('nes_112','nes',112,0,'Astérix'),
+('nes_112','nes',112,0,U&'Ast\00E9rix'),
 ('nes_113','nes',113,0,'Batman : Return of the Joker'),
 ('nes_114','nes',114,0,'Batman Returns'),
 ('nes_115','nes',115,0,'Battleship'),
@@ -93,7 +93,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('nes_137','nes',137,1,'Rampart'),
 ('nes_138','nes',138,1,'Rockin'' Kats'),
 ('nes_139','nes',139,1,'Snow Brothers'),
-('nes_140','nes',140,1,'Solstice : La Quête du Sceptre de Demnos'),
+('nes_140','nes',140,1,U&'Solstice : La Qu\00EAte du Sceptre de Demnos'),
 ('nes_141','nes',141,1,'Super Spike V'' Ball'),
 ('nes_142','nes',142,1,'Tecmo Cup Soccer Game'),
 ('nes_143','nes',143,1,'Tecmo World Wrestling'),
@@ -117,7 +117,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('snes_111','snes',111,1,'Dino Dini''s Soccer!'),
 ('snes_112','snes',112,1,'Donald in Maui Mallard'),
 ('snes_113','snes',113,1,'Dragon Ball Z : Hyper Dimension'),
-('snes_114','snes',114,1,'Dragon Ball Z : La Légende Saien'),
+('snes_114','snes',114,1,U&'Dragon Ball Z : La L\00E9gende Saien'),
 ('snes_115','snes',115,1,'Eric Cantona Football Challenge'),
 ('snes_116','snes',116,1,'F1 Pole Position 2'),
 ('snes_117','snes',117,1,'Hagane : The Final Conflict'),
@@ -169,7 +169,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('n64_113','n64',113,0,'Chopper Attack'),
 ('n64_114','n64',114,3,'Clay Fighters 63 1/3'),
 ('n64_115','n64',115,0,'Coupe du Monde 98'),
-('n64_116','n64',116,0,'Daffy Duck dans le rôle de Duck Dodgers'),
+('n64_116','n64',116,0,U&'Daffy Duck dans le r\00F4le de Duck Dodgers'),
 ('n64_117','n64',117,0,'Dark Rift'),
 ('n64_118','n64',118,0,'Defi au Tetris Magique'),
 ('n64_119','n64',119,0,'Destruction Derby 64'),
@@ -205,7 +205,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('n64_149','n64',149,1,'WCW Mayhem'),
 ('n64_150','n64',150,1,'WCW vs. nWo World Tour'),
 ('psx_101','psx',101,4,'Asteroids'),
-('psx_102','psx',102,3,'Atlantis : Secrets d''Un Monde Oublié'),
+('psx_102','psx',102,3,U&'Atlantis : Secrets d''Un Monde Oubli\00E9'),
 ('psx_103','psx',103,3,'Atlantis : The Lost Tales'),
 ('psx_104','psx',104,3,'Aztec : The Curse in the Heart of the City of Gold'),
 ('psx_105','psx',105,2,'Beatmania'),
@@ -370,11 +370,11 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('gbc_114','gbc',114,1,'BattleTanx'),
 ('gbc_115','gbc',115,1,'Blade'),
 ('gbc_116','gbc',116,1,'Blaster Master : Enemy Below'),
-('gbc_117','gbc',117,1,'bob l''éponge : Legend of the Lost Spatula'),
-('gbc_118','gbc',118,1,'Bob le Bricoleur : Réparer c''est gagné !'),
+('gbc_117','gbc',117,1,U&'bob l''\00E9ponge : Legend of the Lost Spatula'),
+('gbc_118','gbc',118,1,U&'Bob le Bricoleur : R\00E9parer c''est gagn\00E9 !'),
 ('gbc_119','gbc',119,1,'Bomberman Quest'),
 ('gbc_120','gbc',120,1,'Buffy the Vampire Slayer'),
-('gbc_121','gbc',121,1,'Bugs Bunny et le Château des Catastrophes'),
+('gbc_121','gbc',121,1,U&'Bugs Bunny et le Ch\00E2teau des Catastrophes'),
 ('gbc_122','gbc',122,0,'Chase H.Q. : Secret Police'),
 ('gbc_123','gbc',123,0,'Colin McRae Rally'),
 ('gbc_124','gbc',124,0,'Cool Bricks'),
@@ -383,7 +383,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('gbc_127','gbc',127,0,'Deadly Skies'),
 ('gbc_128','gbc',128,0,'Donald Duck : Quack Attack'),
 ('gbc_129','gbc',129,0,'Doug : La grande aventure'),
-('gbc_130','gbc',130,0,'Dragon Ball Z : Les Guerriers Légendaires'),
+('gbc_130','gbc',130,0,U&'Dragon Ball Z : Les Guerriers L\00E9gendaires'),
 ('gbc_131','gbc',131,0,'Dragon''s Lair'),
 ('gbc_132','gbc',132,0,'Duke Nukem'),
 ('gbc_133','gbc',133,0,'E.T. : The Extra-Terrestrial, Escape from Planet E'),
@@ -396,7 +396,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('gbc_140','gbc',140,0,'Gex : Enter the Gecko'),
 ('gbc_141','gbc',141,0,'Godzilla : The Series'),
 ('gbc_142','gbc',142,0,'Harry Potter and the Chamber of Secrets'),
-('gbc_143','gbc',143,0,'Harry Potter à l''Ecole des Sorciers'),
+('gbc_143','gbc',143,0,U&'Harry Potter \00E0 l''Ecole des Sorciers'),
 ('gbc_144','gbc',144,0,'Heroes of Might and Magic II'),
 ('gbc_145','gbc',145,0,'Hexcite : The Shapes of Victory'),
 ('gbc_146','gbc',146,0,'Hot Wheels : Stunt Track Driver'),
@@ -419,7 +419,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('switch_113','switch',113,2,'Marsupilami Le Secret du Sarcophage'),
 ('switch_114','switch',114,2,'Minecraft Nintendo Switch Edition'),
 ('switch_115','switch',115,0,'Minigolf Adventure'),
-('switch_116','switch',116,0,'Pat Patrouille À la rescousse d’Adventure City'),
+('switch_116','switch',116,0,U&'Pat Patrouille \00C0 la rescousse d\2019Adventure City'),
 ('switch_117','switch',117,2,'Rigid Force Redux'),
 ('switch_118','switch',118,0,'Rival Megagun'),
 ('switch_119','switch',119,1,'Shaun the Sheep Home Sheep Home: Farmageddon Party Edition'),
@@ -577,7 +577,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('psp_150','psp',150,0,'Guilty Gear Judgment'),
 ('ps2_051','ps2',51,3,'7 Sins'),
 ('ps2_052','ps2',52,0,'A-Train 6'),
-('ps2_053','ps2',53,3,'Astérix at the Olympic Games'),
+('ps2_053','ps2',53,3,U&'Ast\00E9rix at the Olympic Games'),
 ('ps2_054','ps2',54,2,'Athens 2004'),
 ('ps2_055','ps2',55,0,'Barbie in The 12 Dancing Princesses'),
 ('ps2_056','ps2',56,2,'Big Mutha Truckers 2 : Truck Me Harder'),
@@ -614,7 +614,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('gamecube_102','gamecube',102,3,'Battle Stadium D.O.N'),
 ('gamecube_103','gamecube',103,0,'Big Mutha Truckers'),
 ('gamecube_104','gamecube',104,3,'Bilbo le Hobbit'),
-('gamecube_105','gamecube',105,2,'Bob L''éponge : La Créature Du Crabe Croustillant'),
+('gamecube_105','gamecube',105,2,U&'Bob L''\00E9ponge : La Cr\00E9ature Du Crabe Croustillant'),
 ('gamecube_106','gamecube',106,0,'Bratz : Rock Angelz'),
 ('gamecube_107','gamecube',107,0,'Charlie et la Chocolaterie'),
 ('gamecube_108','gamecube',108,2,'Dora the Explorer: Journey to the Purple Planet'),
@@ -625,10 +625,10 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('gamecube_113','gamecube',113,2,'Godzilla: Destroy all Monsters Melee'),
 ('gamecube_114','gamecube',114,1,'Gotcha Force'),
 ('gamecube_115','gamecube',115,1,'Gun'),
-('gamecube_116','gamecube',116,1,'Harry Potter à l''école des sorciers'),
+('gamecube_116','gamecube',116,1,U&'Harry Potter \00E0 l''\00E9cole des sorciers'),
 ('gamecube_117','gamecube',117,1,'Hot Wheels - Velocity X'),
 ('gamecube_118','gamecube',118,1,'L''Age de Glace 2'),
-('gamecube_119','gamecube',119,0,'Le Monde de Némo'),
+('gamecube_119','gamecube',119,0,U&'Le Monde de N\00E9mo'),
 ('gamecube_120','gamecube',120,1,'Les Urbz : Les Sims in the City'),
 ('gamecube_121','gamecube',121,1,'Mat Hoffmans Pro BMX 2'),
 ('gamecube_122','gamecube',122,1,'Megaman Network Transmission'),
@@ -636,10 +636,10 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('gamecube_124','gamecube',124,1,'Monster Jam : Maximum Destruction'),
 ('gamecube_125','gamecube',125,0,'Nhl 06'),
 ('gamecube_126','gamecube',126,0,'Pac-man World 3'),
-('gamecube_127','gamecube',127,0,'Power Rangers : Dino Tonnerre'),
+('gamecube_127','gamecube',127,0,U&'Power Rangers\00A0:\00A0Dino Tonnerre'),
 ('gamecube_128','gamecube',128,0,'Pro Tennis WTA Tour'),
 ('gamecube_129','gamecube',129,0,'Red Faction II'),
-('gamecube_130','gamecube',130,0,'Scooby-Doo! ;Le Livre des Ténèbres'),
+('gamecube_130','gamecube',130,0,U&'Scooby-Doo! ;Le Livre des T\00E9n\00E8bres'),
 ('gamecube_131','gamecube',131,0,'Shrek Super Party'),
 ('gamecube_132','gamecube',132,0,'Simpsons - Road Rage'),
 ('gamecube_133','gamecube',133,0,'Sonic Riders'),
@@ -651,13 +651,13 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('gamecube_139','gamecube',139,0,'Turok Evolution'),
 ('gamecube_140','gamecube',140,0,'Virtua Striker 3 - Version 2002'),
 ('gamecube_141','gamecube',141,0,'Zapper - Le Criquet Ravageur !'),
-('3ds_051','3ds',51,3,'Cooking Mama 5 : Bon Appétit !'),
+('3ds_051','3ds',51,3,U&'Cooking Mama 5 : Bon App\00E9tit !'),
 ('3ds_052','3ds',52,1,'Kirby Battle Royale'),
 ('3ds_053','3ds',53,1,'L''Aventure Layton : Katrielle et la conspiration des millionnaires'),
 ('3ds_054','3ds',54,1,'Mario & Sonic aux Jeux Olympiques de Rio 2016'),
 ('3ds_055','3ds',55,0,'Mario Sports Superstars'),
 ('3ds_056','3ds',56,0,'Mario vs. Donkey Kong: Tipping Stars'),
-('3ds_057','3ds',57,2,'Nintendogs + Cats - Bouledogue Français & Ses Nouveaux Amis'),
+('3ds_057','3ds',57,2,U&'Nintendogs + Cats - Bouledogue Fran\00E7ais & Ses Nouveaux Amis'),
 ('3ds_058','3ds',58,0,'Super Monkey Ball 3D'),
 ('3ds_059','3ds',59,0,'Tekken 3D Prime Edition'),
 ('3ds_060','3ds',60,0,'Tetris'),
@@ -705,7 +705,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('amigacd32_072','amigacd32',72,0,'Disposable Hero'),
 ('amigacd32_073','amigacd32',73,0,'Donk! - The Samurai Duck!'),
 ('amigacd32_074','amigacd32',74,2,'Dragonstone'),
-('amigacd32_075','amigacd32',75,0,'Défenseur De La Couronne 2'),
+('amigacd32_075','amigacd32',75,0,U&'D\00E9fenseur De La Couronne 2'),
 ('amigacd32_076','amigacd32',76,0,'Emerald Mines'),
 ('amigacd32_077','amigacd32',77,0,'Fears'),
 ('amigacd32_078','amigacd32',78,0,'Fields Of Glory'),
@@ -737,8 +737,8 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('gb_104','gb',104,3,'Arcade Classic No. 2 : Centipede & Millipede'),
 ('gb_105','gb',105,0,'Arcade Classic No. 4 : Defender & Joust'),
 ('gb_106','gb',106,0,'Arcade Classics : Battlezone & Super Breakout'),
-('gb_107','gb',107,0,'Astérix'),
-('gb_108','gb',108,0,'Astérix & Obélix'),
+('gb_107','gb',107,0,U&'Ast\00E9rix'),
+('gb_108','gb',108,0,U&'Ast\00E9rix & Ob\00E9lix'),
 ('gb_109','gb',109,0,'B.C. Kid'),
 ('gb_110','gb',110,0,'B.C. Kid 2'),
 ('gb_111','gb',111,0,'Balloon Kid'),
@@ -805,7 +805,7 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 ('amiga1200_122','amiga1200',122,1,'Diggers'),
 ('amiga1200_123','amiga1200',123,0,'Disposable Hero'),
 ('amiga1200_124','amiga1200',124,0,'Dragon Tiles'),
-('amiga1200_125','amiga1200',125,0,'Défenseur De La Couronne 2'),
+('amiga1200_125','amiga1200',125,0,U&'D\00E9fenseur De La Couronne 2'),
 ('amiga1200_126','amiga1200',126,0,'Fantasy Flyer'),
 ('amiga1200_127','amiga1200',127,0,'Fatman : The Caped Consumer'),
 ('amiga1200_128','amiga1200',128,0,'Fightin'' Spirit'),
@@ -870,9 +870,9 @@ insert into public.rc_cards (id, sys, num, rarity, title) values
 on conflict (id) do update set sys = excluded.sys, num = excluded.num, rarity = excluded.rarity, title = excluded.title;
 
 -- ===== Primes de collection des consoles agrandies =====
--- Palier « ancienne série complète » (step 99) : 2 000 pièces en atteignant l'ancien nombre de cartes
--- (100 ou 50), une fois ; puis le palier 100 % (2 000 pièces) se gagne à la nouvelle taille.
--- Ceux qui avaient déjà touché le 100 % : leur ancien 100 % devient le palier 99, et le 100 % est à regagner.
+-- Palier  ancienne serie complete  (step 99) : 2 000 pieces en atteignant l'ancien nombre de cartes
+-- (100 ou 50), une fois ; puis le palier 100 % (2 000 pieces) se gagne a la nouvelle taille.
+-- Ceux qui avaient deja touche le 100 % : leur ancien 100 % devient le palier 99, et le 100 % est a regagner.
 create table if not exists public.rc_sys_old (sys text primary key, n int not null);
 alter table public.rc_sys_old owner to rc_owner;
 insert into public.rc_sys_old (sys, n) values ('3ds',50), ('amiga1200',100), ('amigacd32',50), ('atari7800',50), ('dreamcast',50), ('gamecube',100), ('gamegear',100), ('gb',100), ('gba',100), ('gbc',100), ('lynx',50), ('mastersystem',100), ('megadrive',100), ('n64',100), ('neogeo',100), ('nes',100), ('ps2',50), ('psp',100), ('psx',100), ('sg1000',50), ('snes',100), ('supervision',50), ('switch',100)
@@ -950,6 +950,6 @@ end $do$;
 
 notify pgrst, 'reload schema';
 
--- contrôle
+-- controle
 select sys, count(*) as cartes, count(*) filter (where rarity = 3) as epiques, count(*) filter (where rarity = 4) as legendaires
   from public.rc_cards where saga is null and sys not in ('pk','da','db') group by sys order by sys;
