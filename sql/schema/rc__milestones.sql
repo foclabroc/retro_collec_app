@@ -6,11 +6,21 @@ declare
   rec record; s int; ev jsonb := '[]'::jsonb; reward int;
 begin
   for rec in
-    select c.sys, count(*) as total, count(o.card) as mine
+    select c.sys, count(*) as total, count(o.card) as mine, max(so.n) as old_n
       from public.rc_cards c
-      left join (select distinct card from public.rc_owned where device = p_dev and qty > 0 and finish <> 3) o on o.card = c.id  -- full art : onglet à part
+      left join (select distinct card from public.rc_owned where device = p_dev and qty > 0 and finish <> 3) o on o.card = c.id  -- full art : onglet a part
+      left join public.rc_sys_old so on so.sys = c.sys
      group by c.sys
   loop
+    -- ancienne serie complete (console agrandie le 15/11) : 2000 pieces une fois, palier 99
+    if rec.old_n is not null and rec.old_n < rec.total and rec.mine >= rec.old_n then
+      insert into public.rc_milestones (device, sys, step) values (p_dev, rec.sys, 99) on conflict do nothing;
+      if found then
+        update public.rc_players set coins = coins + 2000 where device = p_dev;
+        ev := ev || jsonb_build_object('type', 'milestone', 'sys', rec.sys, 'step', round(rec.old_n * 100.0 / rec.total)::int,
+                                       'coins', 2000, 'old', rec.old_n);
+      end if;
+    end if;
     foreach s in array case when rec.sys like 'sg\_%' then array[50, 100] else array[25, 50, 75, 100] end loop
       if rec.mine * 100 >= rec.total * s then
         insert into public.rc_milestones (device, sys, step) values (p_dev, rec.sys, s) on conflict do nothing;

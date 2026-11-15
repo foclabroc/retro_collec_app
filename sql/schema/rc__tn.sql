@@ -8,8 +8,8 @@ AS $function$
   select k.kind,
          case k.kind when 'packs' then p.packs
                      when 'cards' then p.cards
-                     when 'consoles' then (select count(*)::int from public.rc_milestones m
-                                            where m.device = p_dev and m.step = 100 and m.sys not like 'sg\_%')
+                     when 'consoles' then (select count(distinct m.sys)::int from public.rc_milestones m
+                                            where m.device = p_dev and m.step in (99, 100) and m.sys not like 'sg\_%')
                      when 'sagas' then (select count(*)::int from public.rc_milestones m
                                          where m.device = p_dev and m.step = 100 and m.sys like 'sg\_%')
                      when 'days' then p.days
