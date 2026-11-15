@@ -35,7 +35,7 @@
 
 ## 🎮 Le jeu
 
-**2300 cartes** de jaquettes de jeux, réparties en **29 séries** (100 cartes, 50 pour la PS2, la 3DS, la SG-1000, la Dreamcast, l'Atari 7800, l'Amiga CD32, la Lynx, la Supervision, la ColecoVision, la Saturn, la Wii U et la Xbox), plus **12 sagas** en cartes holo (Mario, Sonic, Zelda, Pokémon, Resident Evil, Castlevania, Kirby, Street Fighter, Crash Bandicoot, Donkey Kong, Mortal Kombat, Final Fantasy) :
+**3163 cartes** de jaquettes de jeux, réparties en **29 séries** (de 52 à 150 cartes par console, 863 ajoutées le 15/11 depuis la réserve), plus **12 sagas** en cartes holo (Mario, Sonic, Zelda, Pokémon, Resident Evil, Castlevania, Kirby, Street Fighter, Crash Bandicoot, Donkey Kong, Mortal Kombat, Final Fantasy) :
 
 | Sega | Nintendo | Autres |
 |---|---|---|
