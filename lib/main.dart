@@ -639,7 +639,9 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             ? (e['step'] == 100
                 ? t('📚 Saga ${saga.name} complète : +$coins pièces et +2 pixels !', '📚 ${saga.name} saga complete: +$coins coins and +2 pixels!')
                 : t('Saga ${saga.name} à moitié : +$coins pièces !', '${saga.name} saga half done: +$coins coins!'))
-            : t('Série $sys à ${e['step']} % : +$coins pièces !', '$sys set at ${e['step']}%: +$coins coins!');
+            : e['old'] != null
+                ? t('Série $sys : ${e['old']} cartes, l\'ancienne série complète : +$coins pièces !', '$sys set: ${e['old']} cards, the old full set: +$coins coins!')
+                : t('Série $sys à ${e['step']} % : +$coins pièces !', '$sys set at ${e['step']}%: +$coins coins!');
       default:
         msg = '';
     }

@@ -12,6 +12,11 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎮', '863 nouvelles cartes de consoles (3 163 au total) : jusqu\'à 50 de plus sur 23 consoles, avec de nouvelles épiques et légendaires à transformer en full art',
+      '863 new console cards (3,163 in total): up to 50 more on 23 consoles, with new epics and legendaries to turn into full arts'),
+  ('🏅', 'Consoles agrandies : 2 000 pièces quand tu atteins l\'ancien nombre de cartes (si tu ne les avais pas déjà eues), puis encore 2 000 à 100 % de la nouvelle série',
+      'Bigger consoles: 2,000 coins when you reach the old number of cards (if you hadn\'t got them yet), then another 2,000 at 100% of the new set'),
+  ('#', 'Aussi depuis la 1.0.51', 'Also since 1.0.51'),
   ('📚', 'Collection : le haut de l\'écran (onglets, infos, filtres) revient dès que tu remontes un peu, plus besoin de remonter toute la liste',
       'Collection: the top of the screen (tabs, info, filters) comes back as soon as you scroll up a little'),
   ('★', 'Une full art est une carte à part partout : une normale + une full art ne comptent plus comme un doublon (Bourse, ventes, échanges)',

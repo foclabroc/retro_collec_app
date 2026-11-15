@@ -1624,6 +1624,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       final saga = sagaOfSys(e['sys'] as String?);
       final name = saga?.name ?? Catalog.system(e['sys'] as String? ?? '')?.name ?? '${e['sys']}';
       final px = saga != null && step == 100 ? 2 : 0;
+      final old = (e['old'] as num?)?.toInt();
       out.add(Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
@@ -1640,7 +1641,9 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
               saga != null
                   ? t('Saga $name à $step % : +$coins pièces${px > 0 ? ' et +$px pixels' : ''}',
                       '$name saga at $step%: +$coins coins${px > 0 ? ' and +$px pixels' : ''}')
-                  : t('Série $name à $step % : +$coins pièces', '$name set at $step%: +$coins coins'),
+                  : old != null
+                      ? t('Série $name : $old cartes, l\'ancienne série complète : +$coins pièces', '$name set: $old cards, the old full set: +$coins coins')
+                      : t('Série $name à $step % : +$coins pièces', '$name set at $step%: +$coins coins'),
               style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.w900),
             ),
           ),

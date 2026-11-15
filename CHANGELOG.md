@@ -1,9 +1,10 @@
 # Pixel Trade — Changelog
 
-## Catalogue du 15/11 (sans nouvelle version de l'appli)
-_SQL : `sql/2026-11-15_cartes_reserve.sql`, à lancer après la mise en ligne de `retro_collec_assets`._
+## v1.0.52
+_Version 1.0.52+53. Pas de cadeau de version. Catalogue du 15/11 déjà en ligne pour toutes les versions ; SQL : `sql/2026-11-15_cartes_reserve.sql`, à lancer après la mise en ligne de `retro_collec_assets`._
 
 - 🎮 863 cartes de plus (3163 au total) tirées des réserves de la borne : +50 pour 14 consoles, moins pour GameCube (41), PS2 (35), Lynx (25), Switch (21), 3DS / Supervision (11), SG-1000 (9), Atari 7800 (8), Dreamcast (2) ; rien pour les 6 consoles du 29/10 (pas de réserve). 16 légendaires et 52 épiques de plus, donc 68 full art possibles en plus. Numéros à la suite, aucune carte existante modifiée. Descriptions anglaises vides.
+- 🏅 Texte de la prime « ancienne série complète » (palier 99 de `rc__milestones`, champ `old` de l'événement) dans la fenêtre de bienvenue (`main.dart`) et le récapitulatif du paquet (`packs.dart`), au lieu de « Série X à 67 % ».
 
 ## v1.0.51
 _Version 1.0.51+52. Pas de cadeau de version. SQL : `sql/2026-11-14_full_art_pas_en_double.sql`._
