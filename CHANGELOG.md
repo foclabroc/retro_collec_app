@@ -1,5 +1,10 @@
 # Pixel Trade — Changelog
 
+## v1.0.53
+_Version 1.0.53+54. Pas de cadeau de version. Pas de SQL._
+
+- 🤝 Échanges : valeur de recyclage de chaque carte et totaux en fragments pour les cartes données et reçues pendant la préparation ; libellés des échanges corrigés en fragments.
+
 ## v1.0.52
 _Version 1.0.52+53. Cadeau de version : 3 boosters Pokémon + 3 Dessins animés + 3 Dragon Ball (ligne `1.0.52` de `rc_upgrade_gifts`, posée le 15/11 via l'outil SQL, comptes créés avant 11 h 24). Catalogue du 15/11 déjà en ligne pour toutes les versions ; SQL : `sql/2026-11-15_cartes_reserve.sql`, à lancer après la mise en ligne de `retro_collec_assets`._
 
