@@ -11,6 +11,11 @@ import 'notifs.dart';
 import 'profile.dart';
 import 'server.dart';
 
+int tradeValue(Iterable<(String, int)> items) => items.fold(0, (total, item) {
+      final card = Catalog.cards[item.$1];
+      return total + (card == null ? 0 : recycleValue(card.rarity, item.$2));
+    });
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Échanges entre joueurs (rubrique Bourse) : jusqu'à 5 cartes contre 5. Rien n'est bloqué avant
 // l'acceptation ; le serveur vérifie que chacun possède encore ses cartes.
@@ -180,8 +185,7 @@ class TradesScreenState extends State<TradesScreen> {
     // Du point de vue du joueur : ce que je reçois / ce que je donne
     final iGet = incoming ? give : want;
     final iGive = incoming ? want : give;
-    int value(List<(String, int)> l) => l.fold(0, (a, x) => a + (Catalog.cards[x.$1] == null ? 0 : recycleValue(Catalog.cards[x.$1]!.rarity, x.$2)));
-    final diff = value(iGet) - value(iGive);
+    final diff = tradeValue(iGet) - tradeValue(iGive);
     final (status, stColor) = switch (r['status']) {
       'accepted' => (t('Accepté', 'Accepted'), const Color(0xFF5DCAA5)),
       'refused' => (t('Refusé', 'Declined'), const Color(0xFFF09595)),
@@ -253,7 +257,7 @@ class TradesScreenState extends State<TradesScreen> {
               Text(t('tu donnes ${iGive.length} · tu reçois ${iGet.length}', 'you give ${iGive.length} · get ${iGet.length}'),
                   style: const TextStyle(color: Colors.white54, fontSize: 10.5)),
               Text(
-                diff == 0 ? t('valeur égale', 'even value') : t('${diff > 0 ? '+' : ''}$diff pièces de valeur', '${diff > 0 ? '+' : ''}$diff coins of value'),
+                diff == 0 ? t('valeur égale', 'even value') : t('${diff > 0 ? '+' : ''}$diff fragments de valeur', '${diff > 0 ? '+' : ''}$diff fragments of value'),
                 style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: diff > 0 ? const Color(0xFF5DCAA5) : diff < 0 ? const Color(0xFFFF8A95) : Colors.white70),
               ),
             ]),
@@ -418,10 +422,15 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
               Container(
                 color: kPanel,
                 padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Expanded(child: _selected(t('Tu reçois', 'You get'), want, const Color(0xFF5DCAA5))),
-                  const Icon(Icons.swap_horiz, color: Colors.white38),
-                  Expanded(child: _selected(t('Tu donnes', 'You give'), give, const Color(0xFFF09595))),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(t('Valeur de recyclage · fragments', 'Recycling value · fragments'),
+                      style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  const SizedBox(height: 4),
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Expanded(child: _selected(t('Tu reçois', 'You get'), want, const Color(0xFF5DCAA5))),
+                    const Icon(Icons.swap_horiz, color: Colors.white38),
+                    Expanded(child: _selected(t('Tu donnes', 'You give'), give, const Color(0xFFF09595))),
+                  ]),
                 ]),
               ),
               Padding(
@@ -498,7 +507,7 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
   }
 
   Widget _selected(String title, List<(String, int)> l, Color color) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: TextStyle(color: color, fontSize: 12)),
+        Text('$title · ${fmt(tradeValue(l))}', style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800)),
         const SizedBox(height: 4),
         SizedBox(
           height: 62,
@@ -561,6 +570,16 @@ class _TradeBuilderPageState extends State<TradeBuilderPage> with SingleTickerPr
             child: Stack(clipBehavior: Clip.none, children: [
               Positioned.fill(child: Align(alignment: Alignment.topCenter, child: CardView(card: c, finish: f))),
               Positioned(
+                left: 0,
+                top: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  decoration: BoxDecoration(color: kPanel2, borderRadius: BorderRadius.circular(6)),
+                  child: Text('♻ ${fmt(recycleValue(c.rarity, f))}',
+                      style: const TextStyle(fontSize: 10, color: kGold, fontWeight: FontWeight.w700)),
+                ),
+              ),
+              Positioned(
                 right: 0,
                 bottom: 0,
                 child: Container(
@@ -590,8 +609,7 @@ class TradeDetailPage extends StatelessWidget {
     final want = parseItems(trade['want'] as String? ?? '');
     final iGet = incoming ? give : want, iGive = incoming ? want : give;
     final name = trade['other_name'] as String? ?? '?';
-    int value(List<(String, int)> l) => l.fold(0, (a, x) => a + (Catalog.cards[x.$1] == null ? 0 : recycleValue(Catalog.cards[x.$1]!.rarity, x.$2)));
-    final vGet = value(iGet), vGive = value(iGive);
+    final vGet = tradeValue(iGet), vGive = tradeValue(iGive);
     final fresh = iGet.where((x) => !Game.i.hasF(x.$1, x.$2)).length;
 
     Widget row((String, int) it, {required bool mine}) {
@@ -681,7 +699,7 @@ class TradeDetailPage extends StatelessWidget {
           ),
           section(t('Tu reçois', 'You get'), const Color(0xFF5DCAA5), iGet, vGet, mine: false),
           section(t('Tu donnes', 'You give'), const Color(0xFFF09595), iGive, vGive, mine: true),
-          Text(t('Valeur = pièces données par le recyclage. Touche une carte pour voir sa fiche.', 'Value = coins given by recycling. Tap a card to see it.'),
+          Text(t('Valeur = fragments donnés par le recyclage. Touche une carte pour voir sa fiche.', 'Value = fragments given by recycling. Tap a card to see it.'),
               style: const TextStyle(fontSize: 11.5, color: Colors.white38)),
         ]),
         bottomNavigationBar: finished
