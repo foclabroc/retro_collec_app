@@ -89,7 +89,7 @@ begin
   when 'card' then
     c := j->>'card'; f := coalesce((j->>'f')::int, 0); n := coalesce((j->>'n')::int, 1);
     if not exists (select 1 from rc_cards where id = c) then raise exception 'carte inconnue'; end if;
-    if f not between 0 and 3 or n = 0 or abs(n) > 50 then raise exception 'valeurs invalides'; end if;
+    if f not between 0 and 4 or n = 0 or abs(n) > 50 then raise exception 'valeurs invalides'; end if;
     if n > 0 then
       insert into rc_owned (device, card, finish, qty, first_at) values (d, c, f, n, now())
       on conflict (device, card, finish) do update set qty = rc_owned.qty + excluded.qty;
@@ -103,7 +103,8 @@ begin
     -- carte offerte : elle attend dans « Cartes à ranger » du joueur (rc_card_stock), avec le nom du donneur
     c := j->>'card'; f := coalesce((j->>'f')::int, 0); n := coalesce((j->>'n')::int, 1);
     if not exists (select 1 from rc_cards where id = c) then raise exception 'carte inconnue'; end if;
-    if f not between 0 and 3 or n not between 1 and 20 then raise exception 'valeurs invalides'; end if;
+    if f not between 0 and 4 or n not between 1 and 20 then raise exception 'valeurs invalides'; end if;
+    if f = 4 and not public.rc__platine_ok(d, c) then raise exception 'platine verrouillee'; end if;
     insert into rc_card_stock (device, card, finish, giver_name)
     select d, c, f, coalesce(nullif(left(trim(j->>'from'), 40), ''), 'Admin') from generate_series(1, n);
     perform rc__rt_safe(rc__rt_topic(d), 'me', jsonb_build_object('k', 'gift'));

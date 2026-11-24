@@ -139,6 +139,12 @@ label.inl{display:flex;gap:6px;align-items:center;margin:0;font-size:13px;color:
 .fc.f2 .fc-f .ttl{color:#ffd76a}
 .fc.f1 .fc-f::after,.fc.f3 .fc-f::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,#ff5ec433 30%,#5ee7ff40 42%,#c6ff5e33 54%,#ffd65e33 64%,transparent 76%);background-size:250% 250%;animation:holo 4s linear infinite;mix-blend-mode:screen}
 @keyframes holo{from{background-position:0% 0%}to{background-position:-250% -250%}}
+/* Platine (finition 4) : platine brossé, gemmes dorées pour toutes les raretés */
+.fc.f4 .fc-f{border:7px solid transparent;background:radial-gradient(120% 70% at 50% 0%,#2e3542,#0c0e13) padding-box,repeating-linear-gradient(90deg,#ffffff14 0 1px,transparent 1px 3px) border-box,linear-gradient(135deg,#f4f6f9,#8b94a1 28%,#c3c9d2 50%,#5d6571 72%,#f4f6f9) border-box}
+.fc.f4 .fc-f .top{color:#dfe4ea;border-bottom:1px solid #ffffff22;letter-spacing:.08em}
+.fc.f4 .fc-f .img{margin:8px 12px 0;border:3px solid #c9cfd8;box-shadow:0 6px 14px #000a}
+.fc.f4 .fc-f .ttl{text-align:center;color:#f1f3f6}.fc.f4 .fc-f .ttl small{color:#ef9f27}
+.fc.f4 .fc-f::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 35%,#ffffff99 48%,#e6f0ff 50%,transparent 62%);background-size:250% 250%;animation:holo 4.5s linear infinite;mix-blend-mode:overlay}
 .fc.f3 .fc-f{border:3px solid var(--rc)}
 .fc.f3 .fc-f .img{position:absolute;inset:0;margin:0;border-radius:0;background-size:cover}
 .fc.f3 .fc-f .top,.fc.f3 .fc-f .ttl{position:relative;z-index:1;background:linear-gradient(#000a,transparent)}
@@ -356,7 +362,7 @@ const fromLocal = s => s ? new Date(s).toISOString() : null;
 
 // ═════════════════════════════ LIBELLÉS ═════════════════════════════
 const RAR = ['Commune', 'Peu commune', 'Rare', 'Épique', 'Légendaire'];
-const FIN = ['Normale', 'Brillante', 'Dorée', 'Full art'];
+const FIN = ['Normale', 'Brillante', 'Dorée', 'Full art', 'Platine'];
 const GAME = { c4: '🔴 4 en ligne', bs: '🚢 Console Wars', rj: '🚀 Rétro Jump', rn: '🏃 Course de jaquettes' };
 const PACK = { lot: 'Lot de 5', mixte: 'Mixte', gift: 'Cadeau', free: 'Gratuit', console: 'Console', gold: 'Doré ▦', premium: 'Premium', mystery: 'Mystère', star: 'Étoile ▦', sconsole: 'Console spé. ▦', pokemon: 'Pokémon ▦', cartoon: 'Dessins animés ▦', dragonball: 'Dragon Ball' };
 const PACKC = { lot: '#8a90b4', mixte: '#ffcc33', gift: '#ff7eb6', free: '#3ee08f', console: '#ff9f40', gold: '#ffe680', premium: '#b07cff', mystery: '#3fd0ff', star: '#9ad0ff', sconsole: '#ff5a6e', pokemon: '#ff3d7f', cartoon: '#4fc3f7', dragonball: '#ff8f3a' };
@@ -480,7 +486,7 @@ function cardFace(id, f) {
   const [rc, rd, rl] = RCOL[c[1]] || RCOL[0];
   const meta = [src.y, src.dv, src.g].filter(Boolean).map(esc).join(' · ');
   return `<div class="fc f${f}${pk ? ' pk' : ''}" id="fc" style="--rc:${rc};--rd:${rd};--rl:${rl}" title="Clic : retourner"><div class="fc-in">
-    <div class="fc-f"><div class="top"><span>${esc(sysName(c[0]))}</span><span>${'★'.repeat(c[1] + 1)}</span></div>
+    <div class="fc-f"><div class="top"><span>${esc(sysName(c[0]))}</span><span>${f === 4 ? '<span style="color:#ef9f27">◆◆◆◆◆</span> PLATINE' : '★'.repeat(c[1] + 1)}</span></div>
       <div class="img" style="background-image:url('${img}')"></div>
       <div class="ttl">${esc(c[2])}<small>${RAR[c[1]]} · ${FIN[f]}${src.y ? ' · ' + src.y : ''}</small></div></div>
     <div class="fc-b"${pk ? ` style="background-image:url('assets/assets/${db ? 'card_back_db.jpg' : da ? 'card_back_da.jpg' : 'card_back_pk.jpg'}')"` : ''}>${pk ? '' : `<div class="shot" style="background-image:url('${shot}')"></div>
@@ -638,7 +644,7 @@ async function openPlayer(pid) {
   const tr = p.trophies || {};
   const packsTot = (p.packs_by || []).reduce((a, x) => ({ today: a.today + x.today, week: a.week + x.week, total: a.total + x.total }), { today: 0, week: 0, total: 0 });
   const cb = {}; for (const x of p.cards_by || []) { (cb[x.r] ||= {})[x.f] = x; }
-  const finTot = [0, 1, 2, 3].map(f => (p.cards_by || []).filter(x => x.f === f).reduce((a, x) => a + x.n, 0));
+  const finTot = [0, 1, 2, 3, 4].map(f => (p.cards_by || []).filter(x => x.f === f).reduce((a, x) => a + x.n, 0));
   $('#drawer').innerHTML = `
   <div class="row">${av(p.avatar, 52)}<div><div style="font-size:18px;font-weight:700">${esc(p.name)} ${p.blocked ? '<span class="pill bad">bloqué</span>' : ''}${p.muted_until ? '<span class="pill warn">muet</span>' : ''}</div>
     <div class="small mute">${p.online ? '<span class="okc">● en ligne</span>' : 'vu ' + ago(p.seen_at)} · ${esc(p.ver || '?')} ${esc(p.os || '')} · inscrit le ${dd(p.created_at)} · pid ${p.pid}</div></div>
@@ -683,7 +689,7 @@ async function openPlayer(pid) {
   <div data-tab="p4" hidden>
     <div class="grid g4">${FIN.map((f, i) => `<div class="mini"><div class="l">${f}</div><div class="n">${fr(finTot[i])}</div></div>`).join('')}</div>
     <h4>Par rareté (cartes différentes)</h4>
-    <table><thead><tr><th></th>${FIN.map(f => `<th class="r">${f}</th>`).join('')}</tr></thead><tbody>${RAR.map((r, i) => `<tr><td>${r}</td>${[0, 1, 2, 3].map(f => `<td class="r">${cb[i]?.[f] ? fr(cb[i][f].n) + (cb[i][f].q > cb[i][f].n ? ` <span class="mute small">(${cb[i][f].q})</span>` : '') : '—'}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <table><thead><tr><th></th>${FIN.map(f => `<th class="r">${f}</th>`).join('')}</tr></thead><tbody>${RAR.map((r, i) => `<tr><td>${r}</td>${[0, 1, 2, 3, 4].map(f => `<td class="r">${cb[i]?.[f] ? fr(cb[i][f].n) + (cb[i][f].q > cb[i][f].n ? ` <span class="mute small">(${cb[i][f].q})</span>` : '') : '—'}</td>`).join('')}</tr>`).join('')}</tbody></table>
     <div class="small mute">(entre parenthèses : exemplaires, doublons compris)</div>
     <h4>Complétion</h4>
     <div id="pl_compl">${hb((p.compl || []).slice(0, 12).map(x => [sysName(x.sys), x.have / x.total * 100, `${x.have} / ${x.total}`]))}</div>
@@ -850,7 +856,7 @@ PAGES.stats = async el => {
   </div>
   <div data-tab="s6" hidden>
     <div class="grid g4"><div class="mini"><div class="l">Ventes</div><div class="n">${fr(e.market.sales)}</div></div><div class="mini"><div class="l">Volume</div><div class="n coin">${fr(e.market.volume)}</div></div><div class="mini"><div class="l">Annonces ouvertes</div><div class="n">${fr(e.market.open)}</div></div><div class="mini"><div class="l">Échanges acceptés</div><div class="n">${fr(e.market.trades_ok)} / ${fr(e.market.trades)}</div></div></div>
-    <div class="card mt"><h3>Prix moyen (ventes des 30 derniers jours)</h3><table><thead><tr><th></th>${FIN.map(f => `<th class="r">${f}</th>`).join('')}</tr></thead><tbody>${RAR.map((r, i) => `<tr><td>${r}</td>${[0, 1, 2, 3].map(f => `<td class="r">${prices[i]?.[f] ? `${fr(prices[i][f].avg)} <span class="mute small">(${prices[i][f].n})</span>` : '—'}</td>`).join('')}</tr>`).join('')}</tbody></table><div class="small mute">(entre parenthèses : nombre de ventes)</div></div>
+    <div class="card mt"><h3>Prix moyen (ventes des 30 derniers jours)</h3><table><thead><tr><th></th>${FIN.map(f => `<th class="r">${f}</th>`).join('')}</tr></thead><tbody>${RAR.map((r, i) => `<tr><td>${r}</td>${[0, 1, 2, 3, 4].map(f => `<td class="r">${prices[i]?.[f] ? `${fr(prices[i][f].avg)} <span class="mute small">(${prices[i][f].n})</span>` : '—'}</td>`).join('')}</tr>`).join('')}</tbody></table><div class="small mute">(entre parenthèses : nombre de ventes)</div></div>
   </div>
   <div data-tab="s7" hidden><table><thead><tr><th>Jeu</th><th class="r">Parties finies</th><th class="r">Joueurs (lanceurs)</th></tr></thead><tbody>${e.games.map(g => `<tr><td>${GAME[g.game] || g.game}</td><td class="r">${fr(g.n)}</td><td class="r">${fr(g.players)}</td></tr>`).join('') || '<tr><td colspan="3" class="empty">Aucune partie</td></tr>'}</tbody></table></div>`;
   $('#sdays').onchange = ev => { SDAYS = +ev.target.value; PAGES.stats(el); };
@@ -1110,15 +1116,16 @@ PAGES.cards = async el => {
     $('#cd_det').innerHTML = loading;
     const [d] = await act(() => Promise.all([adm('rc_admin_card', 'card|' + id, { p_card: id }), cjson().catch(() => null), players()]));
     let cf = 0;
+    const FINC = FIN.slice(0, !c[3] && !/^(pk|da|db)_/.test(id) ? 5 : 4);  // Platine : cartes de console seulement
     $('#cd_det').innerHTML = `<h3>${esc(c[2])} <span class="pill">${RAR[c[1]]}</span></h3><div class="small mute">${esc(sysName(c[0]))} · ${esc(id)}</div>
       <div class="row mt" style="align-items:flex-start;gap:16px;flex-wrap:wrap">
         <div id="cd_card">${cardFace(id, 0)}</div>
         <div style="flex:1;min-width:220px">
           <div class="small mute">Aperçu (clic sur la carte pour la retourner)</div>
-          <div class="row mt" id="cd_fin">${FIN.map((x, i) => `<button class="btn s${i ? '' : ' p'}" data-fin="${i}">${x}</button>`).join('')}</div>
+          <div class="row mt" id="cd_fin">${FINC.map((x, i) => `<button class="btn s${i ? '' : ' p'}" data-fin="${i}">${x}</button>`).join('')}</div>
           <h4>🎁 Offrir cette carte</h4>
           ${pidSel('cg_p')}
-          <div class="row mt"><select id="cg_f">${opt(FIN.map((x, i) => [i, x]), 0)}</select><select id="cg_n" style="width:auto">${opt([1, 2, 3, 5, 10].map(n => [n, '× ' + n]), 1)}</select></div>
+          <div class="row mt"><select id="cg_f">${opt(FINC.map((x, i) => [i, x]), 0)}</select><select id="cg_n" style="width:auto">${opt([1, 2, 3, 5, 10].map(n => [n, '× ' + n]), 1)}</select></div>
           <input id="cg_from" class="mt" placeholder="De la part de (Admin)" maxlength="40">
           <button class="btn p mt" id="cg_go">🎁 Offrir</button>
           <div class="small mute mt">Elle arrive dans « Cartes à ranger » du joueur, avec le nom du donneur.</div>
@@ -1209,7 +1216,7 @@ PAGES.system = async el => {
 
 // ═════════════════════════════ ÉTAPE 2 ═════════════════════════════
 const DEFI = { open: '📦 Ouvrir des paquets', gift: '🎁 Envoyer des cadeaux', trade: '🤝 Échanges, achats ou ventes', win: '🏆 Gagner des duels', gamedle: '🧩 Gamedle réussis', epic: '🟪 Obtenir des épiques', play: '⚔️ Jouer des duels', new: '✨ Nouvelles cartes', quiz: '❓ Bonnes réponses au quiz', sale: '🏦 Ventes à la Bourse', free: '🆓 Paquets gratuits', premium: '💎 Paquets premium' };
-const TROPH = { packs: '📦 Paquets', cards: '🃏 Cartes', consoles: '🎮 Consoles', legend: '🟧 Légendaires', fullart: '✨ Full art', fuse: '⚡ Fusions', wins: '🏆 Victoires', gifts: '🎁 Cadeaux', sales: '🏦 Ventes', trades: '🤝 Échanges', gamedle: '🧩 Gamedle', chest: '🧰 Coffres', sagas: '📚 Sagas', days: '📅 Jours', epics: '🟪 Épiques', holo: '🌈 Brillantes', gold: '🟨 Dorées', recycle: '♻️ Recyclage', quiz: '❓ Quiz', played: '⚔️ Duels joués', defis: '🎯 Défis', premium: '💎 Premium', buys: '🛒 Achats', firsttry: '🎯 Gamedle 1er coup', tourney: '🏅 Tournois', pioche: '🃏 Pioches', express: '⚡ Express', wheel: '🎡 Roue', pokemon: '⚡ Pokémon', react: '👍 Réactions', craft: '🔨 Fabrication', sagacards: '📚 Cartes de saga' };
+const TROPH = { platine: '💿 Platine', packs: '📦 Paquets', cards: '🃏 Cartes', consoles: '🎮 Consoles', legend: '🟧 Légendaires', fullart: '✨ Full art', fuse: '⚡ Fusions', wins: '🏆 Victoires', gifts: '🎁 Cadeaux', sales: '🏦 Ventes', trades: '🤝 Échanges', gamedle: '🧩 Gamedle', chest: '🧰 Coffres', sagas: '📚 Sagas', days: '📅 Jours', epics: '🟪 Épiques', holo: '🌈 Brillantes', gold: '🟨 Dorées', recycle: '♻️ Recyclage', quiz: '❓ Quiz', played: '⚔️ Duels joués', defis: '🎯 Défis', premium: '💎 Premium', buys: '🛒 Achats', firsttry: '🎯 Gamedle 1er coup', tourney: '🏅 Tournois', pioche: '🃏 Pioches', express: '⚡ Express', wheel: '🎡 Roue', pokemon: '⚡ Pokémon', react: '👍 Réactions', craft: '🔨 Fabrication', sagacards: '📚 Cartes de saga' };
 const SANC = { block: '⛔ Blocage complet', mute: '🔇 Muet (chat)', trade: '🏦 Bourse, cadeaux et échanges interdits', duel: '⚔️ Duels et tournois interdits', warn: '⚠️ Avertissement' };
 const DUR = [[1, '1 h'], [6, '6 h'], [24, '24 h'], [72, '3 jours'], [168, '7 jours'], [336, '14 jours'], [720, '30 jours'], [-1, 'Définitif']];
 const WSEG = ['40 pièces', '100 pièces', 'Carte', '60 pièces', '200 pièces', '80 pièces', 'Carte rare', 'Gros lot 600', 'Carte Pokémon'];
