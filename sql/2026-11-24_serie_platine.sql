@@ -380,3 +380,5 @@ AS $function$
     join public.rc_players p on p.device = p_dev
     left join public.rc_trophy_n c on c.device = p_dev and c.kind = k.kind
     left join public.rc_trophy_got g on g.device = p_dev and g.kind = k.kind $function$;
+
+notify pgrst, 'reload schema';
