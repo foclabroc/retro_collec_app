@@ -73,6 +73,8 @@ class RcCard {
   });
 
   bool get isSaga => saga != null;
+  /// Fusion possible : ni carte de saga, ni série à part (Pokémon, Dessins animés, Dragon Ball)
+  bool get canFuse => saga == null && !isSeriesSys(sys);
 
   /// Version saga d'une carte : même jeu et même jaquette, rangée dans l'album de la saga
   RcCard sagaCopy(String sagaId, int n) => RcCard(

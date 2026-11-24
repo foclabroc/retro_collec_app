@@ -365,7 +365,7 @@ class Game extends ChangeNotifier {
   }
 
   /// Cartes dont on peut fusionner des exemplaires (5 normales ou 3 brillantes)
-  int get fusable => owned.entries.where((e) => !(Catalog.cards[e.key]?.isSaga ?? false) && (e.value[0] >= 5 || e.value[1] >= 3)).length;
+  int get fusable => owned.entries.where((e) => (Catalog.cards[e.key]?.canFuse ?? false) && (e.value[0] >= 5 || e.value[1] >= 3)).length;
 
   /// Exemplaires brillants et dorés
   int get holoCount => owned.values.fold(0, (a, q) => a + q[1]);

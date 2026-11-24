@@ -43,9 +43,9 @@ class CardFilter {
         3 => qDupe(own),
         4 => own[1] + own[2] > 0,
         5 => own[2] > 0,
-        6 => !c.isSaga && (own[0] >= 5 || own[1] >= 3),
-        7 => !c.isSaga && own[0] >= 5,
-        8 => !c.isSaga && own[1] >= 3,
+        6 => c.canFuse && (own[0] >= 5 || own[1] >= 3),
+        7 => c.canFuse && own[0] >= 5,
+        8 => c.canFuse && own[1] >= 3,
         _ => true,
       };
       if (!ok) return false;
