@@ -37,7 +37,7 @@ const kTrophies = [
   TrophyDef('trades', '🤝', 'Négociateur', 'Negotiator', 'Réussir # échanges', 'Complete # trades', [5, 25, 100]),
   TrophyDef('gamedle', '🟨', 'Détective', 'Detective', 'Réussir # Gamedle', 'Solve # Gamedles', [10, 50, 200]),
   TrophyDef('chest', '🏆', 'Semaine parfaite', 'Perfect week', 'Ouvrir # fois le coffre des défis', 'Open the challenge chest # times', [1, 5, 20]),
-  TrophyDef('sagas', '📖', 'Sagas', 'Sagas', 'Terminer # saga(s) à 100 %', 'Complete # saga(s) at 100%', [1, 3, 12]),
+  TrophyDef('sagas', '📖', 'Sagas', 'Sagas', 'Terminer # saga(s) à 100 %', 'Complete # saga(s) at 100%', [1, 5, 19]),
   TrophyDef('days', '📅', 'Fidèle', 'Loyal', 'Se connecter # jours', 'Log in on # days', [7, 30, 100]),
   TrophyDef('epics', '💜', 'Épiques', 'Epics', 'Obtenir # cartes épiques', 'Get # epic cards', [10, 50, 200]),
   TrophyDef('holo', '✨', 'Brillant', 'Shiny', 'Obtenir # cartes brillantes', 'Get # holo cards', [10, 50, 200]),
@@ -55,7 +55,7 @@ const kTrophies = [
   TrophyDef('pokemon', '🔴', 'Dresseur', 'Trainer', 'Avoir # cartes Pokémon différentes', 'Own # different Pokémon cards', [10, 50, 185]),
   TrophyDef('react', '👏', 'Supporter', 'Supporter', 'Réagir à # nouvelles de l\'Actu', 'React to # news items', [10, 50, 200]),
   TrophyDef('craft', '🔨', 'Artisan', 'Crafter', 'Fabriquer # cartes', 'Craft # cards', [5, 25, 100]),
-  TrophyDef('sagacards', '📚', 'Fan de sagas', 'Saga fan', 'Avoir # cartes de sagas', 'Own # saga cards', [25, 75, 156]),
+  TrophyDef('sagacards', '📚', 'Fan de sagas', 'Saga fan', 'Avoir # cartes de sagas', 'Own # saga cards', [25, 100, 250]),
   TrophyDef('tourney', '🏆', 'Champion', 'Champion', 'Gagner # tournois', 'Win # tournaments', [1, 3, 10]),
   // ajoutés le 7/11 (mêmes seuils que rc__tpool)
   TrophyDef('cartoon', '📺', 'Téléspectateur', 'Cartoon fan', 'Avoir # cartes Dessins animés différentes', 'Own # different cartoon cards', [10, 40, 80]),

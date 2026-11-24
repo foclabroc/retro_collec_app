@@ -47,7 +47,7 @@ int _int(dynamic v) => (v as num).toInt();
 class RcCard {
   final String id, sys, title, dev, pub, genre, img, desc, genreEn, descEn;
   final String? shot;
-  final String? saga; // carte de saga : id de kSagas ('mario', 'sonic', 'zelda', 'pokemon', 're', 'castlevania', 'kirby', 'sf', 'crash', 'dk', 'mk', 'ff'), sinon null
+  final String? saga; // carte de saga : id de kSagas ('mario', 'sonic', 'zelda', 'pokemon', 're', 'castlevania', 'kirby', 'sf', 'crash', 'dk', 'mk', 'ff', 'megaman', 'tetris', 'rayman', 'pacman', 'metroid', 'disney', 'starwars'), sinon null
   final String? baseSys; // carte de saga : console de la carte d'origine (images)
   final String? base; // carte de saga : id de la carte d'origine
   final int num, rarity;
@@ -208,6 +208,27 @@ const kSagas = [
   RcSaga('ff', 'Final Fantasy', Color(0xFF2B5DAA), Color(0xFFE8E8F8), Color(0xFF07142E),
       ['psx_038', 'psx_039', 'psx_037', 'gba_034', 'gba_032', 'ps2_015', 'gamecube_029', 'psp_010', 'psp_015', 'wii_020'],
       ['psx_038', 'psp_010', 'psx_037']),
+  RcSaga('megaman', 'Mega Man', Color(0xFF1E6FD9), Color(0xFF6FE3FF), Color(0xFF071A3D),
+      ['nes_053', 'nes_054', 'nes_055', 'gb_051', 'snes_035', 'megadrive_047', 'saturn_022', 'gba_062', 'psp_047', 'wii_050'],
+      ['nes_054', 'gba_062', 'snes_035']),
+  RcSaga('tetris', 'Tetris', Color(0xFF7A3FC9), Color(0xFF41E0A0), Color(0xFF1A0B33),
+      ['gb_091', 'nes_090', 'gb_092', 'snes_090', 'n64_084', 'gbc_083', 'gba_094', 'wii_085', '3ds_060', 'switch_093'],
+      ['nes_090', 'switch_093', 'gb_091']),
+  RcSaga('rayman', 'Rayman', Color(0xFFE8821E), Color(0xFFB06AE8), Color(0xFF2A1405),
+      ['psx_063', 'n64_063', 'gbc_068', 'gba_081', 'gba_080', 'xbox_033', 'wii_069', 'wii_068', 'wiiu_026', '3ds_035'],
+      ['wii_068', 'wiiu_026', 'psx_063']),
+  RcSaga('pacman', 'Pac-Man', Color(0xFFE8B10F), Color(0xFF2E5BFF), Color(0xFF0A0F2E),
+      ['atari7800_031', 'atari2600_061', 'nes_064', 'gb_066', 'lynx_024', 'amiga1200_121', 'gbc_058', 'gba_070', 'gamecube_126', 'switch_049'],
+      ['gba_070', 'switch_049', 'atari7800_031']),
+  RcSaga('metroid', 'Metroid', Color(0xFFD9601E), Color(0xFF7CFFB0), Color(0xFF2A0F05),
+      ['nes_059', 'gb_056', 'snes_076', 'gba_068', 'gba_067', 'gamecube_050', 'gamecube_051', 'wii_052', '3ds_020', 'switch_036'],
+      ['gamecube_050', 'switch_036', 'snes_076']),
+  RcSaga('disney', 'Disney', Color(0xFF1E5FB8), Color(0xFFFFD86B), Color(0xFF07163A),
+      ['mastersystem_017', 'nes_025', 'nes_124', 'megadrive_001', 'megadrive_041', 'snes_094', 'gbc_094', 'gba_047', 'psp_035', 'wii_015'],
+      ['megadrive_041', 'mastersystem_017', 'megadrive_001']),
+  RcSaga('starwars', 'Star Wars', Color(0xFF3A3F4A), Color(0xFFFFE81F), Color(0xFF0A0A0F),
+      ['atari2600_091', 'colecovision_042', 'snes_080', 'gamegear_082', 'n64_077', 'n64_075', 'gamecube_088', 'xbox_039', 'ps2_079', 'psp_039'],
+      ['gamecube_088', 'n64_075', 'snes_080']),
 ];
 
 RcSaga? sagaById(String? id) {
