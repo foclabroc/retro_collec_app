@@ -569,7 +569,9 @@ const _kGold = [Color(0xFF8A6420), Color(0xFFFFE08A), Color(0xFFB8862E), Color(0
 
 /// Carte de la série Platine : plaque de platine brossé, logo de la console gravé en tête,
 /// jaquette dans un cadre platine, 5 gemmes dorées (look légendaire pour toutes), reflet qui suit l'inclinaison.
-class PlatineFace extends StatelessWidget {
+/// Effet de profondeur : le panneau est en creux, la jaquette, le logo et le pied flottent au-dessus et se
+/// décalent avec l'inclinaison (téléphone ou doigt) ; sans inclinaison, lent mouvement circulaire.
+class PlatineFace extends StatefulWidget {
   final RcCard card;
   final double width;
   final bool owned;
@@ -587,8 +589,52 @@ class PlatineFace extends StatelessWidget {
   ]);
 
   @override
-  Widget build(BuildContext context) {
-    final w = width;
+  State<PlatineFace> createState() => _PlatineFaceState();
+}
+
+class _PlatineFaceState extends State<PlatineFace> with SingleTickerProviderStateMixin {
+  // mouvement « au repos » (gyroscope coupé, pas de doigt) : un tour en 7 s
+  late final AnimationController idle = AnimationController(vsync: this, duration: const Duration(seconds: 7));
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.owned) idle.repeat();
+  }
+
+  @override
+  void didUpdateWidget(PlatineFace old) {
+    super.didUpdateWidget(old);
+    if (widget.owned && !idle.isAnimating) idle.repeat();
+    if (!widget.owned && idle.isAnimating) idle.stop();
+  }
+
+  @override
+  void dispose() {
+    idle.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: Listenable.merge([idle, Tilt.value]),
+        builder: (context, _) {
+          var o = widget.manualTilt ?? Tilt.value.value;
+          if (!widget.owned) {
+            o = Offset.zero;
+          } else if (o.distance < 0.03) {
+            final a = idle.value * 2 * pi;
+            o = Offset(cos(a) * 0.45, sin(a) * 0.3);
+          }
+          o = Offset(o.dx.clamp(-1.0, 1.0), o.dy.clamp(-1.0, 1.0));
+          return _face(o);
+        },
+      );
+
+  Widget _face(Offset o) {
+    final card = widget.card, owned = widget.owned, cover = widget.cover, backdrop = widget.backdrop, manualTilt = widget.manualTilt;
+    const pt1 = PlatineFace.pt1, pt2 = PlatineFace.pt2, pt3 = PlatineFace.pt3, pt4 = PlatineFace.pt4, _grey = PlatineFace._grey;
+    final w = widget.width;
     final small = w < 120;
     final rad = w * 0.075;
     final img = Image(
@@ -601,14 +647,25 @@ class PlatineFace extends StatelessWidget {
         gradient: owned
             ? const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [pt1, pt3, pt2, pt4, pt1], stops: [0, 0.28, 0.5, 0.72, 1])
             : const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF6B7079), Color(0xFF3A3E46), Color(0xFF575C65), Color(0xFF2E3138)]),
-        boxShadow: const [BoxShadow(color: Color(0x88000000), blurRadius: 10, offset: Offset(0, 4))],
+        boxShadow: [BoxShadow(color: const Color(0x88000000), blurRadius: 10, offset: Offset(-o.dx * 4, 4 - o.dy * 3))],
       ),
-      foregroundDecoration: BoxDecoration(borderRadius: BorderRadius.circular(rad), border: Border.all(color: const Color(0x33FFFFFF))),
+      // bord en relief : lumière en haut à gauche (suit l'inclinaison), ombre en bas à droite
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(rad),
+        border: Border.all(color: const Color(0x33FFFFFF)),
+        gradient: owned
+            ? LinearGradient(
+                begin: Alignment(-1 + o.dx * 0.5, -1 + o.dy * 0.5),
+                end: Alignment(1 + o.dx * 0.5, 1 + o.dy * 0.5),
+                colors: const [Color(0x22FFFFFF), Color(0x00FFFFFF), Color(0x00000000), Color(0x26000000)],
+                stops: const [0, 0.3, 0.7, 1])
+            : null,
+      ),
       padding: EdgeInsets.all(w * 0.05),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(max(2.0, rad * 0.6)),
-          gradient: const RadialGradient(center: Alignment(0, -1), radius: 1.3, colors: [Color(0xFF2B313D), Color(0xFF101218)]),
+          gradient: RadialGradient(center: Alignment(-o.dx * 0.7, -1 - o.dy * 0.5), radius: 1.3, colors: const [Color(0xFF2E3542), Color(0xFF0C0E13)]),
           border: Border.all(color: const Color(0x66FFFFFF), width: max(0.6, w * 0.007)),
         ),
         clipBehavior: Clip.antiAlias,
@@ -622,20 +679,32 @@ class PlatineFace extends StatelessWidget {
               gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x18FFFFFF), Color(0x00FFFFFF)]),
               border: Border(bottom: BorderSide(color: Color(0x22FFFFFF))),
             ),
-            child: Opacity(
-              opacity: owned ? 0.92 : 0.4,
-              child: ColorFiltered(colorFilter: _grey, child: ConsoleLogo(card.sys, height: w * 0.08, board: false)),
+            child: Transform.translate(
+              offset: o * w * 0.022,
+              child: Opacity(
+                opacity: owned ? 0.92 : 0.4,
+                child: ColorFiltered(colorFilter: _grey, child: ConsoleLogo(card.sys, height: w * 0.08, board: false)),
+              ),
             ),
           ),
           // jaquette dans son cadre platine
           Expanded(
-            child: Container(
+            child: Transform.translate(
+             offset: o * w * 0.038,
+             child: Container(
               margin: EdgeInsets.fromLTRB(w * 0.07, w * 0.055, w * 0.07, 0),
               decoration: BoxDecoration(
                 color: const Color(0xFF0A0B0F),
                 borderRadius: BorderRadius.circular(w * 0.03),
                 border: Border.all(color: owned ? const Color(0xFFC9CFD8) : const Color(0xFF4A4F58), width: max(1.0, w * 0.01)),
-                boxShadow: const [BoxShadow(color: Color(0xAA000000), blurRadius: 8, offset: Offset(0, 3))],
+                // ombre portée sur le fond en creux : à l'opposé de l'inclinaison, la jaquette « flotte »
+                boxShadow: [
+                  BoxShadow(
+                      color: const Color(0xCC000000),
+                      blurRadius: w * 0.07,
+                      spreadRadius: w * 0.005,
+                      offset: Offset(-o.dx * w * 0.06, w * 0.03 - o.dy * w * 0.05)),
+                ],
               ),
               clipBehavior: Clip.antiAlias,
               child: Stack(fit: StackFit.expand, children: [
@@ -650,7 +719,7 @@ class PlatineFace extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.all(w * 0.02),
                   child: owned
-                      ? img
+                      ? Transform.translate(offset: o * w * 0.014, child: img)
                       : Stack(alignment: Alignment.center, children: [
                           Opacity(
                             opacity: 0.8,
@@ -660,12 +729,15 @@ class PlatineFace extends StatelessWidget {
                         ]),
                 ),
               ]),
+             ),
             ),
           ),
           // titre + numéro, gemmes dorées, PLATINE
           Padding(
             padding: EdgeInsets.fromLTRB(w * 0.06, w * 0.04, w * 0.06, w * 0.045),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
+            child: Transform.translate(
+             offset: o * w * 0.012,
+             child: Column(mainAxisSize: MainAxisSize.min, children: [
               if (!small)
                 Text(owned ? card.title : '???',
                     maxLines: 2,
@@ -704,6 +776,7 @@ class PlatineFace extends StatelessWidget {
                 if (!small) Text('PLATINE', style: GoogleFonts.pressStart2p(fontSize: w * 0.026, color: const Color(0xFFDFE4EA))),
               ]),
             ]),
+           ),
           ),
         ]),
       ),
