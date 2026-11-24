@@ -261,7 +261,10 @@ class CardGrid extends StatelessWidget {
         final best = platine ? 4 : (q == null ? 0 : bestFinish(q, full: false));
         final n = q == null ? 0 : (platine ? qGroup(q, 4) : qBase(q)); // le full art n'est que dans son onglet
         return GestureDetector(
-          onTap: () => openCardDetail(context, c, list: cards),
+          // série Platine : une carte pas encore tirée ne s'ouvre pas en détail (on verrait la normale)
+          onTap: () => platine && n == 0
+              ? showPlatineLocked(context, c)
+              : openCardDetail(context, c, list: platine ? cards.where((x) => g.hasPlatine(x.id)).toList() : cards),
           child: Stack(clipBehavior: Clip.none, children: [
             Positioned.fill(child: Align(alignment: Alignment.topCenter, child: CardView(card: c, finish: best, owned: n > 0))),
             if (n > 1)
@@ -354,4 +357,25 @@ class _AllCardsPageState extends State<AllCardsPage> {
       },
     );
   }
+}
+
+
+/// Carte Platine pas encore tirée : aperçu verrouillé + comment l'obtenir
+void showPlatineLocked(BuildContext context, RcCard c) {
+  final sys = Catalog.system(c.sys)?.name ?? c.sys;
+  showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        SizedBox(width: 150, child: CardView(card: c, finish: 4, owned: false)),
+        const SizedBox(height: 14),
+        Text(t('#${c.num.toString().padLeft(3, '0')} · Platine pas encore tirée', '#${c.num.toString().padLeft(3, '0')} · Platinum not drawn yet'),
+            textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w800)),
+        const SizedBox(height: 6),
+        Text(t('Chaque carte $sys de tes paquets a 10 % de chances de sortir en Platine.', 'Each $sys card in your packs has a 10% chance to come out Platinum.'),
+            textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 13)),
+      ]),
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+    ),
+  );
 }
