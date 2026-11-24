@@ -62,11 +62,11 @@ String rarityName(int r) => [
     ][r.clamp(0, 4)];
 
 // Finitions : 0 normale, 1 brillante, 2 dorée, 3 full art (épiques et légendaires)
-const kFinishes = 4;
+const kFinishes = 5; // normale, brillante, dorée, full art, Platine
 /// Cartes Pokémon : « Basic » (1 à 151) et « Brillante » (dès la 152), jamais dorée
 String finishNameFor(RcCard c, int f) => c.sys == 'pk' && f == 0 ? 'Basic' : finishName(f);
 
-String finishName(int f) => [t('Normale', 'Normal'), t('Brillante', 'Holo'), t('Dorée', 'Gold'), t('Full art', 'Full art')][f.clamp(0, 3)];
+String finishName(int f) => [t('Normale', 'Normal'), t('Brillante', 'Holo'), t('Dorée', 'Gold'), t('Full art', 'Full art'), t('Platine', 'Platinum')][f.clamp(0, 4)];
 
 /// Nombre total d'exemplaires (toutes finitions)
 int qSum(List<int> q) => q.fold(0, (a, b) => a + b);
@@ -74,16 +74,16 @@ int qSum(List<int> q) => q.fold(0, (a, b) => a + b);
 /// Le full art (finition 3) compte comme une carte à part : normale, brillante et dorée sont des versions
 /// d'une même carte, mais une normale + une full art ne font pas un doublon.
 /// Vrai si un exemplaire de finition [f] a un autre exemplaire dans son groupe (normal/brillant/doré, ou full art).
-bool qDupeOf(List<int> q, int f) => q.length < 4 ? qSum(q) > 1 : (f == 3 ? q[3] > 1 : q[0] + q[1] + q[2] > 1);
+bool qDupeOf(List<int> q, int f) => q.length < 4 ? qSum(q) > 1 : (f >= 3 ? (f < q.length ? q[f] : 0) > 1 : q[0] + q[1] + q[2] > 1);
 
 /// Au moins un doublon (dans un groupe ou l'autre)
-bool qDupe(List<int> q) => qDupeOf(q, 0) || qDupeOf(q, 3);
+bool qDupe(List<int> q) => qDupeOf(q, 0) || qDupeOf(q, 3) || qDupeOf(q, 4);
 
 /// Exemplaires normaux / brillants / dorés (ceux qui comptent dans les consoles ; le full art a son propre onglet)
 int qBase(List<int> q) => q.length < 4 ? qSum(q) : q[0] + q[1] + q[2];
 
 /// Exemplaires du groupe de la finition [f] (full art à part)
-int qGroup(List<int> q, int f) => q.length < 4 ? qSum(q) : (f == 3 ? q[3] : q[0] + q[1] + q[2]);
+int qGroup(List<int> q, int f) => q.length < 4 ? qSum(q) : (f >= 3 ? (f < q.length ? q[f] : 0) : q[0] + q[1] + q[2]);
 
 /// Meilleure finition possédée (full art > dorée > brillante > normale) ;
 /// [full] faux : sans le full art (grilles des consoles, le full art n'est que dans son onglet)
@@ -97,7 +97,7 @@ int bestFinish(List<int>? q, {bool full = true}) {
 
 // Mêmes valeurs que le SQL (rc__recycle_value, rc__craft_cost, rc__pack_price)
 /// Pièces données par le recyclage (même table que rc__recycle_value côté serveur, baissée le 23/10)
-int recycleValue(int r, int f) => const [2, 5, 20, 60, 200][r] * const [1, 3, 10, 30][f];
+int recycleValue(int r, int f) => const [2, 5, 20, 60, 200][r] * const [1, 3, 10, 30, 15][f];
 int craftCost(int r) => const [50, 150, 500, 1500, 5000][r];
 /// Fragments pour fabriquer une full art (épique / légendaire), même valeurs que rc__fragment_cost
 int fragmentCost(int r) => r == 3 ? 1500 : 4000; // même table que rc__fragment_cost (baissée le 8/11)
@@ -305,14 +305,14 @@ class Owned {
   const Owned(this.card, this.finish, this.qty);
 }
 
-/// Liste [[carte, finition, qté], …] → map carte → [qté normale, brillante, dorée, full art]
+/// Liste [[carte, finition, qté], …] → map carte → [qté normale, brillante, dorée, full art, Platine]
 Map<String, List<int>> parseOwned(dynamic raw) {
   final out = <String, List<int>>{};
   if (raw is! List) return out;
   for (final e in raw) {
     if (e is! List || e.length < 3) continue;
-    final q = out[e[0] as String] ??= [0, 0, 0, 0];
-    q[(e[1] as num).toInt().clamp(0, 3)] = (e[2] as num).toInt();
+    final q = out[e[0] as String] ??= [0, 0, 0, 0, 0];
+    q[(e[1] as num).toInt().clamp(0, 4)] = (e[2] as num).toInt();
   }
   return out;
 }
@@ -371,6 +371,19 @@ class Game extends ChangeNotifier {
   int get holoCount => owned.values.fold(0, (a, q) => a + q[1]);
   int get goldCount => owned.values.fold(0, (a, q) => a + q[2]);
   int get fullArtCount => owned.values.fold(0, (a, q) => a + q[3]);
+  int get platineCount => owned.values.fold(0, (a, q) => a + (q.length > 4 ? q[4] : 0));
+
+  // ── Série Platine (finition 4) : débloquée par une console finie à 100 % ──
+  /// Platine de la console [sys] débloquée (palier 100 d'une console, pas d'une saga ni d'une série)
+  bool platineOpen(String sys) => milestones.contains('$sys:100') && sagaOfSys(sys) == null && !isSeriesSys(sys);
+  /// Platine possédée pour cette carte
+  bool hasPlatine(String card) => (owned[card]?.length ?? 0) > 4 && owned[card]![4] > 0;
+  /// Cartes Platine possédées dans la console [sys]
+  int platineIn(String sys) => (Catalog.bySys[sys] ?? const []).where((c) => hasPlatine(c.id)).length;
+  /// Série Platine finie (prime de 5 000 pièces touchée)
+  bool platineDone(String sys) => milestones.contains('$sys:200');
+  /// Consoles dont la Platine est débloquée
+  int get platineOpenCount => milestones.where((m) => m.endsWith(':100') && platineOpen(m.substring(0, m.length - 4))).length;
 
   // ── Dernières cartes obtenues (mémorisées sur le téléphone) ──
   final recent = <(String, int)>[];
@@ -541,7 +554,7 @@ class Game extends ChangeNotifier {
     score = (r['score'] as num? ?? score).toInt();
     packs++;
     for (final c in (r['cards'] as List? ?? const [])) {
-      final q = owned[c['c'] as String] ??= [0, 0, 0, 0];
+      final q = owned[c['c'] as String] ??= [0, 0, 0, 0, 0];
       q[(c['f'] as num).toInt()]++;
     }
     // les meilleures cartes du paquet en tête des « dernières cartes »
@@ -660,6 +673,7 @@ String errText(Object e) {
     }
     return switch (e.message) {
       'pas assez de pièces' => t('Pas assez de pièces', 'Not enough coins'),
+      'platine verrouillee' => t('🔒 Platine verrouillée : il faut d\'abord finir la console à 100 %', '🔒 Platinum locked: the console must be completed to 100% first'),
       'pas assez de pixels' => t('Pas assez de pixels', 'Not enough pixels'),
       'pas ton tour' => t('Ce n\'est pas ton tour', 'It\'s not your turn'),
       'colonne pleine' => t('Cette colonne est pleine', 'This column is full'),

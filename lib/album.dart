@@ -31,6 +31,7 @@ class SystemAlbumPage extends StatefulWidget {
 
 class _SystemAlbumPageState extends State<SystemAlbumPage> {
   final f = CardFilter.album; // filtres et tri (gardés d'un album à l'autre)
+  bool plat = false; // série Platine affichée (console finie à 100 %)
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +49,9 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
         final steps = saga != null ? kSagaSteps : kMilestoneSteps;
         final rewards = saga != null ? kSagaReward : kMilestoneReward;
         final next = steps.firstWhere((s) => !g.milestones.contains('$sys:$s'), orElse: () => 0);
+        final platOpen = g.platineOpen(sys);
+        final showPlat = plat && platOpen;
+        final platMine = platOpen ? g.platineIn(sys) : 0;
         return Scaffold(
           appBar: AppBar(
             toolbarHeight: 64,
@@ -67,21 +71,37 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
               child: Column(children: [
+                if (platOpen)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: PlatineSwitch(platine: showPlat, normal: '$mine/$total', plat: '$platMine/$total', onChanged: (v) => setState(() => plat = v)),
+                  ),
                 Row(children: [
-                  Expanded(child: Text(Catalog.system(sys)?.name ?? '', style: const TextStyle(fontWeight: FontWeight.w700))),
-                  Text('$mine / $total', style: const TextStyle(color: Colors.white60)),
+                  Expanded(
+                      child: Text(showPlat ? t('${Catalog.system(sys)?.name ?? ''} · Platine', '${Catalog.system(sys)?.name ?? ''} · Platinum') : Catalog.system(sys)?.name ?? '',
+                          style: const TextStyle(fontWeight: FontWeight.w700))),
+                  Text(showPlat ? '$platMine / $total' : '$mine / $total', style: const TextStyle(color: Colors.white60)),
                 ]),
                 const SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(value: total == 0 ? 0 : mine / total, minHeight: 7, color: kGold, backgroundColor: kPanel2),
+                  child: LinearProgressIndicator(
+                      value: total == 0 ? 0 : (showPlat ? platMine : mine) / total,
+                      minHeight: 7,
+                      color: showPlat ? PlatineFace.pt2 : kGold,
+                      backgroundColor: kPanel2),
                 ),
                 const SizedBox(height: 5),
                 Row(children: [
                   Expanded(
                     child: Text(
-                      next == 0
-                          ? (saga != null ? t('Saga complète !', 'Saga complete!') : t('Série complète !', 'Set complete!'))
+                      showPlat
+                          ? (g.platineDone(sys)
+                              ? t('Série Platine complète !', 'Platinum set complete!')
+                              : t('Série complète → 5 000 pièces · chaque carte ${Catalog.system(sys)?.name ?? ''} de tes paquets : 10 % de chances d\'être Platine',
+                                  'Full set → 5,000 coins · each ${Catalog.system(sys)?.name ?? ''} card in your packs: 10% chance to be Platinum'))
+                          : next == 0
+                          ? (saga != null ? t('Saga complète !', 'Saga complete!') : t('Série complète ! La série Platine est débloquée', 'Set complete! The Platinum set is unlocked'))
                           : saga != null
                               ? t('Prochain palier : ${total * next ~/ 100}/$total → ${rewards[next]} pièces${next == 100 ? ' + 2 pixels' : ''} · cartes de saga : ${livePct('saga')} de chance par carte de paquet',
                                   'Next milestone: ${total * next ~/ 100}/$total → ${rewards[next]} coins${next == 100 ? ' + 2 pixels' : ''} · saga cards: ${livePct('saga')} chance per pack card')
@@ -108,7 +128,7 @@ class _SystemAlbumPageState extends State<SystemAlbumPage> {
               ]),
             ),
             Expanded(
-              child: CardGrid(list),
+              child: CardGrid(list, platine: showPlat),
             ),
            ]),
           ),
@@ -317,7 +337,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
     (dx < 0 ? nav.next : nav.prev)?.call();
   }
 
-  List<int> get q => widget.otherOwned != null ? (widget.otherOwned![widget.card.id] ?? const [0, 0, 0, 0]) : (Game.i.owned[widget.card.id] ?? const [0, 0, 0, 0]);
+  List<int> get q => widget.otherOwned != null ? (widget.otherOwned![widget.card.id] ?? const [0, 0, 0, 0, 0]) : (Game.i.owned[widget.card.id] ?? const [0, 0, 0, 0, 0]);
 
   @override
   void initState() {
@@ -400,7 +420,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
                       ChoiceChip(
                         label: Text('${finishNameFor(c, f)} ×${x[f]}'),
                         selected: finish == f,
-                        selectedColor: f == 3 ? const Color(0xFF6B4A12) : f == 2 ? const Color(0xFF633806) : f == 1 ? const Color(0xFF26215C) : kPanel2,
+                        selectedColor: f == 4 ? const Color(0xFF5D6571) : f == 3 ? const Color(0xFF6B4A12) : f == 2 ? const Color(0xFF633806) : f == 1 ? const Color(0xFF26215C) : kPanel2,
                         onSelected: (_) => setState(() => finish = f),
                       ),
                 ]),
@@ -916,6 +936,49 @@ class _BoursePanelState extends State<_BoursePanel> {
             label: Text(widget.sellLabel!),
           ),
         ],
+      ]),
+    );
+  }
+}
+
+
+/// Bouton Normale / Platine en tête d'une console finie à 100 %
+class PlatineSwitch extends StatelessWidget {
+  final bool platine;
+  final String normal, plat; // compteurs « possédées / total »
+  final ValueChanged<bool> onChanged;
+  const PlatineSwitch({super.key, required this.platine, required this.normal, required this.plat, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget seg(bool p, String label) {
+      final on = platine == p;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => onChanged(p),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(9),
+              gradient: on && p ? const LinearGradient(colors: [PlatineFace.pt1, PlatineFace.pt3]) : null,
+              color: on && !p ? kPanel2 : null,
+            ),
+            child: Text(label,
+                style: TextStyle(
+                    fontWeight: FontWeight.w800, fontSize: 13, color: on ? (p ? const Color(0xFF14161C) : Colors.white) : Colors.white60)),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12)),
+      child: Row(children: [
+        seg(false, t('Normale · $normal', 'Normal · $normal')),
+        seg(true, t('✦ Platine · $plat', '✦ Platinum · $plat')),
       ]),
     );
   }

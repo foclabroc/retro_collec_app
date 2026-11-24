@@ -12,6 +12,13 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('💿', 'Série Platine : finis une console à 100 % pour débloquer sa série Platine, les mêmes cartes sur une plaque de platine brossé (bouton Normale / Platine en tête de la console)',
+      'Platinum set: complete a console to 100% to unlock its Platinum set, the same cards on a brushed platinum plate (Normal / Platinum switch at the top of the console)'),
+  ('🎴', 'Platine : 10 % de chances par carte de la console dans tes paquets, ×4 au classement, 5 000 pièces pour une série Platine complète et un nouveau trophée',
+      'Platinum: 10% chance per card of that console in your packs, ×4 in the ranking, 5,000 coins for a full Platinum set and a new trophy'),
+  ('⚡', 'Le compteur de fusions ne compte plus les cartes Pokémon, Dessins animés et Dragon Ball (elles ne se fusionnent pas)',
+      'The fusion counter no longer counts Pokémon, Cartoons and Dragon Ball cards (they can\'t be fused)'),
+  ('#', 'Aussi depuis la 1.0.53', 'Also since 1.0.53'),
   ('🤝', 'Échanges : la valeur de recyclage de chaque carte et les totaux en fragments sont visibles pendant la préparation',
       'Trades: each card\'s recycling value and the totals in fragments are visible while preparing an offer'),
   ('#', 'Aussi depuis la 1.0.52', 'Also since 1.0.52'),

@@ -641,7 +641,12 @@ class HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 : t('Saga ${saga.name} à moitié : +$coins pièces !', '${saga.name} saga half done: +$coins coins!'))
             : e['old'] != null
                 ? t('Série $sys : ${e['old']} cartes, l\'ancienne série complète : +$coins pièces !', '$sys set: ${e['old']} cards, the old full set: +$coins coins!')
-                : t('Série $sys à ${e['step']} % : +$coins pièces !', '$sys set at ${e['step']}%: +$coins coins!');
+                : e['platine'] == true
+                    ? t('Série $sys complète : +$coins pièces ! ✦ Série Platine débloquée', '$sys set complete: +$coins coins! ✦ Platinum set unlocked')
+                    : t('Série $sys à ${e['step']} % : +$coins pièces !', '$sys set at ${e['step']}%: +$coins coins!');
+      case 'platine_done':
+        final sys = Catalog.system(e['sys'] as String? ?? '')?.name ?? e['sys'];
+        msg = t('✦ Série Platine $sys complète : +$coins pièces !', '✦ $sys Platinum set complete: +$coins coins!');
       default:
         msg = '';
     }

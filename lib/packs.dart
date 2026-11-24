@@ -1618,7 +1618,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   List<Widget> _milestones() {
     final out = <Widget>[];
     for (final e in (res['events'] as List? ?? const [])) {
-      if (e is! Map || e['type'] != 'milestone') continue;
+      if (e is! Map || (e['type'] != 'milestone' && e['type'] != 'platine_done')) continue;
+      final platDone = e['type'] == 'platine_done';
       final coins = (e['coins'] as num? ?? 0).toInt();
       final step = (e['step'] as num? ?? 0).toInt();
       final saga = sagaOfSys(e['sys'] as String?);
@@ -1634,11 +1635,15 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
           border: Border.all(color: const Color(0x99FFD166)),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text(step == 100 ? '🌈' : '🏅', style: const TextStyle(fontSize: 18)),
+          Text(platDone || e['platine'] == true ? '✦' : step == 100 ? '🌈' : '🏅', style: const TextStyle(fontSize: 18, color: Color(0xFFE6EAF0))),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              saga != null
+              platDone
+                  ? t('Série Platine $name complète : +$coins pièces', '$name Platinum set complete: +$coins coins')
+                  : e['platine'] == true
+                  ? t('Série $name complète : +$coins pièces · série Platine débloquée !', '$name set complete: +$coins coins · Platinum set unlocked!')
+                  : saga != null
                   ? t('Saga $name à $step % : +$coins pièces${px > 0 ? ' et +$px pixels' : ''}',
                       '$name saga at $step%: +$coins coins${px > 0 ? ' and +$px pixels' : ''}')
                   : old != null

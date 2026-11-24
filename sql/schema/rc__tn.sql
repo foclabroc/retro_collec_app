@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION public.rc__tn(p_dev text)
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
-  -- progression de chaque trophée : paquets, cartes et consoles lus en direct, le reste compté
+  -- progression de chaque trophee : paquets, cartes et consoles lus en direct, le reste compte
   select k.kind,
          case k.kind when 'packs' then p.packs
                      when 'cards' then p.cards
@@ -26,6 +26,8 @@ AS $function$
                                           where o.device = p_dev and o.qty > 0 and cc.saga = 'db' and cc.rarity >= 4)
                      when 'podium' then (select count(*)::int from public.rc_rj_wins w where w.device = p_dev)
                                       + (select count(*)::int from public.rc_rn_wins w where w.device = p_dev)
+                     when 'platine' then (select count(*)::int from public.rc_milestones m
+                                           where m.device = p_dev and m.step = 200)
                      when 'score' then p.score
                      when 'boosters' then (select count(*)::int from public.rc_pack_log l
                                             where l.device = p_dev and l.kind in ('pokemon', 'cartoon', 'dragonball'))
@@ -34,5 +36,4 @@ AS $function$
     from public.rc__tpool() k
     join public.rc_players p on p.device = p_dev
     left join public.rc_trophy_n c on c.device = p_dev and c.kind = k.kind
-    left join public.rc_trophy_got g on g.device = p_dev and g.kind = k.kind $function$
-
+    left join public.rc_trophy_got g on g.device = p_dev and g.kind = k.kind $function$;

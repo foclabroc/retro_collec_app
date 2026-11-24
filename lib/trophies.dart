@@ -65,6 +65,8 @@ const kTrophies = [
   TrophyDef('podium', '🥇', 'Sur le podium', 'On the podium', 'Finir # fois dans le top 3 d\'un solo du jour', 'Finish # times in a daily solo top 3', [1, 5, 20]),
   TrophyDef('score', '💎', 'Trésor', 'Treasure', 'Atteindre un score de collection de #', 'Reach a collection score of #', [1000, 5000, 15000]),
   TrophyDef('boosters', '🛍️', 'Fan de séries', 'Set fan', 'Acheter # boosters Pokémon, Dessins animés ou Dragon Ball', 'Buy # Pokémon, Cartoons or Dragon Ball boosters', [5, 25, 100]),
+  // ajouté le 24/11 (série Platine)
+  TrophyDef('platine', '💿', 'Platine', 'Platinum', 'Finir # série(s) Platine', 'Complete # Platinum set(s)', [1, 5, 15]),
 ];
 
 TrophyDef? trophyDef(String k) {

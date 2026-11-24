@@ -1,5 +1,3 @@
--- Mes cartes manquantes que les voisins ont en double (vus depuis 30 jours) : un bloc par joueur,
--- du joueur qui en a le plus au moins ; cartes de la plus rare à la plus commune. Relançable.
 create or replace function public.rc_missing_finder(p_device text, p_sig text)
  returns jsonb
  language plpgsql
@@ -10,11 +8,11 @@ begin
   perform public.rc__check(p_sig, p_device || '|missing');
   return (
     with mine as (
-      select distinct card from public.rc_owned where device = p_device and qty > 0 and finish <> 3  -- full art = carte à part
+      select distinct card from public.rc_owned where device = p_device and qty > 0 and finish < 3  -- full art = carte a part
     ), dbl as (
       select o.device, o.card, sum(o.qty)::int as q
         from public.rc_owned o
-       where o.device <> p_device and o.finish <> 3 and not exists (select 1 from mine m where m.card = o.card)
+       where o.device <> p_device and o.finish < 3 and not exists (select 1 from mine m where m.card = o.card)
        group by o.device, o.card
       having sum(o.qty) >= 2
     ), per as (

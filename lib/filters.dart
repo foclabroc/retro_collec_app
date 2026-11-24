@@ -35,7 +35,7 @@ class CardFilter {
     final g = Game.i;
     final q = query.trim().toLowerCase();
     final out = cards.where((c) {
-      final own = g.owned[c.id] ?? const [0, 0, 0, 0];
+      final own = g.owned[c.id] ?? const [0, 0, 0, 0, 0];
       final n = qBase(own); // consoles : sans le full art (onglet à part)
       final ok = switch (show) {
         1 => n > 0,
@@ -232,7 +232,8 @@ Future<void> showFilterSheet(BuildContext context, CardFilter f, Iterable<RcCard
 /// Grille de cartes (album, toutes mes cartes) avec le nombre d'exemplaires
 class CardGrid extends StatelessWidget {
   final List<RcCard> cards;
-  const CardGrid(this.cards, {super.key});
+  final bool platine; // série Platine : cartes en finition 4 (plaque sombre si pas encore tirée)
+  const CardGrid(this.cards, {super.key, this.platine = false});
 
   @override
   Widget build(BuildContext context) {
@@ -257,8 +258,8 @@ class CardGrid extends StatelessWidget {
       itemBuilder: (_, i) {
         final c = cards[i];
         final q = g.owned[c.id];
-        final best = q == null ? 0 : bestFinish(q, full: false);
-        final n = q == null ? 0 : qBase(q); // le full art n'est que dans son onglet
+        final best = platine ? 4 : (q == null ? 0 : bestFinish(q, full: false));
+        final n = q == null ? 0 : (platine ? qGroup(q, 4) : qBase(q)); // le full art n'est que dans son onglet
         return GestureDetector(
           onTap: () => openCardDetail(context, c, list: cards),
           child: Stack(clipBehavior: Clip.none, children: [

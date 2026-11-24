@@ -14,7 +14,7 @@ AS $function$
      and (p_sys is null or p_sys = '' or c.sys = p_sys)
      and (not coalesce(p_missing, false)
           or not exists (select 1 from public.rc_owned o where o.device = p_device and o.card = m.card and o.qty > 0
-                            and (o.finish = 3) = (m.finish = 3)))  -- full art = carte à part
+                            and public.rc__fam(o.finish) = public.rc__fam(m.finish)))  -- full art = carte a part
    group by m.card, m.finish
    order by max(m.created_at) desc
-   limit 300 $function$
+   limit 300 $function$;

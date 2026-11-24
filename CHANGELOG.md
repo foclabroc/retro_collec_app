@@ -1,5 +1,14 @@
 # Pixel Trade — Changelog
 
+## v1.0.54
+_Version 1.0.54+55. Pas de cadeau de version. SQL : `sql/2026-11-24_serie_platine.sql` (relançable, 100 % ASCII) à lancer AVANT de pousser. Après l'APK : passer `min_version` à 1.0.54 (une APK 1.0.53 rangerait les Platine dans la case full art)._
+
+- 💿 Série Platine (finition 4) : une console finie à 100 % (palier 100) débloque sa série Platine, mêmes cartes, une seule version par carte. Groupe à part comme la full art (`rc__fam`), ne compte ni dans les consoles ni dans le nombre de cartes.
+- 🎴 Tirage : `rc__platine_mark` dans `rc_open_choice`, 10 % par carte de console (hors full art) des consoles débloquées ; jamais ailleurs (roue, pioche, cadeaux de cartes). `rc__give` refuse une Platine (« platine verrouillee ») à qui n'a pas débloqué la console : Bourse, achat groupé, échanges, admin.
+- 🏆 Score ×4 (`rc__rescore`), recyclage ×15 (`rc__recycle_value`, `recycleValue`), série Platine complète : 5 000 pièces une fois (palier 200 de `rc__milestones`, événement `platine_done`), palier 100 d'une console renvoie `platine: true` ; trophée `platine` (1 / 5 / 15, `rc__tpool`, `rc__tn`, `trophies.dart`).
+- 🖼️ Appli : `PlatineFace` (`cards.dart`, platine brossé, logo de console gravé, 5 gemmes dorées pour toutes les raretés, reflet qui suit l'inclinaison), `CardView` finition 4 ; bouton `PlatineSwitch` Normale / Platine en tête de console (`album.dart`, `CardGrid(platine:)`), plaque ✦N sur les affiches de consoles (`library.dart`) ; tableaux possédés sur 5 finitions (`kFinishes` = 5, `parseOwned`, `qGroup` / `qDupeOf` / `qDupe`) ; `Game.platineOpen / hasPlatine / platineIn / platineDone` ; Bourse : achat bloqué si la console n'est pas débloquée ; messages de déblocage et de série complète (`main.dart`, récap du paquet `packs.dart`) ; Guide (section Série Platine, ×4, ×15).
+- ⚡ Compteur ⚡ et filtres « Fusions » sans les cartes Pokémon, Dessins animés et Dragon Ball (`RcCard.canFuse`).
+
 ## v1.0.53
 _Version 1.0.53+54. Pas de cadeau de version. Pas de SQL._
 

@@ -204,6 +204,16 @@ class CardView extends StatelessWidget {
         child: face,
       );
     }
+    // série Platine (finition 4, consoles finies à 100 %) : plaque de platine brossé, même look pour toutes les raretés
+    if (finish == 4) {
+      return PlatineFace(
+          card: card,
+          width: w,
+          owned: owned,
+          cover: ResizeImage.resizeIfNeeded(cacheW, null, img),
+          backdrop: small3,
+          manualTilt: manualTilt);
+    }
     // full art (épiques et légendaires) : un tout autre modèle de carte
     if (owned && finish == 3) {
       return FullArtFace(
@@ -556,6 +566,237 @@ class HoloSheen extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kGold = [Color(0xFF8A6420), Color(0xFFFFE08A), Color(0xFFB8862E), Color(0xFFFFF3C4), Color(0xFF7A5518)];
+
+/// Carte de la série Platine : plaque de platine brossé, logo de la console gravé en tête,
+/// jaquette dans un cadre platine, 5 gemmes dorées (look légendaire pour toutes), reflet qui suit l'inclinaison.
+class PlatineFace extends StatelessWidget {
+  final RcCard card;
+  final double width;
+  final bool owned;
+  final ImageProvider cover, backdrop;
+  final Offset? manualTilt;
+  const PlatineFace(
+      {super.key, required this.card, required this.width, required this.owned, required this.cover, required this.backdrop, this.manualTilt});
+
+  static const pt1 = Color(0xFFF4F6F9), pt2 = Color(0xFFC3C9D2), pt3 = Color(0xFF8B94A1), pt4 = Color(0xFF5D6571);
+  static const _grey = ColorFilter.matrix([
+    0.33, 0.59, 0.11, 0, 40, //
+    0.33, 0.59, 0.11, 0, 40,
+    0.33, 0.59, 0.11, 0, 40,
+    0, 0, 0, 0.9, 0,
+  ]);
+
+  @override
+  Widget build(BuildContext context) {
+    final w = width;
+    final small = w < 120;
+    final rad = w * 0.075;
+    final img = Image(
+        image: cover,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported, color: Colors.white24, size: w * 0.2));
+    final plate = Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(rad),
+        gradient: owned
+            ? const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [pt1, pt3, pt2, pt4, pt1], stops: [0, 0.28, 0.5, 0.72, 1])
+            : const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF6B7079), Color(0xFF3A3E46), Color(0xFF575C65), Color(0xFF2E3138)]),
+        boxShadow: const [BoxShadow(color: Color(0x88000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      foregroundDecoration: BoxDecoration(borderRadius: BorderRadius.circular(rad), border: Border.all(color: const Color(0x33FFFFFF))),
+      padding: EdgeInsets.all(w * 0.05),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(max(2.0, rad * 0.6)),
+          gradient: const RadialGradient(center: Alignment(0, -1), radius: 1.3, colors: [Color(0xFF2B313D), Color(0xFF101218)]),
+          border: Border.all(color: const Color(0x66FFFFFF), width: max(0.6, w * 0.007)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          // logo de la console, gravé (gris clair)
+          Container(
+            height: w * 0.15,
+            alignment: Alignment.center,
+            padding: EdgeInsets.symmetric(horizontal: w * 0.1, vertical: w * 0.035),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x18FFFFFF), Color(0x00FFFFFF)]),
+              border: Border(bottom: BorderSide(color: Color(0x22FFFFFF))),
+            ),
+            child: Opacity(
+              opacity: owned ? 0.92 : 0.4,
+              child: ColorFiltered(colorFilter: _grey, child: ConsoleLogo(card.sys, height: w * 0.08, board: false)),
+            ),
+          ),
+          // jaquette dans son cadre platine
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.fromLTRB(w * 0.07, w * 0.055, w * 0.07, 0),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0A0B0F),
+                borderRadius: BorderRadius.circular(w * 0.03),
+                border: Border.all(color: owned ? const Color(0xFFC9CFD8) : const Color(0xFF4A4F58), width: max(1.0, w * 0.01)),
+                boxShadow: const [BoxShadow(color: Color(0xAA000000), blurRadius: 8, offset: Offset(0, 3))],
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Stack(fit: StackFit.expand, children: [
+                if (owned)
+                  Opacity(
+                    opacity: 0.45,
+                    child: ImageFiltered(
+                      imageFilter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Image(image: backdrop, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
+                    ),
+                  ),
+                Padding(
+                  padding: EdgeInsets.all(w * 0.02),
+                  child: owned
+                      ? img
+                      : Stack(alignment: Alignment.center, children: [
+                          Opacity(
+                            opacity: 0.8,
+                            child: ColorFiltered(colorFilter: const ColorFilter.mode(Color(0xFF22252C), BlendMode.srcATop), child: img),
+                          ),
+                          Text('?', style: TextStyle(color: Colors.white24, fontSize: w * 0.26, fontWeight: FontWeight.w900)),
+                        ]),
+                ),
+              ]),
+            ),
+          ),
+          // titre + numéro, gemmes dorées, PLATINE
+          Padding(
+            padding: EdgeInsets.fromLTRB(w * 0.06, w * 0.04, w * 0.06, w * 0.045),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (!small)
+                Text(owned ? card.title : '???',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: const Color(0xFFF1F3F6),
+                        fontSize: w * 0.066,
+                        height: 1.1,
+                        fontWeight: FontWeight.w800,
+                        shadows: const [Shadow(color: Colors.black, offset: Offset(0, 1))])),
+              SizedBox(height: small ? 0 : w * 0.03),
+              Row(mainAxisAlignment: small ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween, children: [
+                if (!small) Text('#${card.num.toString().padLeft(3, '0')}', style: TextStyle(color: pt2, fontSize: w * 0.048, fontWeight: FontWeight.w700)),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  for (var i = 0; i < 5; i++)
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: w * 0.012),
+                      child: Transform.rotate(
+                        angle: pi / 4,
+                        child: Container(
+                          width: w * 0.04,
+                          height: w * 0.04,
+                          decoration: BoxDecoration(
+                            gradient: owned
+                                ? const RadialGradient(center: Alignment(-0.4, -0.4), colors: [Colors.white, Color(0xFFEF9F27), Color(0xFF412402)], stops: [0, 0.55, 1])
+                                : null,
+                            color: owned ? null : const Color(0xFF3A3F4A),
+                            border: Border.all(color: owned ? const Color(0xCCFFFFFF) : const Color(0x33FFFFFF), width: max(0.5, w * 0.004)),
+                            boxShadow: owned ? [BoxShadow(color: const Color(0xFFEF9F27).withOpacity(0.7), blurRadius: w * 0.025)] : null,
+                          ),
+                        ),
+                      ),
+                    ),
+                ]),
+                if (!small) Text('PLATINE', style: GoogleFonts.pressStart2p(fontSize: w * 0.026, color: const Color(0xFFDFE4EA))),
+              ]),
+            ]),
+          ),
+        ]),
+      ),
+    );
+    return Stack(fit: StackFit.expand, children: [
+      plate,
+      if (owned) ...[
+        // brossé : fines lignes verticales sur le cadre
+        Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _BrushedPainter(rad)))),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: ClipRRect(borderRadius: BorderRadius.circular(rad), child: _PlatineSheen(manualTilt: manualTilt)),
+          ),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(child: CardSparkle(color: Colors.white, stars: small ? 3 : 6, seed: card.id.hashCode ^ 0x9A7)),
+        ),
+      ],
+    ]);
+  }
+}
+
+/// Fines lignes du métal brossé, seulement sur le cadre (le centre est couvert par le panneau)
+class _BrushedPainter extends CustomPainter {
+  final double rad;
+  _BrushedPainter(this.rad);
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.clipRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(rad)));
+    final inner = Rect.fromLTWH(size.width * 0.05, size.width * 0.05, size.width * 0.9, size.height - size.width * 0.1);
+    canvas.clipPath(Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect(Offset.zero & size)
+      ..addRect(inner));
+    final p = Paint()
+      ..color = const Color(0x14FFFFFF)
+      ..strokeWidth = 1;
+    for (var x = 0.0; x < size.width; x += 3) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_BrushedPainter old) => old.rad != rad;
+}
+
+/// Reflet du platine : bande blanche bleutée qui suit l'inclinaison (ou passe seule de temps en temps)
+class _PlatineSheen extends StatefulWidget {
+  final Offset? manualTilt;
+  const _PlatineSheen({this.manualTilt});
+  @override
+  State<_PlatineSheen> createState() => _PlatineSheenState();
+}
+
+class _PlatineSheenState extends State<_PlatineSheen> with SingleTickerProviderStateMixin {
+  late final AnimationController ctl = AnimationController(vsync: this, duration: const Duration(milliseconds: 4500))..repeat();
+
+  @override
+  void dispose() {
+    ctl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: ctl,
+      builder: (_, __) => ValueListenableBuilder<Offset>(
+        valueListenable: Tilt.value,
+        builder: (_, tl, __) {
+          final o = widget.manualTilt ?? tl;
+          final tilted = o.distance > 0.02;
+          // sans inclinaison : un passage toutes les 4,5 s
+          final k = ctl.value;
+          final c = tilted ? 0.5 + (o.dx + o.dy) * 0.6 : (k < 0.2 ? -0.4 : k > 0.6 ? 1.4 : -0.4 + (k - 0.2) / 0.4 * 1.8);
+          final stops = [for (final d in const [-0.2, -0.05, 0.0, 0.05, 0.2]) (c + d).clamp(0.0, 1.0)];
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              backgroundBlendMode: BlendMode.overlay,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [Color(0x00FFFFFF), Color(0x99FFFFFF), Color(0xDDE6F0FF), Color(0x99FFFFFF), Color(0x00FFFFFF)],
+                stops: stops,
+              ),
+            ),
+            child: const SizedBox.expand(),
+          );
+        },
+      ),
+    );
+  }
+}
 
 class FullArtFace extends StatefulWidget {
   final RcCard card;

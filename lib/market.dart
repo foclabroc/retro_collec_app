@@ -49,10 +49,20 @@ Future<bool> buyLot(BuildContext context, Map<String, dynamic> row) async {
           const SizedBox(height: 8),
           Text(t('Tu possèdes déjà cette carte', 'You already own this card'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
         ],
+        if (f == 4 && !Game.i.platineOpen(c.sys)) ...[
+          const SizedBox(height: 8),
+          Text(
+              t('🔒 Platine verrouillée : finis d\'abord ${Catalog.system(c.sys)?.name ?? c.sys} à 100 %',
+                  '🔒 Platinum locked: first complete ${Catalog.system(c.sys)?.name ?? c.sys} to 100%'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFFC3C9D2), fontSize: 12, fontWeight: FontWeight.w700)),
+        ],
       ]),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('Annuler', 'Cancel'))),
-        ElevatedButton(onPressed: Game.i.coins >= price ? () => Navigator.pop(ctx, true) : null, child: Text(t('Acheter', 'Buy'))),
+        ElevatedButton(
+            onPressed: Game.i.coins >= price && (f != 4 || Game.i.platineOpen(c.sys)) ? () => Navigator.pop(ctx, true) : null,
+            child: Text(t('Acheter', 'Buy'))),
       ],
     ),
   );
@@ -296,7 +306,10 @@ class MarketGroupsState extends State<MarketGroups> {
     setState(() {
       picking = true;
       if (picks.remove(k) == null) {
-        if (picks.length >= _kMaxPicks) {
+        final c = Catalog.cards[k.$1];
+        if (k.$2 == 4 && c != null && !Game.i.platineOpen(c.sys)) {
+          toast(t('🔒 Platine verrouillée : finis d\'abord la console à 100 %', '🔒 Platinum locked: complete the console to 100% first'));
+        } else if (picks.length >= _kMaxPicks) {
           toast(t('$_kMaxPicks cartes maximum par achat', '$_kMaxPicks cards max per purchase'));
         } else {
           picks[k] = r;

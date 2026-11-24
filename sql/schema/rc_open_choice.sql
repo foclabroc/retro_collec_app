@@ -27,11 +27,11 @@ begin
     raise exception 'console inconnue';
   end if;
   if sp is not null then
-    -- booster spécial : payé en pixels
+    -- booster special : paye en pixels
     if v.pixels < sp then raise exception 'pas assez de pixels'; end if;
     update public.rc_players set pixels = pixels - sp where device = p_device;
   elsif p_kind = 'free' then
-    if public.rc__free_in(p_device) > 0 then raise exception 'paquet gratuit pas encore prêt'; end if;
+    if public.rc__free_in(p_device) > 0 then raise exception '%', U&'paquet gratuit pas encore pr\00EAt'; end if;
     update public.rc_players set last_free = public.rc__today(), last_free_at = now() where device = p_device;
   elsif p_kind = 'gift' then
     select g.id, g.kind into gid, gk from public.rc_gifts g
@@ -44,7 +44,7 @@ begin
     if v.lots < 1 then raise exception 'aucun paquet du lot'; end if;
     update public.rc_players set lots = lots - 1 where device = p_device;
   elsif v.coins < price then
-    raise exception 'pas assez de pièces';
+    raise exception '%', U&'pas assez de pi\00E8ces';
   else
     update public.rc_players set coins = coins - price where device = p_device;
   end if;
@@ -52,11 +52,11 @@ begin
   for i in 1..6 loop
     packs := packs || jsonb_build_array(public.rc__draw_pack(case when p_kind = 'gift' then coalesce(gk, 'gift') else p_kind end, p_sys, v.pity));
   end loop;
+  packs := public.rc__platine_mark(p_device, packs);  -- Platine : 10 % par carte des consoles debloquees
   insert into public.rc_pending (device, kind, sys, packs, gk) values (p_device, p_kind, p_sys, packs, gk);
 
   select * into v from public.rc_players where device = p_device;
   return jsonb_build_object('choose', 6, 'kind', p_kind, 'sys', p_sys, 'gk', gk, 'resumed', false,
                             'coins', v.coins, 'lots', v.lots, 'pixels', v.pixels,
                             'gifts', (select count(*)::int from public.rc_gifts g where g.receiver = p_device and g.opened_at is null));
-end $function$
-
+end $function$;

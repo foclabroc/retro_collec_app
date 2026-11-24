@@ -930,6 +930,19 @@ class _ConsoleTileState extends State<_ConsoleTile> with SingleTickerProviderSta
               ),
               const SizedBox(width: 6),
               Text('$pct%', style: const TextStyle(color: _kInk, fontWeight: FontWeight.w900, fontSize: 12, fontFamily: 'monospace')),
+              // série Platine débloquée : petite plaque avec le nombre de cartes Platine
+              if (Game.i.platineOpen(s.id)) ...[
+                const SizedBox(width: 5),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFFF4F6F9), Color(0xFF8B94A1)]),
+                    border: Border.all(color: _kInk, width: 1.5),
+                  ),
+                  child: Text('✦${Game.i.platineIn(s.id)}',
+                      style: const TextStyle(color: _kInk, fontWeight: FontWeight.w900, fontSize: 10, fontFamily: 'monospace')),
+                ),
+              ],
             ]),
           ),
         ]),
