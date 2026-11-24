@@ -549,7 +549,8 @@ class _CardDetailPageState extends State<CardDetailPage> {
         ]),
         const SizedBox(height: 8),
       ],
-      if (!isSeriesSys(c.sys)) ..._extraActions(c, x, total, cost, g),
+      // Platine : pas de fusion ni de fabrication (elle ne s'obtient que dans les paquets)
+      if (!isSeriesSys(c.sys) && finish != 4) ..._extraActions(c, x, total, cost, g),
     ];
   }
 
