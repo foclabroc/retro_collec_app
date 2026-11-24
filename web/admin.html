@@ -135,20 +135,20 @@ label.inl{display:flex;gap:6px;align-items:center;margin:0;font-size:13px;color:
 .fc-f .img{flex:1;margin:0 8px;border-radius:8px;background:#05060c center/contain no-repeat}
 .fc-f .ttl{padding:7px 9px 9px;font-weight:800;font-size:13px;line-height:1.2;color:#fff}
 .fc-f .ttl small{display:block;font-weight:600;color:var(--rl);font-size:11px;margin-top:2px}
-.fc.f2 .fc-f{border:4px solid transparent;background:linear-gradient(160deg,var(--rd),#0b0d18) padding-box,linear-gradient(135deg,#fff3b0,#e2a72e,#8a5a00,#ffe27a,#c8901e) border-box}
-.fc.f2 .fc-f .ttl{color:#ffd76a}
-.fc.f1 .fc-f::after,.fc.f3 .fc-f::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,#ff5ec433 30%,#5ee7ff40 42%,#c6ff5e33 54%,#ffd65e33 64%,transparent 76%);background-size:250% 250%;animation:holo 4s linear infinite;mix-blend-mode:screen}
+.fc.fin2 .fc-f{border:4px solid transparent;background:linear-gradient(160deg,var(--rd),#0b0d18) padding-box,linear-gradient(135deg,#fff3b0,#e2a72e,#8a5a00,#ffe27a,#c8901e) border-box}
+.fc.fin2 .fc-f .ttl{color:#ffd76a}
+.fc.fin1 .fc-f::after,.fc.fin3 .fc-f::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,#ff5ec433 30%,#5ee7ff40 42%,#c6ff5e33 54%,#ffd65e33 64%,transparent 76%);background-size:250% 250%;animation:holo 4s linear infinite;mix-blend-mode:screen}
 @keyframes holo{from{background-position:0% 0%}to{background-position:-250% -250%}}
 /* Platine (finition 4) : platine brossé, gemmes dorées pour toutes les raretés */
-.fc.f4 .fc-f{border:7px solid transparent;background:radial-gradient(120% 70% at 50% 0%,#2e3542,#0c0e13) padding-box,repeating-linear-gradient(90deg,#ffffff14 0 1px,transparent 1px 3px) border-box,linear-gradient(135deg,#f4f6f9,#8b94a1 28%,#c3c9d2 50%,#5d6571 72%,#f4f6f9) border-box}
-.fc.f4 .fc-f .top{color:#dfe4ea;border-bottom:1px solid #ffffff22;letter-spacing:.08em}
-.fc.f4 .fc-f .img{margin:8px 12px 0;border:3px solid #c9cfd8;box-shadow:0 6px 14px #000a}
-.fc.f4 .fc-f .ttl{text-align:center;color:#f1f3f6}.fc.f4 .fc-f .ttl small{color:#ef9f27}
-.fc.f4 .fc-f::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 35%,#ffffff99 48%,#e6f0ff 50%,transparent 62%);background-size:250% 250%;animation:holo 4.5s linear infinite;mix-blend-mode:overlay}
-.fc.f3 .fc-f{border:3px solid var(--rc)}
-.fc.f3 .fc-f .img{position:absolute;inset:0;margin:0;border-radius:0;background-size:cover}
-.fc.f3 .fc-f .top,.fc.f3 .fc-f .ttl{position:relative;z-index:1;background:linear-gradient(#000a,transparent)}
-.fc.f3 .fc-f .ttl{margin-top:auto;background:linear-gradient(transparent,#000d);font-family:'Playfair Display',Georgia,serif;font-size:16px}
+.fc.fin4 .fc-f{border:7px solid transparent;background:radial-gradient(120% 70% at 50% 0%,#2e3542,#0c0e13) padding-box,repeating-linear-gradient(90deg,#ffffff14 0 1px,transparent 1px 3px) border-box,linear-gradient(135deg,#f4f6f9,#8b94a1 28%,#c3c9d2 50%,#5d6571 72%,#f4f6f9) border-box}
+.fc.fin4 .fc-f .top{color:#dfe4ea;border-bottom:1px solid #ffffff22;letter-spacing:.08em}
+.fc.fin4 .fc-f .img{margin:8px 12px 0;border:3px solid #c9cfd8;box-shadow:0 6px 14px #000a}
+.fc.fin4 .fc-f .ttl{text-align:center;color:#f1f3f6}.fc.fin4 .fc-f .ttl small{color:#ef9f27}
+.fc.fin4 .fc-f::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 35%,#ffffff99 48%,#e6f0ff 50%,transparent 62%);background-size:250% 250%;animation:holo 4.5s linear infinite;mix-blend-mode:overlay}
+.fc.fin3 .fc-f{border:3px solid var(--rc)}
+.fc.fin3 .fc-f .img{position:absolute;inset:0;margin:0;border-radius:0;background-size:cover}
+.fc.fin3 .fc-f .top,.fc.fin3 .fc-f .ttl{position:relative;z-index:1;background:linear-gradient(#000a,transparent)}
+.fc.fin3 .fc-f .ttl{margin-top:auto;background:linear-gradient(transparent,#000d);font-family:'Playfair Display',Georgia,serif;font-size:16px}
 .fc.pk .fc-f{border:none;background:#000}
 .fc.pk .fc-f .img{position:absolute;inset:0;margin:0;border-radius:0;background-size:cover}
 .fc.pk .fc-f .top,.fc.pk .fc-f .ttl{display:none}
@@ -485,7 +485,7 @@ function cardFace(id, f) {
   const shot = src.shot ? ASSETS + src.shot + h : '';
   const [rc, rd, rl] = RCOL[c[1]] || RCOL[0];
   const meta = [src.y, src.dv, src.g].filter(Boolean).map(esc).join(' · ');
-  return `<div class="fc f${f}${pk ? ' pk' : ''}" id="fc" style="--rc:${rc};--rd:${rd};--rl:${rl}" title="Clic : retourner"><div class="fc-in">
+  return `<div class="fc fin${f}${pk ? ' pk' : ''}" id="fc" style="--rc:${rc};--rd:${rd};--rl:${rl}" title="Clic : retourner"><div class="fc-in">
     <div class="fc-f"><div class="top"><span>${esc(sysName(c[0]))}</span><span>${f === 4 ? '<span style="color:#ef9f27">◆◆◆◆◆</span> PLATINE' : '★'.repeat(c[1] + 1)}</span></div>
       <div class="img" style="background-image:url('${img}')"></div>
       <div class="ttl">${esc(c[2])}<small>${RAR[c[1]]} · ${FIN[f]}${src.y ? ' · ' + src.y : ''}</small></div></div>
