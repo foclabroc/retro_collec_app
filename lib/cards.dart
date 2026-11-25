@@ -645,7 +645,11 @@ class _PlatineFaceState extends State<PlatineFace> with SingleTickerProviderStat
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(rad),
         gradient: owned
-            ? const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [pt1, pt3, pt2, pt4, pt1], stops: [0, 0.28, 0.5, 0.72, 1])
+            ? LinearGradient(
+                begin: Alignment(-1 + o.dx * 0.35, -1),
+                end: Alignment(1 + o.dx * 0.35, 1),
+                colors: const [pt1, pt3, pt2, pt1, pt4, pt2, pt1],
+                stops: [0, 0.18 + o.dy * 0.06, 0.36, 0.5 + o.dx * 0.08, 0.66, 0.84 - o.dy * 0.06, 1])
             : const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF6B7079), Color(0xFF3A3E46), Color(0xFF575C65), Color(0xFF2E3138)]),
         boxShadow: [BoxShadow(color: const Color(0x88000000), blurRadius: 10, offset: Offset(-o.dx * 4, 4 - o.dy * 3))],
       ),
@@ -683,7 +687,22 @@ class _PlatineFaceState extends State<PlatineFace> with SingleTickerProviderStat
               offset: o * w * 0.022,
               child: Opacity(
                 opacity: owned ? 0.92 : 0.4,
-                child: ColorFiltered(colorFilter: _grey, child: ConsoleLogo(card.sys, height: w * 0.08, board: false)),
+                child: owned
+                    ? Stack(alignment: Alignment.center, children: [
+                        // gravure : ombre en bas, lumière en haut
+                        Transform.translate(
+                            offset: Offset(0, max(0.8, w * 0.006)),
+                            child: ColorFiltered(
+                                colorFilter: const ColorFilter.mode(Color(0xCC000000), BlendMode.srcIn),
+                                child: ConsoleLogo(card.sys, height: w * 0.08, board: false))),
+                        Transform.translate(
+                            offset: Offset(0, -max(0.5, w * 0.004)),
+                            child: ColorFiltered(
+                                colorFilter: const ColorFilter.mode(Color(0x55FFFFFF), BlendMode.srcIn),
+                                child: ConsoleLogo(card.sys, height: w * 0.08, board: false))),
+                        ColorFiltered(colorFilter: _grey, child: ConsoleLogo(card.sys, height: w * 0.08, board: false)),
+                      ])
+                    : ColorFiltered(colorFilter: _grey, child: ConsoleLogo(card.sys, height: w * 0.08, board: false)),
               ),
             ),
           ),
@@ -773,7 +792,17 @@ class _PlatineFaceState extends State<PlatineFace> with SingleTickerProviderStat
                       ),
                     ),
                 ]),
-                if (!small) Text('PLATINE', style: GoogleFonts.pressStart2p(fontSize: w * 0.026, color: const Color(0xFFDFE4EA))),
+                if (!small)
+                  ShaderMask(
+                    blendMode: BlendMode.srcIn,
+                    shaderCallback: (b) => LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: const [Colors.white, pt2, pt1, pt3],
+                      stops: [0, 0.45 + o.dy * 0.1, 0.55 + o.dy * 0.1, 1],
+                    ).createShader(b),
+                    child: Text('PLATINE', style: GoogleFonts.pressStart2p(fontSize: w * 0.026, color: Colors.white)),
+                  ),
               ]),
             ]),
            ),
@@ -784,8 +813,30 @@ class _PlatineFaceState extends State<PlatineFace> with SingleTickerProviderStat
     return Stack(fit: StackFit.expand, children: [
       plate,
       if (owned) ...[
-        // brossé : fines lignes verticales sur le cadre
-        Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _BrushedPainter(rad)))),
+        // brossé : fines rayures du métal sur le cadre (dessinées une fois)
+        Positioned.fill(child: IgnorePointer(child: RepaintBoundary(child: CustomPaint(painter: _BrushedPainter(rad, card.id.hashCode))))),
+        // biseau : arête claire du côté de la lumière, sombre de l'autre
+        Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _BevelPainter(rad, w * 0.05, o)))),
+        // point de lumière qui glisse sur le métal avec l'inclinaison
+        Positioned.fill(
+          child: IgnorePointer(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(rad),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  backgroundBlendMode: BlendMode.softLight,
+                  gradient: RadialGradient(
+                    center: Alignment(-0.6 - o.dx * 0.9, -0.7 - o.dy * 0.9),
+                    radius: 0.9,
+                    colors: const [Color(0xCCFFFFFF), Color(0x33FFFFFF), Color(0x00FFFFFF)],
+                    stops: const [0, 0.35, 1],
+                  ),
+                ),
+                child: const SizedBox.expand(),
+              ),
+            ),
+          ),
+        ),
         Positioned.fill(
           child: IgnorePointer(
             child: ClipRRect(borderRadius: BorderRadius.circular(rad), child: _PlatineSheen(manualTilt: manualTilt)),
@@ -799,10 +850,11 @@ class _PlatineFaceState extends State<PlatineFace> with SingleTickerProviderStat
   }
 }
 
-/// Fines lignes du métal brossé, seulement sur le cadre (le centre est couvert par le panneau)
+/// Métal brossé : rayures fines et irrégulières (claires et sombres), seulement sur le cadre
 class _BrushedPainter extends CustomPainter {
   final double rad;
-  _BrushedPainter(this.rad);
+  final int seed;
+  _BrushedPainter(this.rad, this.seed);
   @override
   void paint(Canvas canvas, Size size) {
     canvas.clipRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(rad)));
@@ -811,16 +863,50 @@ class _BrushedPainter extends CustomPainter {
       ..fillType = PathFillType.evenOdd
       ..addRect(Offset.zero & size)
       ..addRect(inner));
-    final p = Paint()
-      ..color = const Color(0x14FFFFFF)
-      ..strokeWidth = 1;
-    for (var x = 0.0; x < size.width; x += 3) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
+    final rnd = Random(seed);
+    final p = Paint()..strokeWidth = 0.6;
+    // rayures légèrement penchées, de longueur et d'intensité variables
+    for (var x = -size.height * 0.05; x < size.width + size.height * 0.05; x += 0.9 + rnd.nextDouble() * 1.4) {
+      final light = rnd.nextBool();
+      p.color = (light ? Colors.white : Colors.black).withOpacity(0.04 + rnd.nextDouble() * (light ? 0.12 : 0.09));
+      final y0 = rnd.nextDouble() < 0.25 ? rnd.nextDouble() * size.height * 0.6 : 0.0;
+      final y1 = rnd.nextDouble() < 0.25 ? size.height * (0.4 + rnd.nextDouble() * 0.6) : size.height;
+      canvas.drawLine(Offset(x + y0 * 0.03, y0), Offset(x + y1 * 0.03, y1), p);
     }
   }
 
   @override
-  bool shouldRepaint(_BrushedPainter old) => old.rad != rad;
+  bool shouldRepaint(_BrushedPainter old) => old.rad != rad || old.seed != seed;
+}
+
+/// Biseau du cadre : arête du bord et du panneau, éclairée selon l'inclinaison
+class _BevelPainter extends CustomPainter {
+  final double rad, inset;
+  final Offset o;
+  _BevelPainter(this.rad, this.inset, this.o);
+  @override
+  void paint(Canvas canvas, Size size) {
+    final lightA = Alignment(-1 - o.dx * 0.6, -1 - o.dy * 0.6), darkA = Alignment(1 - o.dx * 0.6, 1 - o.dy * 0.6);
+    Paint edge(Rect r, double sw, bool inverted) => Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = sw
+      ..shader = LinearGradient(
+        begin: lightA,
+        end: darkA,
+        colors: inverted
+            ? const [Color(0x88000000), Color(0x00000000), Color(0x00FFFFFF), Color(0x99FFFFFF)]
+            : const [Color(0xDDFFFFFF), Color(0x00FFFFFF), Color(0x00000000), Color(0x99000000)],
+        stops: const [0, 0.45, 0.55, 1],
+      ).createShader(r);
+    final outer = (Offset.zero & size).deflate(0.8);
+    canvas.drawRRect(RRect.fromRectAndRadius(outer, Radius.circular(rad)), edge(outer, max(1.2, size.width * 0.012), false));
+    // bord du panneau en creux : éclairage inversé
+    final inner = Rect.fromLTWH(inset, inset, size.width - inset * 2, size.height - inset * 2).inflate(0.6);
+    canvas.drawRRect(RRect.fromRectAndRadius(inner, Radius.circular(max(2.0, rad * 0.6))), edge(inner, max(1.0, size.width * 0.009), true));
+  }
+
+  @override
+  bool shouldRepaint(_BevelPainter old) => old.o != o || old.rad != rad || old.inset != inset;
 }
 
 /// Reflet du platine : bande blanche bleutée qui suit l'inclinaison (ou passe seule de temps en temps)
@@ -1110,10 +1196,12 @@ class CardBack extends StatelessWidget {
   final Color? aura; // halo de la couleur de la rareté (suspense)
   final double glow; // 0..1 pulsation
   final String? series; // dos propre à une série : 'pk' Pokémon, 'da' Dessins animés, 'db' Dragon Ball (sinon dos habituel)
-  const CardBack({super.key, this.aura, this.glow = 0, this.series});
+  final bool platine; // carte Platine encore de dos : liseré de platine qui scintille (se devine au fond du tas)
+  const CardBack({super.key, this.aura, this.glow = 0, this.series, this.platine = false});
 
   @override
   Widget build(BuildContext context) {
+    if (platine) return _PlatineBack(back: CardBack(aura: aura, glow: glow, series: series));
     return AspectRatio(
       aspectRatio: 5 / 7,
       child: LayoutBuilder(builder: (context, box) {
@@ -1150,6 +1238,54 @@ class CardBack extends StatelessWidget {
       }),
     );
   }
+}
+
+/// Dos d'une carte Platine : le dos habituel serti dans un liseré de platine brossé, reflet qui passe
+class _PlatineBack extends StatefulWidget {
+  final Widget back;
+  const _PlatineBack({required this.back});
+  @override
+  State<_PlatineBack> createState() => _PlatineBackState();
+}
+
+class _PlatineBackState extends State<_PlatineBack> with SingleTickerProviderStateMixin {
+  late final AnimationController ctl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2600))..repeat();
+
+  @override
+  void dispose() {
+    ctl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AspectRatio(
+        aspectRatio: 5 / 7,
+        child: LayoutBuilder(builder: (context, box) {
+          final w = box.maxWidth, r = BorderRadius.circular(w * 0.07);
+          return AnimatedBuilder(
+            animation: ctl,
+            builder: (_, child) {
+              final k = ctl.value;
+              final c = -0.3 + k * 1.6; // la bande lumineuse traverse le liseré
+              return Container(
+                decoration: BoxDecoration(
+                  borderRadius: r,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: const [PlatineFace.pt3, PlatineFace.pt1, Colors.white, PlatineFace.pt1, PlatineFace.pt4, PlatineFace.pt2],
+                    stops: [0, (c - 0.12).clamp(0.0, 1.0), c.clamp(0.0, 1.0), (c + 0.12).clamp(0.0, 1.0), 0.85, 1],
+                  ),
+                  boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.18 + 0.2 * sin(k * 2 * pi).abs()), blurRadius: w * 0.08)],
+                ),
+                padding: EdgeInsets.all(w * 0.034),
+                child: child,
+              );
+            },
+            child: ClipRRect(borderRadius: BorderRadius.circular(w * 0.05), child: widget.back),
+          );
+        }),
+      );
 }
 
 /// Petite pastille de pièces.

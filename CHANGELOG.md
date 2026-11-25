@@ -4,6 +4,7 @@
 _Version 1.0.55+56. Pas de cadeau de version. SQL : `sql/2026-11-25_sagas_7.sql`._
 
 - 📚 7 sagas (25/11, `sql/2026-11-25_sagas_7.sql`) : Mega Man, Tetris, Rayman, Pac-Man, Metroid, Disney, Star Wars (`kSagas`, logos `assets/sagas/<id>.webp` : logos-titres de libretro-thumbnails, Disney fourni par l'utilisateur) ; trophées Sagas 1 / 5 / 19 et Fan de sagas 25 / 100 / 250.
+- 💿 Platine plus soignée (`PlatineFace`) : métal brossé fin et irrégulier (`_BrushedPainter`, dessiné une fois), dégradé qui suit l'inclinaison, biseaux éclairés (`_BevelPainter`), point de lumière mobile, logo gravé, PLATINE en métal. Ouverture : Platine toujours en dernière carte, dos serti de platine qui scintille (`CardBack(platine:)`, visible dans le tas), révélation comme une légendaire en argenté (« Platine ! », `_Pulled.fx` / `color`).
 
 ## v1.0.54
 _Version 1.0.54+55. Pas de cadeau de version. SQL : `sql/2026-11-24_serie_platine.sql`, `sql/2026-11-24_admin_platine.sql` (relançable, 100 % ASCII) à lancer AVANT de pousser. Après l'APK : passer `min_version` à 1.0.54 (une APK 1.0.53 rangerait les Platine dans la case full art)._

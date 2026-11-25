@@ -700,7 +700,14 @@ class _Pulled {
   final int f, r;
   final bool isNew;
   const _Pulled(this.card, this.f, this.r, this.isNew);
+  bool get plat => f == 4;
+  // force des effets : une Platine se révèle comme une légendaire
+  int get fx => plat ? 4 : r;
+  Color get color => plat ? kPlatColor : kRarityColor[r];
+  Color get light => plat ? Colors.white : kRarityLight[r];
 }
+
+const kPlatColor = Color(0xFFDCE3EC);
 
 class _Particle {
   Offset p, v;
@@ -799,8 +806,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       if (card == null) continue;
       list.add(_Pulled(card, (c['f'] as num).toInt(), (c['r'] as num).toInt(), c['n'] == true));
     }
-    // du plus commun au plus rare : le meilleur pour la fin
-    list.sort((a, b) => (a.r * 4 + a.f).compareTo(b.r * 4 + b.f));
+    // du plus commun au plus rare : le meilleur pour la fin, les Platine tout au bout
+    list.sort((a, b) => ((a.plat ? 100 : 0) + a.r * 4 + a.f).compareTo((b.plat ? 100 : 0) + b.r * 4 + b.f));
     pulled = list;
     Catalog.warmImages([for (final p in list) p.card]); // images prêtes avant le retournement
     booster = (r['choice'] as num?)?.toInt();
@@ -968,7 +975,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   void _prepare() {
     if (pulled.isEmpty) return;
     final p = pulled[idx];
-    if (p.r >= 3) HapticFeedback.lightImpact();
+    if (p.fx >= 3) HapticFeedback.lightImpact();
     setState(() {
       flipped = false;
       tagOn = false;
@@ -990,41 +997,41 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
   Future<void> _reveal({bool instant = false}) async {
     busy = true;
     final p = pulled[idx];
-    if (p.r >= 3) setState(() => dim = p.r == 4 ? 0.82 : 0.55);
+    if (p.fx >= 3) setState(() => dim = p.fx == 4 ? 0.82 : 0.55);
     if (instant) {
       flipCtl.value = 1;
-      if (p.r == 4) {
+      if (p.fx == 4) {
         RcAudio.sfx('alarm');
         HapticFeedback.heavyImpact();
       }
     } else {
-      if (p.r == 4) {
+      if (p.fx == 4) {
         RcAudio.sfx('alarm');
         HapticFeedback.heavyImpact();
         await liftCtl.forward(from: 0);
       }
-      final ms = const [420, 480, 620, 950, 1500][p.r];
+      final ms = const [420, 480, 620, 950, 1500][p.fx];
       flipCtl.duration = Duration(milliseconds: ms);
       RcAudio.sfx('jump');
       await flipCtl.forward(from: 0);
     }
     if (!mounted) return;
     final c = _center;
-    final colors = [kRarityColor[p.r], kRarityLight[p.r], Colors.white];
-    _burst(c, const [10, 22, 45, 90, 170][p.r], colors, const [2.0, 3.0, 4.0, 5.5, 7.0][p.r]);
-    if (p.r >= 2) flashCtl.forward(from: 1 - const <double>[0, 0, 0.25, 0.45, 0.7][p.r]);
-    if (p.r >= 3) {
+    final colors = [p.color, p.light, Colors.white];
+    _burst(c, const [10, 22, 45, 90, 170][p.fx], colors, const [2.0, 3.0, 4.0, 5.5, 7.0][p.fx]);
+    if (p.fx >= 2) flashCtl.forward(from: 1 - const <double>[0, 0, 0.25, 0.45, 0.7][p.fx]);
+    if (p.fx >= 3) {
       HapticFeedback.heavyImpact();
       setState(() {
-        rays = p.r == 4 ? 0.75 : 0.45;
+        rays = p.fx == 4 ? 0.75 : 0.45;
         banner = true;
       });
-    } else if (p.r == 2) {
+    } else if (p.fx == 2) {
       HapticFeedback.mediumImpact();
     }
-    if (p.r == 4) {
+    if (p.fx == 4) {
       Future.delayed(const Duration(milliseconds: 400), () {
-        if (mounted) _burst(Offset(c.dx, c.dy - 160), 70, const [Color(0xFFFAC775), Color(0xFFEF9F27), Colors.white], 3, gravity: 0.06);
+        if (mounted) _burst(Offset(c.dx, c.dy - 160), 70, p.plat ? const [Colors.white, kPlatColor, Color(0xFF9AA4B2)] : const [Color(0xFFFAC775), Color(0xFFEF9F27), Colors.white], 3, gravity: 0.06);
       });
     }
     Game.i.playSound(p.r);
@@ -1138,7 +1145,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                           duration: const Duration(milliseconds: 600),
                           child: RotationTransition(
                             turns: raysCtl,
-                            child: CustomPaint(painter: _RaysPainter(kRarityColor[pulled.isEmpty ? 0 : pulled[idx].r])),
+                            child: CustomPaint(painter: _RaysPainter(pulled.isEmpty ? kRarityColor[0] : pulled[idx].color)),
                           ),
                         ),
                       ),
@@ -1159,13 +1166,13 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                           duration: const Duration(milliseconds: 450),
                           curve: Curves.elasticOut,
                           child: Text(
-                            '${rarityName(pulled[idx].r)} !',
+                            pulled[idx].plat ? t('Platine !', 'Platinum!') : '${rarityName(pulled[idx].r)} !',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 30,
                               fontWeight: FontWeight.w900,
-                              color: kRarityColor[pulled[idx].r],
-                              shadows: [Shadow(color: kRarityColor[pulled[idx].r], blurRadius: 18)],
+                              color: pulled[idx].color,
+                              shadows: [Shadow(color: pulled[idx].color, blurRadius: 18)],
                             ),
                           ),
                         ),
@@ -1207,6 +1214,8 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
       case _Phase.reveal:
         if (pulled.isEmpty) return '';
         if (flipped) return t('Bouge le doigt sur la carte pour la faire briller · touche ou glisse à droite pour continuer', 'Move your finger over the card to make it shine · tap or swipe right to continue');
+        if (pulled[idx].plat) return t('Un éclat de platine… touche pour la retourner', 'A glint of platinum… tap to flip it');
+        if (pulled.skip(idx).any((p) => p.plat)) return t('Un éclat de platine au fond du tas…', 'A glint of platinum at the bottom of the stack…');
         return pulled[idx].r >= 3 ? t('Quelque chose brille dans ce paquet…', 'Something is shining in this pack…') : t('Touche ou glisse à droite pour retourner la carte', 'Tap or swipe right to flip the card');
       case _Phase.summary:
         return '';
@@ -1512,7 +1521,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                   child: Opacity(opacity: d.clamp(0, 1).toDouble(), child: child),
                 );
               },
-              child: SizedBox(width: cw, child: faceUp ? CardView(card: pulled[idx + k].card, finish: pulled[idx + k].f) : CardBack(series: isSeriesSys(pulled[idx + k].card.sys) ? pulled[idx + k].card.sys : null)),
+              child: SizedBox(width: cw, child: faceUp ? CardView(card: pulled[idx + k].card, finish: pulled[idx + k].f) : CardBack(platine: pulled[idx + k].plat, series: isSeriesSys(pulled[idx + k].card.sys) ? pulled[idx + k].card.sys : null)),
             ),
           if (remaining > 0) _topCard(cw),
           Positioned(
@@ -1535,11 +1544,11 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         // tremblement avant la révélation (plus fort si plus rare)
         var shake = Offset.zero;
         var rot = 0.0;
-        if (!flipped && flipCtl.value == 0 && p.r >= 2) {
+        if (!flipped && flipCtl.value == 0 && p.fx >= 2) {
           final s = shakeCtl.value * 2 * pi;
-          final amp = const [0.0, 0.0, 0.8, 2.0, 3.2][p.r];
-          final speed = const [1, 1, 1, 2, 4][p.r];
-          if (p.r == 2) {
+          final amp = const [0.0, 0.0, 0.8, 2.0, 3.2][p.fx];
+          final speed = const [1, 1, 1, 2, 4][p.fx];
+          if (p.fx == 2) {
             rot = shakeCtl.value > 0.8 ? sin(s * 5) * 0.03 : 0.0;
           } else {
             shake = Offset(sin(s * speed) * amp, cos(s * speed * 1.3) * amp * 0.5);
@@ -1557,10 +1566,10 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
           ..rotateY(angle);
         Widget face = showFront
             ? CardView(card: p.card, finish: p.f, manualTilt: fingerTilt)
-            : CardBack(aura: p.r >= 2 ? kRarityColor[p.r] : null, glow: auraCtl.value, series: isSeriesSys(p.card.sys) ? p.card.sys : null);
+            : CardBack(aura: p.fx >= 2 ? p.color : null, glow: auraCtl.value, platine: p.plat, series: isSeriesSys(p.card.sys) ? p.card.sys : null);
         // ouvert de face : le halo de rareté pulse autour de la carte, comme sur le dos
-        if (showFront && faceUp && p.r >= 2) {
-          final g = auraCtl.value, a = kRarityColor[p.r];
+        if (showFront && faceUp && p.fx >= 2) {
+          final g = auraCtl.value, a = p.color;
           face = DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(cw * 0.07),
