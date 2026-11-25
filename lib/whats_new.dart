@@ -14,10 +14,11 @@ import 'update_check.dart';
 const _kNews = <(String, String, String)>[
   ('⚽', 'Nouvel onglet « Foot » dans la Collection : 580 joueurs de la Coupe du monde 2026 rangés par pays (48 pays), avec leur booster Coupe du monde à 400 pièces (8 joueurs, au moins une légendaire) et un nouveau trophée',
       'New "Football" tab in the Collection: 580 World Cup 2026 players sorted by country (48 countries), with a World Cup booster for 400 coins (8 players, at least one legendary) and a new trophy'),
-  ('📚', '7 nouvelles sagas : Mega Man, Tetris, Rayman, Pac-Man, Metroid, Disney et Star Wars (10 cartes chacune), et le trophée Sagas en or demande maintenant les 19 sagas',
-      '7 new sagas: Mega Man, Tetris, Rayman, Pac-Man, Metroid, Disney and Star Wars (10 cards each); the Sagas trophy gold now needs all 19 sagas'),
   ('💿', 'Cartes Platine plus belles (métal brossé, biseaux, logo gravé, reflets) et une Platine se devine au fond du tas : liseré de platine qui scintille au dos, toujours en dernière carte',
       'Nicer Platinum cards (brushed metal, bevels, engraved logo, highlights), and a Platinum card can be spotted at the bottom of the stack: a shimmering platinum edge on its back, always the last card'),
+  ('#', 'Aussi depuis la 1.0.55', 'Also since 1.0.55'),
+  ('📚', '7 nouvelles sagas : Mega Man, Tetris, Rayman, Pac-Man, Metroid, Disney et Star Wars (10 cartes chacune), et le trophée Sagas en or demande maintenant les 19 sagas',
+      '7 new sagas: Mega Man, Tetris, Rayman, Pac-Man, Metroid, Disney and Star Wars (10 cards each); the Sagas trophy gold now needs all 19 sagas'),
   ('#', 'Aussi depuis la 1.0.54', 'Also since 1.0.54'),
   ('💿', 'Série Platine : finis une console à 100 % pour débloquer sa série Platine, les mêmes cartes sur une plaque de platine brossé (bouton Normale / Platine en tête de la console)',
       'Platinum set: complete a console to 100% to unlock its Platinum set, the same cards on a brushed platinum plate (Normal / Platinum switch at the top of the console)'),
