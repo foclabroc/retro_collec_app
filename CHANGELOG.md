@@ -1,11 +1,15 @@
 # Pixel Trade — Changelog
 
+## v1.0.57
+_Version 1.0.57+58. Pas de cadeau de version, pas de nouveau SQL._
+
+- 🔧 Préparer un échange avec un doublon de Platine n'affiche plus « c'est ton dernier exemplaire » (`trades.dart` : la Platine se compte avec les Platine) ; textes « en Platine » / « Il te manque cette Platine » à la Bourse (`market.dart`).
+- 🕹 Prime des bornes resserrée (`sql/2026-11-25_borne_prime.sql`, lancé par Claude via l'outil SQL le 25/11) : `rc_cab_end` ne paie plus que si le record battu était celui d'un autre joueur (pas de record vide ni le sien), et au plus 10 bornes par jour (`cab_prime_max`). Repéré chez un joueur (~85 bornes payées par jour, 50 000 pièces en un mois). Guide à jour.
+
 ## v1.0.56
 _Version 1.0.56+57. Pas de cadeau de version. SQL : `sql/2026-11-25_serie_coupe_du_monde.sql` (100 % ASCII, lancé le 25/11)._
 
-- 🔧 Correctif web du 25/11 (sans changer de version) : préparer un échange avec un doublon de Platine n'affiche plus « c'est ton dernier exemplaire » (`trades.dart` : la Platine se compte avec les Platine) ; textes « en Platine » / « Il te manque cette Platine » à la Bourse (`market.dart`).
 - ⚽ Série « Coupe du monde » (`wc`) : 580 joueurs des cartes Panini Adrenalyn XL FIFA World Cup 2026 (images centraldacopa.app, 600×840, `kWcBase` = `foclabroc.duckdns.org/wc/`, dans `D:\pixeltrade\wc`), 48 pays (`kWcCountries`, `lib/wc_list.dart` : numéro Panini, joueur, pays, catégorie, rareté ; dev = pays, pub = catégorie). Onglet « ⚽ Foot » (`mode` 6 de `library.dart`) : un dossier par pays (`_WcCountryTile`) → `WcCountryPage`. Rareté commune 2 / rare 3 / légendaire 4 toujours brillante. Booster `football` 400 pièces, 8 cartes (`rc__draw_wc`), tirage rare `wc` 0,15 % (`rc__saga_roll`), récompenses `packs.football` / `cards.wc`, trophée Sélectionneur 50 / 200 / 580, admin appli + web. Visuels `booster_wc.webp`, `card_back_wc.jpg` faits ici. Sans images sur le site : 27 Limited Edition / Momentum (non reprises).
-- 🕹 Prime des bornes resserrée (`sql/2026-11-25_borne_prime.sql`, lancé par Claude via l'outil SQL le 25/11) : `rc_cab_end` ne paie plus que si le record battu était celui d'un autre joueur (pas de record vide ni le sien), et au plus 10 bornes par jour (`cab_prime_max`). Repéré chez un joueur (~85 bornes payées par jour, 50 000 pièces en un mois). Guide à jour.
 - 💿 Platine plus soignée (`PlatineFace`) : métal brossé fin et irrégulier (`_BrushedPainter`, dessiné une fois), dégradé qui suit l'inclinaison, biseaux éclairés (`_BevelPainter`), point de lumière mobile, logo gravé, PLATINE en métal. Ouverture : Platine toujours en dernière carte, dos serti de platine qui scintille (`CardBack(platine:)`, visible dans le tas), révélation comme une légendaire en argenté (« Platine ! », `_Pulled.fx` / `color`).
 
 ## v1.0.55
