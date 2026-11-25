@@ -170,7 +170,7 @@ class _CardOffersState extends State<_CardOffers> {
             Text('${Catalog.system(c.sys)?.name ?? c.sys} · ${rarityName(c.rarity)}', style: TextStyle(color: kRarityLight[c.rarity], fontSize: 12)),
             const SizedBox(height: 2),
             Text(
-              known ? t('Tu en as $mine${gf == 3 ? ' en full art' : ''}', 'You have $mine${gf == 3 ? ' in full art' : ''}') : t(gf == 3 ? 'Il te manque cette full art' : 'Il te manque cette carte', gf == 3 ? 'You don\'t have this full art' : 'You don\'t have this card'),
+              known ? t('Tu en as $mine${gf == 3 ? ' en full art' : gf == 4 ? ' en Platine' : ''}', 'You have $mine${gf == 3 ? ' in full art' : gf == 4 ? ' in Platinum' : ''}') : t(gf == 3 ? 'Il te manque cette full art' : gf == 4 ? 'Il te manque cette Platine' : 'Il te manque cette carte', gf == 3 ? 'You don\'t have this full art' : gf == 4 ? 'You don\'t have this Platinum' : 'You don\'t have this card'),
               style: TextStyle(color: known ? Colors.white54 : const Color(0xFF5DCAA5), fontSize: 12),
             ),
           ]),
