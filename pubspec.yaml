@@ -46,12 +46,14 @@ flutter:
     - assets/card_back_pk.jpg
     - assets/card_back_da.jpg
     - assets/card_back_db.jpg
+    - assets/card_back_wc.jpg
     - assets/booster_front.webp
     - assets/booster_back.webp
     - assets/booster_pokemon.webp
     - assets/booster_da.webp
     - assets/booster_db.webp
     - assets/booster_db_back.webp
+    - assets/booster_wc.webp
 
 # Icônes déjà générées dans android/res (premier plan pleine taille : inset 0 % dans mipmap-anydpi-v26/ic_launcher.xml)
 flutter_launcher_icons:

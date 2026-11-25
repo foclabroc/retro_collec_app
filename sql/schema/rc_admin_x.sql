@@ -190,7 +190,7 @@ begin
     if (j->>'at')::timestamptz < now() - interval '1 minute' then raise exception 'la date doit être dans le futur'; end if;
     if j->>'op' = 'live' then
       for k in select jsonb_object_keys(j->'args'->'values') loop
-        if k not in ('saga', 'holo', 'gold', 'fullart', 'pk', 'da', 'db', 'mixte', 'console', 'premium', 'mystery', 'chest_coins', 'chest_pixels', 'free_hours', 'wheel_hours') then
+        if k not in ('saga', 'holo', 'gold', 'fullart', 'pk', 'da', 'db', 'wc', 'mixte', 'console', 'premium', 'mystery', 'chest_coins', 'chest_pixels', 'free_hours', 'wheel_hours') then
           raise exception 'réglage inconnu : %', k; end if;
       end loop;
     end if;

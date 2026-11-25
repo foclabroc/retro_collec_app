@@ -567,6 +567,7 @@ class _ToolsTab extends StatelessWidget {
           line(t('Pokémon (par carte de paquet)', 'Pokémon (per pack card)'), '${v('pk')} %'),
           line(t('Dessins animés (par carte de paquet)', 'Cartoons (per pack card)'), '${v('da')} %'),
           line(t('Dragon Ball (par carte de paquet)', 'Dragon Ball (per pack card)'), '${v('db')} %'),
+          line(t('Coupe du monde (par carte de paquet)', 'World Cup (per pack card)'), '${v('wc')} %'),
           line(t('Paquets mixte · console · premium · mystère', 'Packs mixed · console · premium · mystery'),
               '${v('mixte')} · ${v('console')} · ${v('premium')} · ${v('mystery')} 🪙'),
           line(t('Coffre des défis', 'Challenge chest'), '${v('chest_coins')} 🪙 + ${v('chest_pixels')} ▦ + 1 premium'),
@@ -582,7 +583,7 @@ class _ToolsTab extends StatelessWidget {
                 if (ok != true) return;
                 await _run(
                     () => RcServer.adminSetLive(const {
-                          'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 3, 'pk': 0.15, 'da': 0.15, 'db': 0.15, 'mixte': 100, 'console': 150,
+                          'saga': 3.2, 'holo': 5, 'gold': 0.5, 'fullart': 3, 'pk': 0.15, 'da': 0.15, 'db': 0.15, 'wc': 0.15, 'mixte': 100, 'console': 150,
                           'premium': 400, 'mystery': 120, 'chest_coins': 500, 'chest_pixels': 2,
                         }).then(applyLive),
                     t('Valeurs d\'origine remises', 'Defaults restored'),
@@ -595,11 +596,12 @@ class _ToolsTab extends StatelessWidget {
   }
 
   Future<void> _editLive(BuildContext context, Map<String, dynamic> live, Future<void> Function() reload) async {
-    const keys = ['saga', 'holo', 'gold',     'fullart', 'pk', 'da', 'db', 'mixte', 'console', 'premium', 'mystery', 'chest_coins', 'chest_pixels'];
+    const keys = ['saga', 'holo', 'gold',     'fullart', 'pk', 'da', 'db', 'wc', 'mixte', 'console', 'premium', 'mystery', 'chest_coins', 'chest_pixels'];
     final labels = {
           'pk': t('Pokémon (%)', 'Pokémon (%)'),
           'da': t('Dessins animés (%)', 'Cartoons (%)'),
           'db': t('Dragon Ball (%)', 'Dragon Ball (%)'),
+          'wc': t('Coupe du monde (%)', 'World Cup (%)'),
       'saga': t('Saga (%)', 'Saga (%)'),
       'holo': t('Brillante (%)', 'Holo (%)'),
       'gold': t('Dorée (%)', 'Gold (%)'),

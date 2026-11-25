@@ -540,6 +540,7 @@ class AdminPlayerPage extends StatelessWidget {
         'pokemon' => 'Pokémon',
         'cartoon' => t('Dessins animés', 'Cartoons'),
         'dragonball' => 'Dragon Ball',
+        'football' => t('Coupe du monde', 'World Cup'),
         _ => k,
       };
       final sys = e['sys'] == null ? '' : ' · ${Catalog.system(e['sys'].toString())?.name ?? e['sys']}';
@@ -893,7 +894,7 @@ class _StatsTab extends StatelessWidget {
 
   static Widget _statRow(BuildContext context, String kind, Map<String, dynamic> r) {
     String packKinds(dynamic m) => m is Map
-        ? m.entries.map((e) => '${e.value} ${switch (e.key) { 'free' => t('gratuit', 'free'), 'mixte' => t('mixte', 'mixed'), 'console' => 'console', 'premium' => 'premium', 'mystery' => t('mystère', 'mystery'), 'gift' => t('cadeau', 'gift'), 'lot' => t('lot', 'bundle'), 'star' => t('Étoile', 'Star'), 'sconsole' => 'Console+', 'gold' => t('Rétro d\'or', 'Retro Gold'), 'pokemon' => 'Pokémon', 'cartoon' => t('Dessins animés', 'Cartoons'), 'dragonball' => 'Dragon Ball', _ => e.key }}').join(' · ')
+        ? m.entries.map((e) => '${e.value} ${switch (e.key) { 'free' => t('gratuit', 'free'), 'mixte' => t('mixte', 'mixed'), 'console' => 'console', 'premium' => 'premium', 'mystery' => t('mystère', 'mystery'), 'gift' => t('cadeau', 'gift'), 'lot' => t('lot', 'bundle'), 'star' => t('Étoile', 'Star'), 'sconsole' => 'Console+', 'gold' => t('Rétro d\'or', 'Retro Gold'), 'pokemon' => 'Pokémon', 'cartoon' => t('Dessins animés', 'Cartoons'), 'dragonball' => 'Dragon Ball', 'football' => t('Coupe du monde', 'World Cup'), _ => e.key }}').join(' · ')
         : '';
     final at = _d(r['at']);
     final (right, sub) = switch (kind) {

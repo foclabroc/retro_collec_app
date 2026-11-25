@@ -18,7 +18,7 @@ begin
    where device = p_dev;
   for k, v in select key, value from jsonb_each_text(coalesce(r->'packs', '{}'::jsonb)) loop
     lbl := case k when 'mixte' then 'mixte' when 'premium' then 'premium' when 'mystery' then 'mystère'
-                  when 'star' then 'Étoile' when 'gold' then 'Rétro d''or' when 'pokemon' then 'Pokémon' when 'cartoon' then 'Dessins animés' when 'dragonball' then 'Dragon Ball' end;
+                  when 'star' then 'Étoile' when 'gold' then 'Rétro d''or' when 'pokemon' then 'Pokémon' when 'cartoon' then 'Dessins animés' when 'dragonball' then 'Dragon Ball' when 'football' then 'Coupe du monde' end;
     for i in 1 .. v::int loop
       insert into public.rc_gifts (receiver, giver, giver_name, kind)
       values (p_dev, null, coalesce(nullif(current_setting('rc.gift_from', true), ''), 'Pixel Trade') || ' · ' || lbl, k);
@@ -27,7 +27,9 @@ begin
   for k, v in select key, value from jsonb_each_text(coalesce(r->'cards', '{}'::jsonb)) loop
     for i in 1 .. v::int loop
       -- 'pk' = une carte Pokémon au hasard
-      if k = 'db' then  -- une carte Dragon Ball au hasard
+      if k = 'wc' then  -- une carte Coupe du monde au hasard
+        select id into c from public.rc_cards where saga = 'wc' order by random() limit 1;
+      elsif k = 'db' then  -- une carte Dragon Ball au hasard
         select id into c from public.rc_cards where saga = 'db' order by random() limit 1;
       elsif k = 'da' then  -- une carte Dessin animé au hasard
         select id into c from public.rc_cards where saga = 'da' order by random() limit 1;

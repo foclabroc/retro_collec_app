@@ -454,6 +454,12 @@ class _CardDetailPageState extends State<CardDetailPage> {
                 _info(t('Série', 'Set'), 'Part ${c.pub}'),
                 _info(t('Numéro', 'Number'), c.dev),
                 _info(t('Rareté', 'Rarity'), (int.tryParse(c.id.substring(3)) ?? 0) >= 550 ? t('Légendaire', 'Legendary') : switch (c.rarity) { 4 => 'Holo', 3 => 'Rare', _ => t('Commune', 'Common') }), // 550-556 : les 7 Dragon Balls
+              ] else if (c.sys == 'wc' && (owned || myTotal > 0)) ...[
+                // Coupe du monde : pays, catégorie Panini, rareté
+                const SizedBox(height: 14),
+                _info(t('Pays', 'Country'), wcCountryName(c.dev)),
+                _info(t('Catégorie', 'Category'), c.pub == 'base' ? t('Joueur', 'Player') : c.pub),
+                _info(t('Rareté', 'Rarity'), switch (c.rarity) { 4 => t('Légendaire', 'Legendary'), 3 => 'Rare', _ => t('Commune', 'Common') }),
               ] else if (isSeriesSys(c.sys))
                 owned || myTotal > 0
                     ? const SizedBox()

@@ -15,13 +15,15 @@ AS $function$
                      when 'days' then p.days
                      when 'react' then (select count(*)::int from public.rc_feed_react r where r.device = p_dev)
                      when 'sagacards' then (select count(*)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
-                                             where o.device = p_dev and o.qty > 0 and cc.saga is not null and cc.saga not in ('pk', 'da', 'db'))
+                                             where o.device = p_dev and o.qty > 0 and cc.saga is not null and cc.saga not in ('pk', 'da', 'db', 'wc'))
                      when 'pokemon' then (select count(*)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
                                            where o.device = p_dev and o.qty > 0 and cc.saga = 'pk')
                      when 'cartoon' then (select count(distinct o.card)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
                                            where o.device = p_dev and o.qty > 0 and cc.saga = 'da')
                      when 'dragonball' then (select count(distinct o.card)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
                                               where o.device = p_dev and o.qty > 0 and cc.saga = 'db')
+                     when 'football' then (select count(distinct o.card)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
+                                            where o.device = p_dev and o.qty > 0 and cc.saga = 'wc')
                      when 'dbholo' then (select count(distinct o.card)::int from public.rc_owned o join public.rc_cards cc on cc.id = o.card
                                           where o.device = p_dev and o.qty > 0 and cc.saga = 'db' and cc.rarity >= 4)
                      when 'podium' then (select count(*)::int from public.rc_rj_wins w where w.device = p_dev)
@@ -30,10 +32,11 @@ AS $function$
                                            where m.device = p_dev and m.step = 200)
                      when 'score' then p.score
                      when 'boosters' then (select count(*)::int from public.rc_pack_log l
-                                            where l.device = p_dev and l.kind in ('pokemon', 'cartoon', 'dragonball'))
+                                            where l.device = p_dev and l.kind in ('pokemon', 'cartoon', 'dragonball', 'football'))
                      else coalesce(c.n, 0) end,
          coalesce(g.tier, 0), array[k.t1, k.t2, k.t3], k.ord
     from public.rc__tpool() k
     join public.rc_players p on p.device = p_dev
     left join public.rc_trophy_n c on c.device = p_dev and c.kind = k.kind
-    left join public.rc_trophy_got g on g.device = p_dev and g.kind = k.kind $function$;
+    left join public.rc_trophy_got g on g.device = p_dev and g.kind = k.kind $function$
+

@@ -1218,13 +1218,15 @@ class CardBack extends StatelessWidget {
           // Dos des cartes : salle d'arcade « Pixel Trade » (assets/card_back.jpg)
           foregroundDecoration: aura != null
               ? BoxDecoration(borderRadius: r, border: Border.all(color: aura!.withOpacity(0.6 + 0.4 * glow), width: w * 0.03))
-              : series == 'db' // dos Dragon Ball : petit contour orange
-                  ? BoxDecoration(borderRadius: r, border: Border.all(color: const Color(0xFFFF8F3A), width: max(1.5, w * 0.022)))
+              : series == 'db' || series == 'wc' // dos Dragon Ball : petit contour orange ; Coupe du monde : vert
+                  ? BoxDecoration(
+                      borderRadius: r,
+                      border: Border.all(color: series == 'wc' ? const Color(0xFF4CC36B) : const Color(0xFFFF8F3A), width: max(1.5, w * 0.022)))
                   : null,
           child: ClipRRect(
             borderRadius: r,
             child: Image.asset(
-              switch (series) { 'pk' => 'assets/card_back_pk.jpg', 'da' => 'assets/card_back_da.jpg', 'db' => 'assets/card_back_db.jpg', _ => 'assets/card_back.jpg' },
+              switch (series) { 'pk' => 'assets/card_back_pk.jpg', 'da' => 'assets/card_back_da.jpg', 'db' => 'assets/card_back_db.jpg', 'wc' => 'assets/card_back_wc.jpg', _ => 'assets/card_back.jpg' },
               fit: BoxFit.cover,
               width: w,
               height: w * 7 / 5,

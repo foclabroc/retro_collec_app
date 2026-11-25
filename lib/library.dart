@@ -12,6 +12,7 @@ import 'game.dart';
 import 'main.dart';
 import 'packs.dart' show FragmentChip;
 import 'sagas.dart';
+import 'wc_list.dart' show kWcCountries;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Collection : une vitrine par console (couleur de la marque, spot lumineux,
@@ -80,7 +81,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final v = p.getInt(_kSysSortKey);
       if (v != null && mounted) setState(() => sysSort = v.clamp(0, 5));
       final m = p.getInt('rc_coll_mode') ?? (p.getBool('rc_coll_sagas') == true ? 1 : 0);
-      if (m != 0 && mounted) setState(() => mode = m.clamp(0, 5));
+      if (m != 0 && mounted) setState(() => mode = m.clamp(0, 6));
       if (p.getBool('rc_dash_open') == true && mounted) setState(() => dashOpen = true);
     }).catchError((_) {});
   }
@@ -139,6 +140,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           b(3, '⚡ Pokémon', const Color(0xFFFFD54F)),
           b(4, t('📺 Animés', '📺 Cartoons'), const Color(0xFF4FC3F7)),
           b(5, '🐉 Dragon Ball', const Color(0xFFFF8F3A)),
+          b(6, '⚽ Foot', const Color(0xFF4CC36B)),
         ]),
       ]),
     );
@@ -210,6 +212,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final faMine = [for (final c in faAll) if ((g.owned[c.id]?[3] ?? 0) > 0) c.id].length;
         final faList = faOwned ? [for (final c in faAll) if ((g.owned[c.id]?[3] ?? 0) > 0) c] : faAll;
         final pkList = pkOwned ? [for (final c in pkAll) if (g.owned[c.id]?.any((q) => q > 0) ?? false) c] : pkAll;
+        // onglet 6 Football : un dossier par pays (cartes Coupe du monde)
+        final wcAll = mode == 6 ? (Catalog.bySys['wc'] ?? const <RcCard>[]) : const <RcCard>[];
+        final wcMine = [for (final c in wcAll) if (g.owned[c.id]?.any((q) => q > 0) ?? false) c.id].length;
+        final wcCountries = [for (final code in kWcCountries.keys) if (!pkOwned || wcAll.any((c) => c.dev == code && (g.owned[c.id]?.any((q) => q > 0) ?? false))) code];
         return Column(children: [
           TabHeader(t('Collection', 'Collection'), icon: 'collection', actions: [
             IconButton(
@@ -247,6 +253,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             3 => t('$pkMine / ${pkList.length} · très très rare, dès la 152 : brillantes', '$pkMine / ${pkList.length} · very very rare, from #152: shiny'),
                             4 => t('$pkMine / ${pkList.length} · très très rare, les cultes sont brillantes', '$pkMine / ${pkList.length} · very very rare, cult classics are shiny'),
                             5 => t('$pkMine / ${pkList.length} · booster Dragon Ball, les holos sont brillantes', '$pkMine / ${pkList.length} · Dragon Ball booster, holos are shiny'),
+                            6 => t('$wcMine / ${wcAll.length} · Coupe du monde 2026, ${kWcCountries.length} pays', '$wcMine / ${wcAll.length} · World Cup 2026, ${kWcCountries.length} countries'),
                             _ => t('Mes consoles', 'My systems'),
                           },
                           maxLines: 1,
@@ -289,14 +296,29 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       ]),
                     ),
                   ),
-                    if (serSys != null) Padding(
+                    if (serSys != null || mode == 6) Padding(
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                     child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [_ownedChip(pkOwned, () => setState(() => pkOwned = !pkOwned))]),
                   ),
                   ]),
                 ),
               ),
-              if (serSys != null)
+              if (mode == 6)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+                  sliver: SliverLayoutBuilder(
+                    builder: (context, box) => SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: adaptiveCols(context, box.crossAxisExtent, phone: 3, minTile: 120, max: 8),
+                        childAspectRatio: 0.95,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      delegate: SliverChildBuilderDelegate((_, i) => _WcCountryTile(code: wcCountries[i]), childCount: wcCountries.length),
+                    ),
+                  ),
+                )
+              else if (serSys != null)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
                   sliver: SliverLayoutBuilder(
@@ -380,7 +402,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final total = Catalog.total; // full art comptées à part
     final pct = total == 0 ? 0.0 : g.cards / total;
     final totalByR = List<int>.filled(5, 0), ownByR = List<int>.filled(5, 0);
-    var sagaTotal = 0, sagaMine = 0, faTotal = 0, faMine = 0, pkTotal = 0, pkMine = 0, daTotal = 0, daMine = 0, dbTotal = 0, dbMine = 0;
+    var sagaTotal = 0, sagaMine = 0, faTotal = 0, faMine = 0, pkTotal = 0, pkMine = 0, daTotal = 0, daMine = 0, dbTotal = 0, dbMine = 0, wcTotal = 0, wcMine = 0;
     for (final c in Catalog.cards.values) {
       if (c.isSaga) {
         // cartes de saga : ligne à part (pas dans les épiques)
@@ -399,6 +421,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
       if (c.sys == 'db') {
         dbTotal++;
         if (g.has(c.id)) dbMine++;
+      }
+      if (c.sys == 'wc') {
+        wcTotal++;
+        if (g.has(c.id)) wcMine++;
       }
       totalByR[c.rarity]++;
       if (g.has(c.id)) ownByR[c.rarity]++;
@@ -461,6 +487,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   daTotal > 0 ? () => _setMode(4) : null),
               _bar('🐉 Dragon Ball', dbMine, dbTotal, const Color(0xFFFF8F3A), const Color(0xFFFFB27A),
                   dbTotal > 0 ? () => _setMode(5) : null),
+              _bar('⚽ ${t('Foot', 'Football')}', wcMine, wcTotal, const Color(0xFF4CC36B), const Color(0xFF8BE0A0),
+                  wcTotal > 0 ? () => _setMode(6) : null),
               // toucher une rareté : mes cartes de cette rareté
               for (var r = 4; r >= 0; r--)
                 InkWell(
@@ -1083,6 +1111,125 @@ class _FullArtSlot extends StatelessWidget {
 }
 
 /// Case des onglets Pokémon / Dessins animés : la carte (meilleure finition possédée) ou une case vide numérotée.
+/// Dossier d'un pays dans l'onglet Football : drapeau, nom, progression ; ouvre les joueurs du pays
+class _WcCountryTile extends StatelessWidget {
+  final String code;
+  const _WcCountryTile({required this.code});
+
+  @override
+  Widget build(BuildContext context) {
+    final g = Game.i;
+    final cards = [for (final c in Catalog.bySys['wc'] ?? const <RcCard>[]) if (c.dev == code) c];
+    final mine = [for (final c in cards) if (g.owned[c.id]?.any((q) => q > 0) ?? false) c].length;
+    final done = cards.isNotEmpty && mine == cards.length;
+    final info = kWcCountries[code]!;
+    const green = Color(0xFF4CC36B);
+    return Material(
+      color: Color.alphaBlend(green.withOpacity(mine > 0 ? 0.16 : 0.06), kBg),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WcCountryPage(code: code))),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: done ? kGold : green.withOpacity(mine > 0 ? 0.6 : 0.25), width: done ? 2 : 1.2),
+          ),
+          padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Opacity(opacity: mine > 0 ? 1 : 0.55, child: Text(info.$3, style: const TextStyle(fontSize: 34))),
+            const SizedBox(height: 4),
+            Text(t(info.$1, info.$2),
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, height: 1.1, fontWeight: FontWeight.w800, color: mine > 0 ? Colors.white : Colors.white60)),
+            const Spacer(),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: LinearProgressIndicator(
+                  value: cards.isEmpty ? 0 : mine / cards.length, minHeight: 5, color: done ? kGold : green, backgroundColor: Colors.white10),
+            ),
+            const SizedBox(height: 3),
+            Text('$mine / ${cards.length}', style: TextStyle(fontSize: 11, color: done ? kGold : Colors.white60, fontWeight: FontWeight.w700)),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Joueurs d'un pays (cartes Coupe du monde) : même grille que les autres séries
+class WcCountryPage extends StatefulWidget {
+  final String code;
+  const WcCountryPage({super.key, required this.code});
+  @override
+  State<WcCountryPage> createState() => _WcCountryPageState();
+}
+
+class _WcCountryPageState extends State<WcCountryPage> {
+  bool owned = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Game.i,
+      builder: (context, _) {
+        final g = Game.i;
+        final all = [for (final c in Catalog.bySys['wc'] ?? const <RcCard>[]) if (c.dev == widget.code) c];
+        bool has(RcCard c) => g.owned[c.id]?.any((q) => q > 0) ?? false;
+        final list = owned ? [for (final c in all) if (has(c)) c] : all;
+        final mine = all.where(has).length;
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(wcCountryName(widget.code)),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Center(child: Text('$mine / ${all.length}', style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF8BE0A0)))),
+              ),
+            ],
+          ),
+          body: CustomScrollView(slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                child: Row(children: [
+                  Expanded(
+                    child: Text(t('Joueurs de base, puis cartes spéciales · les légendaires sont brillantes', 'Base players, then special cards · legendaries are shiny'),
+                        style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                  ),
+                  FilterChip(
+                    label: Text(t('Possédées', 'Owned'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+                    selected: owned,
+                    showCheckmark: true,
+                    visualDensity: VisualDensity.compact,
+                    onSelected: (_) => setState(() => owned = !owned),
+                  ),
+                ]),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+              sliver: SliverLayoutBuilder(
+                builder: (context, box) => SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: adaptiveCols(context, box.crossAxisExtent, phone: 3, minTile: 130, max: 8),
+                    childAspectRatio: 5 / 7,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  delegate: SliverChildBuilderDelegate((_, i) => _PkSlot(card: list[i], list: list), childCount: list.length),
+                ),
+              ),
+            ),
+          ]),
+        );
+      },
+    );
+  }
+}
+
 class _PkSlot extends StatelessWidget {
   final RcCard card;
   final List<RcCard> list;
@@ -1110,7 +1257,15 @@ class _PkSlot extends StatelessWidget {
             border: Border.all(color: kRarityColor[card.rarity].withOpacity(0.35), width: 1.5),
           ),
           alignment: Alignment.center,
-          child: Text('#${card.num}', style: TextStyle(color: Colors.white38, fontSize: max(10, w * 0.12), fontWeight: FontWeight.w800)),
+          padding: EdgeInsets.all(w * 0.06),
+          // Coupe du monde : nom du joueur (plus parlant qu'un numéro)
+          child: card.sys == 'wc'
+              ? Text(card.title,
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.white38, fontSize: max(10, w * 0.1), height: 1.15, fontWeight: FontWeight.w800))
+              : Text('#${card.num}', style: TextStyle(color: Colors.white38, fontSize: max(10, w * 0.12), fontWeight: FontWeight.w800)),
         );
       }),
     );

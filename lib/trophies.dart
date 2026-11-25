@@ -67,6 +67,7 @@ const kTrophies = [
   TrophyDef('boosters', '🛍️', 'Fan de séries', 'Set fan', 'Acheter # boosters Pokémon, Dessins animés ou Dragon Ball', 'Buy # Pokémon, Cartoons or Dragon Ball boosters', [5, 25, 100]),
   // ajouté le 24/11 (série Platine)
   TrophyDef('platine', '💿', 'Platine', 'Platinum', 'Finir # série(s) Platine', 'Complete # Platinum set(s)', [1, 5, 15]),
+  TrophyDef('football', '⚽', 'Sélectionneur', 'Head coach', 'Avoir # joueurs de la Coupe du monde différents', 'Own # different World Cup players', [50, 200, 580]),
 ];
 
 TrophyDef? trophyDef(String k) {

@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION public.rc__live()
 AS $function$
   select jsonb_build_object(
     'saga', public.rc__cfg('saga', 3.2), 'holo', public.rc__cfg('holo', 5), 'gold', public.rc__cfg('gold', 0.5),
-    'fullart', public.rc__cfg('fullart', 0.2), 'pk', public.rc__cfg('pk', 0.15), 'da', public.rc__cfg('da', 0.15), 'db', public.rc__cfg('db', 0.15),
+    'fullart', public.rc__cfg('fullart', 0.2), 'pk', public.rc__cfg('pk', 0.15), 'da', public.rc__cfg('da', 0.15), 'db', public.rc__cfg('db', 0.15), 'wc', public.rc__cfg('wc', 0.15),
     'mixte', public.rc__cfg('mixte', 100), 'console', public.rc__cfg('console', 150),
     'premium', public.rc__cfg('premium', 400), 'mystery', public.rc__cfg('mystery', 120),
     'chest_coins', public.rc__cfg('chest_coins', 500), 'chest_pixels', public.rc__cfg('chest_pixels', 2),

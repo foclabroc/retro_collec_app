@@ -11,13 +11,13 @@ begin
   n := least(greatest(coalesce((r->>'lots')::int, 0), 0), 5);       if n > 0 then out := out || jsonb_build_object('lots', n); end if;
   for k, v in select key, value from jsonb_each_text(coalesce(r->'packs', '{}'::jsonb)) loop
     n := least(greatest(coalesce(v::int, 0), 0), 10);
-    if k in ('mixte', 'premium', 'mystery', 'star', 'gold', 'pokemon', 'cartoon', 'dragonball') and n > 0 then m := m || jsonb_build_object(k, n); end if;
+    if k in ('mixte', 'premium', 'mystery', 'star', 'gold', 'pokemon', 'cartoon', 'dragonball', 'football') and n > 0 then m := m || jsonb_build_object(k, n); end if;
   end loop;
   if m <> '{}'::jsonb then out := out || jsonb_build_object('packs', m); end if;
   m := '{}'::jsonb;
   for k, v in select key, value from jsonb_each_text(coalesce(r->'cards', '{}'::jsonb)) loop
     n := least(greatest(coalesce(v::int, 0), 0), 10);
-    if k in ('0', '1', '2', '3', '4', 'pk', 'da', 'db') and n > 0 then m := m || jsonb_build_object(k, n); end if;
+    if k in ('0', '1', '2', '3', '4', 'pk', 'da', 'db', 'wc') and n > 0 then m := m || jsonb_build_object(k, n); end if;
   end loop;
   if m <> '{}'::jsonb then out := out || jsonb_build_object('cards', m); end if;
   return out;

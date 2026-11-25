@@ -45,7 +45,7 @@ begin
     'trophies', rc__tops_list((select jsonb_object_agg(device, n) from (select device, sum(tier) n from rc_trophy_got
                where tier > 0 group by device) x)),
     'boosters', rc__tops_list((select jsonb_object_agg(device, n) from (select device, count(*) n from rc_pack_log
-               where at >= since and kind in ('pokemon', 'cartoon', 'dragonball', 'premium', 'star', 'gold') group by device) x)),
+               where at >= since and kind in ('pokemon', 'cartoon', 'dragonball', 'football', 'premium', 'star', 'gold') group by device) x)),
     'rj', rc__tops_list((select jsonb_object_agg(device, n) from (select device, max(score) n from rc_rj_best
                where day >= rc__today() - (v_days - 1) group by device) x)),
     'rn', rc__tops_list((select jsonb_object_agg(device, n) from (select device, max(score) n from rc_rn_best

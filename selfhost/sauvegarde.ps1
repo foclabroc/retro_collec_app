@@ -11,6 +11,7 @@
 #   pk\                              images Pokémon (copie miroir, pas de rotation)
 #   da\                              images Dessins animés (idem)
 #   db\                              images Dragon Ball (idem)
+#   wc\                              images Coupe du monde (idem)
 # ATTENTION : rc_config contient des secrets (Caddyfile, postgrest.conf) : ne pas le mettre en ligne.
 # Copie hors du disque D: : renseigner $Copie (autre disque, clé USB, dossier synchronisé), vide = pas de copie.
 
@@ -146,6 +147,15 @@ Partie 'images Dragon Ball' {
         robocopy 'D:\pixeltrade\db' (Join-Path $Dossier 'db') /E /XO /NFL /NDL /NJH /NJS /NP | Out-Null
         if ($LASTEXITCODE -ge 8) { throw "robocopy (code $LASTEXITCODE)" }
         Note 'OK  db\'
+    }
+}
+
+# 5 quater. Images Coupe du monde (même principe)
+Partie 'images Coupe du monde' {
+    if (Test-Path 'D:\pixeltrade\wc') {
+        robocopy 'D:\pixeltrade\wc' (Join-Path $Dossier 'wc') /E /XO /NFL /NDL /NJH /NJS /NP | Out-Null
+        if ($LASTEXITCODE -ge 8) { throw "robocopy (code $LASTEXITCODE)" }
+        Note 'OK  wc\'
     }
 }
 

@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'game.dart';
 import 'da_list.dart';
 import 'db_list.dart';
+import 'wc_list.dart';
 import 'pk_list.dart';
 import 'web_img_stub.dart' if (dart.library.js_interop) 'web_img_web.dart';
 
@@ -37,9 +38,19 @@ const kDaBase = 'https://foclabroc.duckdns.org/da/';
 /// Série « Dragon Ball » : images hébergées sur le serveur de l'utilisateur (001.jpg … 200.jpg)
 const kDbBase = 'https://foclabroc.duckdns.org/db/';
 
-/// Séries à part (cartes en plein cadre, images sur le serveur maison, onglet dédié) : Pokémon, Dessins animés, Dragon Ball
-const kSeriesBase = {'pk': kPkBase, 'da': kDaBase, 'db': kDbBase};
-bool isSeriesSys(String? sys) => sys == 'pk' || sys == 'da' || sys == 'db';
+/// Série « Coupe du monde » : images hébergées sur le serveur de l'utilisateur (NNN.jpg = numéro Panini)
+const kWcBase = 'https://foclabroc.duckdns.org/wc/';
+
+/// Séries à part (cartes en plein cadre, images sur le serveur maison, onglet dédié) : Pokémon, Dessins animés, Dragon Ball, Coupe du monde
+const kSeriesBase = {'pk': kPkBase, 'da': kDaBase, 'db': kDbBase, 'wc': kWcBase};
+bool isSeriesSys(String? sys) => sys == 'pk' || sys == 'da' || sys == 'db' || sys == 'wc';
+
+/// Nom du pays d'une carte Coupe du monde (code dans `dev`), avec ou sans drapeau
+String wcCountryName(String code, {bool flag = true}) {
+  final c = kWcCountries[code];
+  if (c == null) return code;
+  return flag ? '${c.$3} ${t(c.$1, c.$2)}' : t(c.$1, c.$2);
+}
 
 // (hors de RcCard : dans la classe, « num » désigne le champ et non le type)
 int _int(dynamic v) => (v as num).toInt();
@@ -261,6 +272,8 @@ class Catalog {
   static RcSystem get daSet => RcSystem('da', t('Dessins animés', 'Cartoons'), (bySys['da'] ?? const <RcCard>[]).length, '', '', 0, '', '', 0);
   /// Série Dragon Ball (barre de progression des profils)
   static RcSystem get dbSet => RcSystem('db', 'Dragon Ball', (bySys['db'] ?? const <RcCard>[]).length, '', '', 0, '', '', 0);
+  /// Série Coupe du monde (barre de progression des profils)
+  static RcSystem get wcSet => RcSystem('wc', t('Coupe du monde', 'World Cup'), (bySys['wc'] ?? const <RcCard>[]).length, '', '', 0, '', '', 0);
 
   static bool get loaded => cards.isNotEmpty;
   static RcSystem? system(String id) {
@@ -273,6 +286,7 @@ class Catalog {
     if (id == 'pk') return pkSet;
     if (id == 'da') return daSet;
     if (id == 'db') return dbSet;
+    if (id == 'wc') return wcSet;
     return null;
   }
 
@@ -468,6 +482,29 @@ class Catalog {
       cards[c.id] = c;
     }
     bySys['db'] = db;
+    // série Coupe du monde : même principe (serveur : saga = 'wc'), rangées dans « wc »
+    // (dev = code du pays (kWcCountries), pub = catégorie Panini ; rareté : 2 commune, 3 rare, 4 légendaire toujours brillante)
+    final wc = <RcCard>[
+      for (var i = 0; i < kWcList.length; i++)
+        RcCard(
+          id: 'wc_${kWcList[i].$1.toString().padLeft(3, '0')}',
+          sys: 'wc',
+          num: i + 1, // place dans la liste (regroupée par pays)
+          title: kWcList[i].$2,
+          year: null,
+          dev: kWcList[i].$3,
+          pub: kWcList[i].$4,
+          genre: '',
+          rarity: kWcList[i].$5,
+          img: '${kWcList[i].$1.toString().padLeft(3, '0')}.jpg',
+          shot: null,
+          desc: '',
+        ),
+    ];
+    for (final c in wc) {
+      cards[c.id] = c;
+    }
+    bySys['wc'] = wc;
   }
 
   /// Charge le catalogue déjà téléchargé. Faux si rien en local (premier lancement).

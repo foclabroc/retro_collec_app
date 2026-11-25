@@ -58,6 +58,7 @@ begin
     'pk', (select count(distinct card) from rc_owned where device = v.device and card like 'pk\_%'),
     'da', (select count(distinct card) from rc_owned where device = v.device and card like 'da\_%'),
     'db', (select count(distinct card) from rc_owned where device = v.device and card like 'db\_%'),
+    'wc', (select count(distinct card) from rc_owned where device = v.device and card like 'wc\_%'),
     -- complétion par console / saga
     'compl', coalesce((select jsonb_agg(jsonb_build_object('sys', sys, 'have', have, 'total', total) order by have::numeric / total desc)
                          from (select c.sys, count(distinct o.card) filter (where o.device is not null) have, count(distinct c.id) total

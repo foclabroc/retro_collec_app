@@ -174,6 +174,7 @@ class _PacksScreenState extends State<PacksScreen> {
       'premium' => t('Paquet premium', 'Premium pack'),
       'mystery' => t('Paquet mystère', 'Mystery pack'),
       'dragonball' => t('Booster Dragon Ball', 'Dragon Ball booster'),
+      'football' => t('Booster Coupe du monde', 'World Cup booster'),
       _ => t('Paquet mixte', 'Mixed pack'),
     };
     final ok = await showDialog<bool>(
@@ -487,6 +488,8 @@ class _PacksScreenState extends State<PacksScreen> {
                     shop('mystery', t('Mystère', 'Mystery'), t('Mystère', 'Mystery'), t('3, 5 ou… 8 cartes ! Surprise à l\'ouverture', '3, 5 or… 8 cards! Surprise inside'), () => _open('mystery')),
                     shop('premium', 'Premium', 'Premium', t('5 cartes dont une rare ou mieux garantie', '5 cards, one rare or better guaranteed'), () => _open('premium')),
                     shop('dragonball', 'Dragon Ball', 'Dragon Ball', t('8 cartes Dragon Ball dont au moins une holo', '8 Dragon Ball cards, at least one holo'), () => _open('dragonball')),
+                    shop('football', t('Coupe du monde', 'World Cup'), t('Coupe du monde', 'World Cup'),
+                        t('8 joueurs de la Coupe du monde dont au moins une légendaire', '8 World Cup players, at least one legendary'), () => _open('football')),
                   ],
                 );
               }),
@@ -540,8 +543,8 @@ class _PacksScreenState extends State<PacksScreen> {
               const SizedBox(height: 8),
               Text(t('Finition brillante : ${livePct('holo')} · dorée : ${livePct('gold')} · full art (épiques et légendaires) : ${livePct('fullart')}', 'Holo finish: ${livePct('holo')} · gold: ${livePct('gold')} · full art (epic and legendary): ${livePct('fullart')}'), style: const TextStyle(color: Colors.white54, fontSize: 12)),
               const SizedBox(height: 4),
-              Text(t('Cartes spéciales, par carte : saga ${livePct('saga')} · Pokémon ${livePct('pk')} · Dessins animés ${livePct('da')} · Dragon Ball ${livePct('db')}',
-                      'Special cards, per card: saga ${livePct('saga')} · Pokémon ${livePct('pk')} · Cartoons ${livePct('da')} · Dragon Ball ${livePct('db')}'),
+              Text(t('Cartes spéciales, par carte : saga ${livePct('saga')} · Pokémon ${livePct('pk')} · Dessins animés ${livePct('da')} · Dragon Ball ${livePct('db')} · Coupe du monde ${livePct('wc')}',
+                      'Special cards, per card: saga ${livePct('saga')} · Pokémon ${livePct('pk')} · Cartoons ${livePct('da')} · Dragon Ball ${livePct('db')} · World Cup ${livePct('wc')}'),
                   style: const TextStyle(color: Colors.white54, fontSize: 12)),
               const SizedBox(height: 4),
               Text(t('Paquet premium : une rare ou mieux garantie · Dragon Ball : 8 cartes, au moins une holo · épique ou mieux garantie tous les 30 paquets',
@@ -562,6 +565,7 @@ const _kOfferColor = {
   'premium': Color(0xFF854F0B),
   'mystery': Color(0xFF8E2D8E),
   'dragonball': Color(0xFFE8641B),
+  'football': Color(0xFF1E9E4A),
   'gift': Color(0xFFD8453C),
   'lot': Color(0xFF534AB7),
 };
@@ -572,6 +576,7 @@ String _offerLabel(String kind) => switch (kind) {
       'premium' => 'Premium',
       'mystery' => t('Mystère', 'Mystery'),
       'dragonball' => 'Dragon Ball',
+      'football' => t('Coupe du monde', 'World Cup'),
       'gift' => t('Cadeau', 'Gift'),
       'lot' => t('Lot', 'Bundle'),
       _ => t('Mixte', 'Mixed'),
@@ -1114,6 +1119,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
                     'pokemon' => t('Booster Pokémon', 'Pokémon booster'),
                     'cartoon' => t('Booster Dessins animés', 'Cartoons booster'),
                     'dragonball' => t('Booster Dragon Ball', 'Dragon Ball booster'),
+                    'football' => t('Booster Coupe du monde', 'World Cup booster'),
                     'premium' => t('Paquet premium', 'Premium pack'),
                     'mystery' => t('Paquet mystère', 'Mystery pack'),
                     'gift' => t('Paquet cadeau', 'Gift pack'),
@@ -1460,6 +1466,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'pokemon' => const Color(0xFFE53935),
         'cartoon' => const Color(0xFF0288D1),
         'dragonball' => const Color(0xFFE8641B),
+        'football' => const Color(0xFF1E9E4A),
         'premium' => const Color(0xFF854F0B),
         'mystery' => const Color(0xFF8E2D8E),
         'gift' => const Color(0xFFD8453C),
@@ -1475,6 +1482,7 @@ class _PackOpeningPageState extends State<PackOpeningPage> with TickerProviderSt
         'pokemon' => 'Pokémon',
         'cartoon' => t('Dessins animés', 'Cartoons'),
         'dragonball' => 'Dragon Ball',
+        'football' => t('Coupe du monde', 'World Cup'),
         'premium' => t('Premium', 'Premium'),
         'mystery' => t('Mystère', 'Mystery'),
         'gift' => t('Cadeau', 'Gift'),
@@ -2867,6 +2875,7 @@ String? _specialBoosterImg(String? kind) => switch (kind) {
       'pokemon' => 'assets/booster_pokemon.webp',
       'cartoon' => 'assets/booster_da.webp',
       'dragonball' => 'assets/booster_db.webp',
+      'football' => 'assets/booster_wc.webp',
       _ => null,
     };
 

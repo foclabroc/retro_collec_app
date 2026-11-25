@@ -1,8 +1,8 @@
-create or replace function public.rc__tpool()
- returns table(kind text, t1 integer, t2 integer, t3 integer, ord integer)
- language sql
- immutable
-as $function$
+CREATE OR REPLACE FUNCTION public.rc__tpool()
+ RETURNS TABLE(kind text, t1 integer, t2 integer, t3 integer, ord integer)
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
   -- trophees a 3 paliers (bronze, argent, or) ; textes et icones dans lib/trophies.dart
   values ('packs', 25, 100, 500, 1), ('cards', 100, 400, 1000, 2), ('consoles', 1, 5, 29, 3),
          ('legend', 1, 10, 50, 4), ('fullart', 1, 10, 30, 5), ('fuse', 5, 25, 100, 6),
@@ -19,4 +19,7 @@ as $function$
          ('sunday', 1, 4, 12, 36), ('podium', 1, 5, 20, 37), ('score', 1000, 5000, 15000, 38),
          ('boosters', 5, 25, 100, 39),
          -- ajoute le 24/11
-         ('platine', 1, 5, 15, 40) $function$;
+         ('platine', 1, 5, 15, 40),
+         -- ajoute le 25/11
+         ('football', 50, 200, 580, 41) $function$
+

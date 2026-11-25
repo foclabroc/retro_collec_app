@@ -1,7 +1,9 @@
 # Pixel Trade — Changelog
 
 ## v1.0.55
-_Version 1.0.55+56. Pas de cadeau de version. SQL : `sql/2026-11-25_sagas_7.sql`._
+_Version 1.0.55+56. Pas de cadeau de version. SQL : `sql/2026-11-25_sagas_7.sql`, `sql/2026-11-25_serie_coupe_du_monde.sql` (100 % ASCII)._
+
+- ⚽ Série « Coupe du monde » (`wc`) : 580 joueurs des cartes Panini Adrenalyn XL FIFA World Cup 2026 (images centraldacopa.app, 600×840, `kWcBase` = `foclabroc.duckdns.org/wc/`, dans `D:\pixeltrade\wc`), 48 pays (`kWcCountries`, `lib/wc_list.dart` : numéro Panini, joueur, pays, catégorie, rareté ; dev = pays, pub = catégorie). Onglet « ⚽ Foot » (`mode` 6 de `library.dart`) : un dossier par pays (`_WcCountryTile`) → `WcCountryPage`. Rareté commune 2 / rare 3 / légendaire 4 toujours brillante. Booster `football` 400 pièces, 8 cartes (`rc__draw_wc`), tirage rare `wc` 0,15 % (`rc__saga_roll`), récompenses `packs.football` / `cards.wc`, trophée Sélectionneur 50 / 200 / 580, admin appli + web. Visuels `booster_wc.webp`, `card_back_wc.jpg` faits ici. Sans images sur le site : 27 Limited Edition / Momentum (non reprises).
 
 - 📚 7 sagas (25/11, `sql/2026-11-25_sagas_7.sql`) : Mega Man, Tetris, Rayman, Pac-Man, Metroid, Disney, Star Wars (`kSagas`, logos `assets/sagas/<id>.webp` : logos-titres de libretro-thumbnails, Disney fourni par l'utilisateur) ; trophées Sagas 1 / 5 / 19 et Fan de sagas 25 / 100 / 250.
 - 💿 Platine plus soignée (`PlatineFace`) : métal brossé fin et irrégulier (`_BrushedPainter`, dessiné une fois), dégradé qui suit l'inclinaison, biseaux éclairés (`_BevelPainter`), point de lumière mobile, logo gravé, PLATINE en métal. Ouverture : Platine toujours en dernière carte, dos serti de platine qui scintille (`CardBack(platine:)`, visible dans le tas), révélation comme une légendaire en argenté (« Platine ! », `_Pulled.fx` / `color`).
