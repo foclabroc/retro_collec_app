@@ -14,8 +14,6 @@ import 'update_check.dart';
 const _kNews = <(String, String, String)>[
   ('🔧', 'Échanges : un doublon de Platine n\'est plus annoncé à tort comme ton dernier exemplaire',
       'Trades: a duplicate Platinum card is no longer wrongly flagged as your last copy'),
-  ('🕹', 'Bornes : la prime de 20 pièces se gagne en battant le record d\'un autre joueur, 10 bornes par jour au plus',
-      'Cabinets: the 20-coin bonus is earned by beating another player\'s record, 10 cabinets a day at most'),
   ('#', 'Aussi depuis la 1.0.56', 'Also since 1.0.56'),
   ('⚽', 'Nouvel onglet « Foot » dans la Collection : 580 joueurs de la Coupe du monde 2026 rangés par pays (48 pays), avec leur booster Coupe du monde à 400 pièces (8 joueurs, au moins une légendaire) et un nouveau trophée',
       'New "Football" tab in the Collection: 580 World Cup 2026 players sorted by country (48 countries), with a World Cup booster for 400 coins (8 players, at least one legendary) and a new trophy'),

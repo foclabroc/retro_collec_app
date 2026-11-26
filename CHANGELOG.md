@@ -1,5 +1,9 @@
 # Pixel Trade — Changelog
 
+## Sans version (26/11)
+
+- 🕹 Prime des bornes : retour aux anciennes règles (`sql/2026-11-26_borne_prime_retour.sql`, lancé par Claude via l'outil SQL) : +20 pièces dès qu'on bat le record de la semaine d'une borne, une fois par jour et par borne, sans limite de bornes. Guide et Quoi de neuf remis.
+
 ## v1.0.57
 _Version 1.0.57+58. Pas de cadeau de version, pas de nouveau SQL._
 

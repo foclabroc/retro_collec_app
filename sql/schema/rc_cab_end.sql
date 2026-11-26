@@ -6,7 +6,7 @@ create or replace function public.rc_cab_end(p_device text, p_run bigint, p_scor
 as $function$
 declare
   x public.rc_cab_runs; o public.rc_players; me public.rc_players;
-  v_week date := public.rc__cab_week(); v_secs numeric; v_rate int; v_prev int; v_new boolean := false; v_prevdev text; v_gain int := 0; v_best int;
+  v_week date := public.rc__cab_week(); v_secs numeric; v_rate int; v_prev int; v_new boolean := false; v_gain int := 0; v_best int;
 begin
   perform public.rc__check(p_sig, p_device || '|cabend|' || coalesce(p_run, 0) || '|' || coalesce(p_score, 0));
   select * into x from public.rc_cab_runs where id = p_run for update;
@@ -23,16 +23,13 @@ begin
   select * into me from public.rc_players where device = p_device for update;
   -- la partie compte si la borne a toujours le même jeu
   if public.rc__cab_game(o.cab_game, o.pid) = x.game and p_score > 0 then
-    select r.score, r.device into v_prev, v_prevdev from public.rc__cab_rec(o.device, x.game) r;
+    select r.score into v_prev from public.rc__cab_rec(o.device, x.game) r;
     insert into public.rc_cab_best (owner, game, week, device, score, at)
     values (o.device, x.game, v_week, p_device, p_score, now())
     on conflict (owner, game, week, device) do update set score = excluded.score, at = excluded.at
       where public.rc_cab_best.score < excluded.score;
     v_new := p_score > coalesce(v_prev, 0);
-    if v_new and o.device <> p_device and not me.blocked
-       and v_prevdev is not null and v_prevdev <> p_device  -- record d'un autre joueur seulement
-       and (select count(*) from public.rc_cab_paid cp where cp.device = p_device and cp.day = public.rc__today())
-           < public.rc__cfg('cab_prime_max', 10) then
+    if v_new and o.device <> p_device and not me.blocked then
       insert into public.rc_cab_paid (owner, device, day) values (o.device, p_device, public.rc__today())
       on conflict do nothing;
       if found then
