@@ -12,6 +12,8 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎁', 'Cadeau du dimanche : un booster Coupe du monde en plus (4 boosters chaque dimanche)',
+      'Sunday gift: one more World Cup booster (4 boosters every Sunday)'),
   ('🔧', 'Échanges : un doublon de Platine n\'est plus annoncé à tort comme ton dernier exemplaire',
       'Trades: a duplicate Platinum card is no longer wrongly flagged as your last copy'),
   ('#', 'Aussi depuis la 1.0.56', 'Also since 1.0.56'),

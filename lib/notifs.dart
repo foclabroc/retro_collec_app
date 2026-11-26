@@ -31,7 +31,7 @@ class Notifs extends ChangeNotifier {
   int trophies = 0; // paliers de trophées à récupérer
   int reacts = 0; // réactions à mes nouvelles pas encore vues
   bool lotFree = false; // samedi : lot de 5 paquets gratuit
-  bool sunday = false; // dimanche : 3 boosters offerts à récupérer
+  bool sunday = false; // dimanche : 4 boosters offerts à récupérer
   int gifts = 0; // paquets cadeaux reçus à ouvrir
   int cardStock = 0; // cartes de récompense à ranger dans la collection
   String giftFrom = '';

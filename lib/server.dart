@@ -566,7 +566,7 @@ class RcServer {
     return _map(await _rpc('rc_buy_lot', {'p_device': d, 'p_sig': _sig('$d|lot')}));
   }
 
-  /// Cadeau du dimanche : 3 boosters (Pokémon, Dessins animés, Dragon Ball) dans les cadeaux reçus
+  /// Cadeau du dimanche : 4 boosters (Pokémon, Dessins animés, Dragon Ball, Coupe du monde) dans les cadeaux reçus
   static Future<Map<String, dynamic>> sundayClaim() async {
     final d = await deviceId();
     return _map(await _rpc('rc_sunday_claim', {'p_device': d, 'p_sig': _sig('$d|sunday')}));

@@ -220,14 +220,14 @@ class _PacksScreenState extends State<PacksScreen> {
   }
 
   /// Lot de 5 paquets mixtes : confirmation, achat, ouverture du 1er paquet ; les autres restent « en stock » si on quitte l'écran
-  /// Cadeau du dimanche : les 3 boosters vont dans les cadeaux reçus (à ouvrir comme les autres)
+  /// Cadeau du dimanche : les 4 boosters vont dans les cadeaux reçus (à ouvrir comme les autres)
   Future<void> _claimSunday() async {
     if (busy) return;
     setState(() => busy = true);
     try {
       await RcServer.sundayClaim();
       await Notifs.i.refresh();
-      if (mounted) toast(t('🎁 3 boosters ajoutés à tes cadeaux : Pokémon, Dessins animés, Dragon Ball', '🎁 3 boosters added to your gifts: Pokémon, Cartoons, Dragon Ball'));
+      if (mounted) toast(t('🎁 4 boosters ajoutés à tes cadeaux : Pokémon, Dessins animés, Dragon Ball, Coupe du monde', '🎁 4 boosters added to your gifts: Pokémon, Cartoons, Dragon Ball, World Cup'));
     } catch (e) {
       if (mounted) toast(errText(e));
       await Notifs.i.refresh();
@@ -2565,7 +2565,7 @@ class _ShopTile extends StatelessWidget {
 }
 
 /// Lot de 5 paquets : tuile pleine largeur, gratuit le samedi
-/// Cadeau du dimanche : un booster Pokémon, un Dessins animés et un Dragon Ball offerts chaque dimanche
+/// Cadeau du dimanche : un booster Pokémon, un Dessins animés, un Dragon Ball et un Coupe du monde offerts chaque dimanche
 class _SundayTile extends StatelessWidget {
   final bool ready, enabled;
   final VoidCallback onTap;
@@ -2597,9 +2597,10 @@ class _SundayTile extends StatelessWidget {
                 width: 96,
                 height: 84,
                 child: Stack(alignment: Alignment.center, children: [
-                  mini('assets/booster_pokemon.webp', -0.22, -26),
-                  mini('assets/booster_da.webp', 0.22, 26),
-                  mini('assets/booster_db.webp', 0, 0),
+                  mini('assets/booster_pokemon.webp', -0.3, -33),
+                  mini('assets/booster_wc.webp', 0.3, 33),
+                  mini('assets/booster_da.webp', -0.1, -11),
+                  mini('assets/booster_db.webp', 0.1, 11),
                 ]),
               ),
               const SizedBox(width: 12),
@@ -2607,7 +2608,7 @@ class _SundayTile extends StatelessWidget {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(t('Cadeau du dimanche', 'Sunday gift'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
                   const SizedBox(height: 3),
-                  Text(t('1 booster Pokémon, 1 Dessins animés et 1 Dragon Ball', '1 Pokémon, 1 Cartoons and 1 Dragon Ball booster'),
+                  Text(t('1 booster Pokémon, 1 Dessins animés, 1 Dragon Ball et 1 Coupe du monde', '1 Pokémon, 1 Cartoons, 1 Dragon Ball and 1 World Cup booster'),
                       style: const TextStyle(color: Color(0xFFF3D6C4), fontSize: 12)),
                   const SizedBox(height: 8),
                   ready

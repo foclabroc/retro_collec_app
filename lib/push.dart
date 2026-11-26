@@ -308,7 +308,7 @@ class PushWatch {
       // cadeau du dimanche (une fois, à partir de 9 h)
       if (r['sunday'] == true && old['sunDay'] != today && DateTime.now().hour >= 9) {
         msgs.add((9, t('🎁 C\'est dimanche !', '🎁 It\'s Sunday!'),
-            t('3 boosters offerts : Pokémon, Dessins animés et Dragon Ball', '3 free boosters: Pokémon, Cartoons and Dragon Ball')));
+            t('4 boosters offerts : Pokémon, Dessins animés, Dragon Ball et Coupe du monde', '4 free boosters: Pokémon, Cartoons, Dragon Ball and World Cup')));
       }
       // lot gratuit du samedi (une fois)
       if (r['lot_free'] == true && old['lotDay'] != today) {
