@@ -12,6 +12,8 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🎡', 'Roue de la fortune : gains revus, 100 pièces minimum (jusqu\'à 800, et 2 000 en roue dorée)',
+      'Wheel of fortune: prizes reworked, 100 coins minimum (up to 800, and 2,000 on the golden wheel)'),
   ('🎁', 'Cadeau du dimanche : un booster Coupe du monde en plus (4 boosters chaque dimanche)',
       'Sunday gift: one more World Cup booster (4 boosters every Sunday)'),
   ('#', 'Aussi depuis la 1.0.57', 'Also since 1.0.57'),

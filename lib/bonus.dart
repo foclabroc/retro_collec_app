@@ -29,30 +29,42 @@ class _Seg {
   const _Seg(this.label, this.coins, this.color, {this.rare = false});
 }
 
-const _segs = [
-  _Seg('40', 40, Color(0xFF3C6FD8)),
-  _Seg('100', 100, Color(0xFFE2A21F)),
+const _baseSegs = [
+  _Seg('100', 100, Color(0xFF3C6FD8)),
+  _Seg('200', 200, Color(0xFFE2A21F)),
   _Seg('CARTE', 0, Color(0xFF2FA36B)),
-  _Seg('60', 60, Color(0xFFD8453C)),
-  _Seg('200', 200, Color(0xFF8E5BD9)),
-  _Seg('80', 80, Color(0xFF2A9DB8)),
+  _Seg('120', 120, Color(0xFFD8453C)),
+  _Seg('300', 300, Color(0xFF8E5BD9)),
+  _Seg('150', 150, Color(0xFF2A9DB8)),
   _Seg('RARE', 0, Color(0xFFEF6F2E), rare: true),
-  _Seg('600', 600, Color(0xFFD4A017)),
+  _Seg('800', 800, Color(0xFFD4A017)),
   _Seg('POKÉMON', 0, Color(0xFFE53935)),
 ];
 
 /// Roue en or (tous les 7 jours de connexion d'affilée) : mêmes cases, gains doublés, JACKPOT
-const _goldSegs = [
-  _Seg('80', 80, Color(0xFFB8860B)),
-  _Seg('200', 200, Color(0xFFE6B422)),
+const _baseGoldSegs = [
+  _Seg('200', 200, Color(0xFFB8860B)),
+  _Seg('400', 400, Color(0xFFE6B422)),
   _Seg('CARTE', 0, Color(0xFFC9A227)),
-  _Seg('120', 120, Color(0xFFB07A10)),
-  _Seg('400', 400, Color(0xFFF2C94C)),
-  _Seg('160', 160, Color(0xFFA67C00)),
+  _Seg('240', 240, Color(0xFFB07A10)),
+  _Seg('600', 600, Color(0xFFF2C94C)),
+  _Seg('300', 300, Color(0xFFA67C00)),
   _Seg('ÉPIQUE', 0, Color(0xFFD99A00), rare: true),
   _Seg('JACKPOT', 2000, Color(0xFFFF4F79)),
   _Seg('POKÉMON', 0, Color(0xFFE53935)),
 ];
+
+/// Gains envoyés par le serveur (rc_notifs : wheel_p / wheel_pg), sinon ceux écrits ici
+List<_Seg> _withPrizes(List<_Seg> base, List<int>? p) {
+  if (p == null) return base;
+  return [
+    for (var i = 0; i < base.length; i++)
+      base[i].coins > 0 && base[i].label != 'JACKPOT' ? _Seg('${p[i]}', p[i], base[i].color, rare: base[i].rare) : base[i],
+  ];
+}
+
+List<_Seg> get _segs => _withPrizes(_baseSegs, Notifs.i.wheelP);
+List<_Seg> get _goldSegs => _withPrizes(_baseGoldSegs, Notifs.i.wheelPG);
 
 /// Roue en or : décidée par le serveur (1er tour du jour de série multiple de 7)
 bool get _goldDay => Notifs.i.wheelGold;

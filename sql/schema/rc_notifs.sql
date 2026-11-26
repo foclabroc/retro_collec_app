@@ -15,6 +15,7 @@ AS $function$
     'wheel', public.rc__wheel_in(p_device) = 0,
     'wheel_in', public.rc__wheel_in(p_device),
     'wheel_gold', public.rc__wheel_gold(p_device),
+    'wheel_p', to_jsonb(public.rc__wheel_p(false)), 'wheel_pg', to_jsonb(public.rc__wheel_p(true)),
     'gifts', (select count(*)::int from public.rc_gifts g where g.receiver = p_device and g.opened_at is null),
     'gift_from', (select g.giver_name from public.rc_gifts g where g.receiver = p_device and g.opened_at is null order by g.id desc limit 1),
     'cards', (select count(*)::int from public.rc_card_stock s where s.device = p_device and s.taken_at is null),

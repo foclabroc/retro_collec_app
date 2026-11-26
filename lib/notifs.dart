@@ -24,6 +24,7 @@ class Notifs extends ChangeNotifier {
   bool wheel = false; // tour de roue disponible
   bool wheelGold = false; // le prochain tour est en or
   int wheelLeft = 0; // secondes avant le prochain tour
+  List<int>? wheelP, wheelPG; // gains des cases (réglés par l'admin)
   bool canGift = false; // il reste des cadeaux à offrir aujourd'hui
   int giftsLeft = 0; // cadeaux encore à offrir aujourd'hui (3 par jour)
   int lots = 0; // paquets du lot encore à ouvrir
@@ -113,6 +114,9 @@ class Notifs extends ChangeNotifier {
       wheel = r['wheel'] == true;
       wheelGold = r['wheel_gold'] == true;
       wheelLeft = (r['wheel_in'] as num? ?? 0).toInt();
+      List<int>? ints(Object? v) => v is List && v.length == 9 ? [for (final x in v) (x as num).toInt()] : null;
+      wheelP = ints(r['wheel_p']) ?? wheelP;
+      wheelPG = ints(r['wheel_pg']) ?? wheelPG;
       canGift = r['can_gift'] == true;
       giftsLeft = (r['gifts_left'] as num? ?? (canGift ? 1 : 0)).toInt().clamp(0, 3);
       lots = (r['lots'] as num? ?? 0).toInt();

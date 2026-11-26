@@ -290,7 +290,19 @@ begin
        or (select sum(a::int) from jsonb_array_elements_text(j->'w') a) <> 100
        or (select sum(a::int) from jsonb_array_elements_text(j->'wg') a) <> 100 then
       raise exception 'les chances doivent faire 100 %% en tout'; end if;
-    insert into rc_config (key, value) values ('wheel', jsonb_build_object('w', j->'w', 'wg', j->'wg'))
+    if j ? 'p' then
+      if jsonb_array_length(j->'p') <> 9 or jsonb_array_length(j->'pg') <> 9 then raise exception 'il faut 9 cases'; end if;
+      if exists (select 1 from jsonb_array_elements_text(j->'p') a where a::int < 0 or a::int > 100000)
+         or exists (select 1 from jsonb_array_elements_text(j->'pg') a where a::int < 0 or a::int > 100000) then
+        raise exception 'gain entre 0 et 100 000 pieces'; end if;
+    end if;
+    insert into rc_config (key, value) values ('wheel',
+      coalesce((select value from rc_config where key = 'wheel'), '{}'::jsonb)
+      || jsonb_build_object('w', j->'w', 'wg', j->'wg')
+      || case when j ? 'p' then jsonb_build_object(
+           'p', (select jsonb_agg(case when i in (3, 7, 9) then 0 else a::int end order by i) from jsonb_array_elements_text(j->'p') with ordinality x(a, i)),
+           'pg', (select jsonb_agg(case when i in (3, 7, 9) then 0 else a::int end order by i) from jsonb_array_elements_text(j->'pg') with ordinality x(a, i)))
+         else '{}'::jsonb end) -- wheel_pv
     on conflict (key) do update set value = excluded.value;
     return jsonb_build_object('ok', true);
   when 'solo_set' then

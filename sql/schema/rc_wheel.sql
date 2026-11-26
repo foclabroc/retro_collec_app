@@ -22,10 +22,10 @@ begin
   -- 9 cases : 0 petit, 1, 2 carte, 3, 4, 5, 6 rare (épique en or), 7 gros lot (JACKPOT en or), 8 carte Pokémon
   if gold then
     w := public.rc__wheel_w('wg', array[19, 15, 14, 17, 10, 12, 6, 3, 4]);
-    prize := array[80, 200, 0, 120, 400, 160, 0, 2000, 0];
+    prize := public.rc__wheel_p(true);
   else
     w := public.rc__wheel_w('w', array[22, 15, 12, 19, 8, 14, 4, 3, 3]);
-    prize := array[40, 100, 0, 60, 200, 80, 0, 600, 0];
+    prize := public.rc__wheel_p(false);
   end if;
   for k in 1..9 loop
     acc := acc + w[k];

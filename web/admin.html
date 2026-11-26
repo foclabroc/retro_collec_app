@@ -1219,8 +1219,9 @@ const DEFI = { open: '📦 Ouvrir des paquets', gift: '🎁 Envoyer des cadeaux'
 const TROPH = { platine: '💿 Platine', packs: '📦 Paquets', cards: '🃏 Cartes', consoles: '🎮 Consoles', legend: '🟧 Légendaires', fullart: '✨ Full art', fuse: '⚡ Fusions', wins: '🏆 Victoires', gifts: '🎁 Cadeaux', sales: '🏦 Ventes', trades: '🤝 Échanges', gamedle: '🧩 Gamedle', chest: '🧰 Coffres', sagas: '📚 Sagas', days: '📅 Jours', epics: '🟪 Épiques', holo: '🌈 Brillantes', gold: '🟨 Dorées', recycle: '♻️ Recyclage', quiz: '❓ Quiz', played: '⚔️ Duels joués', defis: '🎯 Défis', premium: '💎 Premium', buys: '🛒 Achats', firsttry: '🎯 Gamedle 1er coup', tourney: '🏅 Tournois', pioche: '🃏 Pioches', express: '⚡ Express', wheel: '🎡 Roue', pokemon: '⚡ Pokémon', react: '👍 Réactions', craft: '🔨 Fabrication', sagacards: '📚 Cartes de saga' };
 const SANC = { block: '⛔ Blocage complet', mute: '🔇 Muet (chat)', trade: '🏦 Bourse, cadeaux et échanges interdits', duel: '⚔️ Duels et tournois interdits', warn: '⚠️ Avertissement' };
 const DUR = [[1, '1 h'], [6, '6 h'], [24, '24 h'], [72, '3 jours'], [168, '7 jours'], [336, '14 jours'], [720, '30 jours'], [-1, 'Définitif']];
-const WSEG = ['40 pièces', '100 pièces', 'Carte', '60 pièces', '200 pièces', '80 pièces', 'Carte rare', 'Gros lot 600', 'Carte Pokémon'];
-const WSEGG = ['80 pièces', '200 pièces', 'Carte rare', '120 pièces', '400 pièces', '160 pièces', 'Carte épique', 'JACKPOT 2 000 + légendaire', 'Carte Pokémon'];
+const WSEG = ['Case 1', 'Case 2', 'Carte', 'Case 4', 'Case 5', 'Case 6', 'Carte rare', 'Gros lot', 'Carte Pokémon'];
+const WSEGG = ['Case 1', 'Case 2', 'Carte rare', 'Case 4', 'Case 5', 'Case 6', 'Carte épique', 'JACKPOT + légendaire', 'Carte Pokémon'];
+const WCARD = [2, 6, 8]; // cases carte : pas de pièces
 const WCOL = ['#3fd0ff', '#3ee08f', '#ffcc33', '#ff9f40', '#b07cff', '#5b6080', '#ff5a6e', '#ffe680', '#ff3d7f'];
 const pidSel = (id, ph = 'Pseudo du joueur') => `<input list="${id}_dl" id="${id}" placeholder="${ph}"><datalist id="${id}_dl">${(PL || []).map(p => `<option value="${esc(p.name)}">`).join('')}</datalist>`;
 const pidOf = name => (PL || []).find(p => p.name === name)?.pid;
@@ -1424,13 +1425,13 @@ PAGES.bonus = async el => {
   el.innerHTML = loading;
   const C = await cfg();
   const live = C.live || {};
-  const wheel = (id, w, labels) => `<div class="row" style="align-items:flex-start;gap:18px"><div id="${id}_pie" style="width:170px;height:170px;border-radius:50%;border:4px solid var(--acc);flex:none"></div><div style="flex:1;min-width:240px"><table><tbody>${w.map((v, i) => `<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${WCOL[i]}"></span> ${labels[i]}</td><td class="r"><select class="${id}_w" style="width:auto">${opt(withCur([0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 15, 17, 19, 20, 22, 25, 30, 40], v), v)}</select></td></tr>`).join('')}</tbody></table><div class="small mt" id="${id}_tot"></div></div></div>`;
+  const wheel = (id, w, labels, p) => `<div class="row" style="align-items:flex-start;gap:18px"><div id="${id}_pie" style="width:170px;height:170px;border-radius:50%;border:4px solid var(--acc);flex:none"></div><div style="flex:1;min-width:280px"><table><thead><tr><th>Case</th><th class="r">Pièces</th><th class="r">Chance</th></tr></thead><tbody>${w.map((v, i) => `<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${WCOL[i]}"></span> ${labels[i]}</td><td class="r">${WCARD.includes(i) ? '<span class="mute">—</span>' : `<input type="number" min="0" max="100000" step="10" class="${id}_p" data-i="${i}" value="${p[i]}" style="width:90px">`}</td><td class="r"><select class="${id}_w" style="width:auto">${opt(withCur([0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 15, 17, 19, 20, 22, 25, 30, 40], v), v)}</select></td></tr>`).join('')}</tbody></table><div class="small mt" id="${id}_tot"></div></div></div>`;
   el.innerHTML = `<div class="grid g2">
     <div class="card"><h3>🎡 Roue de la fortune <span class="mute small">· ${fr(C.wheel.spins7)} tours en 7 j</span></h3>
-      <h4>Roue normale (chances en %)</h4>${wheel('wn', C.wheel.w, WSEG)}
-      <h4>Roue dorée (série de 7 jours)</h4>${wheel('wgd', C.wheel.wg, WSEGG)}
-      <div class="row mt"><button class="btn p" id="wh_go">💾 Enregistrer les chances</button></div>
-      <div class="note mt">Les gains des cases sont écrits dans l'appli (lecture seule ici). Chaque roue doit faire 100 %.</div></div>
+      <h4>Roue normale</h4>${wheel('wn', C.wheel.w, WSEG, C.wheel.p || [100, 200, 0, 120, 300, 150, 0, 800, 0])}
+      <h4>Roue dorée (série de 7 jours)</h4>${wheel('wgd', C.wheel.wg, WSEGG, C.wheel.pg || [200, 400, 0, 240, 600, 300, 0, 2000, 0])}
+      <div class="row mt"><button class="btn p" id="wh_go">💾 Enregistrer gains et chances</button></div>
+      <div class="note mt">Pièces par case (les cases carte n'en donnent pas ; le JACKPOT doré donne ses pièces + une légendaire). Chaque roue doit faire 100 %. Les appli 1.0.58 et plus affichent les nouveaux gains sur la roue ; les plus anciennes versent les bons gains mais affichent les anciens chiffres.</div></div>
     <div class="grid">
       <div class="card"><h3>⏱️ Délais</h3>
         <div class="f2"><div><label>Paquet gratuit : toutes les</label><select id="fh">${opt(withCur([[1, '1 h'], [2, '2 h'], [3, '3 h'], [4, '4 h'], [6, '6 h (normal)'], [8, '8 h'], [12, '12 h'], [24, '24 h']], live.free_hours ?? 6), live.free_hours ?? 6)}</select></div>
@@ -1443,7 +1444,7 @@ PAGES.bonus = async el => {
     </div></div>`;
   const pie = id => { const v = $$('.' + id + '_w', el).map(s => +s.value); const t = v.reduce((a, b) => a + b, 0); let acc = 0; $('#' + id + '_pie').style.background = 'conic-gradient(' + v.map((x, i) => { const s = acc; acc += x / (t || 1) * 100; return `${WCOL[i]} ${s}% ${acc}%`; }).join(',') + ')'; const e = $('#' + id + '_tot'); e.textContent = `Total : ${t} %${t === 100 ? ' ✔' : ' — doit faire 100 %'}`; e.style.color = t === 100 ? 'var(--ok)' : 'var(--warn)'; return t; };
   ['wn', 'wgd'].forEach(id => { $$('.' + id + '_w', el).forEach(s => s.onchange = () => pie(id)); pie(id); });
-  $('#wh_go').onclick = async () => { if (pie('wn') !== 100 || pie('wgd') !== 100) return toast('Chaque roue doit faire 100 %', true); await act(() => X('wheel_set', { w: $$('.wn_w', el).map(s => +s.value), wg: $$('.wgd_w', el).map(s => +s.value) }), 'Chances enregistrées'); };
+  $('#wh_go').onclick = async () => { if (pie('wn') !== 100 || pie('wgd') !== 100) return toast('Chaque roue doit faire 100 %', true); const pv = id => { const p = Array(9).fill(0); $$('.' + id + '_p', el).forEach(e => p[+e.dataset.i] = Math.max(0, Math.round(+e.value || 0))); return p; }; await act(() => X('wheel_set', { w: $$('.wn_w', el).map(s => +s.value), wg: $$('.wgd_w', el).map(s => +s.value), p: pv('wn'), pg: pv('wgd') }), 'Roue enregistrée'); };
   $('#dl_go').onclick = () => act(() => X('live2', { free_hours: +$('#fh').value, wheel_hours: +$('#whh').value }), 'Délais enregistrés');
   $('#sp_go').onclick = () => act(() => X('solo_set', { 1: rwRead($('#sp1')), 2: rwRead($('#sp2')), 3: rwRead($('#sp3')) }), 'Lots enregistrés');
 };

@@ -17,6 +17,7 @@ create or replace function public.rc__adm_cfg()
                         from rc__express_def(rc__today()) d),
     'wheel', jsonb_build_object('w', to_jsonb(rc__wheel_w('w', array[22, 15, 12, 19, 8, 14, 4, 3, 3])),
                                 'wg', to_jsonb(rc__wheel_w('wg', array[19, 15, 14, 17, 10, 12, 6, 3, 4])),
+                                'p', to_jsonb(rc__wheel_p(false)), 'pg', to_jsonb(rc__wheel_p(true)),
                                 'spins7', (select count(*) from rc_activity where kind = 'wheel' and at > now() - interval '7 days')),
     'solo_prize', jsonb_build_object('1', rc__rj_solo_prize(1), '2', rc__rj_solo_prize(2), '3', rc__rj_solo_prize(3)),
     'alerts', coalesce((select value from rc_config where key = 'alerts'), '{}'::jsonb),
