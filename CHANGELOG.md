@@ -1,6 +1,8 @@
 # Pixel Trade — Changelog
 
-## Sans version (26/11)
+## v1.0.58
+
+_Version 1.0.58+59. Pas de cadeau de version. SQL : `sql/2026-11-26_dimanche_foot.sql`, `sql/2026-11-26_borne_prime_retour.sql` (lancés)._
 
 - 🎁 Cadeau du dimanche + 1 booster Coupe du monde (`sql/2026-11-26_dimanche_foot.sql`, lancé par Claude via l'outil SQL : `rc_sunday_claim`) ; textes de la tuile (4 boosters), du toast, de la notification Android, du Guide et du Quoi de neuf.
 - 🕹 Prime des bornes : retour aux anciennes règles (`sql/2026-11-26_borne_prime_retour.sql`, lancé par Claude via l'outil SQL) : +20 pièces dès qu'on bat le record de la semaine d'une borne, une fois par jour et par borne, sans limite de bornes. Guide et Quoi de neuf remis.
