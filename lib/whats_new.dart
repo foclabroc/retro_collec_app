@@ -12,6 +12,9 @@ import 'update_check.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _kNews = <(String, String, String)>[
+  ('🖼', 'Android : les cartes Coupe du monde, Dragon Ball, Pokémon et Dessins animés ne restent plus noires à l\'ouverture d\'un booster',
+      'Android: World Cup, Dragon Ball, Pokémon and Cartoon cards no longer stay black when opening a booster'),
+  ('#', 'Aussi depuis la 1.0.58', 'Also since 1.0.58'),
   ('🎡', 'Roue de la fortune : gains revus, 100 pièces minimum (jusqu\'à 800, et 2 000 en roue dorée)',
       'Wheel of fortune: prizes reworked, 100 coins minimum (up to 800, and 2,000 on the golden wheel)'),
   ('🎁', 'Cadeau du dimanche : un booster Coupe du monde en plus (4 boosters chaque dimanche)',

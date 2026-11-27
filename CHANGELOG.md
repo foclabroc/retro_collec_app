@@ -1,10 +1,15 @@
 # Pixel Trade — Changelog
 
+## v1.0.59
+
+_Version 1.0.59+60. Pas de SQL ni de cadeau._
+
+- 🖼 Android : images des séries (Coupe du monde, Dragon Ball, Pokémon, Animés) téléchargées une seule fois avec 3 essais (cartes noires à l'ouverture sur connexion lente)
+
 ## v1.0.58
 
 _Version 1.0.58+59. Pas de cadeau de version. SQL : `sql/2026-11-26_dimanche_foot.sql`, `sql/2026-11-26_borne_prime_retour.sql`, `sql/2026-11-26_roue_gains.sql` (lancés)._
 
-- 🖼 Android : images des séries (Coupe du monde, Dragon Ball, Pokémon, Animés) téléchargées une seule fois avec 3 essais (cartes noires à l'ouverture sur connexion lente)
 - 🎡 Roue : gains 100 / 200 / 120 / 300 / 150 / 800 (dorée ×2, JACKPOT 2 000), réglables dans l'outil admin web (`sql/2026-11-26_roue_gains.sql`, lancé)
 
 - 🎁 Cadeau du dimanche + 1 booster Coupe du monde (`sql/2026-11-26_dimanche_foot.sql`, lancé par Claude via l'outil SQL : `rc_sunday_claim`) ; textes de la tuile (4 boosters), du toast, de la notification Android, du Guide et du Quoi de neuf.
