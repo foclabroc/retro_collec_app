@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show SynchronousFuture, consolidateHttpClientResponseBytes, kIsWeb;
@@ -312,15 +313,44 @@ class Catalog {
       ? (kIsWeb ? CachedWebImage('${kSeriesBase[c.sys]}${c.img}') : _seriesImage(c.sys, c.img))
       : kIsWeb ? CachedWebImage(_url(c.img, c.baseSys ?? c.sys)) : FileImage(File('$dir/${c.img}')) as ImageProvider;
 
-  static final Set<String> _pkBusy = {};
-
   /// Android : image d'une série (Pokémon, Dessins animés) gardée sur le disque (téléchargée une seule fois),
   /// sinon en ligne le temps de la copie
   static ImageProvider _seriesImage(String sys, String img) {
     final f = File('$dir/$sys/$img');
     if (f.existsSync()) return FileImage(f);
-    seriesFetch(sys, [img]);
-    return NetworkImage('${kSeriesBase[sys]}$img');
+    return _SeriesNetImage(sys, img);
+  }
+
+  /// Un seul téléchargement par image à la fois (affichage + préchargement partagent le même)
+  static final Map<String, Future<Uint8List?>> _dl = {};
+
+  /// Image d'une série : fichier local, sinon téléchargée (3 essais, 20 s chacun) puis gardée sur le disque
+  static Future<Uint8List?> seriesBytes(String sys, String img) {
+    final f = File('$dir/$sys/$img');
+    if (f.existsSync()) return f.readAsBytes();
+    final k = '$sys/$img';
+    return _dl[k] ??= () async {
+      try {
+        final base = kSeriesBase[sys];
+        if (base == null) return null;
+        for (var i = 0; i < 3; i++) {
+          try {
+            final r = await http.get(Uri.parse('$base$img')).timeout(const Duration(seconds: 20));
+            if (r.statusCode == 200 && r.bodyBytes.isNotEmpty) {
+              try {
+                await f.parent.create(recursive: true);
+                await f.writeAsBytes(r.bodyBytes, flush: true);
+              } catch (_) {}
+              return r.bodyBytes;
+            }
+          } catch (_) {}
+          await Future.delayed(Duration(seconds: 1 + i * 2));
+        }
+        return null;
+      } finally {
+        _dl.remove(k);
+      }
+    }();
   }
 
   /// Prépare les images de ces cartes avant de les montrer (ouverture d'un paquet) : sans ça, les images
@@ -351,20 +381,11 @@ class Catalog {
 
   /// Télécharge à l'avance les images d'une série (Android ; le web a son cache)
   static Future<void> seriesFetch(String sys, Iterable<String> imgs) async {
-    if (kIsWeb) return;
-    final base = kSeriesBase[sys];
-    if (base == null) return;
-    for (final img in imgs) {
-      final f = File('$dir/$sys/$img');
-      if (f.existsSync() || !_pkBusy.add('$sys/$img')) continue;
-      try {
-        final r = await http.get(Uri.parse('$base$img'));
-        if (r.statusCode == 200 && r.bodyBytes.isNotEmpty) {
-          await f.parent.create(recursive: true);
-          await f.writeAsBytes(r.bodyBytes, flush: true);
-        }
-      } catch (_) {}
-      _pkBusy.remove('$sys/$img');
+    if (kIsWeb || kSeriesBase[sys] == null) return;
+    // 4 à la fois : les cartes d'un paquet arrivent ensemble sans saturer une connexion lente
+    final todo = [for (final img in imgs) if (!File('$dir/$sys/$img').existsSync()) img];
+    for (var i = 0; i < todo.length; i += 4) {
+      await Future.wait([for (final img in todo.skip(i).take(4)) seriesBytes(sys, img)]);
     }
   }
 
@@ -648,4 +669,35 @@ class CachedWebImage extends ImageProvider<CachedWebImage> {
 
   @override
   int get hashCode => url.hashCode;
+}
+
+
+/// Image d'une série pas encore sur le disque (Android) : attend le téléchargement partagé de
+/// [Catalog.seriesBytes] (avec nouveaux essais) au lieu d'un second téléchargement sans nouvel essai.
+/// En cas d'échec, l'image sort du cache : le prochain affichage réessaie.
+class _SeriesNetImage extends ImageProvider<_SeriesNetImage> {
+  final String sys, img;
+  const _SeriesNetImage(this.sys, this.img);
+
+  @override
+  Future<_SeriesNetImage> obtainKey(ImageConfiguration configuration) => SynchronousFuture(this);
+
+  @override
+  ImageStreamCompleter loadImage(_SeriesNetImage key, ImageDecoderCallback decode) =>
+      MultiFrameImageStreamCompleter(codec: _load(decode), scale: 1);
+
+  Future<ui.Codec> _load(ImageDecoderCallback decode) async {
+    final b = await Catalog.seriesBytes(sys, img);
+    if (b == null || b.isEmpty) {
+      PaintingBinding.instance.imageCache.evict(this);
+      throw StateError('image $sys/$img indisponible');
+    }
+    return decode(await ui.ImmutableBuffer.fromUint8List(b));
+  }
+
+  @override
+  bool operator ==(Object other) => other is _SeriesNetImage && other.sys == sys && other.img == img;
+
+  @override
+  int get hashCode => Object.hash(sys, img);
 }
